@@ -4,8 +4,10 @@
 [ext_resource type="Script" path="res://Enemy/Scripts/mob.gd" id="2_mcyab"]
 [ext_resource type="Texture2D" uid="uid://b8r4u7aikv5rx" path="res://Textures/Enemy/Ship_1_D_Small_NoLight.png" id="2_onp4f"]
 
-[node name="mob2" instance=ExtResource("1_r33oa")]
+[node name="mob1" instance=ExtResource("1_r33oa")]
 script = ExtResource("2_mcyab")
+vertical_speed = 600.0
+max_health = 200
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_onp4f")

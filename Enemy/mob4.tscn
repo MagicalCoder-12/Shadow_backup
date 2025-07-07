@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://1lf4iac34pgb"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_rjmn7"]
-[ext_resource type="Script" uid="uid://c7qu6uln5ef1y" path="res://Enemy/Scripts/mob.gd" id="2_2j5if"]
+[ext_resource type="Script" path="res://Enemy/Scripts/mob.gd" id="2_2j5if"]
 [ext_resource type="Texture2D" uid="uid://dkh5xujg7i4mj" path="res://Textures/Enemy/Ship_1_A_Small_NoLight.png" id="3_wkgsk"]
 
-[node name="mob5" instance=ExtResource("1_rjmn7")]
+[node name="mob4" instance=ExtResource("1_rjmn7")]
 script = ExtResource("2_2j5if")
 
 [node name="Sprite2D" parent="." index="0"]

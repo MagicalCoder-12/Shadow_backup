@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://m4hqp78bi33k"]
 
 [ext_resource type="Texture2D" uid="uid://bs3q0ved63kve" path="res://Textures/Enemy/Ship2/Ship2.png" id="1_cldih"]
-[ext_resource type="Script" uid="uid://je6wuamt4d4s" path="res://Satellites/satellite.gd" id="1_fg3ep"]
+[ext_resource type="Script" path="res://Satellites/satellite.gd" id="1_fg3ep"]
 [ext_resource type="Texture2D" uid="uid://dtpayeuwncpve" path="res://Textures/Enemy/Ship2/Parts/ship2_detail.png" id="2_fg3ep"]
 
 [sub_resource type="Animation" id="Animation_c1rle"]

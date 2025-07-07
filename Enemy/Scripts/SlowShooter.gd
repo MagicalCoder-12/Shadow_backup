@@ -206,17 +206,19 @@ func _create_charge_effects():
 # Create particle effects for charging
 func _create_charge_particles():
 	for i in range(8):
-		var particle = ColorRect.new()
-		particle.size = Vector2(4, 4)
-		particle.color = Color(1.0, 1.0, 0.5, 0.8)
+		var particle = Sprite2D.new()
+		# Use a small texture for the particle (create or load one)
+		particle.texture =preload("res://Textures/starSmall.png") # Replace with your texture path
+		particle.scale = Vector2(4, 4) / 16.0  # Adjust scale to match 4x4 size (assuming texture is 16x16)
+		particle.modulate = Color(1.0, 1.0, 0.5, 0.8)
 		if is_shadow_enemy:
-			particle.color = Color(0.8, 0.5, 1.0, 0.8)
+			particle.modulate = Color(0.8, 0.5, 1.0, 0.8)
 		
 		var angle = i * PI * 2 / 8
 		var radius = 40
 		particle.position = Vector2(
-			cos(angle) * radius - 2,
-			sin(angle) * radius - 2
+			cos(angle) * radius,
+			sin(angle) * radius
 		)
 		
 		add_child(particle)
@@ -225,9 +227,8 @@ func _create_charge_particles():
 		# Animate particles moving inward
 		var particle_tween = create_tween()
 		particle_tween.set_loops()
-		particle_tween.tween_property(particle, "position", Vector2(-2, -2), charge_shot_duration)
+		particle_tween.tween_property(particle, "position", Vector2.ZERO, charge_shot_duration)
 		particle_tween.tween_property(particle, "position", particle.position, 0.1)
-
 # Execute the charged shot
 func _execute_charge_shot():
 	if not is_charging_shot:

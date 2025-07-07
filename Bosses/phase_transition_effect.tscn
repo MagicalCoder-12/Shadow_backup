@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://dhdbf6qwy52sr"]
 
 [ext_resource type="Texture2D" uid="uid://ds7858ccb1vi5" path="res://Textures/Boss/smoke_01.png" id="1_0luwn"]
-[ext_resource type="Script" uid="uid://bjvq6p3gm8lt3" path="res://Bosses/Scripts/phase_transition_effect.gd" id="1_vwnen"]
+[ext_resource type="Script"  path="res://Bosses/Scripts/phase_transition_effect.gd" id="1_vwnen"]
 
 [sub_resource type="Gradient" id="Gradient_vwnen"]
 offsets = PackedFloat32Array(0, 0.513333, 1)

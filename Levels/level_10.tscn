@@ -9,6 +9,3 @@ level_num = 10
 
 [node name="Player" parent="." index="2"]
 position = Vector2(581, 2044)
-
-[node name="WaveManager" parent="." index="6"]
-current_level = 1

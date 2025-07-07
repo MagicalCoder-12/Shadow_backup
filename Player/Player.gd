@@ -1,6 +1,9 @@
 extends Area2D
 class_name Player
 
+@warning_ignore("unused_signal")
+signal victory_pose_done()
+
 # Preloaded scenes
 var plBullet: PackedScene = preload("res://Bullet/Bullet.tscn")
 var plSuperBullet: PackedScene = preload("res://Bullet/super_bullet.tscn")
@@ -16,6 +19,7 @@ var shadow_texture: Texture2D = preload("res://Textures/player/Spaceships-13/spa
 @onready var satellite: Node2D = $Sprite2D/Satellite
 @onready var satellite_2: Node2D = $Sprite2D/Satellite2
 @onready var power_up_notification: Label = $PowerUpNotification
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 # Exported variables
 @export var speed: float = 500.0
@@ -51,10 +55,11 @@ var input_enabled := true
 func _ready() -> void:
 	# Sync lives with GameManager
 	lives = GameManager.player_lives
-	print("Player lives synced to: %d in _ready" % lives)
 	if GameManager.autosave_progress:
 		GameManager.save_progress()
 	sprite_2d.show()
+	sprite_2d.scale = Vector2(1.0, 1.0)
+
 	# Cache original texture and speed
 	if sprite_2d:
 		original_texture = sprite_2d.texture
@@ -71,6 +76,13 @@ func _ready() -> void:
 		push_error("Invalid plBullet scene")
 	if not plSuperBullet or not plSuperBullet.can_instantiate():
 		push_error("Invalid plSuperBullet scene")
+		
+	var level_manager = get_tree().get_first_node_in_group("LevelManager")
+	if level_manager:
+		level_manager.Victory_pose.connect(_on_victory_pose)
+	else:
+		push_warning("LevelManager not found in group!")
+
 
 	# Set up super mode timer
 	super_mode_timer = Timer.new()
@@ -80,7 +92,6 @@ func _ready() -> void:
 	super_mode_timer.timeout.connect(_on_super_mode_timeout)
 
 	# Connect signals
-	area_entered.connect(_on_area_entered)
 	GameManager.on_player_life_changed.connect(_on_player_life_changed)
 	GameManager.game_over_triggered.connect(_on_game_over_triggered)
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
@@ -465,10 +476,16 @@ func _on_game_over_triggered() -> void:
 	is_alive = false
 	queue_free()
 	
+func _on_victory_pose():
+		animation_player.play("Player_sweep")
+		
 func _on_level_completed(_level_num):
 	input_enabled = false
 	GameManager.player_stats["attack_level"] = 0
 	GameManager.player_stats["bullet_damage"] = GameManager.DEFAULT_BULLET_DAMAGE
 	if GameManager.autosave_progress:
 		GameManager.save_progress()
-	
+
+func _on_animation_player_animation_finished(anim_name: StringName) -> void:
+	if anim_name == "Player_sweep":
+		emit_signal("victory_pose_done", anim_name)

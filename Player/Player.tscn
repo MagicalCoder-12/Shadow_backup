@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://lff5yob7g21k"]
+[gd_scene load_steps=26 format=3 uid="uid://lff5yob7g21k"]
 
 [ext_resource type="Texture2D" uid="uid://dhvsoxv2myxwo" path="res://Textures/player/Spaceships-13/spaceships/h-02.png" id="1"]
 [ext_resource type="Script" path="res://Player/Player.gd" id="2"]
@@ -81,6 +81,66 @@ animations = [{
 radius = 57.0
 height = 154.476
 
+[sub_resource type="Animation" id="Animation_yixmy"]
+resource_name = "Player_sweep"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(8, -2484)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.466667, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.88939, 2.4929), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_kcxub"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1.33758, 1.75742)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_02602"]
+_data = {
+"Player_sweep": SubResource("Animation_yixmy"),
+"RESET": SubResource("Animation_kcxub")
+}
+
 [node name="Player" type="Area2D" groups=["Player"]]
 z_index = 100
 collision_mask = 14
@@ -88,6 +148,7 @@ script = ExtResource("2")
 speed = 2000.0
 touch_speed = 500.0
 smoothness = 0.3
+max_life = 4
 shadow_fire_delay_multiplier = 0.1
 spread_angle_increment = 10.0
 super_mode_damage_boost = 2
@@ -95,12 +156,12 @@ super_mode_fire_delay = 0.1
 shadow_bullet_count = 25
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(1.2, 1.2)
+scale = Vector2(1.33758, 1.75742)
 texture = ExtResource("1")
 
 [node name="Thruster" type="AnimatedSprite2D" parent="Sprite2D"]
-position = Vector2(0, 93.3333)
-scale = Vector2(0.25, 0.25)
+position = Vector2(-0.999978, 98.9999)
+scale = Vector2(0.313265, 0.3)
 sprite_frames = SubResource("SpriteFrames_eennk")
 autoplay = "default"
 
@@ -171,4 +232,11 @@ text = "OVERCLOCKED"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_02602")
+}
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="timeout" from="InvincibilityTimer" to="." method="_on_invincibility_timer_timeout"]
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_player_animation_finished"]

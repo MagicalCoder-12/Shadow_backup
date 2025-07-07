@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://cvvlbkjb4octd"]
 
-[ext_resource type="Script" uid="uid://ju8ovxiuc8eu" path="res://UI/video_playback.gd" id="1_3k1vg"]
+[ext_resource type="Script"  path="res://UI/video_playback.gd" id="1_3k1vg"]
 [ext_resource type="VideoStream" path="res://UI/Shadow_Avengers.ogv" id="2_3k1vg"]
 [ext_resource type="Texture2D" uid="uid://ekb8bjrc7d6o" path="res://UI/Neon _SKIP_ Sign Glow.png" id="2_vu4hm"]
 

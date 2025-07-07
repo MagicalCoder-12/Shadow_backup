@@ -20,65 +20,65 @@ shader = ExtResource("3_l63sq")
 shader_parameter/direction = Vector2(0, -1.5)
 shader_parameter/speed_scale = 0.1
 
-[sub_resource type="Resource" id="Resource_m3xjx"]
+[sub_resource type="Resource" id="Resource_5nt20"]
 script = ExtResource("2_2hkqn")
-formation_type = 0
-entry_pattern = 0
+formation_type = 7
+entry_pattern = 6
 difficulty = 1
-enemy_type = "mob1"
-enemy_density = "Normal"
+enemy_type = "SlowShooter"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
-formation_spacing = 80.0
+formation_spacing = 150.0
 spawn_delay = 0.3
-entry_speed = 1000.0
+entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_4tp1n"]
+[sub_resource type="Resource" id="Resource_nv5vc"]
 script = ExtResource("2_2hkqn")
-formation_type = 2
-entry_pattern = 3
-difficulty = 1
-enemy_type = "mob2"
-enemy_density = "Normal"
+formation_type = 6
+entry_pattern = 7
+difficulty = 3
+enemy_type = "FastEnemy"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 80.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_tk485"]
+[sub_resource type="Resource" id="Resource_0l8a1"]
 script = ExtResource("2_2hkqn")
-formation_type = 1
-entry_pattern = 1
-difficulty = 1
-enemy_type = "mob3"
-enemy_density = "Sparse"
+formation_type = 5
+entry_pattern = 5
+difficulty = 3
+enemy_type = "BouncerEnemy"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 80.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_7181y"]
+[sub_resource type="Resource" id="Resource_51jnw"]
 script = ExtResource("2_2hkqn")
 formation_type = 4
-entry_pattern = 5
+entry_pattern = 4
 difficulty = 1
-enemy_type = "mob4"
-enemy_density = "Normal"
+enemy_type = "mob1"
+enemy_density = "Dense"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 80.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_pob6l"]
+[sub_resource type="Resource" id="Resource_deoyo"]
 script = ExtResource("2_2hkqn")
-formation_type = 3
-entry_pattern = 7
-difficulty = 1
-enemy_type = "FastEnemy"
-enemy_density = "Normal"
+formation_type = 0
+entry_pattern = 3
+difficulty = 2
+enemy_type = "SlowShooter"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 80.0
@@ -188,11 +188,14 @@ offset_right = -41.0002
 offset_bottom = -4.00008
 grow_horizontal = 0
 scale = Vector2(1.5, 1.5)
+toggle_mode = true
+button_pressed = true
 icon = ExtResource("6_wpk6a")
 flat = true
 metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("7_c1kre")]
+modulate = Color(1, 1, 1, 0)
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("13_23710")]
 
@@ -205,7 +208,6 @@ script = ExtResource("6")
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." groups=["BackgroundMusic"]]
 process_mode = 3
-position = Vector2(514, 279)
 stream = ExtResource("15_c7pbv")
 volume_db = 10.0
 autoplay = true
@@ -217,8 +219,7 @@ position = Vector2(673, 19)
 
 [node name="LevelManager" type="Node2D" parent="." groups=["LevelManager"]]
 script = ExtResource("1_x75k1")
-waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_m3xjx"), SubResource("Resource_4tp1n"), SubResource("Resource_tk485"), SubResource("Resource_7181y"), SubResource("Resource_pob6l")])
-debug_mode = true
+waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_5nt20"), SubResource("Resource_nv5vc"), SubResource("Resource_0l8a1"), SubResource("Resource_51jnw"), SubResource("Resource_deoyo")])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 process_mode = 3
@@ -227,7 +228,5 @@ libraries = {
 }
 
 [node name="WaveManager" parent="." instance=ExtResource("13_nmwl1")]
-debug_mode = true
 
-[connection signal="pressed" from="CanvasLayer/Pause" to="." method="_on_pause_pressed"]
-[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_player_animation_finished"]
+[connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

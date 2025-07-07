@@ -18,10 +18,13 @@ extends Node
 # === VARIABLES ===
 var has_completed_level: bool = false
 var game_over: bool = false
-var level_completed_shown: bool = false
 var waves_initialized: bool = false
 var saved_shadow_charge: float = 0.0
 var player_scene: PackedScene = preload("res://Player/Player.tscn")
+
+# Signals 
+@warning_ignore("unused_signal")
+signal Victory_pose()
 
 # === READY ===
 func _ready():
@@ -142,16 +145,17 @@ func _input(event):
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_ESCAPE, KEY_BACK:
-				if not game_over and not level_completed_shown:
+				if not game_over and not has_completed_level:
 					_toggle_pause_menu()
 			KEY_R:
-				if game_over and not level_completed_shown:
+				if game_over and not has_completed_level:
 					GameManager.is_revive_pending = true
 					_on_player_revived()
 
 # === PAUSE TOGGLE & TWEEN ===
 func _toggle_pause_menu():
-	if level_completed_shown:
+	if has_completed_level:
+		print("level complerted")
 		return
 	if get_tree().paused:
 		get_tree().paused = false
@@ -173,11 +177,10 @@ func _hide_pause_menu():
 	pause_menu.visible = false
 
 func _on_pause_pressed():
-	if not game_over and not level_completed_shown:
-		_toggle_pause_menu()
+	_toggle_pause_menu()
 
 func _on_game_paused(paused: bool):
-	if game_over or level_completed_shown:
+	if game_over or has_completed_level:
 		_hide_pause_menu()
 		get_tree().paused = false
 		GameManager.is_paused = false
@@ -230,20 +233,19 @@ func _on_player_revived():
 
 func revive_player():
 	_on_player_revived()
-
+	
 # === LEVEL COMPLETE ===
+	
 func _on_level_completed(_level_num: int):
-	print("level completed")
 	AudioManager.mute_bus("Bullet", true)
 	get_tree().paused = false
-	animation_player.play("Player_sweep")
-
-func _on_animation_player_animation_finished(anim_name: StringName):
-	if anim_name == "Player_sweep" and has_completed_level and not level_completed_shown:
-		_show_level_completed_ui()
-
+	emit_signal("Victory_pose")
+	var player = get_tree().get_first_node_in_group("Player")
+	if player:
+		await player.victory_pose_done
+	_show_level_completed_ui()
+	
 func _show_level_completed_ui():
-	level_completed_shown = true
 	get_tree().paused = false
 	pause_menu.hide()
 	level_completed.modulate.a = 0.0

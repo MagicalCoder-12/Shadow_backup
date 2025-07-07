@@ -398,7 +398,8 @@ func _start_red_blink_effect():
 	get_tree().current_scene.call_deferred("add_child", rect)
 	
 	var tween = create_tween().set_loops()
-	tween.tween_property(rect, "color:a", 0.3, 0.5).tween_property(rect, "color:a", 0.0, 0.5)
+	tween.tween_property(rect, "color:a", 0.3, 0.5)
+	tween.tween_property(rect, "color:a", 0.0, 0.5)
 
 func _stop_red_blink_effect():
 	var rect = get_tree().current_scene.get_node_or_null("RedBlink")
@@ -433,11 +434,6 @@ func skip_current_wave():
 	if wave_in_progress:
 		_complete_wave()
 
-func pause_wave():
-	pass # No timed waves, so no pause functionality needed
-
-func resume_wave():
-	pass # No timed waves, so no resume functionality needed
 
 # Debug methods
 func get_debug_info() -> Dictionary:

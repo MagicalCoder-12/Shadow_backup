@@ -6,7 +6,7 @@
 
 [node name="Minion" groups=["Boss_Minion"] instance=ExtResource("1_cdrlu")]
 script = ExtResource("2_ce05y")
-movement_type = 0
+movement_type = 1
 orbit_radius = 100.0
 orbit_speed = 2.0
 kamikaze_speed_multiplier = 2.0
@@ -18,6 +18,7 @@ boss_follow_speed = 0.5
 shadow_minion_spawn_probability = 0.4
 shadow_minion_speed_multiplier = 1.3
 shadow_minion_aggression_multiplier = 1.5
+behavior_pattern = 2
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_v4715")

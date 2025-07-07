@@ -483,6 +483,64 @@ func _spawn_enemies_sequence() -> void:
 	if debug_mode:
 		print("FormationManager: All %d enemies spawned, waiting for formation completion" % enemy_count)
 
+func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
+	if enemy.has_method("setup_formation_entry"):
+		var config = _create_enemy_config(index)
+		enemy.setup_formation_entry(config, index, 0.0)
+
+func _create_enemy_config(index: int) -> WaveConfig:
+	var config = current_wave_config.duplicate()
+	if config.has_method("set_spawn_pos"):
+		config.set_spawn_pos(spawn_positions[index])
+	return config
+
+# Alternative approach using a single tween with custom interpolation
+func _animate_enemy_entry_smooth(enemy: Enemy, index: int) -> void:
+	var path = entry_paths[index]
+	var tween = create_tween()
+	
+	if path.is_empty():
+		var duration = 2.0 / enemy.entry_speed_multiplier
+		tween.tween_property(enemy, "global_position", formation_positions[index], duration)
+		return
+	
+	var entry_speed = current_wave_config.get_entry_speed()
+	var difficulty = current_wave_config.difficulty
+	var multipliers = difficulty_multipliers[difficulty]
+	var adjusted_entry_speed = entry_speed * multipliers["entry_speed"] * enemy.entry_speed_multiplier
+	
+	var total_distance = 0.0
+	for i in range(1, path.size()):
+		total_distance += path[i-1].distance_to(path[i])
+	
+	var total_duration = total_distance / adjusted_entry_speed
+	
+	tween.tween_method(func(progress): _interpolate_along_path(enemy, path, progress), 0.0, 1.0, total_duration)
+
+
+# Helper function for smooth path interpolation
+func _interpolate_along_path(enemy: Enemy, path: Array, progress: float) -> void:
+	if not is_instance_valid(enemy) or path.is_empty():
+		return
+	
+	if progress >= 1.0:
+		enemy.global_position = path[-1]
+		return
+	
+	var total_segments = path.size() - 1
+	var segment_progress = progress * total_segments
+	var segment_index = int(segment_progress)
+	var local_progress = segment_progress - segment_index
+	
+	if segment_index >= total_segments:
+		enemy.global_position = path[-1]
+		return
+	
+	var start_pos = path[segment_index]
+	var end_pos = path[segment_index + 1]
+	enemy.global_position = start_pos.lerp(end_pos, local_progress)
+
+# Additional safety improvements
 func _spawn_single_enemy(index: int) -> void:
 	var enemy_scene = current_wave_config.get_enemy_scene()
 	
@@ -493,6 +551,12 @@ func _spawn_single_enemy(index: int) -> void:
 	var enemy = enemy_scene.instantiate() as Enemy
 	if not enemy:
 		push_error("FormationManager: Enemy scene does not contain Enemy class at index %d" % index)
+		return
+	
+	# Ensure we have valid positions
+	if index >= spawn_positions.size():
+		push_error("FormationManager: No spawn position for enemy index %d" % index)
+		enemy.queue_free()
 		return
 	
 	enemy.global_position = spawn_positions[index]
@@ -506,49 +570,38 @@ func _spawn_single_enemy(index: int) -> void:
 		enemy.died.connect(_on_enemy_died.bind(enemy))
 	
 	_setup_enemy_formation_data(enemy, index)
-	_animate_enemy_entry(enemy, index)
+	
+	# Use the improved animation method
+	_animate_enemy_entry_smooth(enemy, index)
 	
 	enemy_spawned.emit(enemy)
 	
 	if debug_mode:
 		print("FormationManager: Spawned enemy %d (%s) at %s" % [index, current_wave_config.enemy_type, enemy.global_position])
 
-func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
-	if enemy.has_method("setup_formation_entry"):
-		var config = _create_enemy_config(index)
-		enemy.setup_formation_entry(config, index, 0.0)
-
-func _create_enemy_config(index: int) -> WaveConfig:
-	var config = current_wave_config.duplicate()
-	if config.has_method("set_spawn_pos"):
-		config.set_spawn_pos(spawn_positions[index])
-	return config
-
-func _animate_enemy_entry(enemy: Enemy, index: int) -> void:
-	var path = entry_paths[index]
-	var tween
-	if path.is_empty():
-		tween = create_tween()
-		var duration = 2.0 / enemy.entry_speed_multiplier
-		tween.tween_property(enemy, "global_position", formation_positions[index], duration)
-		tween.tween_callback(func(): _on_enemy_reached(enemy))
-		return
+# Improved error handling for tween cleanup
+func _on_tree_exiting() -> void:
+	# Clean up any active tweens
+	var tweens = get_tree().get_nodes_in_group("tweens")
+	for tween in tweens:
+		if tween and tween.is_valid():
+			tween.kill()
 	
-	var entry_speed = current_wave_config.get_entry_speed()
-	var difficulty = current_wave_config.difficulty
-	var multipliers = difficulty_multipliers[difficulty]
-	var adjusted_entry_speed = entry_speed * multipliers["entry_speed"] * enemy.entry_speed_multiplier
+	destroy_all_enemies()
+	_clear_formation_data()
+
+# Additional utility to stop all enemy animations
+func stop_all_animations() -> void:
+	for enemy in spawned_enemies:
+		if is_instance_valid(enemy):
+			# Stop any tweens affecting this enemy
+			var tweens = get_tree().get_nodes_in_group("tweens")
+			for tween in tweens:
+				if tween and tween.is_valid():
+					tween.kill()
 	
-	tween = create_tween()
-	var total_distance = 0.0
-	for i in range(1, path.size()):
-		total_distance += path[i-1].distance_to(path[i])
-	var total_duration = total_distance / adjusted_entry_speed
-	var duration_per_segment = total_duration / path.size()
-	for i in range(1, path.size()):
-		var target = path[i]
-		tween.tween_property(enemy, "global_position", target, duration_per_segment)
-	tween.tween_callback(func(): _on_enemy_reached(enemy))
+	if debug_mode:
+		print("FormationManager: All animations stopped")
 
 func _on_enemy_reached(enemy: Enemy) -> void:
 	if is_instance_valid(enemy) and enemy.has_method("on_reach_formation"):
@@ -675,9 +728,6 @@ func _draw() -> void:
 		var radius = current_wave_config.get_formation_radius()
 		draw_arc(center, radius, 0, 2 * PI, 32, DEBUG_CENTER_COLOR, 2.0)
 
-func _on_tree_exiting() -> void:
-	destroy_all_enemies()
-	_clear_formation_data()
 
 # Utility functions for advanced formations
 func _create_custom_formation_positions(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:

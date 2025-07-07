@@ -3,6 +3,7 @@ class_name Enemy
 
 var EBullet := preload("res://Bullet/Enemy_Bullet.tscn")
 var ShadowEBullet := preload("res://Bullet/shadow_enemy_bullet.tscn")
+var Bomb := preload("res://Bullet/shadow_enemy_bullet.tscn")
 
 signal died
 signal formation_reached
@@ -16,8 +17,8 @@ signal formation_reached
 @onready var fire_timer: Timer = $FireTimer
 
 @export var score: int = 100
-@export var vertical_speed: float = 10.0
-@export var max_health: int = 5
+@export var vertical_speed: float = 100.0
+@export var max_health: int = 150
 @export var damage_amount: int = 1
 @export var speed: float = 200.0
 @export var debug_mode: bool = false
@@ -25,42 +26,22 @@ signal formation_reached
 @export var shadow_health_multiplier: float = 1.5
 @export var shadow_score_multiplier: float = 2.0
 @export var shadow_damage_multiplier: float = 1.5
-@export var fire_rate: float = 4.0
+@export var fire_rate: float = 2.0
 @export var entry_speed_multiplier: float = 1.0
 
 # Dynamic difficulty multipliers with creative scaling (adjusted for 4 difficulty levels)
 var difficulty_multipliers: Dictionary = {
 	formation_enums.DifficultyLevel.EASY: {
-		"health": 0.7,
-		"damage": 0.8,
-		"fire_rate": 0.6,
-		"speed": 0.8,
-		"score": 0.5,
-		"shadow_chance": 0.1
+		"health": 0.7, "damage": 0.8, "fire_rate": 0.6, "speed": 0.8, "score": 0.5, "shadow_chance": 0.1
 	},
 	formation_enums.DifficultyLevel.NORMAL: {
-		"health": 1.0,
-		"damage": 1.0,
-		"fire_rate": 1.0,
-		"speed": 1.0,
-		"score": 1.0,
-		"shadow_chance": 0.3
+		"health": 1.0, "damage": 1.0, "fire_rate": 1.0, "speed": 1.0, "score": 1.0, "shadow_chance": 0.3
 	},
 	formation_enums.DifficultyLevel.HARD: {
-		"health": 1.6,
-		"damage": 1.5,
-		"fire_rate": 1.6,
-		"speed": 1.4,
-		"score": 2.0,
-		"shadow_chance": 0.6
+		"health": 1.6, "damage": 1.5, "fire_rate": 1.6, "speed": 1.4, "score": 2.0, "shadow_chance": 0.6
 	},
 	formation_enums.DifficultyLevel.NIGHTMARE: {
-		"health": 2.5,
-		"damage": 2.2,
-		"fire_rate": 2.2,
-		"speed": 1.8,
-		"score": 3.5,
-		"shadow_chance": 0.8
+		"health": 2.5, "damage": 2.2, "fire_rate": 2.2, "speed": 1.8, "score": 3.5, "shadow_chance": 0.8
 	}
 }
 
@@ -73,7 +54,15 @@ enum BehaviorPattern {
 	PHANTOM
 }
 
+# New movement behaviors
+enum MovementBehavior {
+	SIDE_TO_SIDE,
+	DIVING,
+	BOMB_AND_RETREAT
+}
+
 @export var behavior_pattern: BehaviorPattern = BehaviorPattern.STANDARD
+@export var movement_behavior: MovementBehavior = MovementBehavior.SIDE_TO_SIDE
 @export var adaptive_difficulty: bool = false
 
 var original_speed: float
@@ -106,36 +95,41 @@ var current_difficulty: formation_enums.DifficultyLevel = formation_enums.Diffic
 var behavior_timer: Timer
 var evasion_chance: float = 0.0
 
-const VIEWPORT_WIDTH: float = 1280.0
-const VIEWPORT_HEIGHT: float = 720.0
+var viewport_size: Vector2
 const SCREEN_BUFFER: float = 100.0
-const MAX_Y_POSITION: float = 600.0  # Stop moving down at this y-position
+
+# Movement behavior variables
+var dive_target_position: Vector2
+var is_diving: bool = false
+var side_to_side_direction: int = 1
 
 func _ready():
+	viewport_size = get_viewport().get_visible_rect().size
 	original_speed = speed
 	original_vertical_speed = vertical_speed
 	original_modulate = modulate
-	
+
 	# Setup behavior timer for advanced patterns
 	_setup_behavior_timer()
-	
+
 	_initialize_shadow_state()
 	health = max_health
 	if healthbar:
 		healthbar.max_value = max_health
 		healthbar.value = health
-	
+
 	if visible_on_screen_notifier_2d:
-		visible_on_screen_notifier_2d.rect = Rect2(
+		# Adjust notifier to new dynamic viewport size
+		var notifier_rect = Rect2(
 			-SCREEN_BUFFER, -SCREEN_BUFFER,
-			VIEWPORT_WIDTH + (SCREEN_BUFFER * 2),
-			VIEWPORT_HEIGHT + (SCREEN_BUFFER * 2)
+			viewport_size.x + (SCREEN_BUFFER * 2),
+			viewport_size.y + (SCREEN_BUFFER * 2)
 		)
-	
+		visible_on_screen_notifier_2d.rect = notifier_rect
+
 	add_to_group("Enemy")
-	
 	_connect_shadow_signals()
-	
+
 	if debug_mode:
 		print("Enemy spawned at: ", global_position, " Shadow: ", is_shadow_enemy, " Difficulty: ", _get_difficulty_name(current_difficulty))
 
@@ -159,6 +153,11 @@ func _on_behavior_timer_timeout():
 			_trigger_berserker_behavior()
 		BehaviorPattern.PHANTOM:
 			_trigger_phantom_behavior()
+	
+	# Potentially switch movement behavior mid-flight for dynamic gameplay
+	if randf() < 0.1: # 10% chance to change movement
+		movement_behavior = MovementBehavior.values().pick_random()
+
 
 func _trigger_aggressive_behavior():
 	if not rage_mode and health < max_health * 0.5:
@@ -166,7 +165,7 @@ func _trigger_aggressive_behavior():
 		fire_rate *= rage_multiplier
 		speed *= 1.2
 		modulate = Color.RED if not is_shadow_enemy else Color(0.8, 0.2, 0.8)
-		
+
 		if debug_mode:
 			print("Enemy entered RAGE MODE!")
 
@@ -192,61 +191,54 @@ func setup_formation_entry(config: WaveConfig, index: int, delay: float = 0.0):
 	wave_config = config
 	formation_index = index
 	formation_delay = delay
-	
+
 	if not config or config.get_enemy_count() <= 0:
 		if debug_mode:
 			print("Enemy: Invalid WaveConfig or enemy_count, skipping setup")
-		formation_position = Vector2(640, 250)
+		formation_position = Vector2(viewport_size.x / 2, 250) # Use dynamic viewport
 		return
-	
-	# Set difficulty directly from WaveConfig
+
 	current_difficulty = config.difficulty
-	
-	# Apply difficulty multipliers with behavior pattern modifications
 	_apply_difficulty_multipliers(current_difficulty)
-	
-	# Apply behavior pattern modifications
 	_apply_behavior_pattern_modifiers()
 	
+	# Randomly assign a movement behavior
+	movement_behavior = MovementBehavior.values().pick_random()
+
+
 	health = max_health
 	if healthbar:
 		healthbar.max_value = max_health
 		healthbar.value = health
-	
+
 	if fire_timer:
 		fire_timer.wait_time = 1.0 / fire_rate
-	
+
 	spawn_position = config.spawn_pos
 	formation_position = config.center
-	
 	global_position = spawn_position
-	
+
 	if debug_mode:
-		print("Enemy setup - Spawn: ", spawn_position,  
-			" Formation: ", formation_position,  
-			" Difficulty: ", _get_difficulty_name(current_difficulty),  
+		print("Enemy setup - Spawn: ", spawn_position,
+			" Formation: ", formation_position,
+			" Difficulty: ", _get_difficulty_name(current_difficulty),
 			" Behavior: ", _get_behavior_name(behavior_pattern),
-			" Health: ", max_health, " Damage: ", damage_amount,  
+			" Movement: ", movement_behavior,
+			" Health: ", max_health, " Damage: ", damage_amount,
 			" Fire Rate: ", fire_rate, " Speed: ", speed)
 
-# Rely solely on WaveConfig difficulty
 func _get_adaptive_difficulty() -> formation_enums.DifficultyLevel:
 	return wave_config.difficulty if wave_config else formation_enums.DifficultyLevel.NORMAL
 
-# Apply difficulty multipliers with enhanced logic using external enum
 func _apply_difficulty_multipliers(difficulty: formation_enums.DifficultyLevel):
 	var multipliers = difficulty_multipliers[difficulty]
-	
 	max_health = int(max_health * multipliers["health"])
 	damage_amount = int(damage_amount * multipliers["damage"])
 	fire_rate = fire_rate * multipliers["fire_rate"]
 	speed = speed * multipliers["speed"]
 	score = int(score * multipliers["score"])
-	
-	# Adjust shadow spawn probability based on difficulty
 	shadow_spawn_probability = multipliers["shadow_chance"]
 
-# Behavior pattern modifiers
 func _apply_behavior_pattern_modifiers():
 	match behavior_pattern:
 		BehaviorPattern.AGGRESSIVE:
@@ -275,26 +267,22 @@ func _make_shadow_enemy():
 	damage_amount = int(damage_amount * shadow_damage_multiplier)
 	score = int(score * shadow_score_multiplier)
 	_apply_shadow_visuals()
-	
+
 	if debug_mode:
 		print("Enemy converted to shadow: Health=", max_health, " Damage=", damage_amount, " Score=", score)
 
 func _apply_shadow_visuals():
 	if not is_shadow_enemy:
 		return
-	
 	modulate = Color(0.2, 0.2, 0.8, 0.7)
 	_start_shadow_pulse()
-	
 	if healthbar:
 		healthbar.modulate = Color(0.5, 0.5, 1.0, 0.8)
 
 func _start_shadow_pulse():
 	if shadow_tween:
 		shadow_tween.kill()
-	
-	shadow_tween = create_tween()
-	shadow_tween.set_loops()
+	shadow_tween = create_tween().set_loops()
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_max, shadow_alpha_min, shadow_pulse_speed / 2.0)
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_min, shadow_alpha_max, shadow_pulse_speed / 2.0)
 
@@ -305,64 +293,89 @@ func _set_shadow_alpha(alpha: float):
 func _connect_shadow_signals():
 	if GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
 		return
-	
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 
 func _on_shadow_mode_activated():
-	if debug_mode:
-		print("Shadow mode activated for enemy")
-	
+	if debug_mode: print("Shadow mode activated for enemy")
 	if not is_shadow_enemy and randf() < shadow_spawn_probability:
 		_make_shadow_enemy()
 
 func _on_shadow_mode_deactivated():
-	if debug_mode:
-		print("Shadow mode deactivated for enemy")
+	if debug_mode: print("Shadow mode deactivated for enemy")
 
 func _physics_process(delta):
 	if not is_alive:
 		return
 	
-	# Enhanced movement with behavior patterns
-	_handle_advanced_movement(delta)
-	
-	if arrived_at_formation and global_position.y < MAX_Y_POSITION:
-		position.y += vertical_speed * delta
-	
-	if global_position.y > VIEWPORT_HEIGHT + SCREEN_BUFFER:
-		if debug_mode:
-			print("Enemy died: Moved too far down")
-		death_reason = "moved_too_far_down"
-		die()
-		return
-	
-	if global_position.x < -50:
-		global_position.x = -50
-	elif global_position.x > VIEWPORT_WIDTH + 50:
-		global_position.x = VIEWPORT_WIDTH + 50
+	# Handle movement logic based on current state and behavior
+	_handle_movement(delta)
 
-# Advanced movement patterns
+	# Boundary checks using dynamic viewport size
+	global_position.x = clamp(global_position.x, -50, viewport_size.x + 50)
+	
+
+func _handle_movement(delta: float):
+	# Entry phase movement
+	if is_in_entry_phase:
+		# Simple move towards formation position, can be customized later
+		var direction = (formation_position - global_position).normalized()
+		global_position += direction * speed * entry_speed_multiplier * delta
+		if global_position.distance_to(formation_position) < 5.0:
+			on_reach_formation()
+		return
+		
+	# Post-formation movement behaviors
+	if arrived_at_formation:
+		match movement_behavior:
+			MovementBehavior.SIDE_TO_SIDE:
+				position.x += speed * side_to_side_direction * delta
+				# Reverse direction at screen edges
+				if (position.x > viewport_size.x - 50 and side_to_side_direction > 0) or \
+				   (position.x < 50 and side_to_side_direction < 0):
+					side_to_side_direction *= -1
+			
+			MovementBehavior.DIVING:
+				if not is_diving:
+					is_diving = true
+					var target_y = global_position.y + randf_range(200, 400)
+					var target_x = global_position.x + randf_range(-150, 150)
+					dive_target_position = Vector2(clamp(target_x, 50, viewport_size.x - 50), target_y)
+				
+				global_position = global_position.move_toward(dive_target_position, vertical_speed * delta)
+				if global_position.distance_to(dive_target_position) < 10.0:
+					is_diving = false # will pick a new dive target on next frame
+
+			MovementBehavior.BOMB_AND_RETREAT:
+				if not is_diving: # Use diving state to manage the 'bombing' run
+					is_diving = true
+					dive_target_position = Vector2(global_position.x, viewport_size.y + 100) # Target below screen
+				
+				global_position = global_position.move_toward(dive_target_position, vertical_speed * 1.5 * delta)
+				# Once it moves off-screen, it will be cleaned up by the notifier
+	
+	# Handle other advanced movements like AGGRESSIVE player tracking
+	_handle_advanced_movement(delta)
+
+
 func _handle_advanced_movement(delta: float):
 	match behavior_pattern:
 		BehaviorPattern.PHANTOM:
-			# Sine wave movement
 			var time = Time.get_time_dict_from_system()
 			var wave_offset = sin(time.second * 2.0 + formation_index) * 30.0
 			position.x += wave_offset * delta
 		BehaviorPattern.AGGRESSIVE:
-			# Slight movement toward player if available
 			if player_in_area:
 				var direction = (player_in_area.global_position - global_position).normalized()
 				position += direction * speed * 0.3 * delta
+
 
 func fire():
 	if arrived_at_formation and firing_positions and is_alive:
 		for child in firing_positions.get_children():
 			var bullet = ShadowEBullet.instantiate() if is_shadow_enemy else EBullet.instantiate()
 			bullet.global_position = child.global_position
-			
-			# Enhanced bullet behavior based on difficulty and pattern
+
 			if bullet.has_method("set_damage"):
 				bullet.set_damage(damage_amount)
 			if bullet.has_method("set_speed_multiplier"):
@@ -372,85 +385,65 @@ func fire():
 				if behavior_pattern == BehaviorPattern.AGGRESSIVE:
 					speed_mult *= 1.2
 				bullet.set_speed_multiplier(speed_mult)
-			
+
 			get_tree().current_scene.call_deferred("add_child", bullet)
-			
+
 			if debug_mode:
 				print("Enemy fired bullet. Shadow: ", is_shadow_enemy, " Difficulty: ", _get_difficulty_name(current_difficulty))
 
 func damage(amount: int):
-	if not is_alive or health <= 0:
+	if not is_alive or health <= 0 or is_in_entry_phase:
+		if is_in_entry_phase and debug_mode: print("Enemy immune during entry phase")
 		return
-	
-	if is_in_entry_phase:
-		if debug_mode:
-			print("Enemy immune during entry phase")
-		return
-	
-	# Evasion chance
+
 	if randf() < evasion_chance:
-		if debug_mode:
-			print("Enemy evaded attack!")
+		if debug_mode: print("Enemy evaded attack!")
 		return
-	
+
 	var final_damage = amount
-	
-	# Shadow damage resistance
 	if is_shadow_enemy and GameManager.shadow_mode_enabled:
 		final_damage = max(1, int(amount * 0.75))
-	
-	# Defensive behavior damage reduction
 	if behavior_pattern == BehaviorPattern.DEFENSIVE:
 		final_damage = max(1, int(final_damage * 0.8))
-	
+
 	health -= final_damage
-	
+
 	if debug_mode:
-		print("Enemy took damage: ", amount, " -> ", final_damage, " Health remaining: ", health, " Shadow: ", is_shadow_enemy)
-	
+		print("Enemy took damage: ", amount, " -> ", final_damage, " Health remaining: ", health)
+
 	if healthbar:
 		healthbar.value = health
-		# Health bar color changes
 		if health < max_health * 0.3:
 			healthbar.modulate = Color.RED
 		elif health < max_health * 0.6:
 			healthbar.modulate = Color.YELLOW
-	
+
 	if health <= 0:
 		death_reason = "health_depleted"
 		die()
 
 func die():
-	if not is_alive:
-		return
-	
+	if not is_alive: return
 	is_alive = false
-	
+
 	if debug_mode:
-		print("Enemy died. Reason: ", death_reason, " Position: ", global_position, " Shadow: ", is_shadow_enemy, " Difficulty: ", _get_difficulty_name(current_difficulty))
-	
+		print("Enemy died. Reason: ", death_reason, " Position: ", global_position)
+
 	var final_score = score
 	if is_shadow_enemy:
 		final_score = int(score * shadow_score_multiplier)
-	
-	# Bonus score for higher difficulties using external enum
 	match current_difficulty:
-		formation_enums.DifficultyLevel.HARD:
-			final_score = int(final_score * 1.3)
-		formation_enums.DifficultyLevel.NIGHTMARE:
-			final_score = int(final_score * 1.8)
-	
+		formation_enums.DifficultyLevel.HARD: final_score = int(final_score * 1.3)
+		formation_enums.DifficultyLevel.NIGHTMARE: final_score = int(final_score * 1.8)
+
 	if debug_mode:
 		print("Final score awarded: ", final_score, " (Base: ", score, ")")
-	
+
 	GameManager.score += final_score
-	
-	if shadow_tween:
-		shadow_tween.kill()
-	
-	if explosion_sound:
-		explosion_sound.play()
-	
+
+	if shadow_tween: shadow_tween.kill()
+	if explosion_sound: explosion_sound.play()
+
 	if enemy_explosion:
 		enemy_explosion.visible = true
 		if is_shadow_enemy:
@@ -458,34 +451,27 @@ func die():
 		elif rage_mode:
 			enemy_explosion.modulate = Color(1.5, 0.5, 0.5, 1.0)
 		enemy_explosion.play("default")
-	
+
 	died.emit()
-	
 	if enemy_explosion:
 		await enemy_explosion.animation_finished
-	
 	queue_free()
 
 func on_reach_formation():
 	is_in_entry_phase = false
 	arrived_at_formation = true
 	if debug_mode:
-		print("Enemy reached formation at: ", global_position, " Shadow: ", is_shadow_enemy)
+		print("Enemy reached formation at: ", global_position)
 	formation_reached.emit()
 
 func _on_area_entered(area):
 	if area is Player and player_in_area == null:
 		player_in_area = area
-		
 		var final_damage = damage_amount
 		if is_shadow_enemy:
 			final_damage = int(damage_amount * shadow_damage_multiplier)
-		
 		player_in_area.damage(final_damage)
-		
-		if healthbar:
-			healthbar.hide()
-		
+		if healthbar: healthbar.hide()
 		death_reason = "player_collision"
 		die()
 
@@ -494,26 +480,20 @@ func _on_area_exited(area):
 		player_in_area = null
 
 func _on_visible_on_screen_notifier_2d_screen_exited():
-	if not has_entered_screen:
-		return
-	
-	if is_alive:
-		if global_position.y > VIEWPORT_HEIGHT + SCREEN_BUFFER:
-			if debug_mode:
-				print("Enemy died: Screen exit (bottom)")
-			death_reason = "screen_exit_bottom"
-			die()
-		elif global_position.y < -SCREEN_BUFFER and arrived_at_formation:
-			if debug_mode:
-				print("Enemy died: Screen exit (top)")
-			death_reason = "screen_exit_top"
-			die()
+	# Only destroy the enemy if it has already been on screen.
+	# This prevents it from being deleted if it spawns off-screen.
+	if is_alive and has_entered_screen:
+		if debug_mode:
+			print("Enemy died: Exited screen after entering.")
+		death_reason = "screen_exit"
+		# Use queue_free directly instead of die() to avoid explosion/score for off-screen enemies
+		queue_free()
 
 func _on_visible_on_screen_notifier_2d_screen_entered() -> void:
-	has_entered_screen = true
-	
-	if debug_mode:
-		print("Enemy entered screen at: ", global_position)
+	if not has_entered_screen:
+		has_entered_screen = true
+		if debug_mode:
+			print("Enemy entered screen at: ", global_position)
 
 func force_shadow_conversion():
 	if not is_shadow_enemy:
@@ -522,25 +502,18 @@ func force_shadow_conversion():
 func is_shadow() -> bool:
 	return is_shadow_enemy
 
-# Enhanced info methods
 func get_shadow_info() -> Dictionary:
 	return {
-		"is_shadow": is_shadow_enemy,
-		"shadow_health_multiplier": shadow_health_multiplier,
-		"shadow_score_multiplier": shadow_score_multiplier,
-		"shadow_damage_multiplier": shadow_damage_multiplier,
+		"is_shadow": is_shadow_enemy, "shadow_health_multiplier": shadow_health_multiplier,
+		"shadow_score_multiplier": shadow_score_multiplier, "shadow_damage_multiplier": shadow_damage_multiplier,
 		"shadow_spawn_probability": shadow_spawn_probability
 	}
 
-# Using external enum in info methods
 func get_difficulty_info() -> Dictionary:
 	return {
-		"current_difficulty": current_difficulty,
-		"difficulty_name": _get_difficulty_name(current_difficulty),
-		"behavior_pattern": behavior_pattern,
-		"behavior_name": _get_behavior_name(behavior_pattern),
-		"rage_mode": rage_mode,
-		"evasion_chance": evasion_chance
+		"current_difficulty": current_difficulty, "difficulty_name": _get_difficulty_name(current_difficulty),
+		"behavior_pattern": behavior_pattern, "behavior_name": _get_behavior_name(behavior_pattern),
+		"rage_mode": rage_mode, "evasion_chance": evasion_chance
 	}
 
 func get_status() -> String:
@@ -551,14 +524,11 @@ func get_status() -> String:
 
 func get_formation_info() -> Dictionary:
 	return {
-		"spawn_pos": spawn_position,
-		"formation_pos": formation_position,
-		"formation_index": formation_index,
-		"is_in_entry": is_in_entry_phase,
+		"spawn_pos": spawn_position, "formation_pos": formation_position,
+		"formation_index": formation_index, "is_in_entry": is_in_entry_phase,
 		"arrived_at_formation": arrived_at_formation
 	}
 
-# Utility methods using external enum
 func set_difficulty(difficulty: formation_enums.DifficultyLevel):
 	current_difficulty = difficulty
 	_apply_difficulty_multipliers(difficulty)
@@ -572,48 +542,30 @@ func get_combat_effectiveness() -> float:
 	effectiveness *= (float(health) / float(max_health))
 	effectiveness *= (1.0 + (fire_rate - 1.0) * 0.5)
 	effectiveness *= (1.0 + (damage_amount - 1.0) * 0.3)
-	if is_shadow_enemy:
-		effectiveness *= 1.5
-	if rage_mode:
-		effectiveness *= rage_multiplier
+	if is_shadow_enemy: effectiveness *= 1.5
+	if rage_mode: effectiveness *= rage_multiplier
 	return effectiveness
 
-# Helper functions for enum name conversion
 func _get_difficulty_name(difficulty: formation_enums.DifficultyLevel) -> String:
 	match difficulty:
-		formation_enums.DifficultyLevel.EASY:
-			return "EASY"
-		formation_enums.DifficultyLevel.NORMAL:
-			return "NORMAL"
-		formation_enums.DifficultyLevel.HARD:
-			return "HARD"
-		formation_enums.DifficultyLevel.NIGHTMARE:
-			return "NIGHTMARE"
-		_:
-			return "UNKNOWN"
+		formation_enums.DifficultyLevel.EASY: return "EASY"
+		formation_enums.DifficultyLevel.NORMAL: return "NORMAL"
+		formation_enums.DifficultyLevel.HARD: return "HARD"
+		formation_enums.DifficultyLevel.NIGHTMARE: return "NIGHTMARE"
+		_: return "UNKNOWN"
 
 func _get_behavior_name(pattern: BehaviorPattern) -> String:
 	match pattern:
-		BehaviorPattern.STANDARD:
-			return "STANDARD"
-		BehaviorPattern.AGGRESSIVE:
-			return "AGGRESSIVE"
-		BehaviorPattern.DEFENSIVE:
-			return "DEFENSIVE"
-		BehaviorPattern.BERSERKER:
-			return "BERSERKER"
-		BehaviorPattern.PHANTOM:
-			return "PHANTOM"
-		_:
-			return "UNKNOWN"
+		BehaviorPattern.STANDARD: return "STANDARD"
+		BehaviorPattern.AGGRESSIVE: return "AGGRESSIVE"
+		BehaviorPattern.DEFENSIVE: return "DEFENSIVE"
+		BehaviorPattern.BERSERKER: return "BERSERKER"
+		BehaviorPattern.PHANTOM: return "PHANTOM"
+		_: return "UNKNOWN"
 
 func _exit_tree():
-	if shadow_tween:
-		shadow_tween.kill()
-	
-	if behavior_timer:
-		behavior_timer.queue_free()
-	
+	if shadow_tween: shadow_tween.kill()
+	if behavior_timer: behavior_timer.queue_free()
 	if GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
 		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
 	if GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):

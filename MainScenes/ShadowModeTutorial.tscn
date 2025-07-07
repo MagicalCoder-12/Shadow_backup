@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://cjph7f2ttbirj"]
 
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="1_7lulu"]
-[ext_resource type="Script" uid="uid://dh2gcke11e2te" path="res://MainScenes/Scripts/shadow_mode_tutorial.gd" id="1_374j1"]
+[ext_resource type="Script"  path="res://MainScenes/Scripts/shadow_mode_tutorial.gd" id="1_374j1"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="3_jf62g"]
 [ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Textures/UI/Neon _CONTINUE_ Button Glowing.png" id="4_jf62g"]
 

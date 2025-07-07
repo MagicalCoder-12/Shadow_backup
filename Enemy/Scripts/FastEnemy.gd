@@ -152,8 +152,6 @@ func start_dive():
 	if debug_mode:
 		print("FastEnemy starting aggressive dive")
 	
-	arrived_at_formation = false
-	
 	# Fast enemies dive more aggressively
 	var dive_target_x = global_position.x + randf_range(-200, 200)
 	dive_target_x = clamp(dive_target_x, 100, VIEWPORT_WIDTH - 100)

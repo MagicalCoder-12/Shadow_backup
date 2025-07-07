@@ -1,10 +1,9 @@
-[gd_scene load_steps=28 format=3 uid="uid://dcdh6o2c8lpmi"]
+[gd_scene load_steps=26 format=3 uid="uid://dcdh6o2c8lpmi"]
 
 [ext_resource type="PackedScene" uid="uid://s66mklagl4fy" path="res://HUD/HUD.tscn" id="1_hu0ol"]
 [ext_resource type="Script" path="res://Levels/Scripts/LevelManager.gd" id="1_m47b0"]
 [ext_resource type="Shader" path="res://MainScenes/Background.gdshader" id="2_m47b0"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_uk1uv"]
-[ext_resource type="PackedScene" uid="uid://dpbpiarnq8dd1" path="res://Bosses/MidBoss.tscn" id="3_25373"]
 [ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="3_x7gsr"]
 [ext_resource type="PackedScene" uid="uid://c6uejmh8c7koe" path="res://MainScenes/game_over_screen.tscn" id="4_uk1uv"]
 [ext_resource type="Texture2D" uid="uid://dcdgypyoyws7" path="res://Textures/UI/pause_icon.png" id="5_25373"]
@@ -15,6 +14,11 @@
 [ext_resource type="PackedScene" uid="uid://ci2dx8vxi2rne" path="res://Spawner/Spawner.tscn" id="11_5o5kr"]
 [ext_resource type="PackedScene" uid="uid://ch5yid0u7nwuh" path="res://Enemy Manager/wave_manager.tscn" id="12_gmfyt"]
 [ext_resource type="AudioStream" uid="uid://dpnvp4i23xweo" path="res://Textures/Music/GameSong (mp3cut.net).mp3" id="16_f6crn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2jyfw"]
+shader = ExtResource("2_m47b0")
+shader_parameter/direction = Vector2(0, -1.5)
+shader_parameter/speed_scale = 0.1
 
 [sub_resource type="Resource" id="Resource_ix753"]
 script = ExtResource("2_uk1uv")
@@ -94,25 +98,6 @@ formation_spacing = 80.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_shyx5"]
-script = ExtResource("2_uk1uv")
-formation_type = 5
-entry_pattern = 1
-difficulty = 1
-enemy_type = "mob1"
-boss_scene = ExtResource("3_25373")
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 80.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_2jyfw"]
-shader = ExtResource("2_m47b0")
-shader_parameter/direction = Vector2(0, -1.5)
-shader_parameter/speed_scale = 0.1
-
 [sub_resource type="Animation" id="Animation_3nbtk"]
 resource_name = "Player_sweep"
 tracks/0/type = "value"
@@ -181,12 +166,6 @@ _data = {
 
 [node name="Level_5" type="Node"]
 
-[node name="LevelManager" type="Node2D" parent="."]
-script = ExtResource("1_m47b0")
-level_num = 5
-waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_ix753"), SubResource("Resource_dfkmb"), SubResource("Resource_ua4ts"), SubResource("Resource_hkkwn"), SubResource("Resource_k7yag"), SubResource("Resource_gpijp"), SubResource("Resource_shyx5")])
-debug_mode = true
-
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="HUD" parent="CanvasLayer" instance=ExtResource("1_hu0ol")]
@@ -248,6 +227,12 @@ position = Vector2(673, 19)
 
 [node name="WaveManager" parent="." instance=ExtResource("12_gmfyt")]
 
+[node name="LevelManager" type="Node2D" parent="." groups=["LevelManager"]]
+script = ExtResource("1_m47b0")
+level_num = 5
+waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_ix753"), SubResource("Resource_dfkmb"), SubResource("Resource_ua4ts"), SubResource("Resource_hkkwn"), SubResource("Resource_k7yag"), SubResource("Resource_gpijp")])
+debug_mode = true
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 process_mode = 3
 libraries = {
@@ -255,3 +240,4 @@ libraries = {
 }
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="." method="_on_pause_pressed"]
+[connection signal="animation_finished" from="AnimationPlayer" to="LevelManager" method="_on_animation_player_animation_finished"]
