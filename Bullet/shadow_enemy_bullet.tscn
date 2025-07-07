@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://7djsjk622dwq"]
+
+[ext_resource type="PackedScene" uid="uid://du3ci30e08fmr" path="res://Bullet/Enemy_Bullet.tscn" id="1_keonu"]
+[ext_resource type="Texture2D" uid="uid://d2ra2jic3tyu" path="res://Textures/Lasers/Laser Sprites/23.png" id="2_fd57p"]
+[ext_resource type="Script" path="res://Bullet/Scripts/shadow_enemy_bullet.gd" id="2_qsnhr"]
+
+[node name="Shadow_EnemyBullet" instance=ExtResource("1_keonu")]
+script = ExtResource("2_qsnhr")
+speed = 300.0
+damage = 1
+debug_mode = false
+shadow_damage_multiplier = 2.0
+shadow_speed_multiplier = 1.2
+shadow_pulse_speed = 3.0
+shadow_alpha_min = 0.3
+shadow_alpha_max = 0.9
+shadow_trail_length = 8
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_fd57p")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(-1.5, 8.5)
+scale = Vector2(0.65, 4.25)

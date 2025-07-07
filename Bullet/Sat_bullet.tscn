@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://6smx304r5nlr"]
+
+[ext_resource type="Script" path="res://Bullet/Scripts/SatelliteBullet.gd" id="1_r3kuy"]
+[ext_resource type="Texture2D" uid="uid://35l35sp5e83f" path="res://Textures/Lasers/Laser Sprites/04.png" id="2_tq1sd"]
+[ext_resource type="Texture2D" uid="uid://cx6hwv4qoy04m" path="res://Textures/Lasers/Laser Sprites/05.png" id="3_tq1sd"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2swq5"]
+radius = 9.0
+height = 36.0
+
+[node name="SatBullet" type="Area2D"]
+collision_layer = 16
+collision_mask = 44
+script = ExtResource("1_r3kuy")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = -1.5708
+texture = ExtResource("2_tq1sd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, 1)
+shape = SubResource("CapsuleShape2D_2swq5")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+position = Vector2(-1, 1.5)
+scale = Vector2(0.9, 1.55)
+
+[node name="GlowSprite" type="Sprite2D" parent="."]
+rotation = 4.71239
+texture = ExtResource("3_tq1sd")
+
+[node name="LifetimeTimer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]
+[connection signal="timeout" from="LifetimeTimer" to="." method="_on_lifetime_timer_timeout"]

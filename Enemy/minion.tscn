@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://nb4mktx32xfh"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_cdrlu"]
+[ext_resource type="Script" path="res://Enemy/Scripts/minion.gd" id="2_ce05y"]
+[ext_resource type="Texture2D" uid="uid://gm4b6s0ymw17" path="res://Textures/Enemy/Enemy_1_B_Small_NoLight.png" id="2_v4715"]
+
+[node name="Minion" groups=["Boss_Minion"] instance=ExtResource("1_cdrlu")]
+script = ExtResource("2_ce05y")
+movement_type = 0
+orbit_radius = 100.0
+orbit_speed = 2.0
+kamikaze_speed_multiplier = 2.0
+guard_distance = 150.0
+swarm_cohesion = 50.0
+fire_range = 300.0
+fire_cooldown = 2.0
+boss_follow_speed = 0.5
+shadow_minion_spawn_probability = 0.4
+shadow_minion_speed_multiplier = 1.3
+shadow_minion_aggression_multiplier = 1.5
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_v4715")

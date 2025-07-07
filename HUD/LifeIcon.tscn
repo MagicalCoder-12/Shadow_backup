@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://ceg6sboym3t71"]
+
+[ext_resource type="Texture2D" uid="uid://ngj57kcm712p" path="res://Textures/Splash_Screen/playerShip1_red.png" id="1_n4n4u"]
+
+[node name="LifeIcon" type="TextureRect"]
+offset_right = 99.0
+offset_bottom = 75.0
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("1_n4n4u")

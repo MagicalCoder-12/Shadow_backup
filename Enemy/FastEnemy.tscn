@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://b28gmbfn26w2i"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1"]
+[ext_resource type="Script" path="res://Enemy/Scripts/FastEnemy.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://cypq71bwp7g22" path="res://Textures/Enemy/Enemy_3_Light.png" id="3_8dt3h"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8dt3h"]
+size = Vector2(127, 108)
+
+[node name="FastEnemy" instance=ExtResource("1")]
+script = ExtResource("2")
+speed_multiplier = 1.5
+agility_multiplier = 2.0
+dive_speed_multiplier = 1.8
+rapid_fire_chance = 0.15
+rapid_fire_duration = 2.0
+rapid_fire_rate = 0.3
+shadow_fire_rate_multiplier = 0.7
+shadow_agility_multiplier = 1.3
+shadow_rapid_fire_chance = 0.25
+max_health = 150
+fire_rate = 2.0
+
+[node name="Sprite2D" parent="." index="0"]
+position = Vector2(2, -4.76837e-07)
+texture = ExtResource("3_8dt3h")
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(1.5, -6)
+shape = SubResource("RectangleShape2D_8dt3h")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(0.499994, 9.53674e-07)
+scale = Vector2(5.45, 6)
+
+[node name="FiringPositions" parent="." index="3"]
+position = Vector2(1, 34)
+
+[node name="Gun" type="Node2D" parent="FiringPositions" index="0"]
+
+[node name="FireTimer2" type="Timer" parent="." index="4"]
+wait_time = 0.5
+one_shot = true
+
+[node name="HealthBar" parent="." index="5"]
+offset_left = -33.0
+offset_top = -79.0
+offset_right = 38.0
+offset_bottom = -72.0

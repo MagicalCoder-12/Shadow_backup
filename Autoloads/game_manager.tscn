@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3 uid="uid://b75ond0nu0ai0"]
+
+[ext_resource type="Script" path="res://Autoloads/Scripts/GameManager.gd" id="1_ruo8f"]
+[ext_resource type="Script" path="res://addons/AdmobPlugin/Admob.gd" id="2_40v6j"]
+
+[node name="GameManager" type="Node2D"]
+script = ExtResource("1_ruo8f")
+
+[node name="ShadowModeTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="Admob" type="Node" parent="."]
+script = ExtResource("2_40v6j")
+child_directed = 0
+under_age_of_consent = 0
+personalization_state = 1
+debug_application_id = "ca-app-pub-3940256099942544~3347511713"
+debug_banner_id = "ca-app-pub-3940256099942544/9214589741"
+debug_interstitial_id = "ca-app-pub-3940256099942544/1033173712"
+debug_rewarded_id = "ca-app-pub-3940256099942544/5224354917 "
+debug_rewarded_interstitial_id = "ca-app-pub-3940256099942544/5354046379"
+real_application_id = "ca-app-pub-4574794641011089~7012103621"
+real_banner_id = "ca-app-pub-4574794641011089/8835487030"
+real_interstitial_id = "ca-app-pub-4574794641011089/1653929187"
+real_rewarded_id = "ca-app-pub-4574794641011089/7227247115"
+real_rewarded_interstitial_id = "ca-app-pub-4574794641011089/9233036305"
+
+[connection signal="timeout" from="ShadowModeTimer" to="." method="_on_shadow_mode_timer_timeout"]

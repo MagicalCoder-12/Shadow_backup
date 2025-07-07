@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://36yyavaqdfgf"]
+
+[ext_resource type="PackedScene" uid="uid://bdruofng85taf" path="res://Powerups/Health.tscn" id="1_kvapn"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_c1k5r"]
+load_path = "res://.godot/imported/Pickup_1_E_Small_NoLight.png-df236da0c533a9391de817c54bd1eca4.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c1k5r"]
+size = Vector2(187, 125)
+
+[node name="Attack_boost_powerup" instance=ExtResource("1_kvapn")]
+powerup_type = 0
+
+[node name="Sprite2D" parent="." index="0"]
+position = Vector2(-3, -1)
+scale = Vector2(3, 2.767)
+texture = SubResource("CompressedTexture2D_c1k5r")
+region_enabled = false
+region_rect = Rect2(527, 4, 195, 193)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(-3, -2.5)
+shape = SubResource("RectangleShape2D_c1k5r")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(-1.49999, -3)
+scale = Vector2(9.45, 6)

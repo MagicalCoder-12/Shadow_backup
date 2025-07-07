@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3 uid="uid://ddd2xv4ccydi2"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_v2ypl"]
+[ext_resource type="Script" path="res://Enemy/Scripts/SlowShooter.gd" id="2_m4v04"]
+[ext_resource type="Texture2D" uid="uid://gt452xfd2ekd" path="res://Textures/Enemy/Enemy_4_D_Small_NoLight.png" id="3_8myu1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(140, 147)
+
+[node name="SlowShooter" instance=ExtResource("1_v2ypl")]
+script = ExtResource("2_m4v04")
+speed_multiplier = 0.7
+health_multiplier = 1.8
+damage_multiplier = 1.4
+accuracy_bonus = 0.3
+charge_shot_chance = 0.2
+charge_shot_damage_multiplier = 2.5
+charge_shot_duration = 1.5
+defensive_mode_chance = 0.15
+defensive_mode_duration = 3.0
+defensive_damage_reduction = 0.5
+shadow_charge_chance = 0.35
+shadow_defensive_chance = 0.25
+shadow_health_bonus = 1.3
+shadow_piercing_chance = 0.15
+max_health = 250
+debug_mode = true
+fire_rate = 5.0
+
+[node name="Sprite2D" parent="." index="0"]
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("3_8myu1")
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(1, 2.5)
+shape = SubResource("1")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(0.5, 1)
+scale = Vector2(5.85, 6.8)
+
+[node name="Gun" type="Node2D" parent="FiringPositions" index="0"]
+position = Vector2(0, 10)
+
+[node name="HealthBar" parent="." index="4"]
+offset_left = -68.0
+offset_top = -91.0
+offset_right = 65.0
+offset_bottom = -77.0

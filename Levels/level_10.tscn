@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://ro8gghu3mno6"]
+
+[ext_resource type="PackedScene" uid="uid://dcdh6o2c8lpmi" path="res://Levels/level_5.tscn" id="1_s60kp"]
+
+[node name="Level_10" instance=ExtResource("1_s60kp")]
+
+[node name="LevelManager" parent="." index="0"]
+level_num = 10
+
+[node name="Player" parent="." index="2"]
+position = Vector2(581, 2044)
+
+[node name="WaveManager" parent="." index="6"]
+current_level = 1

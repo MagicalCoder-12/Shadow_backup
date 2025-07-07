@@ -1,0 +1,118 @@
+[gd_scene load_steps=8 format=3 uid="uid://cjph7f2ttbirj"]
+
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="1_7lulu"]
+[ext_resource type="Script" uid="uid://dh2gcke11e2te" path="res://MainScenes/Scripts/shadow_mode_tutorial.gd" id="1_374j1"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="3_jf62g"]
+[ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Textures/UI/Neon _CONTINUE_ Button Glowing.png" id="4_jf62g"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_jf62g"]
+line_spacing = 5.0
+paragraph_spacing = 5.0
+font = ExtResource("1_7lulu")
+font_size = 50
+font_color = Color(1, 1, 0, 0.631373)
+outline_size = 4
+outline_color = Color(1, 0, 1, 0.760784)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g1kyq"]
+bg_color = Color(0.0705882, 0.945098, 0.360784, 1)
+border_width_left = 20
+
+[sub_resource type="LabelSettings" id="LabelSettings_sex1l"]
+line_spacing = 30.0
+font = ExtResource("1_7lulu")
+font_size = 70
+font_color = Color(1, 0.529412, 0, 1)
+
+[node name="ShadowModeTutorial" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_374j1")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Heading" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -530.0
+offset_top = -991.0
+offset_right = 542.0
+offset_bottom = -460.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "You’ve unlocked Shadow Mode!
+
+"
+label_settings = SubResource("LabelSettings_jf62g")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 247.0
+offset_top = 1230.0
+offset_right = 808.0
+offset_bottom = 1502.0
+theme_override_colors/font_hover_pressed_color = Color(0, 1, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 1, 0, 0.686275)
+theme_override_colors/icon_hover_pressed_color = Color(1, 0, 1, 1)
+theme_override_fonts/font = ExtResource("3_jf62g")
+theme_override_font_sizes/font_size = 100
+theme_override_styles/focus = SubResource("StyleBoxFlat_g1kyq")
+icon = ExtResource("4_jf62g")
+flat = true
+clip_text = true
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -589.0
+offset_top = -636.0
+offset_right = 1135.0
+offset_bottom = 243.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.7, 0.7)
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="TutorialText2" type="Label" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Press the Shadow Mode button  
+after defeating enemies
+ to activate a powerful state, 
+
+boosting your speed
+ and fire rate for 5 seconds.
+
+Try it in Level 6!”"
+label_settings = SubResource("LabelSettings_sex1l")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="ContinueButton" to="." method="_on_continue_button_pressed"]

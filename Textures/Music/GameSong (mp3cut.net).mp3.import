@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dpnvp4i23xweo"
+path="res://.godot/imported/GameSong (mp3cut.net).mp3-101c10c82c9611967376c4a633111833.mp3str"
+
+[deps]
+
+source_file="res://Textures/Music/GameSong (mp3cut.net).mp3"
+dest_files=["res://.godot/imported/GameSong (mp3cut.net).mp3-101c10c82c9611967376c4a633111833.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

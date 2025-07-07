@@ -1,0 +1,252 @@
+[gd_scene load_steps=14 format=3 uid="uid://bs74tol27j6sb"]
+
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="2_3g1qk"]
+[ext_resource type="Texture2D" uid="uid://b1u8585mn0uux" path="res://Textures/Background/Mapbackground.png" id="2_6yc6o"]
+[ext_resource type="Texture2D" uid="uid://b8kceaoqpb4v8" path="res://Textures/Background/scroll.png" id="2_86j4t"]
+[ext_resource type="PackedScene" uid="uid://q8xvk7xqckbr" path="res://UI/level_button.tscn" id="2_njngi"]
+[ext_resource type="Script" path="res://Map/map.gd" id="3_8svjd"]
+[ext_resource type="Script" path="res://Map/camera_2d.gd" id="4_86j4t"]
+[ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="7_d1580"]
+[ext_resource type="Texture2D" uid="uid://x8bdqinealjc" path="res://Textures/guibuttons/RedButton-Active.png" id="7_lymsy"]
+[ext_resource type="Texture2D" uid="uid://dutffj6j65vue" path="res://Textures/guibuttons/RedButton-Hover.png" id="8_5cbny"]
+[ext_resource type="Texture2D" uid="uid://bsn6mtb0ifgmo" path="res://Textures/UI/Star_256x256_019.png" id="9_star"]
+[ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="11_ptuj4"]
+[ext_resource type="Texture2D" uid="uid://g6s5vmg16xj5" path="res://Textures/Background/Background.png" id="12_rr5ff"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_bmidu"]
+font = ExtResource("2_3g1qk")
+font_size = 100
+font_color = Color(1, 1, 0, 1)
+outline_size = 10
+outline_color = Color(1, 0, 0, 1)
+shadow_size = 100
+shadow_color = Color(1, 1, 0, 0)
+
+[node name="Map" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_8svjd")
+
+[node name="Label" type="Label" parent="."]
+top_level = true
+layout_mode = 0
+offset_left = -346.0
+offset_top = -4539.0
+offset_right = 1555.0
+offset_bottom = -3718.0
+theme_override_colors/font_color = Color(0.952941, 0.996078, 0.294118, 1)
+theme_override_font_sizes/font_size = 200
+text = "More Levels 
+Coming Soon"
+label_settings = SubResource("LabelSettings_bmidu")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(591, 1208)
+scale = Vector2(1.26367, 2.88086)
+texture = ExtResource("12_rr5ff")
+flip_v = true
+
+[node name="Mapbackground" type="Sprite2D" parent="."]
+position = Vector2(573, -3829.5)
+scale = Vector2(1.5, 1.41894)
+texture = ExtResource("2_6yc6o")
+
+[node name="Scroll" type="Sprite2D" parent="."]
+position = Vector2(594.888, -1649)
+rotation = 1.5708
+scale = Vector2(1.63653, 1.26432)
+texture = ExtResource("2_86j4t")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-68, 22)
+anchor_mode = 0
+zoom = Vector2(0.9, 0.9)
+script = ExtResource("4_86j4t")
+scroll_speed = 3.0
+
+[node name="LevelButtons" type="Node2D" parent="."]
+
+[node name="LevelButton1" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 833.0
+offset_top = 1923.0
+offset_right = 933.0
+offset_bottom = 2023.0
+locked = false
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton1"]
+layout_mode = 0
+offset_left = 60.5
+offset_top = -32.5
+offset_right = 92.5
+offset_bottom = -0.5
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton2" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 911.0
+offset_top = 1424.0
+offset_right = 1011.0
+offset_bottom = 1524.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton2"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton3" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 709.0
+offset_top = 1001.0
+offset_right = 809.0
+offset_bottom = 1101.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton3"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton4" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 413.0
+offset_top = 597.0
+offset_right = 513.0
+offset_bottom = 697.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton4"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton5" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 567.0
+offset_top = 16.0
+offset_right = 667.0
+offset_bottom = 116.0
+scale = Vector2(4, 4)
+texture_normal = ExtResource("7_lymsy")
+texture_pressed = ExtResource("8_5cbny")
+texture_hover = ExtResource("8_5cbny")
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton5"]
+layout_mode = 0
+offset_left = 71.5
+offset_top = -35.25
+offset_right = 121.5
+offset_bottom = 11.75
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton6" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 504.0
+offset_top = -652.0
+offset_right = 604.0
+offset_bottom = -552.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton6"]
+layout_mode = 0
+offset_left = 80.5
+offset_top = -38.0
+offset_right = 112.5
+offset_bottom = -6.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton7" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 247.0
+offset_top = -1173.0
+offset_right = 347.0
+offset_bottom = -1073.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton7"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton8" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 730.0
+offset_top = -1609.0
+offset_right = 830.0
+offset_bottom = -1509.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton8"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton9" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 508.0
+offset_top = -2060.0
+offset_right = 608.0
+offset_bottom = -1960.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton9"]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -32.0
+offset_right = 100.0
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton10" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 315.0
+offset_top = -2845.0
+offset_right = 415.0
+offset_bottom = -2745.0
+scale = Vector2(5, 5)
+texture_normal = ExtResource("7_lymsy")
+texture_pressed = ExtResource("8_5cbny")
+texture_hover = ExtResource("8_5cbny")
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton10"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("9_star")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = -16.0
+offset_top = 1769.0
+offset_right = 1016.0
+offset_bottom = 2801.0
+scale = Vector2(0.4, 0.4)
+icon = ExtResource("7_d1580")
+flat = true
+
+[node name="Start" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_ptuj4")
+parameters/looping = true
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

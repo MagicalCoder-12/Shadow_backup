@@ -1,0 +1,168 @@
+[gd_scene load_steps=9 format=3 uid="uid://c6uejmh8c7koe"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/game_over_screen.gd" id="1_g2wiu"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_npbix"]
+[ext_resource type="Texture2D" uid="uid://07txxcielg1q" path="res://Textures/UI/Restart .png" id="3_7tfa5"]
+[ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="4_m1gjn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ya48v"]
+bg_color = Color(0, 0.501961, 0.6, 0.690196)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+shadow_color = Color(0, 0.537255, 0.176471, 0.713726)
+shadow_size = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_olfcw"]
+font = ExtResource("1_npbix")
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_16wun"]
+font = ExtResource("1_npbix")
+font_size = 34
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m1gjn"]
+bg_color = Color(0.398963, 0.692263, 0, 1)
+
+[node name="GameOverScreen" type="Control"]
+process_mode = 3
+z_index = 10
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_g2wiu")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.108333
+anchor_top = 0.330833
+anchor_right = 0.880556
+anchor_bottom = 0.593958
+offset_top = 6.10352e-05
+offset_right = -278.0
+offset_bottom = -210.5
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.5, 1.5)
+theme_override_styles/panel = SubResource("StyleBoxFlat_ya48v")
+metadata/_edit_use_anchors_ = true
+
+[node name="GameOver" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -271.0
+offset_top = 23.0
+offset_right = 101.0
+offset_bottom = 85.0
+grow_horizontal = 2
+scale = Vector2(1.5, 1.5)
+text = "Game Over"
+label_settings = SubResource("LabelSettings_olfcw")
+
+[node name="HighScore" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -215.0
+offset_top = -26.5
+offset_right = 128.0
+offset_bottom = 29.5
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.2, 1.2)
+text = "Hi-Score: 9999"
+label_settings = SubResource("LabelSettings_16wun")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Score" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -208.0
+offset_top = -83.5
+offset_right = 131.0
+offset_bottom = -27.5
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.2, 1.2)
+text = "Score: 9999"
+label_settings = SubResource("LabelSettings_16wun")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="Panel"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 364.0
+offset_top = -221.666
+offset_right = 567.0
+offset_bottom = 15.3338
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("1_npbix")
+theme_override_font_sizes/font_size = 35
+icon = ExtResource("3_7tfa5")
+flat = true
+expand_icon = true
+
+[node name="Back" type="Button" parent="Panel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -561.334
+offset_top = -220.333
+offset_right = -381.334
+offset_bottom = 8.66718
+grow_horizontal = 0
+grow_vertical = 0
+icon = ExtResource("4_m1gjn")
+flat = true
+expand_icon = true
+
+[node name="Revive" type="Button" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -84.6667
+offset_top = 74.8333
+offset_right = 86.3333
+offset_bottom = 136.833
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_m1gjn")
+text = "REVIVE"
+
+[connection signal="pressed" from="Panel/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="Panel/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="Panel/Revive" to="." method="_on_revive_pressed"]

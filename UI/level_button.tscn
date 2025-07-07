@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://q8xvk7xqckbr"]
+
+[ext_resource type="Texture2D" uid="uid://cjggmdx0i4s8s" path="res://Textures/guibuttons/GreenButton-Active.png" id="1_efsdx"]
+[ext_resource type="Texture2D" uid="uid://c7j4ae5rosmfq" path="res://Textures/guibuttons/GreenButton-Hover.png" id="2_qayn0"]
+[ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="3_85rsd"]
+[ext_resource type="Script" uid="uid://dxiyakxvhygyk" path="res://Levels/Scripts/level_button.gd" id="4_85rsd"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="4_kx6qo"]
+
+[node name="LevelButton" type="TextureButton"]
+custom_minimum_size = Vector2(100, 100)
+offset_right = 40.0
+offset_bottom = 40.0
+scale = Vector2(2, 2)
+disabled = true
+texture_normal = ExtResource("1_efsdx")
+texture_pressed = ExtResource("2_qayn0")
+texture_hover = ExtResource("2_qayn0")
+texture_disabled = ExtResource("3_85rsd")
+ignore_texture_size = true
+stretch_mode = 5
+script = ExtResource("4_85rsd")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0.164706, 0.00392157, 0.972549, 1)
+theme_override_constants/shadow_offset_x = 30
+theme_override_fonts/font = ExtResource("4_kx6qo")
+theme_override_font_sizes/font_size = 55
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

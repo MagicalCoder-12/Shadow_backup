@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://bdruofng85taf"]
+
+[ext_resource type="Script" path="res://Powerups/Scripts/Powerup.gd" id="1_dx3gw"]
+[ext_resource type="Texture2D" uid="uid://8lva1ejbchk5" path="res://Textures/Power_ups/pickup_sheet.png" id="2_dx3gw"]
+
+[sub_resource type="CircleShape2D" id="1"]
+radius = 69.5845
+
+[node name="Health" type="Area2D"]
+collision_layer = 2
+script = ExtResource("1_dx3gw")
+powerup_type = 2
+damage_increase_amount = 20
+super_mode_multiplier = 5.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(1, -1)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("2_dx3gw")
+region_enabled = true
+region_rect = Rect2(32, 6, 186, 186)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+position = Vector2(3.00001, -3)
+scale = Vector2(6.4, 6)
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_VisibilityNotifier2D_screen_exited"]

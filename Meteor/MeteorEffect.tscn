@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://fh5nwi0jt7vx"]
+
+[ext_resource type="Texture2D" uid="uid://1uw23bvhakwi" path="res://Textures/StonesFreeWenrexa/StonesFreeWenrexa/14.png" id="1_s8fp7"]
+[ext_resource type="Script" path="res://Meteor/MeteorEffect.gd" id="2"]
+
+[sub_resource type="Gradient" id="1"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[node name="MeteorEffect" type="CPUParticles2D"]
+emitting = false
+amount = 10
+lifetime = 2.0
+one_shot = true
+explosiveness = 1.0
+randomness = 1.0
+texture = ExtResource("1_s8fp7")
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 60.4
+initial_velocity_max = 60.4
+angular_velocity_min = 20.0
+angular_velocity_max = 50.0
+scale_amount_min = 0.2
+scale_amount_max = 0.2
+color_ramp = SubResource("1")
+script = ExtResource("2")

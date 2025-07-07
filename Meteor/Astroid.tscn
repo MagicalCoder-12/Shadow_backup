@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3 uid="uid://d4klroqo4pb7v"]
+
+[ext_resource type="Script" path="res://Meteor/Meteor.gd" id="1_j78u2"]
+[ext_resource type="Texture2D" uid="uid://ds0xvlrbkccxm" path="res://Textures/StonesFreeWenrexa/StonesFreeWenrexa/13.png" id="2_j78u2"]
+[ext_resource type="AudioStream" uid="uid://c5g86day0vgfh" path="res://Textures/Music/asteroid_explosion.wav" id="3_ym8i0"]
+[ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_3t7ox"]
+
+[node name="Astroid" type="Node2D" groups=["damageable"]]
+
+[node name="Meteor" type="Area2D" parent="." groups=["Meteor", "damageable"]]
+collision_layer = 8
+script = ExtResource("1_j78u2")
+
+[node name="Sprite2D" type="Sprite2D" parent="Meteor"]
+position = Vector2(-19.5, -29)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("2_j78u2")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="Meteor"]
+visible = false
+position = Vector2(1.75, 0.500006)
+scale = Vector2(7.325, 5.95)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Meteor"]
+position = Vector2(8, 128)
+polygon = PackedVector2Array(10, 1, -106, -63, -182, -183, -168, -245, -70, -314, 60, -265, 109, -203, 117, -106, 102, -63)
+
+[node name="HealthBar" parent="." instance=ExtResource("4_3t7ox")]
+offset_left = -183.0
+offset_top = -232.0
+offset_right = 98.0
+offset_bottom = -197.0
+
+[node name="AsteroidExplosion" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_ym8i0")
+volume_db = 5.622
+pitch_scale = 0.7
+bus = &"Explosion"
+
+[connection signal="area_entered" from="Meteor" to="Meteor" method="_on_area_entered"]
+[connection signal="area_exited" from="Meteor" to="Meteor" method="_on_area_exited"]
+[connection signal="screen_exited" from="Meteor/VisibleOnScreenNotifier2D" to="Meteor" method="_on_VisibilityNotifier2D_screen_exited"]

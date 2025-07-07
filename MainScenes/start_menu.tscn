@@ -1,0 +1,147 @@
+[gd_scene load_steps=21 format=3 uid="uid://dgv64lgc6rm83"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
+[ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
+[ext_resource type="Texture2D" uid="uid://cyh4wk5wujkxe" path="res://Textures/player/Spaceships-13/spaceships/Splayer.png" id="3_3nkws"]
+[ext_resource type="Texture2D" uid="uid://b5i7d8y6mboyh" path="res://Textures/Lasers/tractor_beam/00.png" id="5_7wr42"]
+[ext_resource type="Texture2D" uid="uid://bu701j6m1mk2m" path="res://Textures/Lasers/tractor_beam/01.png" id="6_mw5c2"]
+[ext_resource type="Texture2D" uid="uid://b6d26kgx28qf0" path="res://Textures/player/Spaceships-13/spaceships/g-01.png" id="7_2d1vo"]
+[ext_resource type="Texture2D" uid="uid://mbjsmk11fcvk" path="res://Textures/Lasers/tractor_beam/02.png" id="7_mq74j"]
+[ext_resource type="Texture2D" uid="uid://dvqwl425pdqoa" path="res://Textures/Lasers/Laser Sprites/56.png" id="8_a8j06"]
+[ext_resource type="Texture2D" uid="uid://cawe8b3bfbwmk" path="res://Textures/Boss/Final_boss.png" id="8_mccjh"]
+[ext_resource type="Texture2D" uid="uid://cac0ahqmrkyas" path="res://Textures/player/Spaceships-13/spaceships/i-01.png" id="8_smjrk"]
+[ext_resource type="Texture2D" uid="uid://dadcivjodwpcj" path="res://Textures/UI/Start.png" id="9_mccjh"]
+[ext_resource type="Texture2D" uid="uid://cne08d5s0v5k0" path="res://Textures/Lasers/Laser Sprites/57.png" id="10_3pl5x"]
+[ext_resource type="Texture2D" uid="uid://cqtvil7hm3q2n" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__01.png" id="10_mccjh"]
+[ext_resource type="Texture2D" uid="uid://dxqjb1giiisws" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__02.png" id="11_771c8"]
+[ext_resource type="Texture2D" uid="uid://cytp3dwcf2qpj" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__03.png" id="12_1dlyd"]
+[ext_resource type="Texture2D" uid="uid://dlibnfs7g8mw8" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__04.png" id="13_jmosg"]
+[ext_resource type="Texture2D" uid="uid://cqolcxyapenoh" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__05.png" id="14_cunrb"]
+[ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="18_mccjh"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_f6g2d"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_7wr42")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_mw5c2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_mq74j")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_yhv5c"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_mccjh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_771c8")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_1dlyd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_jmosg")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_cunrb")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Start_menu" type="Node2D"]
+process_mode = 3
+script = ExtResource("1_4nus0")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = -2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 25.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_mccjh")
+
+[node name="Splayer" type="Sprite2D" parent="CanvasLayer"]
+position = Vector2(572, 2057)
+rotation = -0.888373
+texture = ExtResource("3_3nkws")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Splayer"]
+position = Vector2(309.593, -258.043)
+rotation = -2.27035
+sprite_frames = SubResource("SpriteFrames_f6g2d")
+autoplay = "default"
+
+[node name="Boss" type="Sprite2D" parent="CanvasLayer"]
+position = Vector2(539, 449)
+scale = Vector2(0.801336, 0.749152)
+texture = ExtResource("8_mccjh")
+
+[node name="Start" type="Button" parent="CanvasLayer/Boss"]
+offset_left = -240.848
+offset_top = 894.345
+offset_right = 15.1526
+offset_bottom = 1015.34
+scale = Vector2(2, 2)
+icon = ExtResource("9_mccjh")
+flat = true
+icon_alignment = 1
+expand_icon = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Boss"]
+position = Vector2(-472.96, 694.118)
+scale = Vector2(2.31487, 2.39283)
+sprite_frames = SubResource("SpriteFrames_yhv5c")
+autoplay = "default"
+frame_progress = 0.319901
+
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Boss"]
+position = Vector2(502.91, 707.467)
+scale = Vector2(2.38891, 2.36935)
+sprite_frames = SubResource("SpriteFrames_yhv5c")
+autoplay = "default"
+frame_progress = 0.336242
+
+[node name="Left" type="Sprite2D" parent="CanvasLayer"]
+position = Vector2(260, 1990)
+scale = Vector2(1.01355, 0.896285)
+texture = ExtResource("8_smjrk")
+
+[node name="56" type="Sprite2D" parent="CanvasLayer/Left"]
+position = Vector2(-2.95994, -128.621)
+rotation = -1.5708
+scale = Vector2(0.614031, 0.618771)
+skew = -0.0336717
+texture = ExtResource("8_a8j06")
+
+[node name="Right" type="Sprite2D" parent="CanvasLayer/Left"]
+position = Vector2(580.207, -14.8853)
+scale = Vector2(0.992584, 1.06669)
+texture = ExtResource("7_2d1vo")
+
+[node name="57" type="Sprite2D" parent="CanvasLayer/Left/Right"]
+position = Vector2(-1.06235, -112.509)
+rotation = -1.5708
+scale = Vector2(0.600761, 0.455315)
+texture = ExtResource("10_3pl5x")
+
+[node name="Start" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("18_mccjh")
+parameters/looping = true
+
+[connection signal="pressed" from="CanvasLayer/Boss/Start" to="." method="_on_start_pressed"]

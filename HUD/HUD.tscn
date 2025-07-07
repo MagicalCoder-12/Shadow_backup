@@ -1,0 +1,125 @@
+[gd_scene load_steps=11 format=3 uid="uid://s66mklagl4fy"]
+
+[ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
+[ext_resource type="Script" path="res://HUD/HUD.gd" id="2"]
+[ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="3_hsjlv"]
+[ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="4_bkns3"]
+[ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="4_njmlf"]
+[ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="5_lkt0t"]
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="6_6i5cd"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_amwvk"]
+font = ExtResource("3_hsjlv")
+font_size = 50
+outline_size = 4
+outline_color = Color(1, 0.137255, 0.317647, 1)
+shadow_size = 12
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_qp8j6"]
+font = ExtResource("4_bkns3")
+font_size = 60
+outline_size = 4
+outline_color = Color(1, 0, 0, 1)
+shadow_size = 6
+shadow_color = Color(0, 0.960784, 0, 0.745098)
+
+[sub_resource type="LabelSettings" id="LabelSettings_t1yhm"]
+font = ExtResource("6_6i5cd")
+font_size = 45
+font_color = Color(0.156863, 1, 0, 1)
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 4.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2")
+
+[node name="LifeContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0129151
+anchor_top = 0.00587002
+anchor_right = 0.124026
+anchor_bottom = 0.0247379
+offset_right = 80.0
+offset_bottom = 30.0
+scale = Vector2(0.6, 0.6)
+theme_override_constants/separation = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="LifeIcon" parent="LifeContainer" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="LifeIcon2" parent="LifeContainer" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Score" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.000922509
+anchor_top = 0.0297694
+anchor_right = 0.154626
+anchor_bottom = 0.0612159
+text = "0000"
+label_settings = SubResource("LabelSettings_amwvk")
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Timer" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 50
+text = "Time :"
+label_settings = SubResource("LabelSettings_qp8j6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShadowModeButton" type="TextureButton" parent="." groups=["UI"]]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0574074
+anchor_top = 0.521667
+anchor_right = 0.25
+anchor_bottom = 0.608958
+offset_right = 208.0
+offset_bottom = 209.5
+grow_vertical = 2
+scale = Vector2(0.5, 0.5)
+disabled = true
+texture_normal = ExtResource("4_njmlf")
+texture_disabled = ExtResource("5_lkt0t")
+metadata/_edit_use_anchors_ = true
+
+[node name="ShadowModeCharge" type="TextureProgressBar" parent="ShadowModeButton"]
+z_index = -1
+layout_mode = 0
+offset_top = -2.0
+offset_right = 416.0
+offset_bottom = 417.0
+fill_mode = 3
+texture_under = ExtResource("5_lkt0t")
+texture_progress = ExtResource("4_njmlf")
+
+[node name="ShadowModeLabel" type="Label" parent="ShadowModeButton/ShadowModeCharge"]
+z_index = 1
+layout_mode = 0
+offset_left = -9.99998
+offset_top = 156.0
+offset_right = 428.0
+offset_bottom = 316.0
+text = "Shadow Mode
+"
+label_settings = SubResource("LabelSettings_t1yhm")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="ShadowModeButton" to="." method="_on_shadow_mode_button_pressed"]

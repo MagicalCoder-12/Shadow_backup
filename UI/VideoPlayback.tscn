@@ -1,0 +1,45 @@
+[gd_scene load_steps=4 format=3 uid="uid://cvvlbkjb4octd"]
+
+[ext_resource type="Script" uid="uid://ju8ovxiuc8eu" path="res://UI/video_playback.gd" id="1_3k1vg"]
+[ext_resource type="VideoStream" path="res://UI/Shadow_Avengers.ogv" id="2_3k1vg"]
+[ext_resource type="Texture2D" uid="uid://ekb8bjrc7d6o" path="res://UI/Neon _SKIP_ Sign Glow.png" id="2_vu4hm"]
+
+[node name="VideoPlayback" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3k1vg")
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_3k1vg")
+autoplay = true
+expand = true
+bus = &"Video"
+
+[node name="SkipButton" type="Button" parent="." groups=["UI"]]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.675926
+anchor_top = 0.00625
+anchor_right = 1.00139
+anchor_bottom = 0.0704167
+offset_right = 351.5
+offset_bottom = 154.0
+grow_horizontal = 0
+scale = Vector2(0.5, 0.5)
+icon = ExtResource("2_vu4hm")
+flat = true
+metadata/_edit_use_anchors_ = true
+
+[connection signal="finished" from="VideoStreamPlayer" to="." method="_on_video_stream_player_finished"]
+[connection signal="pressed" from="SkipButton" to="." method="_on_skip_button_pressed"]

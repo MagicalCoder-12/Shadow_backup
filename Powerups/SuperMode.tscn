@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://gl3w3b2ejnjo"]
+
+[ext_resource type="PackedScene" uid="uid://bdruofng85taf" path="res://Powerups/Health.tscn" id="1"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_is77t"]
+load_path = "res://.godot/imported/Pickup_2_E_Small_NoLight.png-c000ab5d35bfa6aef5b660168b2ca89f.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_is77t"]
+size = Vector2(187, 128)
+
+[node name="SuperMode" instance=ExtResource("1")]
+powerup_type = 1
+
+[node name="Sprite2D" parent="." index="0"]
+scale = Vector2(3, 2.767)
+texture = SubResource("CompressedTexture2D_is77t")
+region_enabled = false
+region_rect = Rect2(282, 6, 186, 186)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0.5, 2)
+shape = SubResource("RectangleShape2D_is77t")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(1.5, 2.5)
+scale = Vector2(9.35, 6.35)

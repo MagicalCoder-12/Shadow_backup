@@ -1,0 +1,120 @@
+[gd_scene load_steps=10 format=3 uid="uid://b2dr1w4bni0qf"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
+[ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="3_3ol6k"]
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_vwgn2"]
+[ext_resource type="Texture2D" uid="uid://qhy82kglvurv" path="res://Textures/UI/Next.png" id="4_3ol6k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vwgn2"]
+bg_color = Color(0, 0.45098, 0.713726, 0.490196)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+
+[sub_resource type="LabelSettings" id="LabelSettings_syrab"]
+font = ExtResource("1_vwgn2")
+font_size = 60
+font_color = Color(0.235294, 1, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 1, 1)
+shadow_size = 100
+shadow_color = Color(1, 0, 0, 0)
+
+[sub_resource type="LabelSettings" id="LabelSettings_3ol6k"]
+font = ExtResource("3_vwgn2")
+font_size = 70
+
+[sub_resource type="LabelSettings" id="LabelSettings_mjsg3"]
+font = ExtResource("3_vwgn2")
+font_size = 70
+
+[node name="LevelCompleted" type="Control"]
+process_mode = 3
+z_index = 10
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6ya2a")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0953704
+anchor_top = 0.219583
+anchor_right = 0.896296
+anchor_bottom = 0.59875
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vwgn2")
+metadata/_edit_use_anchors_ = true
+
+[node name="LevelCompleted" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 100.0
+offset_right = 868.0
+offset_bottom = 180.0
+text = "Level Completed"
+label_settings = SubResource("LabelSettings_syrab")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HighScore" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 285.0
+offset_right = 805.0
+offset_bottom = 448.0
+text = "Hi-Score: 0000
+"
+label_settings = SubResource("LabelSettings_3ol6k")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Score" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 108.0
+offset_top = 406.0
+offset_right = 758.0
+offset_bottom = 523.0
+text = "Score: 0000"
+label_settings = SubResource("LabelSettings_mjsg3")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Next" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 464.0
+offset_top = 502.0
+offset_right = 1496.0
+offset_bottom = 1534.0
+scale = Vector2(0.4, 0.4)
+icon = ExtResource("4_3ol6k")
+flat = true
+
+[node name="Back" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = -30.0
+offset_top = 506.0
+offset_right = 1002.0
+offset_bottom = 1538.0
+scale = Vector2(0.4, 0.4)
+icon = ExtResource("3_3ol6k")
+flat = true
+
+[connection signal="pressed" from="Panel/Next" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="Panel/Back" to="." method="_on_back_pressed"]
