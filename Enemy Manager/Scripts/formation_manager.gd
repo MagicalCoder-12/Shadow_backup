@@ -5,9 +5,10 @@ signal formation_complete
 signal enemy_spawned(enemy: Enemy)
 signal all_enemies_destroyed
 signal all_enemies_spawned
+signal enemy_died(enemy: Enemy) # New signal for centralized death handling
 
 @export var debug_mode: bool = false
-@export var formation_completion_delay: float = 2.0
+@export var formation_completion_delay: float = 0.5
 
 var viewport_size: Vector2
 var screen_width: float
@@ -63,13 +64,19 @@ func _ready():
 	screen_height = viewport_size.y
 	tree_exiting.connect(_on_tree_exiting)
 
+func reset() -> void:
+	_clear_formation_data()
+	is_spawning = false
+	if debug_mode:
+		print("FormationManager: Reset state")
+
 func spawn_formation(config: WaveConfig) -> void:
 	if is_spawning:
 		push_warning("Formation is already spawning, ignoring new request")
 		return
 	
-	if not config or not config.get_enemy_scene() or not config.get_enemy_scene().can_instantiate():
-		push_error("FormationManager: Invalid WaveConfig or enemy scene")
+	if not config:
+		push_error("FormationManager: Invalid WaveConfig")
 		is_spawning = false
 		formation_complete.emit()
 		return
@@ -110,10 +117,7 @@ func _clear_formation_data() -> void:
 	formation_positions.clear()
 	spawn_positions.clear()
 	entry_paths.clear()
-	for enemy in spawned_enemies:
-		if is_instance_valid(enemy):
-			enemy.queue_free()
-	spawned_enemies.clear()
+	spawned_enemies.clear() # Let WaveManager handle cleanup via signals
 	enemies_in_formation = 0
 	enemies_spawned_count = 0
 	all_enemies_have_spawned = false
@@ -486,61 +490,23 @@ func _spawn_enemies_sequence() -> void:
 func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
 	if enemy.has_method("setup_formation_entry"):
 		var config = _create_enemy_config(index)
-		enemy.setup_formation_entry(config, index, 0.0)
+		var formation_pos = formation_positions[index]
+		enemy.setup_formation_entry(config, index, formation_pos, 0.0)
+		
+		if enemy.has_method("set_entry_path"):
+			var entry_path = entry_paths[index]
+			enemy.set_entry_path(entry_path)
 
 func _create_enemy_config(index: int) -> WaveConfig:
 	var config = current_wave_config.duplicate()
-	if config.has_method("set_spawn_pos"):
-		config.set_spawn_pos(spawn_positions[index])
+	
+	if index < spawn_positions.size():
+		config.spawn_pos = spawn_positions[index]
+	
+	config.center = current_wave_config.get_formation_center()
+	
 	return config
-
-# Alternative approach using a single tween with custom interpolation
-func _animate_enemy_entry_smooth(enemy: Enemy, index: int) -> void:
-	var path = entry_paths[index]
-	var tween = create_tween()
 	
-	if path.is_empty():
-		var duration = 2.0 / enemy.entry_speed_multiplier
-		tween.tween_property(enemy, "global_position", formation_positions[index], duration)
-		return
-	
-	var entry_speed = current_wave_config.get_entry_speed()
-	var difficulty = current_wave_config.difficulty
-	var multipliers = difficulty_multipliers[difficulty]
-	var adjusted_entry_speed = entry_speed * multipliers["entry_speed"] * enemy.entry_speed_multiplier
-	
-	var total_distance = 0.0
-	for i in range(1, path.size()):
-		total_distance += path[i-1].distance_to(path[i])
-	
-	var total_duration = total_distance / adjusted_entry_speed
-	
-	tween.tween_method(func(progress): _interpolate_along_path(enemy, path, progress), 0.0, 1.0, total_duration)
-
-
-# Helper function for smooth path interpolation
-func _interpolate_along_path(enemy: Enemy, path: Array, progress: float) -> void:
-	if not is_instance_valid(enemy) or path.is_empty():
-		return
-	
-	if progress >= 1.0:
-		enemy.global_position = path[-1]
-		return
-	
-	var total_segments = path.size() - 1
-	var segment_progress = progress * total_segments
-	var segment_index = int(segment_progress)
-	var local_progress = segment_progress - segment_index
-	
-	if segment_index >= total_segments:
-		enemy.global_position = path[-1]
-		return
-	
-	var start_pos = path[segment_index]
-	var end_pos = path[segment_index + 1]
-	enemy.global_position = start_pos.lerp(end_pos, local_progress)
-
-# Additional safety improvements
 func _spawn_single_enemy(index: int) -> void:
 	var enemy_scene = current_wave_config.get_enemy_scene()
 	
@@ -553,7 +519,6 @@ func _spawn_single_enemy(index: int) -> void:
 		push_error("FormationManager: Enemy scene does not contain Enemy class at index %d" % index)
 		return
 	
-	# Ensure we have valid positions
 	if index >= spawn_positions.size():
 		push_error("FormationManager: No spawn position for enemy index %d" % index)
 		enemy.queue_free()
@@ -561,45 +526,37 @@ func _spawn_single_enemy(index: int) -> void:
 	
 	enemy.global_position = spawn_positions[index]
 	
+	# Add to scene tree
 	get_tree().current_scene.call_deferred("add_child", enemy)
-	spawned_enemies.append(enemy)
 	
+	# Only add to spawned_enemies if still valid after deferred add
+	if is_instance_valid(enemy):
+		spawned_enemies.append(enemy)
+	else:
+		if debug_mode:
+			print("FormationManager: Enemy at index %d was freed before adding to spawned_enemies" % index)
+		return
+	
+	# Connect signals safely
 	if enemy.has_signal("formation_reached"):
-		enemy.formation_reached.connect(_on_enemy_formation_reached.bind(enemy))
+		if not enemy.formation_reached.is_connected(_on_enemy_formation_reached.bind(enemy)):
+			enemy.formation_reached.connect(_on_enemy_formation_reached.bind(enemy))
 	if enemy.has_signal("died"):
-		enemy.died.connect(_on_enemy_died.bind(enemy))
+		if not enemy.died.is_connected(_on_enemy_died.bind(enemy)):
+			enemy.died.connect(_on_enemy_died.bind(enemy))
 	
 	_setup_enemy_formation_data(enemy, index)
-	
-	# Use the improved animation method
-	_animate_enemy_entry_smooth(enemy, index)
 	
 	enemy_spawned.emit(enemy)
 	
 	if debug_mode:
 		print("FormationManager: Spawned enemy %d (%s) at %s" % [index, current_wave_config.enemy_type, enemy.global_position])
-
-# Improved error handling for tween cleanup
+		
 func _on_tree_exiting() -> void:
-	# Clean up any active tweens
-	var tweens = get_tree().get_nodes_in_group("tweens")
-	for tween in tweens:
-		if tween and tween.is_valid():
-			tween.kill()
-	
 	destroy_all_enemies()
 	_clear_formation_data()
 
-# Additional utility to stop all enemy animations
 func stop_all_animations() -> void:
-	for enemy in spawned_enemies:
-		if is_instance_valid(enemy):
-			# Stop any tweens affecting this enemy
-			var tweens = get_tree().get_nodes_in_group("tweens")
-			for tween in tweens:
-				if tween and tween.is_valid():
-					tween.kill()
-	
 	if debug_mode:
 		print("FormationManager: All animations stopped")
 
@@ -609,26 +566,33 @@ func _on_enemy_reached(enemy: Enemy) -> void:
 
 func _on_enemy_formation_reached(enemy: Enemy) -> void:
 	if not is_instance_valid(enemy):
+		if debug_mode:
+			print("FormationManager: Formation reached signal for invalid enemy")
 		return
 	enemies_in_formation += 1
 	if debug_mode:
 		print("FormationManager: Enemy reached formation. Total: %d/%d" % [enemies_in_formation, current_wave_config.get_enemy_count()])
 	if enemies_in_formation >= current_wave_config.get_enemy_count() and is_spawning:
 		_check_formation_complete()
-
+		
 func _check_formation_complete() -> void:
 	if not is_spawning:
 		return
+	@warning_ignore("unused_variable")
 	var enemy_count = current_wave_config.get_enemy_count()
-	if enemies_in_formation >= enemy_count:
+	# Validate alive enemies to ensure we don't count freed ones
+	var alive_enemies = get_alive_enemy_count()
+	if enemies_in_formation >= alive_enemies:
 		is_spawning = false
 		await get_tree().create_timer(formation_completion_delay).timeout
 		formation_complete.emit()
 		if debug_mode:
-			print("FormationManager: Formation complete with %d enemies" % enemies_in_formation)
+			print("FormationManager: Formation complete with %d enemies (alive: %d)" % [enemies_in_formation, alive_enemies])
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	if not is_instance_valid(enemy):
+		if debug_mode:
+			print("FormationManager: Died signal received for invalid enemy")
 		return
 	
 	if enemy.arrived_at_formation:
@@ -639,16 +603,16 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		if debug_mode:
 			print("FormationManager: Enemy died (was not in formation yet)")
 	
+	# Remove from spawned_enemies
 	spawned_enemies.erase(enemy)
+	enemy_died.emit(enemy) # Forward to WaveManager
 	
-	var alive_enemies = 0
-	for spawned_enemy in spawned_enemies:
-		if is_instance_valid(spawned_enemy):
-			alive_enemies += 1
+	# Update alive enemies count
+	var alive_enemies = get_alive_enemy_count()
 	
 	if alive_enemies == 0 and all_enemies_have_spawned:
 		all_enemies_destroyed.emit()
-		is_spawning = false  # Add this line
+		is_spawning = false
 		if debug_mode:
 			print("FormationManager: All enemies destroyed, is_spawning set to false")
 
@@ -679,6 +643,8 @@ func get_alive_enemies() -> Array[Enemy]:
 
 func get_alive_enemy_count() -> int:
 	var count = 0
+	# Clean up invalid instances
+	spawned_enemies = spawned_enemies.filter(func(e): return is_instance_valid(e))
 	for enemy in spawned_enemies:
 		if is_instance_valid(enemy):
 			count += 1
@@ -705,35 +671,27 @@ func _draw() -> void:
 	if not debug_mode:
 		return
 	
-	# Draw formation positions
 	for pos in formation_positions:
 		draw_circle(pos, 8, DEBUG_FORMATION_COLOR)
 	
-	# Draw spawn positions
 	for pos in spawn_positions:
 		draw_circle(pos, 6, DEBUG_SPAWN_COLOR)
 	
-	# Draw entry paths
 	for path in entry_paths:
 		if path.size() > 1:
 			for i in range(path.size() - 1):
 				draw_line(path[i], path[i + 1], DEBUG_PATH_COLOR, 2.0)
 	
-	# Draw formation center
 	if current_wave_config:
 		var center = current_wave_config.get_formation_center()
 		draw_circle(center, 12, DEBUG_CENTER_COLOR)
 		
-		# Draw formation radius
 		var radius = current_wave_config.get_formation_radius()
 		draw_arc(center, radius, 0, 2 * PI, 32, DEBUG_CENTER_COLOR, 2.0)
 
-
-# Utility functions for advanced formations
 func _create_custom_formation_positions(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:
 	var positions: Array[Vector2] = []
 	
-	# Example custom formation - can be extended
 	var formation_name = params.get("name", "custom")
 	match formation_name:
 		"star":
@@ -743,7 +701,6 @@ func _create_custom_formation_positions(enemy_count: int, center: Vector2, param
 		"heart":
 			positions = _create_heart_formation(enemy_count, center, params)
 		_:
-			# Default to circle if unknown
 			_calculate_circle_formation(enemy_count, center, params.get("radius", 150.0))
 			positions = formation_positions.duplicate()
 	
@@ -773,19 +730,16 @@ func _create_cross_formation(enemy_count: int, center: Vector2, params: Dictiona
 	var enemies_per_arm = enemy_count / 4
 	var remaining = enemy_count % 4
 	
-	# Horizontal arms
 	for i in range(enemies_per_arm):
 		var offset = (i + 1) * spacing
 		positions.append(center + Vector2(offset, 0))  # Right
 		positions.append(center + Vector2(-offset, 0)) # Left
 	
-	# Vertical arms
 	for i in range(enemies_per_arm):
 		var offset = (i + 1) * spacing
 		positions.append(center + Vector2(0, offset))  # Down
 		positions.append(center + Vector2(0, -offset)) # Up
 	
-	# Place remaining enemies at center
 	for i in range(remaining):
 		positions.append(center)
 	
@@ -797,7 +751,6 @@ func _create_heart_formation(enemy_count: int, center: Vector2, params: Dictiona
 	
 	for i in range(enemy_count):
 		var t = float(i) / enemy_count * 2.0 * PI
-		# Parametric heart equation
 		var x = 16 * pow(sin(t), 3)
 		var y = -(13 * cos(t) - 5 * cos(2*t) - 2 * cos(3*t) - cos(4*t))
 		var pos = center + Vector2(x * scaled * 3, y * scaled * 3)
@@ -805,7 +758,6 @@ func _create_heart_formation(enemy_count: int, center: Vector2, params: Dictiona
 	
 	return positions
 
-# Performance monitoring
 func get_performance_stats() -> Dictionary:
 	return {
 		"enemies_spawned": enemies_spawned_count,

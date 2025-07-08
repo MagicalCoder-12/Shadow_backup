@@ -40,12 +40,12 @@ particles_anim_loop = false
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_5c45g")
-max_health = 40000
+max_health = 60000
+stage_2_max_health = 100000
 attack_interval = 5.0
 dash_interval = 4.0
 bullet_speed = 500.0
-max_minions = 5
-minion_spawn_interval = 15.0
+max_minions = 10
 
 [node name="Boss" type="Sprite2D" parent="."]
 position = Vector2(17.0095, 2.13279)

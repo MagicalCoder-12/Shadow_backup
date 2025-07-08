@@ -16,6 +16,7 @@ signal shadow_mode_deactivated
 signal level_star_earned(level_num: int)
 signal ad_reward_granted(ad_type: String)
 signal ad_failed_to_load(ad_type: String, error_code: Variant)
+signal revive_completed(success: bool)
 
 ### 🔒 CONSTANTS ###
 const HIGH_SCORE_FILE_PATH: String = "user://high_score.dat"
@@ -29,7 +30,7 @@ const GROUP_BOSS: String = "Boss"
 const DEFAULT_BULLET_SPEED: float = 3000.0
 const DEFAULT_BULLET_DAMAGE: int = 20
 const MAX_ATTACK_LEVEL: int = 4
-const SUPER_MODE_SPAWN_COUNT: int = 15
+const SUPER_MODE_SPAWN_COUNT: int = 25
 const VIDEO_SCENE: String = "res://UI/VideoPlayback.tscn"
 const START_SCREEN_SCENE: String = "res://MainScenes/start_menu.tscn"
 const BACKGROUND_MUSIC: AudioStream = preload("res://Textures/Music/Start.ogg")
@@ -45,7 +46,7 @@ var is_level_just_completed: bool = false
 var is_video_playing: bool = false
 var is_game_over_screen_active: bool = false
 var is_revive_pending: bool = false
-var selected_ad_type: String  # Track the selected ad type for revive ("video" or "interstitial")
+var selected_ad_type: String = ""
 var is_initialized: bool = false
 
 ### 🔗 PERSISTENT GAME STATE ###
@@ -57,7 +58,7 @@ var score: int:
 			_score = value
 			score_updated.emit(_score)
 			if _score > high_score:
-				high_score = _score  # This will call the high_score setter properly
+				high_score = _score
 
 var _high_score: int = 0
 var high_score: int:
@@ -69,7 +70,7 @@ var high_score: int:
 			if autosave_high_score:
 				save_high_score()
 
-var _player_lives: int = 2
+var _player_lives: int = 3
 var player_lives: int:
 	get: return _player_lives
 	set(value):
@@ -78,8 +79,6 @@ var player_lives: int:
 		on_player_life_changed.emit(_player_lives)
 		if _player_lives == 0 and not is_level_just_completed:
 			trigger_game_over()
-
-
 
 var is_paused: bool = false:
 	set(value):
@@ -110,6 +109,12 @@ var completed_levels: Array = []:
 @onready var shadow_mode_timer: Timer = $ShadowModeTimer
 @onready var admob: Admob = $Admob
 
+### 📱 ADMOB REVIVE STATE ###
+var revive_type: String = "none"  # "ad", "manual", "none"
+var is_ad_showing: bool = false
+var ad_retry_count: int = 0
+var max_ad_retries: int = 3
+
 ### 📊 PLAYER STATS ###
 var player_stats: Dictionary = {
 	"attack_level": 0,
@@ -137,21 +142,9 @@ func _ready() -> void:
 	
 	set_spawn_position()
 	
-	# Initialize AdMob and connect signals
 	if admob:
 		admob.initialize()
-		_connect_admob_signals()
 
-func _connect_admob_signals() -> void:
-	admob.rewarded_ad_user_earned_reward.connect(_on_ad_rewarded)
-	admob.rewarded_interstitial_ad_user_earned_reward.connect(_on_ad_rewarded)
-	admob.rewarded_ad_failed_to_load.connect(func(_ad_id: String, _error_data: Dictionary): _on_ad_failed_to_load("", _error_data, "video"))
-	admob.rewarded_interstitial_ad_failed_to_load.connect(func(_ad_id: String, _error_data: Dictionary): _on_ad_failed_to_load("", _error_data, "interstitial"))
-	admob.rewarded_ad_dismissed_full_screen_content.connect(func(_ad_id: String): _on_ad_closed("video"))
-	admob.rewarded_interstitial_ad_dismissed_full_screen_content.connect(func(_ad_id: String): _on_ad_closed("interstitial"))
-	admob.rewarded_ad_loaded.connect(func(_ad_id: String): _on_ad_loaded("video"))
-	admob.rewarded_interstitial_ad_loaded.connect(func(_ad_id: String): _on_ad_loaded("interstitial"))
-	
 func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool) -> void:
 	player_stats["attack_level"] = attack_level
 	player_stats["bullet_damage"] = bullet_damage
@@ -276,9 +269,13 @@ func reset_game() -> void:
 	is_video_playing = false
 	is_game_over_screen_active = false
 	is_revive_pending = false
+	selected_ad_type = ""
+	is_ad_showing = false
+	ad_retry_count = 0
+	revive_type = "none"
 	player_stats = {
 		"attack_level": 0,
-		"bullet_damage": DEFAULT_BULLET_SPEED,
+		"bullet_damage": DEFAULT_BULLET_DAMAGE,
 		"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
 		"is_shadow_mode_active": false
 	}
@@ -304,21 +301,26 @@ func trigger_game_over() -> void:
 	game_over_triggered.emit()
 
 func revive_player(lives: int = 2) -> void:
-	if !is_revive_pending:
+	if not is_revive_pending:
 		print("Revive attempted but no revive pending")
+		revive_completed.emit(false)
 		return
+	
+	print("Reviving player with %d lives (type: %s)" % [lives, revive_type])
+	
 	game_over = false
 	is_paused = false
 	get_tree().paused = false
 	player_lives = lives
-	print("Set player_lives to %d in revive_player" % player_lives)
 	on_player_life_changed.emit(player_lives)
 	set_spawn_position()
+	
 	if autosave_progress:
 		save_progress()
+	
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
-	print("Unmuted Bullet and Explosion buses in revive_player")
+	
 	var current_scene = get_tree().current_scene
 	if current_scene:
 		_hide_game_over_screen(current_scene)
@@ -326,12 +328,20 @@ func revive_player(lives: int = 2) -> void:
 		if player and player.has_method("set_lives"):
 			player.set_lives(player_lives)
 			print("Synced player lives to %d" % player_lives)
+	
 	is_game_over_screen_active = false
 	if admob and is_initialized:
 		admob.hide_banner_ad()
-	is_revive_pending = false
-	print("Player revived with %d lives, game_over: %s" % [player_lives, game_over])
 	
+	is_revive_pending = false
+	is_ad_showing = false
+	ad_retry_count = 0
+	selected_ad_type = ""
+	revive_type = "none"
+	
+	print("Player revived successfully, game_over set to: %s" % game_over)
+	revive_completed.emit(true)
+
 func _hide_game_over_screen(current_scene: Node) -> void:
 	var found = false
 	for child in current_scene.get_children():
@@ -339,7 +349,8 @@ func _hide_game_over_screen(current_scene: Node) -> void:
 			child.visible = false
 			print("Hid GameOverScreen")
 			found = true
-	if !found:
+			break
+	if not found:
 		for child in current_scene.get_children():
 			if child is CanvasLayer:
 				for subchild in child.get_children():
@@ -347,12 +358,15 @@ func _hide_game_over_screen(current_scene: Node) -> void:
 						subchild.visible = false
 						print("Hid GameOverScreen from CanvasLayer")
 						found = true
-	if !found:
+						break
+				if found:
+					break
+	if not found:
 		push_warning("GameOverScreen not found in current scene")
 
 ### 🕒 SHADOW MODE MANAGEMENT ###
 func unlock_shadow_mode() -> void:
-	if !shadow_mode_unlocked:
+	if not shadow_mode_unlocked:
 		shadow_mode_unlocked = true
 		if autosave_progress:
 			save_progress()
@@ -371,7 +385,7 @@ func _on_shadow_mode_timer_timeout() -> void:
 
 ### 🗺️ SCENE MANAGEMENT ###
 func change_scene(scene_path: String) -> void:
-	if !ResourceLoader.exists(scene_path):
+	if not ResourceLoader.exists(scene_path):
 		push_error("Scene not found: %s" % scene_path)
 		return
 	scene_change_started.emit()
@@ -383,7 +397,6 @@ func change_scene(scene_path: String) -> void:
 	var loader: Node = LOADER_SCENE.instantiate()
 	loader.name = "LoaderCanvasLayer"
 	root.add_child(loader)
-	# Mute all audio buses except Background and Master, hide banner ad
 	for bus in AudioServer.bus_count:
 		var bus_name = AudioServer.get_bus_name(bus)
 		if bus_name != "Background" and bus_name != "Master":
@@ -395,14 +408,13 @@ func change_scene(scene_path: String) -> void:
 ### 🧩 LEVEL MANAGEMENT ###
 func load_level(level_num: int) -> void:
 	if is_level_unlocked(level_num):
-		# Reset player stats and lives for new level
 		player_stats = {
 			"attack_level": 0,
 			"bullet_damage": DEFAULT_BULLET_DAMAGE,
 			"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
 			"is_shadow_mode_active": false
 		}
-		player_lives = max(2, player_lives)  # Ensure at least 2 lives
+		player_lives = max(2, player_lives)
 		print("Set player_lives to %d for level %d" % [player_lives, level_num])
 		var level_path: String = "res://Levels/level_%d.tscn" % level_num
 		if level_path != START_SCREEN_SCENE and level_path != MAP_SCENE:
@@ -412,7 +424,6 @@ func load_level(level_num: int) -> void:
 		update_hud_visibility(level_num)
 		if admob and is_initialized:
 			admob.hide_banner_ad()
-		# Sync lives with player after scene load
 		var current_scene = get_tree().current_scene
 		if current_scene:
 			var player = current_scene.get_node_or_null("Player")
@@ -432,7 +443,7 @@ func update_hud_visibility(level_num: int = get_current_level()) -> void:
 				hud.reset_charge()
 
 func complete_level(current_level: int) -> void:
-	if game_over and !is_revive_pending:
+	if game_over and not is_revive_pending:
 		print("Cannot complete level %d, game over" % current_level)
 		return
 	print("Completing level %d" % current_level)
@@ -476,7 +487,7 @@ func complete_level(current_level: int) -> void:
 		var current_scene = get_tree().current_scene
 		if current_scene and ResourceLoader.exists(VIDEO_SCENE):
 			is_video_playing = true
-			AudioManager.mute_audio_buses(true)
+			AudioManager.lower_bus_volumes_except(["Boss", "Master"], -60.0)
 			var video_layer = CanvasLayer.new()
 			video_layer.name = "VideoPlaybackLayer"
 			video_layer.layer = 10
@@ -540,7 +551,7 @@ func _on_level_selected(level_num: int) -> void:
 
 func _on_boss_defeated() -> void:
 	print("Boss defeated signal received in GameManager")
-	score += 10000
+	score += 1000
 	var current_level: int = get_current_level()
 	if current_level == 5:
 		unlock_shadow_mode()
@@ -564,7 +575,6 @@ func _on_game_over_triggered() -> void:
 	game_ended = true
 	game_won = false
 	print("Game over! Player died.")
-	# Mute audio buses only if not reviving
 	if not is_revive_pending:
 		AudioManager.mute_bus("Bullet", true)
 		AudioManager.mute_bus("Explosion", true)
@@ -597,6 +607,8 @@ func _on_node_added(node: Node) -> void:
 	if node.name == "GameOverScreen":
 		if node.has_signal("player_revived"):
 			node.player_revived.connect(_on_player_revived)
+		if node.has_signal("ad_revive_requested"):
+			node.ad_revive_requested.connect(_on_ad_revive_requested)
 	if node == get_tree().current_scene:
 		var scene_path = node.scene_file_path if node.scene_file_path else ""
 		if scene_path == START_SCREEN_SCENE or scene_path == MAP_SCENE:
@@ -634,73 +646,212 @@ func get_current_level() -> int:
 		return int(result.get_string(1))
 	return 0
 
-### 📱 ADMOB REVIVE LOGIC ###
-var revive_type: String = "none"  # Track revive type ("ad", "manual")
-var is_ad_showing: bool = false  # Prevent concurrent ads
-
-func _on_admob_initialization_completed(_status_data: InitializationStatus) -> void:
+### 📱 ADMOB INITIALIZATION ###
+func _on_admob_initialization_completed(status_data: InitializationStatus) -> void:
 	is_initialized = true
-	print("Admob initialized ✅")
+	var app_id = "ca-app-pub-3940256099942544~3347511713" if admob.is_real == false else "ca-app-pub-4574794641011089~7012103621"
+	var rewarded_ad_id = "ca-app-pub-3940256099942544/5224354917" 
+	var interstitial_ad_id = "ca-app-pub-3940256099942544/1033173712" 
+	print("AdMob initialized like a boss! 🚀 Status: %s, App ID: %s, Rewarded Ad ID: %s, Interstitial Ad ID: %s" % [
+		status_data, app_id, rewarded_ad_id, interstitial_ad_id
+	])
 	admob.load_banner_ad()
 	admob.load_rewarded_ad()
 	admob.load_rewarded_interstitial_ad()
 	var scene_path = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
 	if scene_path == MAP_SCENE or scene_path == START_SCREEN_SCENE:
 		await admob.banner_ad_loaded
-		admob.show_banner_ad()
+		if is_initialized:
+			admob.show_banner_ad()
+			print("Banner ad waving at players from %s!" % scene_path)
 	else:
 		admob.hide_banner_ad()
+		print("Banner ad tucked away for gameplay focus.")
 
-func request_ad_revive() -> void:
-	if not admob:
-		push_error("Admob node not found in GameManager.")
-		return
-	if not is_initialized:
-		push_error("Admob is not initialized yet.")
+### 📱 ADMOB EVENT HANDLERS ###
+func _on_admob_banner_ad_loaded(ad_id: String) -> void:
+	print("Banner ad loaded with ID: %s. Ready to dazzle!" % ad_id)
+	if is_initialized and (get_tree().current_scene.scene_file_path == MAP_SCENE or get_tree().current_scene.scene_file_path == START_SCREEN_SCENE):
+		admob.show_banner_ad()
+		print("Banner ad displayed because we're on the cool screens!")
+
+func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
+	var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
+	var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
+	push_warning("Banner ad failed to load. Error: %s, Code: %s. Retrying in 5 seconds..." % [error_info, error_code])
+	if ad_retry_count < max_ad_retries:
+		ad_retry_count += 1
+		await get_tree().create_timer(5.0).timeout
+		if is_initialized:
+			admob.load_banner_ad()
+			print("Retrying banner ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
+	else:
+		push_error("Max retries reached for banner ad. Giving up! 😢")
+		ad_retry_count = 0
+
+func _on_admob_rewarded_ad_loaded(ad_id: String) -> void:
+	print("Rewarded video ad loaded! ID: %s. Ready for some shiny rewards!" % ad_id)
+	if is_revive_pending and selected_ad_type == "video" and not is_ad_showing:
+		is_ad_showing = true
+		admob.show_rewarded_ad()
+		print("Showing rewarded video ad for revive. Let's bring that player back!")
+
+func _on_admob_rewarded_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
+	if is_revive_pending and selected_ad_type == "video":
+		var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
+		var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
+		print("Rewarded video ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
+		ad_failed_to_load.emit("video", error_data)
+		if ad_retry_count < max_ad_retries:
+			ad_retry_count += 1
+			print("Retrying video ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
+			await get_tree().create_timer(5.0).timeout
+			if is_initialized:
+				admob.load_rewarded_ad()
+		else:
+			print("Max retries reached for video ad. Falling back to map! 😞")
+			is_ad_showing = false
+			is_revive_pending = false
+			revive_type = "none"
+			selected_ad_type = ""
+			ad_retry_count = 0
+			revive_completed.emit(false)
+			change_scene(MAP_SCENE)
+
+func _on_admob_rewarded_ad_showed_full_screen_content(ad_id: String) -> void:
+	print("Rewarded video ad is showing! ID: %s. Popcorn ready!" % ad_id)
+	is_ad_showing = true
+
+func _on_admob_rewarded_ad_dismissed_full_screen_content(ad_id: String) -> void:
+	print("Rewarded video ad dismissed. ID: %s" % ad_id)
+	if is_revive_pending and selected_ad_type == "video":
+		complete_ad_revive()
+	else:
+		is_ad_showing = false
+		revive_type = "none"
+		selected_ad_type = ""
+		ad_retry_count = 0
+		if is_initialized:
+			admob.load_rewarded_ad()
+			print("Preloading next rewarded video ad for future revives.")
+
+func _on_admob_rewarded_ad_user_earned_reward(ad_id: String, reward_data: RewardItem) -> void:
+	if is_revive_pending and selected_ad_type == "video":
+		print("Player earned reward from video ad! ID: %s, Reward: %s" % [ad_id, reward_data])
+		ad_reward_granted.emit("video")
+		complete_ad_revive()
+	else:
+		print("Reward earned but no revive pending. Saving it for later! ID: %s" % ad_id)
+
+func _on_admob_rewarded_interstitial_ad_loaded(ad_id: String) -> void:
+	print("Rewarded interstitial ad loaded! ID: %s. Ready to surprise!" % ad_id)
+	if is_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
+		is_ad_showing = true
+		admob.show_rewarded_interstitial_ad()
+		print("Showing rewarded interstitial ad for revive. Back to action!")
+
+func _on_admob_rewarded_interstitial_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
+	if is_revive_pending and selected_ad_type == "interstitial":
+		var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
+		var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
+		print("Rewarded interstitial ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
+		ad_failed_to_load.emit("interstitial", error_data)
+		if ad_retry_count < max_ad_retries:
+			ad_retry_count += 1
+			print("Retrying interstitial ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
+			await get_tree().create_timer(5.0).timeout
+			if is_initialized:
+				admob.load_rewarded_interstitial_ad()
+		else:
+			print("Max retries reached for interstitial ad. Falling back to map! 😞")
+			is_ad_showing = false
+			is_revive_pending = false
+			revive_type = "none"
+			selected_ad_type = ""
+			ad_retry_count = 0
+			revive_completed.emit(false)
+			change_scene(MAP_SCENE)
+
+func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(ad_id: String) -> void:
+	print("Rewarded interstitial ad is showing! ID: %s. Get ready for epicness!" % ad_id)
+	is_ad_showing = true
+
+func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(ad_id: String) -> void:
+	print("Rewarded interstitial ad dismissed. ID: %s" % ad_id)
+	if is_revive_pending and selected_ad_type == "interstitial":
+		complete_ad_revive()
+	else:
+		is_ad_showing = false
+		revive_type = "none"
+		selected_ad_type = ""
+		ad_retry_count = 0
+		if is_initialized:
+			admob.load_rewarded_interstitial_ad()
+			print("Preloading next rewarded interstitial ad for future revives.")
+
+func _on_admob_rewarded_interstitial_ad_user_earned_reward(ad_id: String, reward_data: RewardItem) -> void:
+	if is_revive_pending and selected_ad_type == "interstitial":
+		print("Player earned reward from interstitial ad! ID: %s, Reward: %s" % [ad_id, reward_data])
+		ad_reward_granted.emit("interstitial")
+		complete_ad_revive()
+	else:
+		print("Reward earned but no revive pending. Stashing it for later! ID: %s" % ad_id)
+
+### 📱 ADMOB REVIVE LOGIC ###
+func _on_ad_revive_requested() -> void:
+	if not admob or not is_initialized:
+		push_error("Cannot request ad revive: AdMob not initialized or missing.")
+		revive_completed.emit(false)
 		return
 	if is_ad_showing:
-		print("Ad request ignored: An ad is already showing")
+		print("Ad request ignored: Another ad is already showing. Chill out!")
+		revive_completed.emit(false)
 		return
-	is_ad_showing = true
+	if is_revive_pending:
+		print("Ad request ignored: Revive already pending. Patience, young padawan!")
+		revive_completed.emit(false)
+		return
+	
 	is_revive_pending = true
 	revive_type = "ad"
+	ad_retry_count = 0
 	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
-	print("Selected ad type for revive: %s" % selected_ad_type)
+	print("Requesting %s ad for revive. Fingers crossed! 🤞" % selected_ad_type)
+	
 	if selected_ad_type == "video":
 		if admob.is_rewarded_ad_loaded():
-			print("Showing rewarded video ad")
+			is_ad_showing = true
 			admob.show_rewarded_ad()
+			print("Showing rewarded video ad right away!")
 		else:
-			print("Loading rewarded video ad")
+			print("Loading rewarded video ad...")
 			admob.load_rewarded_ad()
-			await admob.rewarded_ad_loaded
-			if admob.is_rewarded_ad_loaded():
-				print("Video ad loaded, showing now")
-				admob.show_rewarded_ad()
-			else:
-				is_ad_showing = false
-				push_error("Failed to load video ad")
 	else:
 		if admob.is_rewarded_interstitial_ad_loaded():
-			print("Showing rewarded interstitial ad")
+			is_ad_showing = true
 			admob.show_rewarded_interstitial_ad()
+			print("Showing rewarded interstitial ad right away!")
 		else:
-			print("Loading rewarded interstitial ad")
+			print("Loading rewarded interstitial ad...")
 			admob.load_rewarded_interstitial_ad()
-			await admob.rewarded_interstitial_ad_loaded
-			if admob.is_rewarded_interstitial_ad_loaded():
-				print("Interstitial ad loaded, showing now")
-				admob.show_rewarded_interstitial_ad()
-			else:
-				is_ad_showing = false
-				push_error("Failed to load interstitial ad")
+
+func _on_player_revived() -> void:
+	if revive_type != "ad":
+		revive_type = "manual"
+		print("Player revived manually like a sci-fi phoenix! 🔥")
+		revive_player(2)
+	else:
+		print("Player revive triggered, but waiting for ad reward. Hold tight!")
+		# Ad-based revive will be handled by complete_ad_revive
 
 func complete_ad_revive() -> void:
 	if not is_revive_pending:
-		print("Ad revive attempted: No revive pending")
+		print("Ad revive attempted: No revive pending. Back to the drawing board!")
 		is_ad_showing = false
+		revive_completed.emit(false)
 		return
-	revive_type = "ad"
+	
+	print("Completing ad revive like a galactic hero! 🌌")
 	var current_scene = get_tree().current_scene
 	var player = current_scene.get_node_or_null("Player") if current_scene else null
 	if player and player.is_inside_tree():
@@ -715,11 +866,13 @@ func complete_ad_revive() -> void:
 			current_scene.call_deferred("add_child", new_player)
 			new_player.call_deferred("revive", 2)
 			game_over = false
+	
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
 	print("Unmuted Bullet and Explosion buses in complete_ad_revive")
+	
 	call_deferred("revive_player", 2)
-	# Preload next ad
+	
 	if admob and is_initialized:
 		if selected_ad_type == "video":
 			admob.load_rewarded_ad()
@@ -727,49 +880,7 @@ func complete_ad_revive() -> void:
 		else:
 			admob.load_rewarded_interstitial_ad()
 			print("Preloading interstitial ad for next revive")
+	
 	is_ad_showing = false
-	
-
-func _on_player_revived() -> void:
-	if revive_type != "ad":
-		revive_type = "manual"
-	print("Player revived with type: %s" % revive_type)
-	complete_ad_revive()
-
-func _on_ad_loaded(ad_type: String) -> void:
-	if not is_initialized or not is_revive_pending:
-		return
-	
-	if ad_type == selected_ad_type:
-		if ad_type == "video" and admob.is_rewarded_ad_loaded():
-			print("Showing rewarded video ad after load")
-			admob.show_rewarded_ad()
-		elif ad_type == "interstitial" and admob.is_rewarded_interstitial_ad_loaded():
-			print("Showing rewarded interstitial ad after load")
-			admob.show_rewarded_interstitial_ad()
-
-func _on_ad_rewarded(_ad_id: String, _reward_data: Variant) -> void:
-	if is_revive_pending:
-		print("Ad reward granted for %s" % selected_ad_type)
-		ad_reward_granted.emit(selected_ad_type)
-		# Preload next ad
-		if selected_ad_type == "video":
-			admob.load_rewarded_ad()
-		else:
-			admob.load_rewarded_interstitial_ad()
-
-func _on_ad_failed_to_load(_ad_id: String, error_code: Variant, ad_type: String) -> void:
-	if is_revive_pending and ad_type == selected_ad_type:
-		print("%s ad failed to load, error code: %s" % [ad_type.capitalize(), error_code])
-		ad_failed_to_load.emit(ad_type, error_code)
-		# Retry after 5 seconds
-		await get_tree().create_timer(5.0).timeout
-		if ad_type == "video":
-			admob.load_rewarded_ad()
-		else:
-			admob.load_rewarded_interstitial_ad()
-
-func _on_ad_closed(ad_type: String) -> void:
-	if is_revive_pending and ad_type == selected_ad_type:
-		print("%s ad closed, completing revive" % ad_type.capitalize())
-		complete_ad_revive()
+	revive_completed.emit(true)
+	print("Ad revive completed, game_over set to: %s" % game_over)

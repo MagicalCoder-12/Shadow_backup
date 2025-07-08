@@ -8,6 +8,9 @@
 script = ExtResource("1_7u0uf")
 wave_delay = 1.5
 formation_manager_scene = ExtResource("2_i50id")
+debug_mode = true
 
 [node name="BossMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("9_3x51k")
+
+[connection signal="finished" from="BossMusic" to="." method="_on_boss_music_finished"]

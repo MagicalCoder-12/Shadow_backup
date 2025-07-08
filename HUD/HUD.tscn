@@ -29,7 +29,7 @@ font = ExtResource("6_6i5cd")
 font_size = 45
 font_color = Color(0.156863, 1, 0, 1)
 
-[node name="HUD" type="Control"]
+[node name="HUD" type="Control" groups=["HUD"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

@@ -1,8 +1,143 @@
-[gd_scene load_steps=2 format=3 uid="uid://do7t1kc6mfa1v"]
+[gd_scene load_steps=13 format=3 uid="uid://do7t1kc6mfa1v"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_0myqp"]
+[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_67xr7"]
+
+[sub_resource type="Resource" id="Resource_s5cq0"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_33j3u"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_pikf5"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_y5wdo"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_q1y1m"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_eiec4"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_ec5nc"]
+script = ExtResource("2_67xr7")
+formation_type = 3
+entry_pattern = 2
+difficulty = 3
+enemy_type = "mob4"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_sgbpj"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 5
+difficulty = 3
+enemy_type = "BomberBug"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_qigth"]
+script = ExtResource("2_67xr7")
+formation_type = 0
+entry_pattern = 6
+difficulty = 3
+enemy_type = "BouncerEnemy"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_f4qm5"]
+script = ExtResource("2_67xr7")
+formation_type = 7
+entry_pattern = 7
+difficulty = 3
+enemy_type = "BouncerEnemy"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 300)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
 
 [node name="Level_9" instance=ExtResource("1_0myqp")]
 
 [node name="LevelManager" parent="." index="5"]
 level_num = 9
+waves = Array[ExtResource("2_67xr7")]([SubResource("Resource_s5cq0"), SubResource("Resource_33j3u"), SubResource("Resource_pikf5"), SubResource("Resource_y5wdo"), SubResource("Resource_q1y1m"), SubResource("Resource_eiec4"), SubResource("Resource_ec5nc"), SubResource("Resource_sgbpj"), SubResource("Resource_qigth"), SubResource("Resource_f4qm5")])
+
+[node name="WaveManager" parent="." index="7"]
+current_level = 9

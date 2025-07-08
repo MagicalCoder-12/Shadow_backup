@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://c85v45j2cioqh"]
+[gd_scene load_steps=6 format=3 uid="uid://c85v45j2cioqh"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_rgb4l"]
 [ext_resource type="Script" path="res://Enemy/Scripts/BouncerEnemy.gd" id="2_aylsa"]
+[ext_resource type="Texture2D" uid="uid://bfp2eh0rwd6gu" path="res://Textures/Enemy/Enemy_4_C_Small_NoLight.png" id="3_euqxl"]
 [ext_resource type="Texture2D" uid="uid://b0cqck5xoix0u" path="res://Textures/Enemy/Enemy_2Light.png" id="3_pjexh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pjexh"]
@@ -12,21 +13,14 @@ script = ExtResource("2_aylsa")
 bounce_amplitude = 200.0
 bounce_frequency = 3.0
 fire_delay = 4.0
-shadow_extra_bullets = null
-score = 250
+shadow_extra_bullets = 2
+score = 200
 vertical_speed = 300.0
 max_health = 300
-damage_amount = null
-speed = null
-debug_mode = null
-shadow_spawn_probability = null
-shadow_health_multiplier = null
-shadow_score_multiplier = null
-shadow_damage_multiplier = null
 fire_rate = 3.0
-entry_speed_multiplier = null
+shadow_texture = ExtResource("3_euqxl")
 behavior_pattern = 2
-adaptive_difficulty = null
+movement_behavior = 3
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("3_pjexh")

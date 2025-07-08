@@ -61,6 +61,8 @@ UI="all ui elements"
 Meteor="Used for tracking meteors"
 Boss_Minion="for minions of boss."
 LevelManager="for findinf levelmanager."
+Enemy=""
+HUD=""
 
 [input]
 

@@ -27,6 +27,7 @@ var defensive_mode_timer: float = 0.0
 var original_fire_rate: float
 var player_reference: Player = null
 var last_player_position: Vector2
+var player_check_timer: float = 0.0  # Timer to periodically check player reference
 
 # Charging effects
 var charge_particles: Array[Node2D] = []
@@ -39,6 +40,12 @@ var defensive_tween: Tween
 
 func _ready():
 	super._ready()
+	
+	# Ensure viewport_size is initialized
+	if viewport_size == Vector2.ZERO:
+		viewport_size = get_viewport().get_visible_rect().size
+		if debug_mode:
+			print("SlowShooter: Initialized viewport_size to %s" % viewport_size)
 	
 	# Store original values
 	original_fire_rate = fire_rate
@@ -69,13 +76,29 @@ func _ready():
 	_find_player_reference()
 	
 	if debug_mode:
-		print("SlowShooter spawned. Health: ", max_health, " Damage: ", damage_amount, " Shadow: ", is_shadow_enemy)
+		print("SlowShooter spawned. Health: %d, Damage: %d, Shadow: %s, Viewport: %s" % [max_health, damage_amount, is_shadow_enemy, viewport_size])
 
 # Find player reference for targeting
-func _find_player_reference():
+func _find_player_reference() -> void:
 	var players = get_tree().get_nodes_in_group("Player")
-	if players.size() > 0:
+	if players.size() > 0 and is_instance_valid(players[0]):
 		player_reference = players[0]
+		if debug_mode:
+			print("SlowShooter: Player reference acquired")
+	else:
+		player_reference = null
+		if debug_mode:
+			print("SlowShooter: No valid player found")
+
+# Get player position safely, with fallback
+func _get_player_position() -> Vector2:
+	if is_instance_valid(player_reference):
+		last_player_position = player_reference.global_position
+		return last_player_position
+	else:
+		if debug_mode and player_reference != null:
+			print("SlowShooter: Player reference invalid, using last known position")
+		return last_player_position if last_player_position != Vector2.ZERO else Vector2(viewport_size.x / 2, viewport_size.y)  # Fallback to viewport center
 
 # Override shadow enemy creation to add slow shooter bonuses
 func _make_shadow_enemy():
@@ -104,7 +127,7 @@ func _apply_shadow_slow_shooter_bonuses():
 	_apply_shadow_slow_visual_effects()
 	
 	if debug_mode:
-		print("Shadow slow shooter bonuses applied. Health: ", max_health, " Charge chance: ", charge_shot_chance)
+		print("Shadow slow shooter bonuses applied. Health: %d, Charge chance: %.2f" % [max_health, charge_shot_chance])
 
 # Apply additional visual effects for shadow slow shooters
 func _apply_shadow_slow_visual_effects():
@@ -126,6 +149,13 @@ func _apply_shadow_slow_visual_effects():
 	aura_tween.tween_property(aura, "modulate:a", 0.3, 1.0)
 
 func _process(delta):
+	# Periodically check player reference (every 0.5 seconds)
+	player_check_timer -= delta
+	if player_check_timer <= 0:
+		if not is_instance_valid(player_reference):
+			_find_player_reference()
+		player_check_timer = 0.5
+	
 	# Handle charge shot timing
 	if is_charging_shot:
 		charge_shot_timer -= delta
@@ -207,8 +237,7 @@ func _create_charge_effects():
 func _create_charge_particles():
 	for i in range(8):
 		var particle = Sprite2D.new()
-		# Use a small texture for the particle (create or load one)
-		particle.texture =preload("res://Textures/starSmall.png") # Replace with your texture path
+		particle.texture = preload("res://Textures/starSmall.png")  # Adjust path as needed
 		particle.scale = Vector2(4, 4) / 16.0  # Adjust scale to match 4x4 size (assuming texture is 16x16)
 		particle.modulate = Color(1.0, 1.0, 0.5, 0.8)
 		if is_shadow_enemy:
@@ -216,10 +245,7 @@ func _create_charge_particles():
 		
 		var angle = i * PI * 2 / 8
 		var radius = 40
-		particle.position = Vector2(
-			cos(angle) * radius,
-			sin(angle) * radius
-		)
+		particle.position = Vector2(cos(angle) * radius, sin(angle) * radius)
 		
 		add_child(particle)
 		charge_particles.append(particle)
@@ -229,6 +255,7 @@ func _create_charge_particles():
 		particle_tween.set_loops()
 		particle_tween.tween_property(particle, "position", Vector2.ZERO, charge_shot_duration)
 		particle_tween.tween_property(particle, "position", particle.position, 0.1)
+
 # Execute the charged shot
 func _execute_charge_shot():
 	if not is_charging_shot:
@@ -250,10 +277,12 @@ func _fire_charge_shot():
 	if not arrived_at_formation or not firing_positions or not is_alive:
 		return
 	
+	var target_pos = _get_player_position()
+	if target_pos == Vector2.ZERO:
+		return  # Skip firing if no valid target
+	
 	for child in firing_positions.get_children():
 		var bullet
-		
-		# Choose bullet type
 		if is_shadow_enemy:
 			bullet = ShadowEBullet.instantiate()
 		else:
@@ -269,6 +298,9 @@ func _fire_charge_shot():
 		if is_shadow_enemy and randf() < shadow_piercing_chance:
 			if bullet.has_method("make_piercing"):
 				bullet.make_piercing()
+		
+		# Apply aiming
+		_apply_aiming_to_bullet(bullet, child.global_position, target_pos)
 		
 		get_tree().current_scene.add_child(bullet)
 
@@ -292,27 +324,27 @@ func _perform_aimed_shot():
 	if not player_reference:
 		_find_player_reference()
 	
-	if player_reference:
-		last_player_position = player_reference.global_position
-		
-		# Add some prediction for better aim
-		if player_reference.has_method("get_velocity"):
-			var player_velocity = player_reference.get_velocity()
-			var prediction_time = 0.5
-			last_player_position += player_velocity * prediction_time
+	var target_pos = _get_player_position()
+	if target_pos == Vector2.ZERO:
+		fire()  # Fallback to default firing
+		return
+	
+	# Add prediction for better aim
+	if is_instance_valid(player_reference) and player_reference.has_method("get_velocity"):
+		var player_velocity = player_reference.get_velocity()
+		var prediction_time = 0.5
+		target_pos += player_velocity * prediction_time
 	
 	# Fire aimed shot
-	fire()
+	fire(target_pos)
 
 # Override fire to add aiming
-func fire():
+func fire(target_pos: Vector2 = Vector2.ZERO):
 	if not arrived_at_formation or not firing_positions or not is_alive:
 		return
 	
 	for child in firing_positions.get_children():
 		var bullet
-		
-		# Choose bullet type
 		if is_shadow_enemy:
 			bullet = ShadowEBullet.instantiate()
 		else:
@@ -321,17 +353,17 @@ func fire():
 		bullet.global_position = child.global_position
 		
 		# Apply aiming if we have a target
-		if last_player_position != Vector2.ZERO:
-			_apply_aiming_to_bullet(bullet, child.global_position)
+		if target_pos != Vector2.ZERO:
+			_apply_aiming_to_bullet(bullet, child.global_position, target_pos)
 		
 		get_tree().current_scene.add_child(bullet)
 
 # Apply aiming to bullet
-func _apply_aiming_to_bullet(bullet, start_pos: Vector2):
+func _apply_aiming_to_bullet(bullet, start_pos: Vector2, target_pos: Vector2):
 	if not bullet.has_method("set_direction"):
 		return
 	
-	var direction = (last_player_position - start_pos).normalized()
+	var direction = (target_pos - start_pos).normalized() if target_pos != Vector2.ZERO else Vector2(0, 1)  # Default downward
 	
 	# Apply accuracy bonus
 	var accuracy_variance = (1.0 - accuracy_bonus) * 0.3
@@ -355,7 +387,6 @@ func _start_defensive_mode():
 
 # Create defensive mode visual effects
 func _create_defensive_effects():
-	# Create shield effect
 	defensive_shield = ColorRect.new()
 	defensive_shield.color = Color(0.2, 0.8, 1.0, 0.3)
 	if is_shadow_enemy:
@@ -398,32 +429,27 @@ func damage(amount: int):
 	# Apply defensive mode damage reduction
 	if is_defensive_mode:
 		final_damage = int(amount * defensive_damage_reduction)
-		
 		if debug_mode:
-			print("SlowShooter defensive mode: ", amount, " -> ", final_damage)
+			print("SlowShooter defensive mode: %d -> %d" % [amount, final_damage])
 	
 	super.damage(final_damage)
 
 # Override shadow mode activation
 func _on_shadow_mode_activated():
 	super._on_shadow_mode_activated()
-	
 	if is_shadow_enemy and debug_mode:
 		print("SlowShooter shadow mode activated")
 
 # Override shadow mode deactivation
 func _on_shadow_mode_deactivated():
 	super._on_shadow_mode_deactivated()
-	
 	if is_shadow_enemy:
 		# End any active special modes
 		if is_charging_shot:
 			_cleanup_charge_effects()
 			is_charging_shot = false
-		
 		if is_defensive_mode:
 			_end_defensive_mode()
-		
 		if debug_mode:
 			print("SlowShooter shadow mode deactivated")
 
@@ -444,7 +470,12 @@ func is_charging() -> bool:
 
 # Get slow shooter specific information
 func get_slow_shooter_info() -> Dictionary:
-	var info = get_shadow_info()  # Get shadow info from parent
+	var info = {
+		"is_shadow_enemy": is_shadow_enemy,
+		"shadow_health_multiplier": shadow_health_bonus,
+		"shadow_score_multiplier": shadow_score_multiplier,
+		"shadow_damage_multiplier": shadow_damage_multiplier
+	}
 	info.merge({
 		"is_slow_shooter": true,
 		"health_multiplier": health_multiplier,
@@ -458,20 +489,15 @@ func get_slow_shooter_info() -> Dictionary:
 
 # Enhanced status for debugging
 func get_status() -> String:
-	var base_status = super.get_status()
-	return base_status + ", Defensive: %s, Charging: %s, Health: %d/%d" % [
-		is_defensive_mode, is_charging_shot, health, max_health
+	return "SlowShooter - Health: %d/%d, Defensive: %s, Charging: %s, Shadow: %s" % [
+		health, max_health, is_defensive_mode, is_charging_shot, is_shadow_enemy
 	]
 
 # Cleanup
 func _exit_tree():
-	super._exit_tree()
-	
 	# Clean up effects
 	_cleanup_charge_effects()
-	
 	if defensive_shield:
 		defensive_shield.queue_free()
-	
 	if defensive_tween:
 		defensive_tween.kill()

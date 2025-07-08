@@ -12,7 +12,7 @@ class_name WaveConfig
 # CORRECTED: Difficulty enum now matches the Enemy script
 @export var difficulty: formation_enums.DifficultyLevel = formation_enums.DifficultyLevel.NORMAL
 
-@export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy")
+@export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug")
 var enemy_type: String = "mob1"
 
 # NEW: Dedicated boss scene for boss waves
@@ -25,7 +25,7 @@ var enemy_density: String = "Normal"
 # Formation parameters
 @export var formation_center: Vector2 = Vector2(640, 300)
 @export var formation_radius: float = 150.0
-@export var formation_spacing: float = 80.0
+@export var formation_spacing: float = 100.0
 @export var spawn_delay: float = 0.3
 @export var entry_speed: float = 300.0
 
@@ -57,6 +57,7 @@ var enemy_paths := {
 	"SlowShooter": preload("res://Enemy/SlowShooter.tscn"),
 	"FastEnemy": preload("res://Enemy/FastEnemy.tscn"),
 	"BouncerEnemy": preload("res://Enemy/BouncerEnemy.tscn"),
+	"BomberBug" : preload("res://Enemy/BomberBug.tscn")
 }
 
 # Returns the configured enemy or boss scene

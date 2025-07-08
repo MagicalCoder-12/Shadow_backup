@@ -1,16 +1,22 @@
-[gd_scene load_steps=9 format=3 uid="uid://c6uejmh8c7koe"]
+[gd_scene load_steps=11 format=3 uid="uid://c6uejmh8c7koe"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/game_over_screen.gd" id="1_g2wiu"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_npbix"]
 [ext_resource type="Texture2D" uid="uid://07txxcielg1q" path="res://Textures/UI/Restart .png" id="3_7tfa5"]
 [ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="4_m1gjn"]
+[ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="5_1cwq6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ya48v"]
 bg_color = Color(0, 0.501961, 0.6, 0.690196)
-corner_radius_top_left = 25
-corner_radius_top_right = 25
-corner_radius_bottom_right = 25
-corner_radius_bottom_left = 25
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color(0.24837, 0.90919, 0.868324, 1)
+corner_radius_top_left = 50
+corner_radius_top_right = 50
+corner_radius_bottom_right = 50
+corner_radius_bottom_left = 50
 shadow_color = Color(0, 0.537255, 0.176471, 0.713726)
 shadow_size = 10
 
@@ -24,6 +30,10 @@ font_size = 34
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m1gjn"]
 bg_color = Color(0.398963, 0.692263, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7i0ys"]
+font = ExtResource("5_1cwq6")
+font_size = 50
 
 [node name="GameOverScreen" type="Control"]
 process_mode = 3
@@ -50,8 +60,8 @@ layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.108333
 anchor_top = 0.330833
-anchor_right = 0.880556
-anchor_bottom = 0.593958
+anchor_right = 0.903703
+anchor_bottom = 0.657708
 offset_top = 6.10352e-05
 offset_right = -278.0
 offset_bottom = -210.5
@@ -77,15 +87,13 @@ label_settings = SubResource("LabelSettings_olfcw")
 
 [node name="HighScore" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -215.0
-offset_top = -26.5
-offset_right = 128.0
-offset_bottom = 29.5
+anchors_preset = -1
+anchor_left = 0.156053
+anchor_top = 0.340884
+anchor_right = 0.866552
+anchor_bottom = 0.457957
+offset_right = -68.8
+offset_bottom = -11.2
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.2, 1.2)
@@ -93,18 +101,17 @@ text = "Hi-Score: 9999"
 label_settings = SubResource("LabelSettings_16wun")
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="Score" type="Label" parent="Panel"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -208.0
-offset_top = -83.5
-offset_right = 131.0
-offset_bottom = -27.5
+anchors_preset = -1
+anchor_left = 0.168962
+anchor_top = 0.24158
+anchor_right = 0.869134
+anchor_bottom = 0.358654
+offset_right = -67.8
+offset_bottom = -11.2
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.2, 1.2)
@@ -112,16 +119,17 @@ text = "Score: 9999"
 label_settings = SubResource("LabelSettings_16wun")
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="RestartButton" type="Button" parent="Panel"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 364.0
-offset_top = -221.666
-offset_right = 567.0
-offset_bottom = 15.3338
+offset_left = 372.667
+offset_top = -304.666
+offset_right = 575.667
+offset_bottom = -67.6664
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("1_npbix")
 theme_override_font_sizes/font_size = 35
@@ -136,10 +144,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -561.334
-offset_top = -220.333
-offset_right = -381.334
-offset_bottom = 8.66718
+offset_left = -579.0
+offset_top = -310.0
+offset_right = -399.0
+offset_bottom = -80.9993
 grow_horizontal = 0
 grow_vertical = 0
 icon = ExtResource("4_m1gjn")
@@ -148,11 +156,11 @@ expand_icon = true
 
 [node name="Revive" type="Button" parent="Panel"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = -1
+anchor_left = 0.496845
+anchor_top = 0.467771
+anchor_right = 0.496845
+anchor_bottom = 0.467771
 offset_left = -84.6667
 offset_top = 74.8333
 offset_right = 86.3333
@@ -162,6 +170,18 @@ grow_vertical = 2
 theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxFlat_m1gjn")
 text = "REVIVE"
+metadata/_edit_use_anchors_ = true
+
+[node name="MessageLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 18.0002
+offset_top = 444.667
+offset_right = 571.0
+offset_bottom = 535.667
+text = "Message"
+label_settings = SubResource("LabelSettings_7i0ys")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [connection signal="pressed" from="Panel/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="Panel/Back" to="." method="_on_back_pressed"]

@@ -72,12 +72,12 @@ func set_waves(waves_: Array[WaveConfig]):
 		if level_manager and level_manager.has_method("validate_wave_config"):
 			if not level_manager.validate_wave_config(wave, i):
 				push_error("WaveManager: Wave %d failed validation, skipping" % (i + 1))
-				waves[i] = null # Mark invalid wave
+				waves[i] = null
 		else:
 			# Perform robust fallback validation
 			if not wave or not wave.get_enemy_scene() or not wave.get_enemy_scene().can_instantiate():
 				push_error("WaveManager: Wave %d has invalid or missing enemy/boss scene" % (i + 1))
-				waves[i] = null # Mark invalid wave
+				waves[i] = null
 			else:
 				if wave.is_boss_wave():
 					if wave.get_enemy_count() != 1:
@@ -87,7 +87,7 @@ func set_waves(waves_: Array[WaveConfig]):
 					if not wave.get_formation_type() in valid_formations:
 						push_warning("WaveManager: Wave %d has invalid formation_type %d" % [i + 1, wave.get_formation_type()])
 						waves[i] = null
-					var valid_enemies = ["mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy"]
+					var valid_enemies = ["mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy", "BomberBug"]
 					if not wave.enemy_type in valid_enemies:
 						push_warning("WaveManager: Wave %d has invalid enemy_type '%s'" % [i + 1, wave.enemy_type])
 						waves[i] = null
@@ -138,7 +138,7 @@ func start_next_wave():
 	# Validate wave before starting
 	if level_manager and level_manager.has_method("validate_wave_config") and not level_manager.validate_wave_config(current_wave_config, current_wave - 1):
 		push_warning("WaveManager: Skipping invalid Wave %d" % current_wave)
-		_complete_wave() # Skip to next wave
+		_complete_wave()
 		return
 	
 	wave_in_progress = true
@@ -178,7 +178,7 @@ func start_wave():
 		spawn_boss()
 	else:
 		spawn_formation()
-
+		
 func spawn_formation():
 	# Create formation manager if we don't have one
 	if not formation_manager and formation_manager_scene:
@@ -189,11 +189,11 @@ func spawn_formation():
 			formation_manager = null
 			return
 		add_child(formation_manager)
-		# Connect the all_enemies_destroyed signal
-		if not formation_manager.all_enemies_destroyed.is_connected(_on_all_enemies_destroyed):
-			formation_manager.all_enemies_destroyed.connect(_on_all_enemies_destroyed)
-		if debug_mode:
-			print("WaveManager: Instantiated FormationManager for Wave %d (Level: %d)" % [current_wave, current_level])
+		# Connect signals
+		if not formation_manager.enemy_died.is_connected(_on_enemy_killed):
+			formation_manager.enemy_died.connect(_on_enemy_killed)
+			if debug_mode:
+				print("WaveManager: Connected FormationManager.enemy_died to _on_enemy_killed for Wave %d" % current_wave)
 	
 	if not formation_manager:
 		push_error("WaveManager: No FormationManager available for Wave %d (Level: %d)" % [current_wave, current_level])
@@ -221,51 +221,73 @@ func spawn_boss():
 	_boss_spawn_pos = current_wave_config.formation_center
 	
 	if debug_mode:
-		print("WaveManager: Spawning boss for Wave %d at %s (Level: %d)" % [current_wave, _boss_spawn_pos, current_level])
+		print("WaveManager: Attempting to spawn boss for Wave %d at %s (Level: %d)" % [current_wave, _boss_spawn_pos, current_level])
 	
-	if boss_music and boss_music.stream:
-		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -60.0)
+	# Validate boss scene
+	if not _boss_scene or not _boss_scene.can_instantiate():
+		push_error("WaveManager: Invalid or missing boss scene for Wave %d (Level: %d)" % [current_wave, current_level])
+		wave_in_progress = false
+		_complete_wave()
+		return
+	
+	if boss_music and boss_music.stream and not boss_music.playing:
+		if debug_mode:
+			print("WaveManager: Playing boss music for Wave %d (Level: %d)" % [current_wave, current_level])
+		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
 		_start_red_blink_effect()
 		boss_music.play()
 	else:
+		if debug_mode:
+			print("WaveManager: No boss music or already playing, spawning boss immediately for Wave %d (Level: %d)" % [current_wave, current_level])
 		_spawn_boss_immediately()
 
 func _spawn_boss_immediately():
 	_stop_red_blink_effect()
 	AudioManager.restore_bus_volumes()
 	
-	if _boss_scene:
-		enemies_alive = 1
-		var boss = _boss_scene.instantiate()
-		if not boss is Area2D:
-			push_error("WaveManager: Boss scene is not an Area2D for Wave %d" % current_wave)
-			boss.queue_free()
-			wave_in_progress = false
-			_complete_wave()
-			return
-		boss.global_position = _boss_spawn_pos
-		get_parent().call_deferred("add_child", boss)
-		current_boss = boss
-		active_enemies.append(boss)
-		
-		if boss.has_signal("boss_defeated"):
-			boss.boss_defeated.connect(_on_boss_killed)
-		else:
-			push_warning("WaveManager: Boss does not have 'boss_defeated' signal for Wave %d" % current_wave)
-		
-		# Connect minion death signals for boss_1
-		if boss.has_signal("boss_minion_died"):
-			boss.boss_minion_died.connect(_on_minion_died)
-			if debug_mode:
-				print("WaveManager: Connected boss_minion_died signal for boss in Wave %d" % current_wave)
-		
-		enemy_spawned.emit(boss)
-		
+	if not _boss_scene:
+		push_error("WaveManager: No boss scene to instantiate for Wave %d (Level: %d)" % [current_wave, current_level])
+		wave_in_progress = false
+		_complete_wave()
+		return
+	
+	if debug_mode:
+		print("WaveManager: Instantiating boss for Wave %d (Level: %d)" % [current_wave, current_level])
+	
+	var boss = _boss_scene.instantiate()
+	if not boss is Area2D:
+		push_error("WaveManager: Boss scene is not an Area2D for Wave %d (Level: %d)" % [current_wave, current_level])
+		boss.queue_free()
+		wave_in_progress = false
+		_complete_wave()
+		return
+	
+	boss.global_position = _boss_spawn_pos
+	get_tree().current_scene.call_deferred("add_child", boss)
+	current_boss = boss
+	active_enemies.append(boss)
+	
+	if boss.has_signal("boss_defeated"):
+		boss.boss_defeated.connect(_on_boss_killed)
 		if debug_mode:
-			print("WaveManager: Boss spawned at %s (Level: %d)" % [boss.global_position, current_level])
+			print("WaveManager: Connected boss_defeated signal for Wave %d (Level: %d)" % [current_wave, current_level])
+	else:
+		push_warning("WaveManager: Boss does not have 'boss_defeated' signal for Wave %d (Level: %d)" % [current_wave, current_level])
+	
+	# Connect minion death signals for boss
+	if boss.has_signal("boss_minion_died"):
+		boss.boss_minion_died.connect(_on_minion_died)
+		if debug_mode:
+			print("WaveManager: Connected boss_minion_died signal for boss in Wave %d (Level: %d)" % [current_wave, current_level])
+	
+	enemy_spawned.emit(boss)
+	
+	if debug_mode:
+		print("WaveManager: Boss spawned successfully at %s for Wave %d (Level: %d)" % [boss.global_position, current_wave, current_level])
 	
 	_boss_scene = null
 	_boss_spawn_pos = Vector2.ZERO
+	enemies_alive = 1
 
 func _on_formation_complete():
 	if debug_mode:
@@ -275,48 +297,80 @@ func _on_enemy_spawned(enemy: Node2D):
 	active_enemies.append(enemy)
 	enemy_spawned.emit(enemy)
 	
-	# Connect enemy death signal
-	if enemy.has_signal("died"):
+	if enemy.has_signal("died") and not enemy.died.is_connected(_on_enemy_killed):
 		enemy.died.connect(_on_enemy_killed.bind(enemy))
 	
 	if debug_mode:
 		print("WaveManager: Enemy spawned at %s (Level: %d)" % [enemy.global_position, current_level])
 
-func _on_enemy_killed(enemy: Node2D):
+func _on_enemy_killed(enemy: Node2D) -> void:
 	if debug_mode:
 		print("DEBUG: Enemy killed - enemies_alive: %d, active_enemies: %d, wave_in_progress: %s" % [enemies_alive, active_enemies.size(), wave_in_progress])
 	
-	if enemy and enemy in active_enemies:
+	# Clean up invalid enemies
+	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+	
+	if enemy and is_instance_valid(enemy) and enemy in active_enemies:
 		active_enemies.erase(enemy)
 		enemy_killed.emit(enemy)
+	else:
+		if debug_mode:
+			print("WaveManager: Attempted to process killed enemy that is invalid or not in active_enemies")
+	
+	# Increment shadow mode charge
+	var hud_nodes = get_tree().get_nodes_in_group("HUD")
+	if hud_nodes.is_empty():
+		if debug_mode:
+			print("WaveManager: No HUD found for charge update")
+	else:
+		var hud = hud_nodes[0]
+		if hud.has_method("add_enemy_kill_charge"):
+			var charge_amount = 20
+			hud.add_enemy_kill_charge(charge_amount)
+			if debug_mode:
+				print("WaveManager: Added %.1f charge for %s kill" % [charge_amount, "Boss_Minion" if enemy.is_in_group("Boss_Minion") else "Enemy"])
+		else:
+			if debug_mode:
+				print("WaveManager: HUD missing add_enemy_kill_charge method")
 	
 	enemies_alive -= 1
 	
 	if debug_mode:
 		print("WaveManager: Enemy killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave, current_level])
 	
-	# Check wave completion
 	if enemies_alive <= 0 and wave_in_progress and not waiting_for_next_wave:
 		if debug_mode:
 			print("DEBUG: Conditions met for wave completion - calling _complete_wave()")
 		_complete_wave()
 
-func _on_minion_died(minion: Node2D):
-	if minion and minion in active_enemies:
+func _on_minion_died(minion: Node2D) -> void:
+	if minion and is_instance_valid(minion) and minion in active_enemies:
 		active_enemies.erase(minion)
 		enemy_killed.emit(minion)
-		enemies_alive -= 1
+	else:
 		if debug_mode:
-			print("WaveManager: Minion killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave, current_level])
-		
-		if enemies_alive <= 0 and wave_in_progress and not waiting_for_next_wave:
-			_complete_wave()
-
-func _on_all_enemies_destroyed():
-	if debug_mode:
-		print("WaveManager: All enemies destroyed for Wave %d (Level: %d)" % [current_wave, current_level])
+			print("WaveManager: Attempted to process killed minion that is invalid or not in active_enemies")
 	
-	if wave_in_progress and not waiting_for_next_wave:
+	var hud_nodes = get_tree().get_nodes_in_group("HUD")
+	if hud_nodes.is_empty():
+		if debug_mode:
+			print("WaveManager: No HUD found for charge update")
+	else:
+		var hud = hud_nodes[0]
+		if hud.has_method("add_enemy_kill_charge"):
+			var charge_amount = 50.0 if minion.is_in_group("Boss_Minion") else 20.0
+			hud.add_enemy_kill_charge(charge_amount)
+			if debug_mode:
+				print("WaveManager: Added %.1f charge for %s kill" % [charge_amount, "Boss_Minion" if minion.is_in_group("Boss_Minion") else "Minion"])
+		else:
+			if debug_mode:
+				print("WaveManager: HUD missing add_enemy_kill_charge method")
+	
+	enemies_alive -= 1
+	if debug_mode:
+		print("WaveManager: Minion killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave, current_level])
+	
+	if enemies_alive <= 0 and wave_in_progress and not waiting_for_next_wave:
 		_complete_wave()
 
 func _on_boss_killed():
@@ -332,6 +386,10 @@ func _complete_wave():
 	wave_completion_time = Time.get_unix_time_from_system()
 	var wave_duration = wave_completion_time - wave_start_time
 	
+	if wave_duration > 60.0:
+		push_warning("WaveManager: Wave %d timed out after %.1f seconds, forcing completion" % [current_wave, wave_duration])
+		_cleanup_wave()
+	
 	if debug_mode:
 		print("WaveManager: Wave %d completed in %.1f seconds (Level: %d)" % [current_wave, wave_duration, current_level])
 	
@@ -339,7 +397,6 @@ func _complete_wave():
 	wave_in_progress = false
 	waiting_for_next_wave = true
 	
-	# Clean up active enemies and formations
 	_cleanup_wave()
 	
 	if debug_mode:
@@ -354,27 +411,34 @@ func _complete_wave():
 	start_next_wave()
 
 func _cleanup_wave():
-	# Clean up any remaining enemies
+	# Clean up invalid enemies first
+	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+	
 	for enemy in active_enemies:
 		if is_instance_valid(enemy):
 			enemy.queue_free()
 	active_enemies.clear()
 	
-	# Clean up formations
 	for formation in active_formations:
 		if is_instance_valid(formation):
 			formation.queue_free()
 	active_formations.clear()
 	
-	# Clean up boss minions
-	if current_boss and current_boss.has_method("_destroy_all_minions"):
+	if current_boss and is_instance_valid(current_boss) and current_boss.has_method("_destroy_all_minions"):
 		current_boss._destroy_all_minions()
 		if debug_mode:
 			print("WaveManager: Destroyed all minions for boss in Wave %d" % current_wave)
 	
+	if formation_manager and is_instance_valid(formation_manager) and formation_manager.has_method("reset"):
+		formation_manager.reset()
+		if debug_mode:
+			print("WaveManager: Reset FormationManager for Wave %d" % current_wave)
+	
 	current_boss = null
 
 func _on_boss_music_finished():
+	if debug_mode:
+		print("WaveManager: Boss music finished, spawning boss for Wave %d (Level: %d)" % [current_wave, current_level])
 	_spawn_boss_immediately()
 
 func _show_spawn_indicator(spawn_pos: Vector2):
@@ -406,7 +470,6 @@ func _stop_red_blink_effect():
 	if rect:
 		rect.queue_free()
 
-# Shadow mode handlers
 func _on_shadow_mode_activated():
 	if debug_mode:
 		print("WaveManager: Shadow mode activated (Level: %d)" % current_level)
@@ -415,7 +478,6 @@ func _on_shadow_mode_deactivated():
 	if debug_mode:
 		print("WaveManager: Shadow mode deactivated (Level: %d)" % current_level)
 
-# Public API methods
 func get_current_wave_config() -> WaveConfig:
 	return current_wave_config
 
@@ -434,8 +496,6 @@ func skip_current_wave():
 	if wave_in_progress:
 		_complete_wave()
 
-
-# Debug methods
 func get_debug_info() -> Dictionary:
 	return {
 		"current_wave": current_wave,

@@ -145,15 +145,6 @@ _data = {
 z_index = 100
 collision_mask = 14
 script = ExtResource("2")
-speed = 2000.0
-touch_speed = 500.0
-smoothness = 0.3
-max_life = 4
-shadow_fire_delay_multiplier = 0.1
-spread_angle_increment = 10.0
-super_mode_damage_boost = 2
-super_mode_fire_delay = 0.1
-shadow_bullet_count = 25
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(1.33758, 1.75742)

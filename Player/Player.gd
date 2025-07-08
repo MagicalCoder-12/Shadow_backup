@@ -22,21 +22,21 @@ var shadow_texture: Texture2D = preload("res://Textures/player/Spaceships-13/spa
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 # Exported variables
-@export var speed: float = 500.0
-@export var touch_speed: float = 200.0
-@export var smoothness: float = 0.2
+@export var speed: float = 2000.0
+@export var touch_speed: float = 500.0
+@export var smoothness: float = 0.3
 @export var normal_fire_delay: float = 0.3
 @export var boundary_padding: float = 10.0
-@export var max_life: int = 5
+@export var max_life: int = 4
 @export var shadow_speed_multiplier: float = 1.2
-@export var shadow_fire_delay_multiplier: float = 0.7
-@export var spread_angle_increment: float = 15.0
+@export var shadow_fire_delay_multiplier: float = 0.1
+@export var spread_angle_increment: float = 10.0
 @export var spawn_point_offset: float = 5.0
-@export var super_mode_damage_boost: int = 10
+@export var super_mode_damage_boost: int = 2
 @export var super_mode_speed_multiplier: float = 2.0
 @export var super_mode_fire_delay: float = 0.15
 @export var super_mode_bullet_speed: float = 5000.0
-@export var shadow_bullet_count: int = 12
+@export var shadow_bullet_count: int = 25
 
 # Local variables
 var velocity: Vector2 = Vector2.ZERO

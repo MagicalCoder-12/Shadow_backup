@@ -30,12 +30,12 @@ enum MovementType {
 
 # Internal variables
 var boss_reference: Node2D = null
-var target_player: Player = null
 var orbit_angle: float = 0.0
 var movement_target: Vector2 = Vector2.ZERO
 var is_kamikaze_mode: bool = false
 var original_movement_type: MovementType
 var swarm_neighbors: Array[BossMinion] = []
+var current_wave: int = 1  # Assuming set by boss or WaveManager
 # fire_timer is inherited from Enemy class as a Timer node
 
 # Constants
@@ -85,11 +85,12 @@ func _ready():
 	add_to_group("BossMinion")
 	
 	# Connect death signal
-	died.connect(_on_minion_died)
+	if not died.is_connected(_on_minion_died):
+		died.connect(_on_minion_died)
 	
 	if debug_mode:
-		print("BossMinion spawned - Type: ", MovementType.keys()[movement_type], 
-			  " Shadow: ", is_shadow_enemy, " Boss: ", boss_reference != null)
+		print("BossMinion spawned - Type: %s, Shadow: %s, Boss: %s, Wave: %d" % [
+			MovementType.keys()[movement_type], is_shadow_enemy, boss_reference != null, current_wave])
 
 # Apply shadow modifications specific to BossMinion
 func _apply_minion_shadow_modifications():
@@ -113,8 +114,8 @@ func _apply_minion_shadow_modifications():
 		sprite.modulate = Color(0.3, 0.3, 0.9, 0.8)  # Dark blue tint
 	
 	if debug_mode:
-		print("Shadow BossMinion modifications applied - Speed: ", speed, 
-			  " Fire Rate: ", fire_cooldown, " Orbit Speed: ", orbit_speed)
+		print("Shadow BossMinion modifications applied - Speed: %f, Fire Rate: %f, Orbit Speed: %f, Wave: %d" % [
+			speed, fire_cooldown, orbit_speed, current_wave])
 
 # Override shadow conversion to include minion-specific modifications
 func _make_shadow_enemy():
@@ -125,14 +126,11 @@ func _physics_process(delta):
 	if not is_alive:
 		return
 	
-	# Handle movement based on type
-	_handle_movement(delta)
-	
-	# Handle firing
+	time_since_spawn += delta  # For entry shield
+	_handle_movement(delta)    # Minion's movement
 	_handle_firing()
-	
-	# Call parent physics process for boundary checking
-	super._physics_process(delta)
+	_handle_entry_shield(delta)
+	global_position.x = clamp(global_position.x, -50, viewport_size.x + 50)
 
 # Handle different movement patterns
 func _handle_movement(delta):
@@ -316,10 +314,11 @@ func fire():
 		if bullet.has_method("set_direction"):
 			bullet.set_direction(direction)
 	
-	get_tree().current_scene.add_child(bullet)
+	get_tree().current_scene.call_deferred("add_child", bullet)
 	
 	if debug_mode:
-		print("BossMinion fired - Type: ", MovementType.keys()[movement_type], " Shadow: ", is_shadow_enemy)
+		print("BossMinion fired - Type: %s, Shadow: %s, Wave: %d" % [
+			MovementType.keys()[movement_type], is_shadow_enemy, current_wave])
 
 # Find boss reference in scene
 func _find_boss_reference():
@@ -327,7 +326,10 @@ func _find_boss_reference():
 	if bosses.size() > 0:
 		boss_reference = bosses[0]
 		if debug_mode:
-			print("BossMinion found boss reference: ", boss_reference.name)
+			print("BossMinion found boss reference: %s, Wave: %d" % [boss_reference.name, current_wave])
+	else:
+		if debug_mode:
+			print("BossMinion: No boss found in Boss group, Wave: %d" % current_wave)
 
 # Find target player
 func _find_target_player():
@@ -335,19 +337,19 @@ func _find_target_player():
 	if players.size() > 0:
 		target_player = players[0]
 		if debug_mode:
-			print("BossMinion found target player: ", target_player.name)
+			print("BossMinion found target player: %s, Wave: %d" % [target_player.name, current_wave])
 
 # Change movement type (can be called by boss)
 func set_movement_type(new_type: MovementType):
 	movement_type = new_type
 	if debug_mode:
-		print("BossMinion movement type changed to: ", MovementType.keys()[new_type])
+		print("BossMinion movement type changed to: %s, Wave: %d" % [MovementType.keys()[new_type], current_wave])
 
 # Set boss reference
 func set_boss_reference(boss: Node2D):
 	boss_reference = boss
 	if debug_mode:
-		print("BossMinion boss reference set to: ", boss.name)
+		print("BossMinion boss reference set to: %s, Wave: %d" % [boss.name, current_wave])
 
 # Activate kamikaze mode
 func activate_kamikaze():
@@ -356,7 +358,7 @@ func activate_kamikaze():
 	fire_cooldown *= 0.5  # Fire faster in kamikaze mode
 	
 	if debug_mode:
-		print("BossMinion activated kamikaze mode")
+		print("BossMinion activated kamikaze mode, Wave: %d" % current_wave)
 
 # Override damage to add minion-specific behavior
 func damage(amount: int):
@@ -380,7 +382,8 @@ func _on_minion_died():
 		boss_reference.on_minion_died(self)
 	
 	if debug_mode:
-		print("BossMinion died - Type: ", MovementType.keys()[movement_type], " Shadow: ", is_shadow_enemy)
+		print("BossMinion died - Type: %s, Shadow: %s, Wave: %d" % [
+			MovementType.keys()[movement_type], is_shadow_enemy, current_wave])
 
 # Override die to add minion-specific death effects
 func die():
@@ -393,6 +396,12 @@ func die():
 # Shadow minions fire bullets when they die
 func _minion_death_burst():
 	var bullet_count = 3
+	var current_scene = get_tree().current_scene
+	if not current_scene:
+		if debug_mode:
+			print("BossMinion: No current scene for death burst, Wave: %d" % current_wave)
+		return
+	
 	for i in range(bullet_count):
 		var bullet = ShadowEBullet.instantiate()
 		bullet.global_position = global_position
@@ -404,10 +413,10 @@ func _minion_death_burst():
 		if bullet.has_method("set_direction"):
 			bullet.set_direction(direction)
 		
-		get_tree().current_scene.add_child(bullet)
-	
-	if debug_mode:
-		print("Shadow BossMinion death burst fired")
+		current_scene.call_deferred("add_child", bullet)
+		
+		if debug_mode:
+			print("Shadow BossMinion death burst bullet %d queued, Wave: %d" % [i + 1, current_wave])
 
 # Public methods for boss to control minions
 func get_movement_type() -> MovementType:
@@ -428,17 +437,16 @@ func get_distance_to_player() -> float:
 
 # Enhanced status reporting
 func get_status() -> String:
-	var base_status = super.get_status()
+	var status = "BossMinion - Health: %d/%d, Shadow: %s" % [health, max_health, is_shadow_enemy]
 	var boss_dist = get_distance_to_boss()
 	var player_dist = get_distance_to_player()
-	return "%s, Type: %s, Boss: %.1f, Player: %.1f, Kamikaze: %s" % [
-		base_status, MovementType.keys()[movement_type], boss_dist, player_dist, is_kamikaze_mode
-	]
+	return "%s, Type: %s, Boss: %.1f, Player: %.1f, Kamikaze: %s, Wave: %d" % [
+		status, MovementType.keys()[movement_type], boss_dist, player_dist, is_kamikaze_mode, current_wave]
 
 # Get minion-specific information
 func get_minion_info() -> Dictionary:
-	var base_info = get_shadow_info()
-	base_info.merge({
+	return {
+		"is_shadow": is_shadow_enemy,
 		"movement_type": MovementType.keys()[movement_type],
 		"orbit_radius": orbit_radius,
 		"orbit_speed": orbit_speed,
@@ -447,6 +455,6 @@ func get_minion_info() -> Dictionary:
 		"fire_cooldown": fire_cooldown,
 		"is_kamikaze_mode": is_kamikaze_mode,
 		"boss_reference": boss_reference != null,
-		"target_player": target_player != null
-	})
-	return base_info
+		"target_player": target_player != null,
+		"current_wave": current_wave
+	}

@@ -41,7 +41,6 @@ func _ready():
 	# Configure fire timer
 	if fire_timer:
 		fire_timer.wait_time = fire_rate
-		fire_timer.timeout.connect(_on_fire_timer_timeout)
 		fire_timer.start()
 	
 	# Fast enemies have slightly different stats
@@ -134,7 +133,7 @@ func _handle_formation_sway(delta):
 		position.x = original_formation_pos.x + sway_offset
 	
 	# Clamp to screen bounds
-	position.x = clamp(position.x, 50, VIEWPORT_WIDTH - 50)
+	position.x = clamp(position.x, 50, viewport_size.x - 50)
 
 # Called by FormationManager when enemy reaches formation
 func on_reach_formation():
@@ -154,8 +153,8 @@ func start_dive():
 	
 	# Fast enemies dive more aggressively
 	var dive_target_x = global_position.x + randf_range(-200, 200)
-	dive_target_x = clamp(dive_target_x, 100, VIEWPORT_WIDTH - 100)
-	var end_pos = Vector2(dive_target_x, VIEWPORT_HEIGHT + 50)
+	dive_target_x = clamp(dive_target_x, 100, viewport_size.x - 100)
+	var end_pos = Vector2(dive_target_x, viewport_size.y + 50)
 	
 	# Faster dive duration
 	var dive_duration = 2.0 / dive_speed_multiplier
@@ -240,7 +239,12 @@ func is_in_rapid_fire() -> bool:
 
 # Get fast enemy specific information
 func get_fast_enemy_info() -> Dictionary:
-	var info = get_shadow_info()
+	var info = {
+		"is_shadow_enemy": is_shadow_enemy,
+		"shadow_health_multiplier": shadow_health_multiplier,
+		"shadow_score_multiplier": shadow_score_multiplier,
+		"shadow_damage_multiplier": shadow_damage_multiplier
+	}
 	info.merge({
 		"is_fast_enemy": true,
 		"fire_rate": fire_rate,
@@ -253,14 +257,11 @@ func get_fast_enemy_info() -> Dictionary:
 
 # Enhanced status for debugging
 func get_status() -> String:
-	var base_status = super.get_status()
-	return base_status + ", RapidFire: %s, FireRate: %.1f, Agility: %.1f" % [
-		is_rapid_firing, fire_rate, agility_multiplier
+	return "FastEnemy - Health: %d/%d, RapidFire: %s, FireRate: %.1f, Agility: %.1f" % [
+		health, max_health, is_rapid_firing, fire_rate, agility_multiplier
 	]
 
 # Cleanup
 func _exit_tree():
-	super._exit_tree()
-	
 	if fire_timer and fire_timer.timeout.is_connected(_on_fire_timer_timeout):
 		fire_timer.timeout.disconnect(_on_fire_timer_timeout)

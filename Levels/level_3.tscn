@@ -6,3 +6,6 @@
 
 [node name="LevelManager" parent="." index="5"]
 level_num = 3
+
+[node name="WaveManager" parent="." index="7"]
+current_level = 3

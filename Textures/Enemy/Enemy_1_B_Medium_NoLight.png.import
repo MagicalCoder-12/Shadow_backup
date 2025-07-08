@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cimb86aqbthp2"
-path="res://.godot/imported/Enemy_4_B_Small_NoLight.png-b1e06e86abe6ef3411050cf533332b01.ctex"
+uid="uid://barpagio6gedv"
+path="res://.godot/imported/Enemy_1_B_Medium_NoLight.png-981e8cbeb8186763241d332241142b58.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Textures/Enemy/Enemy_4_B_Small_NoLight.png"
-dest_files=["res://.godot/imported/Enemy_4_B_Small_NoLight.png-b1e06e86abe6ef3411050cf533332b01.ctex"]
+source_file="res://Textures/Enemy/Enemy_1_B_Medium_NoLight.png"
+dest_files=["res://.godot/imported/Enemy_1_B_Medium_NoLight.png-981e8cbeb8186763241d332241142b58.ctex"]
 
 [params]
 

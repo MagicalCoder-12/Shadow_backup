@@ -15,10 +15,7 @@ func _ready():
 		healthbar.max_value = max_health
 		healthbar.value = health
 	speed = 180.0
-	fire_rate = fire_delay  # Sync with base class	
-	# NEW: Override fire timer setup from base class
-	fire_timer.wait_time = fire_rate
-	fire_timer.start()
+	fire_rate = 1.0 / fire_delay  # Set fire_rate as shots per second
 
 func _physics_process(delta):
 	if not is_alive:
@@ -26,5 +23,5 @@ func _physics_process(delta):
 	super._physics_process(delta)
 	if arrived_at_formation:
 		var bounce = sin(Time.get_ticks_msec() / 1000.0 * bounce_frequency) * bounce_amplitude * delta
-		global_position.x = clamp(global_position.x + bounce, 50.0, VIEWPORT_WIDTH - 50.0)
+		global_position.x = clamp(global_position.x + bounce, 50.0, viewport_size.x - 50.0)
 		# Shooting is handled by base class _physics_process
