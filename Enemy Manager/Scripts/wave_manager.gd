@@ -12,7 +12,7 @@ signal enemy_killed(enemy: Node2D)
 @export var wave_delay: float = 3.0
 @export var spawn_indicator_texture: Texture2D = preload("res://Textures/UI/Indicator.png")
 @export var formation_manager_scene: PackedScene # Reference to FormationManager scene
-@export var debug_mode: bool = false
+@export var debug_mode: bool = true # Enabled for better logging
 @export var current_level: int = 1
 
 # Wave management
@@ -25,6 +25,7 @@ var total_waves: int = 0
 var current_wave_config: WaveConfig
 var current_boss: Node2D
 var level_manager: Node # Reference to LevelManager for validation
+var game_manager: Node # Reference to GameManager for pause and ad states
 
 # Formation and enemy tracking
 var active_formations: Array[Node2D] = []
@@ -50,6 +51,20 @@ func _ready():
 		if not level_manager.has_method("validate_wave_config"):
 			push_warning("WaveManager: LevelManager found but missing validate_wave_config method")
 	
+	# Find GameManager using node group
+	var game_managers = get_tree().get_nodes_in_group("GameManager")
+	if game_managers.is_empty():
+		push_warning("WaveManager: No GameManager found in 'GameManager' group")
+	else:
+		game_manager = game_managers[0]
+		if not game_manager.has_signal("game_paused"):
+			push_warning("WaveManager: GameManager found but missing game_paused signal")
+		else:
+			# Connect to game_paused signal
+			game_manager.game_paused.connect(_on_game_paused)
+			if debug_mode:
+				print("WaveManager: Connected to GameManager.game_paused signal")
+	
 	# Validate formation manager scene
 	if not formation_manager_scene:
 		push_warning("WaveManager: No formation_manager_scene assigned. Boss waves will work, but formations require a valid FormationManager scene.")
@@ -60,6 +75,16 @@ func _ready():
 	
 	if debug_mode:
 		print("WaveManager: Initialized with formation_manager_scene: %s (Level: %d)" % [formation_manager_scene.resource_path if formation_manager_scene else "None", current_level])
+
+func _on_game_paused(paused: bool) -> void:
+	if debug_mode:
+		print("WaveManager: Game pause state changed to %s (Level: %d)" % [paused, current_level])
+	if paused or (game_manager and game_manager.is_ad_showing):
+		if debug_mode:
+			print("WaveManager: Pausing wave timer due to game pause or ad showing")
+	else:
+		if debug_mode:
+			print("WaveManager: Resuming wave timer")
 
 func set_waves(waves_: Array[WaveConfig]):
 	waves = waves_
@@ -116,7 +141,11 @@ func start_waves():
 
 func start_next_wave():
 	if debug_mode:
-		print("DEBUG: start_next_wave() called - wave_in_progress: %s, waiting_for_next_wave: %s, current_wave: %d/%d" % [wave_in_progress, waiting_for_next_wave, current_wave, total_waves])
+		print("DEBUG: start_next_wave() called - wave_in_progress: %s, waiting_for_next_wave: %s, current_wave: %d/%d, is_paused: %s, is_ad_showing: %s" % [
+			wave_in_progress, waiting_for_next_wave, current_wave, total_waves,
+			game_manager.is_paused if game_manager else false,
+			game_manager.is_ad_showing if game_manager else false
+		])
 	
 	if wave_in_progress or waiting_for_next_wave:
 		return
@@ -178,7 +207,7 @@ func start_wave():
 		spawn_boss()
 	else:
 		spawn_formation()
-		
+
 func spawn_formation():
 	# Create formation manager if we don't have one
 	if not formation_manager and formation_manager_scene:
@@ -204,6 +233,10 @@ func spawn_formation():
 	# Use formation manager to spawn the formation
 	formation_manager.spawn_formation(current_wave_config)
 	enemies_alive = current_wave_config.get_enemy_count()
+	
+	# Connect to enemy_spawned signal to track enemies
+	if not formation_manager.enemy_spawned.is_connected(_on_enemy_spawned):
+		formation_manager.enemy_spawned.connect(_on_enemy_spawned)
 	
 	if debug_mode:
 		var difficulty_str = "Unknown"
@@ -233,7 +266,7 @@ func spawn_boss():
 	if boss_music and boss_music.stream and not boss_music.playing:
 		if debug_mode:
 			print("WaveManager: Playing boss music for Wave %d (Level: %d)" % [current_wave, current_level])
-		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
+		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -25.0)
 		_start_red_blink_effect()
 		boss_music.play()
 	else:
@@ -294,14 +327,23 @@ func _on_formation_complete():
 		print("WaveManager: Formation completed for Wave %d (Level: %d)" % [current_wave, current_level])
 
 func _on_enemy_spawned(enemy: Node2D):
+	if not is_instance_valid(enemy):
+		if debug_mode:
+			print("WaveManager: Attempted to spawn invalid enemy for Wave %d (Level: %d)" % [current_wave, current_level])
+		return
+	
 	active_enemies.append(enemy)
 	enemy_spawned.emit(enemy)
 	
-	if enemy.has_signal("died") and not enemy.died.is_connected(_on_enemy_killed):
-		enemy.died.connect(_on_enemy_killed.bind(enemy))
+	if enemy.has_signal("died"):
+		if not enemy.died.is_connected(_on_enemy_killed):
+			enemy.died.connect(_on_enemy_killed.bind(enemy))
+	else:
+		if debug_mode:
+			print("WaveManager: Enemy at %s does not have 'died' signal (Wave: %d, Level: %d)" % [enemy.global_position, current_wave, current_level])
 	
 	if debug_mode:
-		print("WaveManager: Enemy spawned at %s (Level: %d)" % [enemy.global_position, current_level])
+		print("WaveManager: Enemy spawned at %s, active_enemies: %d (Wave: %d, Level: %d)" % [enemy.global_position, active_enemies.size(), current_wave, current_level])
 
 func _on_enemy_killed(enemy: Node2D) -> void:
 	if debug_mode:
@@ -333,7 +375,7 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 			if debug_mode:
 				print("WaveManager: HUD missing add_enemy_kill_charge method")
 	
-	enemies_alive -= 1
+	enemies_alive = max(0, enemies_alive - 1)
 	
 	if debug_mode:
 		print("WaveManager: Enemy killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave, current_level])
@@ -358,7 +400,7 @@ func _on_minion_died(minion: Node2D) -> void:
 	else:
 		var hud = hud_nodes[0]
 		if hud.has_method("add_enemy_kill_charge"):
-			var charge_amount = 50.0 if minion.is_in_group("Boss_Minion") else 20.0
+			var charge_amount = 25.0 if minion.is_in_group("Boss_Minion") else 20.0
 			hud.add_enemy_kill_charge(charge_amount)
 			if debug_mode:
 				print("WaveManager: Added %.1f charge for %s kill" % [charge_amount, "Boss_Minion" if minion.is_in_group("Boss_Minion") else "Minion"])
@@ -366,7 +408,7 @@ func _on_minion_died(minion: Node2D) -> void:
 			if debug_mode:
 				print("WaveManager: HUD missing add_enemy_kill_charge method")
 	
-	enemies_alive -= 1
+	enemies_alive = max(0, enemies_alive - 1)
 	if debug_mode:
 		print("WaveManager: Minion killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave, current_level])
 	
@@ -400,9 +442,21 @@ func _complete_wave():
 	_cleanup_wave()
 	
 	if debug_mode:
-		print("DEBUG: Starting wave delay timer for %f seconds" % wave_delay)
+		print("DEBUG: Starting wave delay timer for %f seconds, is_paused: %s, is_ad_showing: %s" % [
+			wave_delay,
+			game_manager.is_paused if game_manager else false,
+			game_manager.is_ad_showing if game_manager else false
+		])
 	
-	await get_tree().create_timer(wave_delay).timeout
+	# Create timer that respects pause state
+	var timer = get_tree().create_timer(wave_delay, false) # false ensures timer pauses with get_tree().paused
+	if game_manager and game_manager.is_ad_showing:
+		timer.paused = true
+		if debug_mode:
+			print("WaveManager: Wave timer paused due to ad showing")
+	
+	# Wait for timer to complete
+	await timer.timeout
 	
 	if debug_mode:
 		print("DEBUG: Wave delay timer finished - setting waiting_for_next_wave = false")
@@ -435,6 +489,21 @@ func _cleanup_wave():
 			print("WaveManager: Reset FormationManager for Wave %d" % current_wave)
 	
 	current_boss = null
+	enemies_alive = 0 # Ensure enemies_alive is reset
+
+func _physics_process(_delta: float):
+	if wave_in_progress and not waiting_for_next_wave and not (game_manager and (game_manager.is_paused or game_manager.is_ad_showing)):
+		# Check for stuck wave due to untracked enemy deaths
+		var valid_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+		if valid_enemies.size() != enemies_alive:
+			if debug_mode:
+				print("WaveManager: Mismatch detected - enemies_alive: %d, valid_enemies: %d (Wave: %d, Level: %d)" % [enemies_alive, valid_enemies.size(), current_wave, current_level])
+			enemies_alive = valid_enemies.size()
+			active_enemies = valid_enemies
+			if enemies_alive <= 0:
+				if debug_mode:
+					print("DEBUG: Forcing wave completion due to no valid enemies remaining")
+				_complete_wave()
 
 func _on_boss_music_finished():
 	if debug_mode:
@@ -461,7 +530,7 @@ func _start_red_blink_effect():
 	rect.size = get_viewport().get_visible_rect().size
 	get_tree().current_scene.call_deferred("add_child", rect)
 	
-	var tween = create_tween().set_loops()
+	var tween = create_tween()
 	tween.tween_property(rect, "color:a", 0.3, 0.5)
 	tween.tween_property(rect, "color:a", 0.0, 0.5)
 
@@ -507,7 +576,9 @@ func get_debug_info() -> Dictionary:
 		"active_formations": active_formations.size(),
 		"is_boss_wave": current_wave_config.is_boss_wave() if current_wave_config else false,
 		"current_boss": current_boss != null,
-		"current_level": current_level
+		"current_level": current_level,
+		"is_paused": game_manager.is_paused if game_manager else false,
+		"is_ad_showing": game_manager.is_ad_showing if game_manager else false
 	}
 
 func debug_wave_state():
@@ -522,4 +593,7 @@ func debug_wave_state():
 		print("Current wave config exists: %s" % current_wave_config.is_boss_wave())
 	else:
 		print("Current wave config: NULL")
+	print("Active enemies: %s" % active_enemies)
+	print("Game paused: %s" % (game_manager.is_paused if game_manager else false))
+	print("Ad showing: %s" % (game_manager.is_ad_showing if game_manager else false))
 	print("========================")

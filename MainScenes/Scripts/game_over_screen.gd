@@ -32,25 +32,21 @@ func _ready() -> void:
 
 func _on_score_updated(value: int) -> void:
 	score_label.text = "Score: %d" % value
-	print("Score blasted to %d on GameOverScreen!" % value)
 
 func _on_high_score_updated(value: int) -> void:
 	high_score_label.text = "High-Score: %d" % value
-	print("High score soared to %d on GameOverScreen!" % value)
 
 func _on_restart_button_pressed() -> void:
 	GameManager.change_scene(MAP_SCENE)
-	print("Restart button hit, warping to map!")
+
 
 func _on_back_pressed() -> void:
 	GameManager.change_scene(START_SCREEN_SCENE)
-	print("Back button pressed, hyperspace jump to start screen!")
 
 func _on_game_over_triggered() -> void:
 	revive_button.disabled = false
 	visible = true
 	message_label.visible = false
-	print("GameOverScreen deployed, revive button armed and ready!")
 
 func _on_revive_pressed() -> void:
 	if revive_button.disabled or GameManager.is_revive_pending:

@@ -4,26 +4,25 @@
 [ext_resource type="Texture2D" uid="uid://cjgdykp7vlg1x" path="res://Textures/Lasers/Laser Sprites/33.png" id="2_umru0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7t6hs"]
-size = Vector2(12, 65)
+size = Vector2(28, 134)
 
-[node name="EnemyBullet" type="Area2D"]
+[node name="EnemyBullet" type="Area2D" groups=["EnemyBullet"]]
 z_index = 1
 collision_layer = 64
 script = ExtResource("1_vf00a")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(-5.24537e-07, 12)
+position = Vector2(3.683e-07, 15.9685)
 rotation = 1.5708
-scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_umru0")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-1, -0.5)
+position = Vector2(-2, -9)
 shape = SubResource("RectangleShape2D_7t6hs")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
-position = Vector2(-1.5, -1.5)
-scale = Vector2(0.65, 3.25)
+position = Vector2(1.5, -9.00001)
+scale = Vector2(1.55, 6.9)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

@@ -108,7 +108,10 @@ particles_anim_loop = false
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_mwcmj")
+max_health = 10000
+phase_transition_health = 5000
 projectile_scene = ExtResource("2_uo67q")
+move_speed = 500.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(-0.121122, -30.7879)
@@ -162,5 +165,9 @@ volume_db = 24.0
 position = Vector2(-269, 21)
 stream = ExtResource("8_rkkp3")
 
+[node name="PatternTimer" type="Timer" parent="."]
+autostart = true
+
+[node name="AITimer" type="Timer" parent="."]
+
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
-[connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]

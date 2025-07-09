@@ -178,6 +178,7 @@ func _hide_pause_menu():
 
 func _on_pause_pressed():
 	_toggle_pause_menu()
+	print("pause")
 
 func _on_game_paused(paused: bool):
 	if game_over or has_completed_level:

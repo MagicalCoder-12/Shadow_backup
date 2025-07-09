@@ -63,6 +63,7 @@ Boss_Minion="for minions of boss."
 LevelManager="for findinf levelmanager."
 Enemy=""
 HUD=""
+EnemyBullet="Foe enemy bullets"
 
 [input]
 

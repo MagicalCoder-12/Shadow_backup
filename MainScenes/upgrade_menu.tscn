@@ -1,0 +1,34 @@
+[gd_scene load_steps=4 format=3 uid="uid://bb03c63ct47e7"]
+
+[ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="1_mddtv"]
+[ext_resource type="Texture2D" uid="uid://bsn6mtb0ifgmo" path="res://Textures/UI/Star_256x256_019.png" id="2_e1f3r"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_68fc6"]
+font = ExtResource("1_mddtv")
+font_size = 50
+
+[node name="Upgrade_Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(117, 150)
+texture = ExtResource("2_e1f3r")
+
+[node name="Label" type="Label" parent="Sprite2D"]
+anchors_preset = -1
+anchor_left = 0.125
+anchor_top = 0.00625
+anchor_right = 0.337963
+anchor_bottom = 0.035
+offset_left = 85.0
+offset_top = -8.6
+offset_right = 181.481
+offset_bottom = 59.04
+text = "Coins:"
+label_settings = SubResource("LabelSettings_68fc6")
+metadata/_edit_use_anchors_ = true

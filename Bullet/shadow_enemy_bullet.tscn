@@ -1,24 +1,27 @@
-[gd_scene load_steps=4 format=3 uid="uid://7djsjk622dwq"]
+[gd_scene load_steps=4 format=3 uid="uid://ch4osim8j7v8w"]
 
-[ext_resource type="PackedScene" uid="uid://du3ci30e08fmr" path="res://Bullet/Enemy_Bullet.tscn" id="1_keonu"]
 [ext_resource type="Texture2D" uid="uid://d2ra2jic3tyu" path="res://Textures/Lasers/Laser Sprites/23.png" id="2_fd57p"]
 [ext_resource type="Script" path="res://Bullet/Scripts/shadow_enemy_bullet.gd" id="2_qsnhr"]
 
-[node name="Shadow_EnemyBullet" instance=ExtResource("1_keonu")]
-script = ExtResource("2_qsnhr")
-speed = 300.0
-damage = 1
-debug_mode = false
-shadow_damage_multiplier = 2.0
-shadow_speed_multiplier = 1.2
-shadow_pulse_speed = 3.0
-shadow_alpha_min = 0.3
-shadow_alpha_max = 0.9
-shadow_trail_length = 8
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4hdki"]
+size = Vector2(52, 316)
 
-[node name="Sprite2D" parent="." index="0"]
+[node name="ShadowEnemy_Bullet" type="Area2D" groups=["EnemyBullet"]]
+collision_layer = 64
+script = ExtResource("2_qsnhr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -6)
+shape = SubResource("RectangleShape2D_4hdki")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = 1.5708
+scale = Vector2(2, 2)
 texture = ExtResource("2_fd57p")
 
-[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
-position = Vector2(-1.5, 8.5)
-scale = Vector2(0.65, 4.25)
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+scale = Vector2(2.9, 15.5)
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="area_exited" from="." to="." method="_on_area_exited"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

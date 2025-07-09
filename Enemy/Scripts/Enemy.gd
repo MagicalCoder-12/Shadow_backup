@@ -106,8 +106,6 @@ var shadow_alpha_min: float = 0.4
 var shadow_alpha_max: float = 0.8
 var bomb_and_retreat_phase: BombAndRetreatPhase = BombAndRetreatPhase.IDLE
 var bomb_and_retreat_cooldown: float = 0.0
-var rage_mode: bool = false
-var rage_multiplier: float = 1.5
 var current_difficulty: formation_enums.DifficultyLevel = formation_enums.DifficultyLevel.NORMAL
 var behavior_timer: Timer
 var movement_timer: Timer
@@ -128,7 +126,7 @@ var zigzag_direction: Vector2
 var zigzag_change_timer: float = 0.0
 var formation_allies: Array[Enemy] = []
 var viewport_size: Vector2
-const SCREEN_BUFFER: float = 200.0
+const SCREEN_BUFFER: float = 20.0
 var time_since_spawn: float = 0.0
 var shield_damage_reduction: float = 0.5
 var original_texture: Texture2D  # To store the original texture
@@ -647,7 +645,7 @@ func _apply_shadow_visuals():
 func _start_shadow_pulse():
 	if shadow_tween:
 		shadow_tween.kill()
-	shadow_tween = create_tween().set_loops()
+	shadow_tween = create_tween()
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_max, shadow_alpha_min, shadow_pulse_speed / 2.0)
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_min, shadow_alpha_max, shadow_pulse_speed / 2.0)
 
@@ -897,20 +895,12 @@ func on_reach_formation():
 
 # --- Performance Optimization ---
 func _on_visible_on_screen_notifier_2d_screen_exited():
-	if not arrived_at_formation:
-		return
-	
-	set_physics_process(false)
-	
-	var reactivate_timer = Timer.new()
-	reactivate_timer.wait_time = 0.5
-	reactivate_timer.one_shot = true
-	reactivate_timer.timeout.connect(_reactivate_processing)
-	add_child(reactivate_timer)
-	reactivate_timer.start()
-
+	if has_entered_screen :
+		queue_free()
+		
 func _on_visible_on_screen_notifier_2d_screen_entered():
 	set_physics_process(true)
+	has_entered_screen = true
 
 func _reactivate_processing():
 	set_physics_process(true)
@@ -964,10 +954,6 @@ func _on_area_entered(area):
 			healthbar.hide()
 		die()
 		
-func _on_area_exited(area):
-	if area.get_parent() is Player:
-		player_in_area = null
-
 func _connect_signals():
 	if fire_timer:
 		fire_timer.timeout.connect(_on_fire_timer_timeout)

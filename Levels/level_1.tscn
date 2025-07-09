@@ -149,6 +149,7 @@ region_rect = Rect2(1.95564, -32.485, 1275.34, 770.342)
 [node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("8_uq0sc")]
 
 [node name="Pause" type="Button" parent="CanvasLayer" groups=["UI"]]
+process_mode = 3
 anchors_preset = -1
 anchor_left = 0.877778
 anchor_top = 0.0104167

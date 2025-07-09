@@ -173,12 +173,15 @@ text = "REVIVE"
 metadata/_edit_use_anchors_ = true
 
 [node name="MessageLabel" type="Label" parent="Panel"]
-layout_mode = 0
-offset_left = 18.0002
-offset_top = 444.667
-offset_right = 571.0
-offset_bottom = 535.667
-text = "Message"
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -75.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Message "
 label_settings = SubResource("LabelSettings_7i0ys")
 horizontal_alignment = 1
 vertical_alignment = 1

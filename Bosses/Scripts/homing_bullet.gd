@@ -2,7 +2,7 @@ extends Area2D
 class_name HomingBullet
 
 ## Speed of the bullet in pixels per second.
-@export var speed: float = 300.0
+@export var speed: float = 3000.0
 
 ## Damage dealt to the player.
 @export var damage: int = 1
@@ -13,11 +13,17 @@ class_name HomingBullet
 ## Whether the bullet is active (can move and deal damage).
 @export var is_active: bool = true
 
+## Lifetime of the bullet in seconds (0.0 means no lifetime limit).
+@export var lifetime: float = 0.0
+
 ## Target position for homing (defaults to player position).
 var target: Vector2
 
 ## Velocity vector of the bullet.
 var velocity: Vector2
+
+## Internal timer for tracking lifetime.
+var _lifetime_timer: float = 0.0
 
 func _ready() -> void:
 	if speed <= 0:
@@ -37,11 +43,6 @@ func _ready() -> void:
 	# Initialize velocity
 	velocity = Vector2.UP.rotated(global_rotation) * speed
 	
-
-	var notifier: VisibleOnScreenNotifier2D = get_node_or_null("VisibleOnScreenNotifier2D")
-	if notifier:
-		notifier.screen_exited.connect(_on_screen_exited)
-
 func _physics_process(delta: float) -> void:
 	if is_active:
 		# Update target position
@@ -54,10 +55,37 @@ func _physics_process(delta: float) -> void:
 		velocity = velocity.lerp(direction * speed, turn_rate)
 		global_position += velocity * delta
 		global_rotation = velocity.angle()
+		
+		# Handle lifetime
+		if lifetime > 0.0:
+			_lifetime_timer += delta
+			if _lifetime_timer >= lifetime:
+				call_deferred("queue_free")
 
 ## Sets the target position for homing.
 func set_target(pos: Vector2) -> void:
 	target = pos
+
+## Sets the lifetime of the bullet in seconds.
+func set_lifetime(time: float) -> void:
+	if time < 0.0:
+		print("Warning: HomingBullet lifetime cannot be negative. Setting to 0.0.")
+		lifetime = 0.0
+	else:
+		lifetime = time
+		_lifetime_timer = 0.0  # Reset timer when setting new lifetime
+
+## Returns the damage value of the bullet.
+func get_damage() -> int:
+	return damage
+
+## Sets the damage value of the bullet.
+func set_damage(new_damage: int) -> void:
+	if new_damage <= 0:
+		print("Warning: HomingBullet damage is non-positive. Setting to 1.")
+		damage = 1
+	else:
+		damage = new_damage
 
 ## Handles collision with the player.
 func _on_area_entered(area: Area2D) -> void:
@@ -66,5 +94,5 @@ func _on_area_entered(area: Area2D) -> void:
 		call_deferred("queue_free")
 
 ## Frees the bullet when it exits the screen.
-func _on_screen_exited() -> void:
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
 	call_deferred("queue_free")
