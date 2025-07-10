@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_uk1uv"]
 [ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="3_x7gsr"]
 [ext_resource type="PackedScene" uid="uid://c6uejmh8c7koe" path="res://MainScenes/game_over_screen.tscn" id="4_uk1uv"]
-[ext_resource type="Texture2D" uid="uid://dcdgypyoyws7" path="res://Textures/UI/pause_icon.png" id="5_25373"]
+[ext_resource type="Texture2D" uid="uid://d0hfl38rap3wf" path="res://Textures/UI/Main_Menu/BTNs/Pause_BTN.png" id="5_735wc"]
 [ext_resource type="PackedScene" uid="uid://bog23u7rvkoy" path="res://MainScenes/pause_menu.tscn" id="6_vybpl"]
 [ext_resource type="PackedScene" uid="uid://b2dr1w4bni0qf" path="res://MainScenes/level_completed.tscn" id="7_f6crn"]
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="8_k35fw"]
@@ -172,27 +172,24 @@ flip_h = true
 region_rect = Rect2(1.95564, -32.485, 1275.34, 770.342)
 
 [node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("4_uk1uv")]
-visible = false
 
 [node name="Pause" type="Button" parent="CanvasLayer"]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -104.0
-offset_top = -1.0
-offset_right = -32.0
-offset_bottom = 71.0
+anchors_preset = -1
+anchor_left = 0.860185
+anchor_top = 0.0104167
+anchor_right = 0.957407
+anchor_bottom = 0.0541667
+offset_right = 105.0
+offset_bottom = 105.0
 grow_horizontal = 0
-scale = Vector2(1.5, 1.5)
-icon = ExtResource("5_25373")
+scale = Vector2(0.5, 0.5)
+icon = ExtResource("5_735wc")
 flat = true
+metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("6_vybpl")]
-visible = false
-modulate = Color(1, 1, 1, 0)
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("7_f6crn")]
-visible = false
 
 [node name="Player" parent="." instance=ExtResource("8_k35fw")]
 position = Vector2(539, 2142)

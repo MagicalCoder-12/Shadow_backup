@@ -1,10 +1,10 @@
 extends Control
 
 # Onready references
-@onready var score_label: Label = $Panel/Score
-@onready var high_score_label: Label = $Panel/HighScore
-@onready var revive_button: Button = $Panel/Revive
-@onready var message_label: Label = $Panel/MessageLabel  # Add a Label node in the scene for feedback
+@onready var score_label: Label = $PanelContainer/Panel/Score
+@onready var high_score_label: Label = $PanelContainer/Panel/HighScore
+@onready var revive_button: Button = $PanelContainer/Panel/Revive
+@onready var message_label: Label = $PanelContainer/Panel/MessageLabel  # Add a Label node in the scene for feedback
 
 # Constants
 const START_SCREEN_SCENE: String = "res://Scenes/Music/StartScreen.tscn"

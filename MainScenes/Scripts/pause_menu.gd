@@ -1,11 +1,11 @@
 extends Control
 
-@onready var restart_button: Button = $Panel/RestartButton
-@onready var back: Button = $Panel/Back
-@onready var resume: Button = $Panel/Resume
-@onready var waves: Label = $Panel/VBoxContainer/Waves
-@onready var total_waves: Label = $Panel/VBoxContainer/Total_waves
-@onready var level: Label = $Panel/Level
+@onready var restart_button: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/RestartButton
+@onready var back: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/Back
+@onready var resume: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/Resume
+@onready var waves: Label = $PanelContainer/Panel/VBoxContainer/Waves
+@onready var total_waves: Label = $PanelContainer/Panel/VBoxContainer/Total_waves
+@onready var level: Label = $PanelContainer/Panel/VBoxContainer/Level
 
 const Map="res://Map/map.tscn"
 

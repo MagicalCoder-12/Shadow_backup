@@ -39,7 +39,9 @@ BulletFactory="*res://Autoloads/Bullet_Factory.tscn"
 window/size/viewport_width=1080
 window/size/viewport_height=2400
 window/size/mode=3
+window/subwindows/embed_subwindows=false
 window/stretch/mode="viewport"
+window/per_pixel_transparency/allowed=true
 window/handheld/orientation=5
 mouse_cursor/custom_image="res://Textures/Splash_Screen/cursor.png"
 
@@ -64,6 +66,11 @@ LevelManager="for findinf levelmanager."
 Enemy=""
 HUD=""
 EnemyBullet="Foe enemy bullets"
+
+[gui]
+
+theme/custom="res://Space.tres"
+theme/custom_font="res://Textures/fonts/IBMPlexSansJP-Bold.ttf"
 
 [input]
 

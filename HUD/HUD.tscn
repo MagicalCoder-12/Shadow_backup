@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://s66mklagl4fy"]
+[gd_scene load_steps=12 format=3 uid="uid://s66mklagl4fy"]
 
 [ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
 [ext_resource type="Script" path="res://HUD/HUD.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="4_njmlf"]
 [ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="5_lkt0t"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="6_6i5cd"]
+[ext_resource type="Texture2D" uid="uid://bosx1bop5mg50" path="res://Textures/UI/Main_Menu/Clock_Icon.png" id="7_36gqn"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_amwvk"]
 font = ExtResource("3_hsjlv")
@@ -16,6 +17,11 @@ outline_color = Color(1, 0.137255, 0.317647, 1)
 shadow_size = 12
 shadow_color = Color(0, 0, 0, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_t1yhm"]
+font = ExtResource("6_6i5cd")
+font_size = 45
+font_color = Color(0.156863, 1, 0, 1)
+
 [sub_resource type="LabelSettings" id="LabelSettings_qp8j6"]
 font = ExtResource("4_bkns3")
 font_size = 60
@@ -23,11 +29,6 @@ outline_size = 4
 outline_color = Color(1, 0, 0, 1)
 shadow_size = 6
 shadow_color = Color(0, 0.960784, 0, 0.745098)
-
-[sub_resource type="LabelSettings" id="LabelSettings_t1yhm"]
-font = ExtResource("6_6i5cd")
-font_size = 45
-font_color = Color(0.156863, 1, 0, 1)
 
 [node name="HUD" type="Control" groups=["HUD"]]
 layout_mode = 3
@@ -71,21 +72,6 @@ label_settings = SubResource("LabelSettings_amwvk")
 horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Timer" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.418819
-anchor_top = 0.00167715
-anchor_right = 0.582103
-anchor_bottom = 0.0440252
-grow_horizontal = 2
-theme_override_font_sizes/font_size = 50
-text = "Time :"
-label_settings = SubResource("LabelSettings_qp8j6")
-horizontal_alignment = 1
-vertical_alignment = 1
-metadata/_edit_use_anchors_ = true
-
 [node name="ShadowModeButton" type="TextureButton" parent="." groups=["UI"]]
 layout_mode = 1
 anchors_preset = -1
@@ -124,5 +110,28 @@ text = "Shadow Mode
 label_settings = SubResource("LabelSettings_t1yhm")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 399.0
+offset_top = 22.0
+offset_right = 465.0
+offset_bottom = 93.0
+texture = ExtResource("7_36gqn")
+
+[node name="Timer" type="Label" parent="TextureRect"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.21212
+anchor_top = -0.140845
+anchor_right = 4.89394
+anchor_bottom = 1.14085
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 50
+text = "Time :"
+label_settings = SubResource("LabelSettings_qp8j6")
+horizontal_alignment = 2
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="ShadowModeButton" to="." method="_on_shadow_mode_button_pressed"]

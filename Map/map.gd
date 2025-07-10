@@ -108,5 +108,5 @@ func update_stars():
 func _on_level_star_earned():
 	update_stars()
 
-func _on_button_pressed() -> void:
+func _on_back_pressed() -> void:
 	GameManager.change_scene(Start_screen)

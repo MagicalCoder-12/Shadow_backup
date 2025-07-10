@@ -1,0 +1,37 @@
+[gd_resource type="Theme" load_steps=11 format=3 uid="uid://cajsdr5l6wc4w"]
+
+[ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Textures/UI/Window.png" id="1_hyy63"]
+[ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="1_o07jq"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="3_mahiv"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q4qn1"]
+texture = ExtResource("1_o07jq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4nfdr"]
+texture = ExtResource("1_o07jq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0juxk"]
+texture = ExtResource("1_o07jq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ccd22"]
+texture = ExtResource("1_o07jq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hqxwt"]
+texture = ExtResource("1_o07jq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghvvg"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hmrm1"]
+texture = ExtResource("1_hyy63")
+texture_margin_top = 50.0
+
+[resource]
+default_font = ExtResource("3_mahiv")
+default_font_size = 20
+Button/styles/disabled = SubResource("StyleBoxTexture_q4qn1")
+Button/styles/focus = SubResource("StyleBoxTexture_4nfdr")
+Button/styles/hover = SubResource("StyleBoxTexture_0juxk")
+Button/styles/normal = SubResource("StyleBoxTexture_ccd22")
+Button/styles/pressed = SubResource("StyleBoxTexture_hqxwt")
+Label/styles/normal = SubResource("StyleBoxTexture_ghvvg")
+Panel/styles/panel = SubResource("StyleBoxTexture_hmrm1")

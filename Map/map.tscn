@@ -1,17 +1,21 @@
-[gd_scene load_steps=14 format=3 uid="uid://bs74tol27j6sb"]
+[gd_scene load_steps=18 format=3 uid="uid://bs74tol27j6sb"]
 
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="2_3g1qk"]
 [ext_resource type="Texture2D" uid="uid://b1u8585mn0uux" path="res://Textures/Background/Mapbackground.png" id="2_6yc6o"]
-[ext_resource type="Texture2D" uid="uid://b8kceaoqpb4v8" path="res://Textures/Background/scroll.png" id="2_86j4t"]
 [ext_resource type="PackedScene" uid="uid://q8xvk7xqckbr" path="res://UI/level_button.tscn" id="2_njngi"]
 [ext_resource type="Script" path="res://Map/map.gd" id="3_8svjd"]
 [ext_resource type="Script" path="res://Map/camera_2d.gd" id="4_86j4t"]
-[ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="7_d1580"]
+[ext_resource type="Texture2D" uid="uid://plwfeqd2sebm" path="res://Textures/UI/Main_Menu/BG.png" id="4_ksxpc"]
 [ext_resource type="Texture2D" uid="uid://x8bdqinealjc" path="res://Textures/guibuttons/RedButton-Active.png" id="7_lymsy"]
 [ext_resource type="Texture2D" uid="uid://dutffj6j65vue" path="res://Textures/guibuttons/RedButton-Hover.png" id="8_5cbny"]
-[ext_resource type="Texture2D" uid="uid://bsn6mtb0ifgmo" path="res://Textures/UI/Star_256x256_019.png" id="9_star"]
+[ext_resource type="Texture2D" uid="uid://dewuheq0cmgte" path="res://Textures/UI/Main_Menu/Star_03.png" id="8_uh8jt"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="11_0th5g"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="11_31513"]
+[ext_resource type="Texture2D" uid="uid://c0ddjequ5dtqq" path="res://Textures/UI/Main_Menu/Backward_BTN.png" id="11_pa6h5"]
 [ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="11_ptuj4"]
 [ext_resource type="Texture2D" uid="uid://g6s5vmg16xj5" path="res://Textures/Background/Background.png" id="12_rr5ff"]
+[ext_resource type="Texture2D" uid="uid://5u6berhnohyf" path="res://Textures/UI/Main_Menu/Shop_BTN.png" id="13_0appe"]
+[ext_resource type="Texture2D" uid="uid://cnsxlue1203ri" path="res://Textures/UI/Main_Menu/BTNs_Active/Shop_BTN.png" id="16_t5i76"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_bmidu"]
 font = ExtResource("2_3g1qk")
@@ -46,22 +50,25 @@ label_settings = SubResource("LabelSettings_bmidu")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Clouds" type="Sprite2D" parent="."]
 position = Vector2(591, 1208)
 scale = Vector2(1.26367, 2.88086)
 texture = ExtResource("12_rr5ff")
 flip_v = true
 
-[node name="Mapbackground" type="Sprite2D" parent="."]
-position = Vector2(573, -3829.5)
-scale = Vector2(1.5, 1.41894)
-texture = ExtResource("2_6yc6o")
+[node name="Space" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -86.0
+offset_top = -3165.0
+offset_right = 1261.0
+offset_bottom = -66.0
+texture = ExtResource("4_ksxpc")
+flip_v = true
 
-[node name="Scroll" type="Sprite2D" parent="."]
-position = Vector2(594.888, -1649)
-rotation = 1.5708
-scale = Vector2(1.63653, 1.26432)
-texture = ExtResource("2_86j4t")
+[node name="Commingsoon" type="Sprite2D" parent="."]
+position = Vector2(626, -3846.75)
+scale = Vector2(1.5, 1.44873)
+texture = ExtResource("2_6yc6o")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(-68, 22)
@@ -73,72 +80,73 @@ scroll_speed = 3.0
 [node name="LevelButtons" type="Node2D" parent="."]
 
 [node name="LevelButton1" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 833.0
-offset_top = 1923.0
-offset_right = 933.0
-offset_bottom = 2023.0
+offset_left = 443.0
+offset_top = 1955.0
+offset_right = 543.0
+offset_bottom = 2055.0
 locked = false
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton1"]
 layout_mode = 0
-offset_left = 60.5
-offset_top = -32.5
-offset_right = 92.5
-offset_bottom = -0.5
-texture = ExtResource("9_star")
+offset_left = 72.0
+offset_top = -44.0
+offset_right = 120.0
+offset_bottom = 1.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
-stretch_mode = 4
 
 [node name="LevelButton2" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 911.0
-offset_top = 1424.0
-offset_right = 1011.0
-offset_bottom = 1524.0
+offset_left = 835.0
+offset_top = 1657.0
+offset_right = 935.0
+offset_bottom = 1757.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton2"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -44.0
+offset_right = 113.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton3" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 709.0
-offset_top = 1001.0
-offset_right = 809.0
-offset_bottom = 1101.0
+offset_left = 781.0
+offset_top = 1069.0
+offset_right = 881.0
+offset_bottom = 1169.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton3"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -46.0
+offset_right = 117.0
+offset_bottom = 1.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton4" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 413.0
-offset_top = 597.0
-offset_right = 513.0
-offset_bottom = 697.0
+offset_left = 533.0
+offset_top = 717.0
+offset_right = 633.0
+offset_bottom = 817.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton4"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -48.0
+offset_right = 116.0
+offset_bottom = 1.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton5" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 567.0
-offset_top = 16.0
-offset_right = 667.0
-offset_bottom = 116.0
+offset_left = 411.0
+offset_top = 100.0
+offset_right = 511.0
+offset_bottom = 200.0
 scale = Vector2(4, 4)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -150,76 +158,78 @@ offset_left = 71.5
 offset_top = -35.25
 offset_right = 121.5
 offset_bottom = 11.75
-texture = ExtResource("9_star")
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton6" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 504.0
-offset_top = -652.0
-offset_right = 604.0
-offset_bottom = -552.0
+offset_left = 353.0
+offset_top = -536.0
+offset_right = 453.0
+offset_bottom = -436.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton6"]
 layout_mode = 0
-offset_left = 80.5
-offset_top = -38.0
-offset_right = 112.5
-offset_bottom = -6.0
-texture = ExtResource("9_star")
+offset_left = 81.0
+offset_top = -67.0
+offset_right = 139.0
+offset_bottom = -14.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton7" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 247.0
-offset_top = -1173.0
-offset_right = 347.0
-offset_bottom = -1073.0
+offset_left = 741.0
+offset_top = -1027.0
+offset_right = 841.0
+offset_bottom = -927.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton7"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -61.0
+offset_right = 128.0
+offset_bottom = 1.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton8" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 730.0
-offset_top = -1609.0
-offset_right = 830.0
-offset_bottom = -1509.0
+offset_left = 881.0
+offset_top = -1584.0
+offset_right = 981.0
+offset_bottom = -1484.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton8"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -52.0
+offset_right = 118.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton9" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 508.0
-offset_top = -2060.0
-offset_right = 608.0
-offset_bottom = -1960.0
+offset_left = 538.0
+offset_top = -1959.0
+offset_right = 638.0
+offset_bottom = -1859.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton9"]
 layout_mode = 0
 offset_left = 68.0
-offset_top = -32.0
-offset_right = 100.0
-texture = ExtResource("9_star")
+offset_top = -48.0
+offset_right = 120.0
+offset_bottom = 1.0
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton10" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 315.0
-offset_top = -2845.0
-offset_right = 415.0
-offset_bottom = -2745.0
+offset_left = 370.0
+offset_top = -2815.0
+offset_right = 470.0
+offset_bottom = -2715.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -231,22 +241,31 @@ offset_left = 79.2
 offset_top = -30.2
 offset_right = 133.2
 offset_bottom = 18.8
-texture = ExtResource("9_star")
+texture = ExtResource("8_uh8jt")
 expand_mode = 1
 stretch_mode = 4
-
-[node name="Button" type="Button" parent="."]
-layout_mode = 0
-offset_left = -16.0
-offset_top = 1769.0
-offset_right = 1016.0
-offset_bottom = 2801.0
-scale = Vector2(0.4, 0.4)
-icon = ExtResource("7_d1580")
-flat = true
 
 [node name="Start" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("11_ptuj4")
 parameters/looping = true
 
-[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
+[node name="Back" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 1982.0
+offset_right = 252.0
+offset_bottom = 2192.0
+texture_normal = ExtResource("11_31513")
+texture_pressed = ExtResource("11_0th5g")
+texture_hover = ExtResource("11_pa6h5")
+
+[node name="TextureButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 854.0
+offset_top = 1972.0
+offset_right = 1064.0
+offset_bottom = 2182.0
+texture_normal = ExtResource("13_0appe")
+texture_pressed = ExtResource("16_t5i76")
+
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

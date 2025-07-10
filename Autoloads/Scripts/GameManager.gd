@@ -487,7 +487,7 @@ func complete_level(current_level: int) -> void:
 		var current_scene = get_tree().current_scene
 		if current_scene and ResourceLoader.exists(VIDEO_SCENE):
 			is_video_playing = true
-			AudioManager.lower_bus_volumes_except(["Boss", "Master"], -60.0)
+			AudioManager.lower_bus_volumes_except(["Video", "Master"], -60.0)
 			var video_layer = CanvasLayer.new()
 			video_layer.name = "VideoPlaybackLayer"
 			video_layer.layer = 10
@@ -496,7 +496,6 @@ func complete_level(current_level: int) -> void:
 			current_scene.add_child(video_layer)
 			should_transition_to_next_level = false
 			if video_scene.has_signal("finished"):
-				AudioManager.mute_audio_buses(false)
 				video_scene.finished.connect(_on_video_finished.bind(video_layer))
 			else:
 				await get_tree().create_timer(10.0).timeout
@@ -516,8 +515,7 @@ func complete_level(current_level: int) -> void:
 		is_level_just_completed = false
 
 func _on_video_finished(video_layer: CanvasLayer) -> void:
-	AudioManager.mute_bus("Bullet", false)
-	AudioManager.mute_bus("Explosion", false)
+	AudioManager.restore_bus_volumes()
 	video_layer.queue_free()
 	is_video_playing = false
 	change_scene(START_SCREEN_SCENE)

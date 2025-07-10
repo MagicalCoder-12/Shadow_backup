@@ -4,7 +4,7 @@ var pLifeIcon := preload("uid://ceg6sboym3t71")
 
 @onready var lifeContainer := $LifeContainer
 @onready var scoreLabel := $Score
-@onready var timer_label: Label = $Timer  
+@onready var timer_label: Label = $TextureRect/Timer  
 @onready var shadow_mode_button: TextureButton = $ShadowModeButton
 @onready var shadow_mode_charge: TextureProgressBar = $ShadowModeButton/ShadowModeCharge
 @onready var shadow_mode_label: Label = $ShadowModeButton/ShadowModeCharge/ShadowModeLabel
@@ -62,7 +62,7 @@ func update_timer_display():
 	seconds = fmod(seconds, 60.0)
 	
 	# Format as MM:SS.mmm
-	timer_label.text = " Time: %02d:%05.2f" % [minutes, seconds]
+	timer_label.text = "%02d:%05.2f" % [minutes, seconds]
 
 # Clears current life icons
 func clear_lives():
@@ -100,17 +100,16 @@ func _on_all_waves_cleared():
 		var seconds = current_time / 1000.0
 		var minutes = seconds / 60.0
 		seconds = fmod(seconds, 60.0)
-		timer_label.text = "Completed in: %02d:%05.2f" % [minutes, seconds]
+		timer_label.text = "%02d:%05.2f" % [minutes, seconds]
 
 # Updates the display when the game is paused or resumed
 func _on_game_paused(paused: bool):
 	if timer_label:
 		if paused:
 			timer_running = false
-			timer_label.text = "⏸️ Paused"
+			timer_label.text = "Paused"
 		else:
 			timer_running = true
-			timer_label.text = "▶️ Resumed"
 
 # Called when an enemy is killed to increase charge
 func add_enemy_kill_charge(amount: float = charge_per_enemy):
