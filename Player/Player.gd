@@ -58,7 +58,7 @@ func _ready() -> void:
 	if GameManager.autosave_progress:
 		GameManager.save_progress()
 	sprite_2d.show()
-	sprite_2d.scale = Vector2(1.0, 1.0)
+	sprite_2d.scale=Vector2(1.5,1.5)
 
 	# Cache original texture and speed
 	if sprite_2d:

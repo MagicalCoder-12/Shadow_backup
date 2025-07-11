@@ -147,7 +147,6 @@ flip_h = true
 region_rect = Rect2(1.95564, -32.485, 1275.34, 770.342)
 
 [node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("8_uq0sc")]
-visible = false
 
 [node name="Pause" type="Button" parent="CanvasLayer" groups=["UI"]]
 process_mode = 3
@@ -165,13 +164,8 @@ icon_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("7_c1kre")]
-visible = false
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("13_23710")]
-visible = false
-
-[node name="Player" parent="." instance=ExtResource("1")]
-position = Vector2(539, 2142)
 
 [node name="Cam" type="Camera2D" parent="."]
 anchor_mode = 0
@@ -199,5 +193,8 @@ libraries = {
 }
 
 [node name="WaveManager" parent="." instance=ExtResource("13_nmwl1")]
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector2(564, 2034)
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

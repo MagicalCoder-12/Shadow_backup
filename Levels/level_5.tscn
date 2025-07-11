@@ -191,9 +191,6 @@ metadata/_edit_use_anchors_ = true
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("7_f6crn")]
 
-[node name="Player" parent="." instance=ExtResource("8_k35fw")]
-position = Vector2(539, 2142)
-
 [node name="Cam" type="Camera2D" parent="."]
 anchor_mode = 0
 script = ExtResource("9_c02se")
@@ -224,5 +221,8 @@ process_mode = 3
 libraries = {
 "": SubResource("AnimationLibrary_ymc22")
 }
+
+[node name="Player" parent="." instance=ExtResource("8_k35fw")]
+position = Vector2(565, 2046)
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="." method="_on_pause_pressed"]

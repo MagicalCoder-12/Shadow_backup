@@ -37,8 +37,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_yondh"]
 _data = {
-&"RESET": SubResource("Animation_c1rle"),
-&"shoot": SubResource("Animation_4nk4h")
+"RESET": SubResource("Animation_c1rle"),
+"shoot": SubResource("Animation_4nk4h")
 }
 
 [node name="Satellite" type="Node2D"]
@@ -48,22 +48,24 @@ shadow_fire_rate_multiplier = 0.1
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1
+position = Vector2(-1.29292e-05, 3.57162)
 rotation = 1.5708
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("1_cldih")
 
 [node name="Ship2Detail" type="Sprite2D" parent="."]
 texture_filter = 1
 position = Vector2(1, 12.1197)
 rotation = 1.5708
-scale = Vector2(0.882964, 1)
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_fg3ep")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-&"": SubResource("AnimationLibrary_yondh")
+"": SubResource("AnimationLibrary_yondh")
 }
 autoplay = "shoot"
-speed_scale = 2.0
+speed_scale = 1.5
 
 [node name="Nozel" type="Node2D" parent="."]
 position = Vector2(1, -41)

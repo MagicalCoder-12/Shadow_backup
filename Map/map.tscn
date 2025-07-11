@@ -269,3 +269,4 @@ texture_normal = ExtResource("13_0appe")
 texture_pressed = ExtResource("16_t5i76")
 
 [connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="TextureButton" to="." method="_on_texture_button_pressed"]

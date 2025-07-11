@@ -1,47 +1,530 @@
-[gd_scene load_steps=4 format=3 uid="uid://bb03c63ct47e7"]
+[gd_scene load_steps=24 format=3 uid="uid://bb03c63ct47e7"]
 
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="1_mddtv"]
-[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="1_na3nj"]
+[ext_resource type="Script" path="res://MainScenes/Scripts/upgrade_menu.gd" id="1_uf2vc"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="4_c3ohk"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="5_34scy"]
+[ext_resource type="Texture2D" uid="uid://jfjmhs2pyri8" path="res://Textures/UI/Main_Menu/Header.png" id="6_64fx3"]
+[ext_resource type="Texture2D" uid="uid://btuqmp4lt82rc" path="res://Textures/UI/Main_Menu/BTNs_Active/Upgrade_BTN.png" id="7_8wbq3"]
+[ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="7_462bn"]
+[ext_resource type="Texture2D" uid="uid://cdoua3rmc0hwg" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_02.png" id="9_8sam1"]
+[ext_resource type="Texture2D" uid="uid://8mjkbafl5n1n" path="res://Textures/player/Spaceships-13/spaceships/h-03.png" id="9_c44ck"]
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="10_yijgs"]
+[ext_resource type="Texture2D" uid="uid://cwqayejk161mh" path="res://Textures/UI/Main_Menu/BTNs/Upgrade_BTN.png" id="11_sdrtr"]
+[ext_resource type="Texture2D" uid="uid://snjoqov8tu7c" path="res://Textures/player/Example_ships/rect1.png" id="13_5jcev"]
+[ext_resource type="Texture2D" uid="uid://df0kqa5geo5ij" path="res://Textures/player/Spaceships-13/spaceships/e-03.png" id="13_5ucst"]
+[ext_resource type="Texture2D" uid="uid://bnlluq6ibowiy" path="res://Textures/player/Example_ships/1.png" id="13_g4xp2"]
+[ext_resource type="Texture2D" uid="uid://1gjtssyuvrgq" path="res://Textures/UI/Main_Menu/Table_01.png" id="13_gfbbb"]
+[ext_resource type="Texture2D" uid="uid://b26oloy3x0xv6" path="res://Textures/player/Example_ships/SpaceShipsPack-AntuZ/SpaceShips/G-04.png" id="15_jxw8o"]
+[ext_resource type="Texture2D" uid="uid://r2xfa5p6ygpb" path="res://Textures/player/Example_ships/1B.png" id="15_rtl3h"]
+[ext_resource type="Texture2D" uid="uid://cvcgrkv2w6nd4" path="res://Textures/player/Example_ships/Spaceships-Drakir/Spaceship-Drakir1.png" id="17_87rmb"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_n5e6d"]
+font = ExtResource("1_mddtv")
+font_size = 35
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x1ydf"]
+texture = ExtResource("13_gfbbb")
+expand_margin_left = 15.0
+expand_margin_top = 10.0
+expand_margin_right = 10.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_ytpva"]
+font = ExtResource("1_mddtv")
+font_size = 35
+font_color = Color(1, 1, 0.0705882, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7w585"]
+font = ExtResource("1_mddtv")
+font_size = 35
+font_color = Color(1, 1, 0.0705882, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_68fc6"]
 font = ExtResource("1_mddtv")
-font_size = 50
+font_size = 60
 
 [node name="Upgrade_Menu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -29.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_uf2vc")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Outline" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 4.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Panel"]
+[node name="Heading" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0222222
-anchor_top = 0.0229167
-anchor_right = 0.364815
-anchor_bottom = 0.0541667
-theme_override_constants/separation = 15
+anchor_left = 0.566276
+anchor_top = 0.01375
+anchor_right = 0.960325
+anchor_bottom = 0.08125
+offset_left = 6.10352e-05
+grow_horizontal = 2
+texture = ExtResource("6_64fx3")
 metadata/_edit_use_anchors_ = true
 
-[node name="Coins" type="Label" parent="Panel/HBoxContainer"]
+[node name="Header_panel" type="Panel" parent="."]
 layout_mode = 2
-text = "Coins:"
-label_settings = SubResource("LabelSettings_68fc6")
+offset_left = -3.0
+offset_top = 15.0
+offset_right = 612.0
+offset_bottom = 220.0
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Details_panel"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Header_panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0353607
+anchor_top = -0.0439024
+anchor_right = 0.98727
+anchor_bottom = 0.960976
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Header_panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+metadata/_edit_use_anchors_ = true
+
+[node name="Crystals" type="Label" parent="Header_panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Crystals: 100000000000"
+label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Coin_sprite" type="TextureRect" parent="Panel/HBoxContainer"]
+[node name="Crstal" type="TextureRect" parent="Header_panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-texture = ExtResource("1_na3nj")
+texture = ExtResource("9_8sam1")
 stretch_mode = 2
 metadata/_edit_use_anchors_ = true
+
+[node name="Money" type="HBoxContainer" parent="Header_panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+metadata/_edit_use_anchors_ = true
+
+[node name="Coins" type="Label" parent="Header_panel/VBoxContainer/Money"]
+layout_mode = 2
+text = "Coins: 100000000000"
+label_settings = SubResource("LabelSettings_n5e6d")
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Crstal" type="TextureRect" parent="Header_panel/VBoxContainer/Money"]
+layout_mode = 2
+texture = ExtResource("10_yijgs")
+stretch_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PanelContainer" type="PanelContainer" parent="UI"]
+offset_left = 2.0
+offset_top = 2054.0
+offset_right = 1063.0
+offset_bottom = 2258.0
+
+[node name="Panel" type="Panel" parent="UI/PanelContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_x1ydf")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/PanelContainer/Panel"]
+layout_mode = 0
+offset_top = 3.0
+offset_right = 1053.0
+offset_bottom = 220.0
+
+[node name="Back" type="TextureButton" parent="UI/PanelContainer/Panel/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_c3ohk")
+texture_pressed = ExtResource("5_34scy")
+texture_hover = ExtResource("5_34scy")
+metadata/_edit_use_anchors_ = true
+
+[node name="Ships" type="Button" parent="UI/PanelContainer/Panel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 80
+text = "Ships"
+
+[node name="Drones" type="Button" parent="UI/PanelContainer/Panel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 75
+text = "Drones"
+
+[node name="Shop" type="Button" parent="UI/PanelContainer/Panel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 75
+text = "Shop"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI"]
+offset_left = 6.0
+offset_top = 1031.0
+offset_right = 1046.0
+offset_bottom = 1330.0
+theme_override_constants/separation = 100
+
+[node name="Upgrade_crystals" type="TextureButton" parent="UI/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("11_sdrtr")
+texture_pressed = ExtResource("7_8wbq3")
+texture_hover = ExtResource("7_8wbq3")
+
+[node name="Crystal" type="Label" parent="UI/HBoxContainer/Upgrade_crystals"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 200.0
+offset_right = 342.0
+offset_bottom = 328.0
+text = "Coins: 50"
+label_settings = SubResource("LabelSettings_ytpva")
+vertical_alignment = 1
+
+[node name="Upgrade_money" type="TextureButton" parent="UI/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("11_sdrtr")
+texture_pressed = ExtResource("7_8wbq3")
+texture_hover = ExtResource("7_8wbq3")
+
+[node name="Money" type="Label" parent="UI/HBoxContainer/Upgrade_money"]
+layout_mode = 0
+offset_left = -22.0
+offset_top = 202.0
+offset_right = 314.0
+offset_bottom = 330.0
+text = "Crystals: 50"
+label_settings = SubResource("LabelSettings_7w585")
+vertical_alignment = 1
+
+[node name="Ads" type="Button" parent="UI/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 35
+text = "Watch Ads for 20
+crystal and 1000
+money."
+
+[node name="SelectedShipDisplay" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.0171326
+anchor_top = 0.100833
+anchor_right = 0.551849
+anchor_bottom = 0.40625
+grow_horizontal = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="SelectedShip" type="TextureRect" parent="SelectedShipDisplay"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.00756144
+anchor_top = -0.00160256
+anchor_right = 0.984877
+anchor_bottom = 1.01442
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 4
+metadata/_edit_use_anchors_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="SelectedShipDisplay"]
+layout_mode = 2
+offset_left = 593.0
+offset_top = -11.0
+offset_right = 1078.0
+offset_bottom = 518.0
+theme_override_constants/margin_right = 20
+
+[node name="Panel" type="Panel" parent="SelectedShipDisplay/MarginContainer"]
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Details_panel"
+
+[node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel"]
+layout_mode = 2
+anchor_left = 0.0107527
+anchor_top = 0.126654
+anchor_right = 1.0
+anchor_bottom = 0.960302
+grow_vertical = 2
+theme = ExtResource("7_462bn")
+theme_override_constants/separation = 30
+metadata/_edit_use_anchors_ = true
+
+[node name="ShipName" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails"]
+layout_mode = 2
+text = "Ship Name"
+label_settings = SubResource("LabelSettings_68fc6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Stats" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Speed" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+layout_mode = 2
+text = "Speed: 2000"
+label_settings = SubResource("LabelSettings_68fc6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Damage" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+layout_mode = 2
+text = "Damage: 20"
+label_settings = SubResource("LabelSettings_68fc6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Health" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+layout_mode = 2
+text = "Health: 100"
+label_settings = SubResource("LabelSettings_68fc6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 1366.0
+offset_right = 1081.0
+offset_bottom = 2311.0
+
+[node name="GridContainer" type="GridContainer" parent="ScrollContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 70
+columns = 3
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship1" type="Panel" parent="ScrollContainer/GridContainer"]
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S01" type="TextureRect" parent="ScrollContainer/GridContainer/Ship1"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.06
+anchor_top = 0.06
+anchor_right = 0.943333
+anchor_bottom = 0.9
+texture = ExtResource("9_c44ck")
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship2" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S02" type="TextureRect" parent="ScrollContainer/GridContainer/Ship2"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0566667
+anchor_top = 0.113333
+anchor_right = 0.933333
+anchor_bottom = 0.826667
+texture = ExtResource("13_5ucst")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship3" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S03" type="TextureRect" parent="ScrollContainer/GridContainer/Ship3"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.04
+anchor_top = -0.00666667
+anchor_right = 1.01667
+anchor_bottom = 0.933333
+texture = ExtResource("13_5jcev")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship4" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S04" type="TextureRect" parent="ScrollContainer/GridContainer/Ship4"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.01
+anchor_top = -0.00666667
+anchor_right = 0.963333
+anchor_bottom = 0.916667
+texture = ExtResource("13_g4xp2")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship5" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S05" type="TextureRect" parent="ScrollContainer/GridContainer/Ship5"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0233333
+anchor_top = 0.04
+anchor_right = 1.01667
+anchor_bottom = 0.956667
+texture = ExtResource("15_rtl3h")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship6" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S06" type="TextureRect" parent="ScrollContainer/GridContainer/Ship6"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.04
+anchor_right = 1.00667
+anchor_bottom = 0.923333
+texture = ExtResource("15_jxw8o")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship7" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S07" type="TextureRect" parent="ScrollContainer/GridContainer/Ship7"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+texture = ExtResource("17_87rmb")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship8" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S08" type="TextureRect" parent="ScrollContainer/GridContainer/Ship8"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship9" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S09" type="TextureRect" parent="ScrollContainer/GridContainer/Ship9"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship10" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S10" type="TextureRect" parent="ScrollContainer/GridContainer/Ship10"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship11" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S11" type="TextureRect" parent="ScrollContainer/GridContainer/Ship11"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Ship12" type="Panel" parent="ScrollContainer/GridContainer"]
+custom_minimum_size = Vector2(300, 300)
+layout_mode = 2
+theme = ExtResource("7_462bn")
+theme_type_variation = &"Ship_panel"
+
+[node name="S12" type="TextureRect" parent="ScrollContainer/GridContainer/Ship12"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.03
+anchor_right = 0.98
+anchor_bottom = 0.916667
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="UI/PanelContainer/Panel/HBoxContainer/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="UI/PanelContainer/Panel/HBoxContainer/Ships" to="." method="_on_ships_pressed"]
+[connection signal="pressed" from="UI/PanelContainer/Panel/HBoxContainer/Drones" to="." method="_on_drones_pressed"]
+[connection signal="pressed" from="UI/PanelContainer/Panel/HBoxContainer/Shop" to="." method="_on_shop_pressed"]
+[connection signal="pressed" from="UI/HBoxContainer/Upgrade_crystals" to="." method="_on_upgrade_crystals_pressed"]
+[connection signal="pressed" from="UI/HBoxContainer/Upgrade_money" to="." method="_on_upgrade_money_pressed"]
+[connection signal="pressed" from="UI/HBoxContainer/Ads" to="." method="_on_ads_pressed"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship1" to="." method="_on_ship1_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship2" to="." method="_on_ship2_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship3" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship4" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship5" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship6" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship7" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship8" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship9" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship10" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship11" to="." method="_on_ship3_selected"]
+[connection signal="gui_input" from="ScrollContainer/GridContainer/Ship12" to="." method="_on_ship3_selected"]

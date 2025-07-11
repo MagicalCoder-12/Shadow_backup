@@ -5,11 +5,11 @@
 
 [sub_resource type="Resource" id="Resource_hv0l0"]
 script = ExtResource("2_5unja")
-formation_type = 0
-entry_pattern = 0
+formation_type = 3
+entry_pattern = 6
 difficulty = 1
 enemy_type = "BomberBug"
-enemy_density = "Normal"
+enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
@@ -83,9 +83,12 @@ entry_speed = 300.0
 
 [node name="Level_2" instance=ExtResource("1_ll1bl")]
 
-[node name="LevelManager" parent="." index="5"]
+[node name="LevelManager" parent="." index="4"]
 level_num = 2
 waves = Array[ExtResource("2_5unja")]([SubResource("Resource_hv0l0"), SubResource("Resource_f0isx"), SubResource("Resource_6pabx"), SubResource("Resource_x8l2t"), SubResource("Resource_12bim"), SubResource("Resource_7ol1p")])
 
-[node name="WaveManager" parent="." index="7"]
+[node name="WaveManager" parent="." index="6"]
 current_level = 2
+
+[node name="Player" parent="." index="7"]
+position = Vector2(1294, 1458)

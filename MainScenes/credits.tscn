@@ -1,0 +1,132 @@
+[gd_scene load_steps=6 format=3 uid="uid://cw34uxlcidovp"]
+
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="1_iyifa"]
+[ext_resource type="Script" path="res://MainScenes/Scripts/credits.gd" id="1_yoknb"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="2_ukugg"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="3_vf16b"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_fu1wj"]
+font = ExtResource("1_iyifa")
+font_size = 100
+font_color = Color(0.0901961, 1, 0, 1)
+
+[node name="Credits" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yoknb")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="PanelContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0342593
+anchor_top = 0.104583
+anchor_right = 0.968518
+anchor_bottom = 0.97
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/normal_font = ExtResource("1_iyifa")
+theme_override_fonts/bold_font = ExtResource("1_iyifa")
+theme_override_font_sizes/normal_font_size = 20
+theme_override_font_sizes/bold_font_size = 40
+bbcode_enabled = true
+text = "[center][b]Shadow Avengers[/b][/center]
+[center]Created by Ajith, 2025[/center]
+
+[b]Third-Party Assets & Licenses[/b]
+
+• [b]Carlos Alface[/b]
+  – \"2D Spaceships Pack 13\"
+  – \"2D Spaceships Pack with 153 spaceships and 292 extras (missiles, lasers, shields, etc.)\"
+  Blog: http://carlosalface.blogspot.pt/
+  Free to use with attribution – Thanks Carlos Alface!
+
+• [b]IBM Plex Font[/b]
+  Copyright © 2017 IBM Corp.
+  Licensed under SIL Open Font License, Version 1.1
+  https://openfontlicense.org
+
+• [b]Wubitog[/b] & [b]Javier4321[/b]
+  Test spaceships made with Wubitog's program and Scopio's ship construction kit.
+  http://www.astroarmada.com/partart/
+  http://opengameart.org/content/space-ship-construction-kit
+
+
+• [b]TheSource4Life[/b]
+  Side perspective ships freely shared – thanks!
+
+
+• [b]Skorpio[/b]
+  Modular spaceship parts & extras:
+  - Spaceship-Parts.zip
+  - Engine_exhaust.zip
+  - Stars-Nebulae.zip
+  - Muzzle_flashes.zip
+  - Alien-Ships.zip
+  - Example_ships.zip
+  http://opengameart.org/content/part2artcom-with-skorpios-2nd-kit
+  License: CC BY-SA 3.0
+
+• [b]Skorpio & Wubitog[/b]
+  Boss sprites made from Skorpio's parts with Wubitog's Part2Art app.
+  http://arrall.com/part2art/
+  License: CC BY-SA 3.0
+
+• [b]Drakirs spaceships[/b] by Carlos Alface
+  http://carlosalface.blogspot.pt/
+  Free to use with thanks.
+
+• [b]Irmandito[/b]
+  Shared set of 5 spaceships – thanks Irmandito!
+
+[b]Special Thanks[/b]
+The open source community, OpenGameArt.org, and the Godot Engine team.
+"
+fit_content = true
+scroll_active = false
+language = "Eng"
+
+[node name="Back" type="TextureButton" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0546296
+anchor_top = 0.00541667
+anchor_right = 0.249074
+anchor_bottom = 0.0929167
+texture_normal = ExtResource("2_ukugg")
+texture_pressed = ExtResource("3_vf16b")
+texture_hover = ExtResource("3_vf16b")
+metadata/_edit_use_anchors_ = true
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 2
+offset_left = -4.0
+offset_top = -7.0
+offset_right = 1076.0
+offset_bottom = 219.0
+text = "Credits"
+label_settings = SubResource("LabelSettings_fu1wj")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

@@ -2,7 +2,7 @@ extends Control
 
 @onready var level_buttons: Node2D = $LevelButtons
 const Start_screen = "res://MainScenes/start_menu.tscn"
-
+const Shop = "res://MainScenes/upgrade_menu.tscn"
 # Called when the node enters the scene tree
 func _ready():
 	# Wait until the scene is fully ready (fixes transition issues)
@@ -13,6 +13,7 @@ func _ready():
 	GameManager.level_star_earned.connect(_on_level_star_earned)
 	# Initialize stars visibility
 	update_stars()
+	get_tree().get_root().connect("go_back_requested",_on_back_pressed)
 
 # Process input for testing
 func _input(event: InputEvent) -> void:
@@ -110,3 +111,6 @@ func _on_level_star_earned():
 
 func _on_back_pressed() -> void:
 	GameManager.change_scene(Start_screen)
+
+func _on_texture_button_pressed() -> void:
+	GameManager.change_scene(Shop)
