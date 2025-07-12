@@ -240,13 +240,13 @@ vertical_alignment = 1
 layout_mode = 2
 texture_normal = ExtResource("8_5c6u1")
 texture_pressed = ExtResource("28_7q3m5")
-texture_hover = ExtResource("28_7q3m5")
+texture_hover = ExtResource("8_5c6u1")
 
 [node name="Exit" type="TextureButton" parent="Panel/VBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("26_y6ojh")
 texture_pressed = ExtResource("28_7q3m5")
-texture_hover = ExtResource("28_7q3m5")
+texture_hover = ExtResource("26_y6ojh")
 
 [node name="Info" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2

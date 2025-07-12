@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://cxwm8ehb6hfyr"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="1_iqexd"]
+[ext_resource type="Texture2D" uid="uid://8mjkbafl5n1n" path="res://Textures/player/Spaceships-13/spaceships/h-03.png" id="2_pektg"]
+
+[node name="Player_Noctisol" instance=ExtResource("1_iqexd")]
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_pektg")
+
+[node name="Thruster" parent="Sprite2D" index="0"]
+position = Vector2(-0.8, 82.4)

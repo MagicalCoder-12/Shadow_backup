@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://c6uejmh8c7koe"]
+[gd_scene load_steps=12 format=3 uid="uid://c6uejmh8c7koe"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/game_over_screen.gd" id="1_g2wiu"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_npbix"]
@@ -7,6 +7,8 @@
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="5_1cwq6"]
 [ext_resource type="Texture2D" uid="uid://crf8s3lmcu0hn" path="res://Textures/UI/Main_Menu/BTNs_Active/Menu_BTN.png" id="5_otq5g"]
 [ext_resource type="Texture2D" uid="uid://bvp1csfyerbbp" path="res://Textures/UI/Main_Menu/BTNs_Active/Replay_BTN.png" id="7_bdmpa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rlusx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_olfcw"]
 font = ExtResource("1_npbix")
@@ -46,6 +48,7 @@ offset_left = 153.0
 offset_top = 545.0
 offset_right = 894.0
 offset_bottom = 1390.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_rlusx")
 
 [node name="Panel" type="Panel" parent="PanelContainer"]
 layout_mode = 2

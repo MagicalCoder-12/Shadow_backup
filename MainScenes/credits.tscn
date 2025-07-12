@@ -67,8 +67,8 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_fonts/normal_font = ExtResource("1_iyifa")
 theme_override_fonts/bold_font = ExtResource("1_iyifa")
-theme_override_font_sizes/normal_font_size = 25
-theme_override_font_sizes/bold_font_size = 35
+theme_override_font_sizes/normal_font_size = 21
+theme_override_font_sizes/bold_font_size = 26
 bbcode_enabled = true
 text = "[center][b]Shadow Avengers[/b][/center]
 [center]Created by Ajith, 2025[/center]
@@ -90,7 +90,7 @@ text = "[center][b]Shadow Avengers[/b][/center]
 https://www.patreon.com/BizmasterStudios
 Spaceships used for players.
 
-• [b]Wubitog[/b] & [b]
+• [b]Wubitog[/b] 
   Test spaceships made with Wubitog's program and Scopio's ship construction kit.
   http://www.astroarmada.com/partart/
   http://opengameart.org/content/space-ship-construction-kit
@@ -106,6 +106,7 @@ The night raider spaceship.
   - Example_ships.zip
   http://opengameart.org/content/part2artcom-with-skorpios-2nd-kit
   License: CC BY-SA 3.0
+
 • [b]Skorpio & Wubitog[/b]
   Boss sprites made from Skorpio's parts with Wubitog's Part2Art app.
   http://arrall.com/part2art/
@@ -119,10 +120,8 @@ Some spaceships he made while learning pixel art
 
 • [b]Irmandito[/b]
   Shared set of 5 spaceships – thanks Irmandito!
-
 [b]Special Thanks[/b]
-The open source community, OpenGameArt.org, and the Godot Engine team.
-"
+The open source community, OpenGameArt.org, and the Godot Engine team."
 fit_content = true
 scroll_active = false
 

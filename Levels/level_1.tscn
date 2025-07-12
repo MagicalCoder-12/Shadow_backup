@@ -1,6 +1,5 @@
-[gd_scene load_steps=24 format=3 uid="uid://ce0cslus5mqjn"]
+[gd_scene load_steps=23 format=3 uid="uid://ce0cslus5mqjn"]
 
-[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="1"]
 [ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="1_jcyqe"]
 [ext_resource type="Script" path="res://Levels/Scripts/LevelManager.gd" id="1_x75k1"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_2hkqn"]
@@ -193,8 +192,5 @@ libraries = {
 }
 
 [node name="WaveManager" parent="." instance=ExtResource("13_nmwl1")]
-
-[node name="Player" parent="." instance=ExtResource("1")]
-position = Vector2(564, 2034)
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

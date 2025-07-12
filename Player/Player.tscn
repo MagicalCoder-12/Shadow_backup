@@ -1,7 +1,7 @@
 [gd_scene load_steps=26 format=3 uid="uid://lff5yob7g21k"]
 
 [ext_resource type="Texture2D" uid="uid://dhvsoxv2myxwo" path="res://Textures/player/Spaceships-13/spaceships/h-02.png" id="1"]
-[ext_resource type="Script" path="res://Player/Player.gd" id="2"]
+[ext_resource type="Script" path="res://Player/Scripts/Player.gd" id="1_4bi7n"]
 [ext_resource type="Texture2D" uid="uid://brp5s8x20vidm" path="res://Textures/odd_thruster/00.png" id="15_croik"]
 [ext_resource type="Texture2D" uid="uid://lgf2dr6ux6q" path="res://Textures/odd_thruster/01.png" id="16_bgaaw"]
 [ext_resource type="Texture2D" uid="uid://cestdic3b0kie" path="res://Textures/odd_thruster/02.png" id="17_gv3fu"]
@@ -78,8 +78,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_tok1r"]
-radius = 48.0
-height = 150.476
+radius = 113.238
+height = 226.476
 
 [sub_resource type="Animation" id="Animation_yixmy"]
 resource_name = "Player_sweep"
@@ -145,7 +145,7 @@ _data = {
 [node name="Player" type="Area2D" groups=["Player"]]
 z_index = 100
 collision_mask = 14
-script = ExtResource("2")
+script = ExtResource("1_4bi7n")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(2.5, 2.5)

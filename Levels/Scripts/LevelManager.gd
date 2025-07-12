@@ -29,7 +29,6 @@ signal Victory_pose()
 # === READY ===
 func _ready():
 	# Add to LevelManager group
-	add_to_group("LevelManager")
 	game_over_screen.hide()
 	pause_menu.hide()
 	level_completed.hide()

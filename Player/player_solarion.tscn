@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://c32fsi3puoluy"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="1_5slnw"]
+[ext_resource type="Texture2D" uid="uid://fxxcedxrt4x0" path="res://Textures/player/Example_ships/ships-03/Spaceships-03-Blue-01.png" id="2_7samy"]
+[ext_resource type="Script" path="res://Player/Scripts/player_solarion.gd" id="2_nvc8o"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4mib1"]
+size = Vector2(366, 252)
+
+[node name="Player_Solarion" instance=ExtResource("1_5slnw")]
+script = ExtResource("2_nvc8o")
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_7samy")
+flip_v = true
+
+[node name="Thruster" parent="Sprite2D" index="0"]
+position = Vector2(-0.8, 87.2)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(-3, -6)
+shape = SubResource("RectangleShape2D_4mib1")

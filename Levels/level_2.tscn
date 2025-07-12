@@ -89,6 +89,3 @@ waves = Array[ExtResource("2_5unja")]([SubResource("Resource_hv0l0"), SubResourc
 
 [node name="WaveManager" parent="." index="6"]
 current_level = 2
-
-[node name="Player" parent="." index="7"]
-position = Vector2(1294, 1458)
