@@ -1,7 +1,7 @@
 extends Node2D
 
-const TARGET_SCENE = "res://Map/map.tscn"
-
+const MAP = "res://Map/map.tscn"
+const Credits = "res://MainScenes/credits.tscn"
 @onready var exit_panel: PanelContainer = $ExitUI/Exit_panel
 
 func _ready() -> void:
@@ -10,7 +10,7 @@ func _ready() -> void:
 	get_tree().get_root().connect("go_back_requested",_on_exit_pressed)
 	
 func _on_start_button_pressed() -> void:
-	GameManager.change_scene(TARGET_SCENE)
+	GameManager.change_scene(MAP)
 
 func _on_exit_pressed() -> void:
 	exit_panel.visible = true
@@ -27,3 +27,7 @@ func _hide_exit_ui() -> void:
 
 func _on_ok_pressed() -> void:
 	get_tree().quit()
+
+
+func _on_info_pressed() -> void:
+	GameManager.change_scene(Credits)

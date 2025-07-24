@@ -96,9 +96,12 @@ entry_speed = 300.0
 
 [node name="Level_3" instance=ExtResource("1_cb8d3")]
 
-[node name="LevelManager" parent="." index="5"]
+[node name="LevelManager" parent="." index="4"]
 level_num = 3
 waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_hqkxu"), SubResource("Resource_ust6x"), SubResource("Resource_xlq1s"), SubResource("Resource_2p8tm"), SubResource("Resource_rqhq5"), SubResource("Resource_q6lrt"), SubResource("Resource_cg2d5")])
 
-[node name="WaveManager" parent="." index="7"]
+[node name="WaveManager" parent="." index="6"]
 current_level = 3
+
+[node name="Player" parent="." index="7"]
+position = Vector2(541, 2013)

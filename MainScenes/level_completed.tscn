@@ -1,19 +1,19 @@
-[gd_scene load_steps=9 format=3 uid="uid://b2dr1w4bni0qf"]
+[gd_scene load_steps=13 format=3 uid="uid://b2dr1w4bni0qf"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
-[ext_resource type="Texture2D" uid="uid://cmbx6gdhguiy8" path="res://Textures/UI/Back .png" id="3_3ol6k"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_vwgn2"]
-[ext_resource type="Texture2D" uid="uid://qhy82kglvurv" path="res://Textures/UI/Next.png" id="4_3ol6k"]
+[ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="4_etx2i"]
+[ext_resource type="Texture2D" uid="uid://crf8s3lmcu0hn" path="res://Textures/UI/Main_Menu/BTNs_Active/Menu_BTN.png" id="5_a4r2w"]
+[ext_resource type="Texture2D" uid="uid://cplo7hlkir3ii" path="res://Textures/UI/Main_Menu/BTNs/Replay_BTN.png" id="5_jnrss"]
+[ext_resource type="Texture2D" uid="uid://dnpcvc0hqf6d0" path="res://Textures/UI/Main_Menu/BTNs/Forward_BTN.png" id="6_hha4d"]
+[ext_resource type="Texture2D" uid="uid://bvp1csfyerbbp" path="res://Textures/UI/Main_Menu/BTNs_Active/Replay_BTN.png" id="6_xrh6e"]
+[ext_resource type="Texture2D" uid="uid://cf2u1w86trya3" path="res://Textures/UI/Main_Menu/BTNs_Active/Forward_BTN.png" id="9_4da8t"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_syrab"]
 font = ExtResource("1_vwgn2")
 font_size = 60
-font_color = Color(0.235294, 1, 0, 1)
 outline_size = 10
-outline_color = Color(0, 0, 1, 1)
-shadow_size = 100
-shadow_color = Color(1, 0, 0, 0)
 
 [sub_resource type="LabelSettings" id="LabelSettings_3ol6k"]
 font = ExtResource("3_vwgn2")
@@ -46,10 +46,10 @@ color = Color(0, 0, 0, 0.490196)
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0953704
-anchor_top = 0.219583
-anchor_right = 0.896296
-anchor_bottom = 0.59875
+anchor_left = 0.0861111
+anchor_top = 0.259583
+anchor_right = 0.887037
+anchor_bottom = 0.63875
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
@@ -57,56 +57,62 @@ metadata/_edit_use_anchors_ = true
 [node name="LevelCompleted" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 31.0
-offset_top = 25.0008
-offset_right = 886.0
-offset_bottom = 105.001
+offset_top = 25.0
+offset_right = 841.0
+offset_bottom = 105.0
 text = "Level Completed"
 label_settings = SubResource("LabelSettings_syrab")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HighScore" type="Label" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 0
-offset_left = 90.0
-offset_top = 285.0
-offset_right = 805.0
-offset_bottom = 448.0
+anchor_left = 0.107514
+anchor_top = 0.332967
+anchor_right = 0.934104
+anchor_bottom = 0.563736
+offset_bottom = -46.0
+theme_override_constants/separation = 50
+metadata/_edit_use_anchors_ = true
+
+[node name="HighScore" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
 text = "Hi-Score: 0000
 "
 label_settings = SubResource("LabelSettings_3ol6k")
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="Score" type="Label" parent="Panel"]
-layout_mode = 0
-offset_left = 108.0
-offset_top = 406.0
-offset_right = 758.0
-offset_bottom = 523.0
+[node name="Score" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
 text = "Score: 0000"
 label_settings = SubResource("LabelSettings_mjsg3")
-horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="Next" type="Button" parent="Panel"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel"]
 layout_mode = 0
-offset_left = 464.0
-offset_top = 502.0
-offset_right = 1496.0
-offset_bottom = 1534.0
-scale = Vector2(0.4, 0.4)
-icon = ExtResource("4_3ol6k")
-flat = true
+anchor_left = 0.0867052
+anchor_top = 0.668131
+anchor_right = 0.930636
+anchor_bottom = 0.8989
+theme_override_constants/separation = 50
+metadata/_edit_use_anchors_ = true
 
-[node name="Back" type="Button" parent="Panel"]
-layout_mode = 0
-offset_left = -30.0
-offset_top = 506.0
-offset_right = 1002.0
-offset_bottom = 1538.0
-scale = Vector2(0.4, 0.4)
-icon = ExtResource("3_3ol6k")
-flat = true
+[node name="Map" type="TextureButton" parent="Panel/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("4_etx2i")
+texture_pressed = ExtResource("5_a4r2w")
+texture_hover = ExtResource("5_a4r2w")
 
-[connection signal="pressed" from="Panel/Next" to="." method="_on_next_pressed"]
-[connection signal="pressed" from="Panel/Back" to="." method="_on_back_pressed"]
+[node name="Restart" type="TextureButton" parent="Panel/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("5_jnrss")
+texture_pressed = ExtResource("6_xrh6e")
+texture_hover = ExtResource("6_xrh6e")
+
+[node name="Next" type="TextureButton" parent="Panel/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("6_hha4d")
+texture_pressed = ExtResource("9_4da8t")
+texture_hover = ExtResource("9_4da8t")
+
+[connection signal="pressed" from="Panel/HBoxContainer/Map" to="." method="_on_map_pressed"]
+[connection signal="pressed" from="Panel/HBoxContainer/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="Panel/HBoxContainer/Next" to="." method="_on_next_pressed"]

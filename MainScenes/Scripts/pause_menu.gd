@@ -1,24 +1,22 @@
 extends Control
 
-@onready var restart_button: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/RestartButton
-@onready var back: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/Back
-@onready var resume: Button = $PanelContainer/Panel/VBoxContainer/HBoxContainer/Resume
 @onready var waves: Label = $PanelContainer/Panel/VBoxContainer/Waves
 @onready var total_waves: Label = $PanelContainer/Panel/VBoxContainer/Total_waves
 @onready var level: Label = $PanelContainer/Panel/VBoxContainer/Level
 
 const Map="res://Map/map.tscn"
-
+var current_level
 
 func _ready():
 	# Listen for game state changes
 	GameManager.connect("game_paused", Callable(self, "_on_game_paused"))
 	GameManager.connect("game_over_triggered", Callable(self, "_on_game_over"))
 	GameManager.wave_started.connect(_on_wave_started)
-	var current_level = GameManager.get_current_level()
+	current_level = GameManager.get_current_level()
 	if level:
 		level.text = "Level: %d"%[current_level]
-		
+	get_tree().get_root().connect("go_back_requested",_on_resume_pressed)
+	
 # ✅ Disable pause menu when Game Over happens
 func _on_game_over():
 	hide_pause_menu()  # Hide pause menu when Game Over occurs
@@ -36,18 +34,6 @@ func _on_resume_pressed() -> void:
 	GameManager.is_paused = false
 	hide_pause_menu()
 
-# 🔹 Restart Button Pressed
-func _on_restart_button_pressed() -> void:
-	GameManager.is_paused = false
-	GameManager.reset_game()
-	GameManager.change_scene(Map)
-
-
-# 🔹 Back Button Pressed
-func _on_back_pressed() -> void:
-	GameManager.is_paused = false
-	GameManager.change_scene(Map)
-
 # 🔹 Hide Pause Menu
 func hide_pause_menu():
 	visible = false
@@ -63,3 +49,15 @@ func show_pause_menu():
 func _on_game_paused(_paused: bool):
 	if GameManager.game_over:
 		return  # ❌ Don't allow pause menu if the game is over
+
+
+func _on_map_pressed() -> void:
+	GameManager.is_paused = false
+	GameManager.change_scene(Map)
+
+func _on_restart_pressed() -> void:
+	GameManager.is_paused = false
+	GameManager.reset_game()
+	
+	var current_level_path = "res://Levels/level_%d.tscn" % current_level
+	GameManager.change_scene(current_level_path)

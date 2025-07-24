@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://dgv64lgc6rm83"]
+[gd_scene load_steps=45 format=3 uid="uid://dgv64lgc6rm83"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
 [ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
@@ -27,7 +27,10 @@
 [ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="18_mccjh"]
 [ext_resource type="Texture2D" uid="uid://ctbex77cx303u" path="res://Textures/UI/Main_Menu/Exit_BTN.png" id="26_y6ojh"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="27_uvmca"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="28_5h8pl"]
+[ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="28_7q3m5"]
 [ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Textures/UI/Window.png" id="28_8ki65"]
+[ext_resource type="Texture2D" uid="uid://1gjtssyuvrgq" path="res://Textures/UI/Main_Menu/Table_01.png" id="28_x6b8c"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="29_gmpi2"]
 [ext_resource type="Texture2D" uid="uid://pscex7mn1uda" path="res://Textures/UI/Main_Menu/BTNs/Ok_BTN.png" id="30_a8tdm"]
 [ext_resource type="Texture2D" uid="uid://cj67df272xki8" path="res://Textures/UI/Main_Menu/BTNs_Active/Ok_BTN.png" id="31_d1ama"]
@@ -98,6 +101,15 @@ animations = [{
 [sub_resource type="LabelSettings" id="LabelSettings_w5iua"]
 font = ExtResource("27_uvmca")
 font_size = 70
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xu6k0"]
+texture = ExtResource("28_x6b8c")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kb1xe"]
+texture = ExtResource("28_x6b8c")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m4cmf"]
+texture = ExtResource("28_x6b8c")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xufyx"]
 texture = ExtResource("28_8ki65")
@@ -198,9 +210,9 @@ parameters/looping = true
 
 [node name="Panel" type="Panel" parent="."]
 offset_left = 180.0
-offset_top = 936.0
-offset_right = 923.0
-offset_bottom = 1564.0
+offset_top = 897.0
+offset_right = 968.0
+offset_bottom = 1615.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -209,13 +221,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -210.5
-offset_top = -293.0
-offset_right = 228.5
-offset_bottom = 229.0
+offset_left = -210.0
+offset_top = -329.0
+offset_right = 229.0
+offset_bottom = 289.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 100
+theme_override_constants/separation = 60
 
 [node name="Welcome" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -227,14 +239,29 @@ vertical_alignment = 1
 [node name="Start_button" type="TextureButton" parent="Panel/VBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("8_5c6u1")
+texture_pressed = ExtResource("28_7q3m5")
+texture_hover = ExtResource("8_5c6u1")
 
 [node name="Exit" type="TextureButton" parent="Panel/VBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("26_y6ojh")
+texture_pressed = ExtResource("28_7q3m5")
+texture_hover = ExtResource("26_y6ojh")
+
+[node name="Info" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_fonts/font = ExtResource("28_5h8pl")
+theme_override_font_sizes/font_size = 60
+theme_override_styles/focus = SubResource("StyleBoxTexture_xu6k0")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_kb1xe")
+theme_override_styles/normal = SubResource("StyleBoxTexture_m4cmf")
+text = "INFO"
 
 [node name="ExitUI" type="CanvasLayer" parent="."]
 
 [node name="Exit_panel" type="PanelContainer" parent="ExitUI"]
+visible = false
 anchors_preset = -1
 anchor_left = 0.162037
 anchor_top = 0.384167
@@ -283,5 +310,6 @@ metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="Panel/VBoxContainer/Start_button" to="." method="_on_start_button_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/Exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Info" to="." method="_on_info_pressed"]
 [connection signal="pressed" from="ExitUI/Exit_panel/Panel2/Ok" to="." method="_on_ok_pressed"]
 [connection signal="pressed" from="ExitUI/Exit_panel/Panel2/Close" to="." method="_on_close_pressed"]

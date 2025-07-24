@@ -5,8 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://cx6hwv4qoy04m" path="res://Textures/Lasers/Laser Sprites/05.png" id="3_tq1sd"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2swq5"]
-radius = 9.0
-height = 36.0
+radius = 16.0
+height = 52.0
 
 [node name="SatBullet" type="Area2D"]
 collision_layer = 16
@@ -15,19 +15,21 @@ script = ExtResource("1_r3kuy")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = -1.5708
+scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_tq1sd")
+
+[node name="GlowSprite" type="Sprite2D" parent="."]
+position = Vector2(-1, 1)
+rotation = -1.5708
+texture = ExtResource("3_tq1sd")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-1, 1)
 shape = SubResource("CapsuleShape2D_2swq5")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
-position = Vector2(-1, 1.5)
-scale = Vector2(0.9, 1.55)
-
-[node name="GlowSprite" type="Sprite2D" parent="."]
-rotation = 4.71239
-texture = ExtResource("3_tq1sd")
+position = Vector2(-1, 4)
+scale = Vector2(1.7, 2.2)
 
 [node name="LifetimeTimer" type="Timer" parent="."]
 one_shot = true

@@ -1,14 +1,14 @@
 extends Control
 
 # Onready references
-@onready var score_label: Label = $PanelContainer/Panel/Score
-@onready var high_score_label: Label = $PanelContainer/Panel/HighScore
-@onready var revive_button: Button = $PanelContainer/Panel/Revive
-@onready var message_label: Label = $PanelContainer/Panel/MessageLabel  # Add a Label node in the scene for feedback
+@onready var high_score_label: Label = $PanelContainer/Panel/ScoreContainer/HighScore
+@onready var score_label: Label = $PanelContainer/Panel/ScoreContainer/Score
+@onready var message_label: Label = $PanelContainer/Panel/VBoxContainer/MessageLabel
 
 # Constants
-const START_SCREEN_SCENE: String = "res://Scenes/Music/StartScreen.tscn"
 const MAP_SCENE: String = "res://Map/map.tscn"
+@onready var revive_button: Button = $PanelContainer/Panel/HBoxContainer/Revive
+var current_level 
 
 # Signals
 signal player_revived
@@ -22,26 +22,20 @@ func _ready() -> void:
 	GameManager.connect("ad_reward_granted", Callable(self, "_on_ad_reward_granted"))
 	GameManager.connect("ad_failed_to_load", Callable(self, "_on_ad_failed"))
 	GameManager.connect("revive_completed", Callable(self, "_on_revive_completed"))
-	
+	current_level = GameManager.get_current_level()
 	set_process_input(true)
 	revive_button.disabled = false
 	_on_score_updated(GameManager.score)
 	_on_high_score_updated(GameManager.high_score)
 	message_label.visible = false
 	print("GameOverScreen powered up, signals locked in like a starship! 🌟")
-
+	get_tree().get_root().connect("go_back_requested",_on_map_pressed)
+	
 func _on_score_updated(value: int) -> void:
 	score_label.text = "Score: %d" % value
 
 func _on_high_score_updated(value: int) -> void:
 	high_score_label.text = "High-Score: %d" % value
-
-func _on_restart_button_pressed() -> void:
-	GameManager.change_scene(MAP_SCENE)
-
-
-func _on_back_pressed() -> void:
-	GameManager.change_scene(START_SCREEN_SCENE)
 
 func _on_game_over_triggered() -> void:
 	revive_button.disabled = false
@@ -98,3 +92,15 @@ func _input(event: InputEvent) -> void:
 		revive_button.disabled = true
 		emit_signal("ad_revive_requested")
 		print("R key pressed for debug revive! Requesting ad like a mad scientist! 🧪")
+
+
+func _on_map_pressed() -> void:
+	GameManager.change_scene(MAP_SCENE)
+
+
+func _on_restart_pressed() -> void:
+	GameManager.is_paused = false
+	GameManager.reset_game()
+	
+	var current_level_path = "res://Levels/level_%d.tscn" % current_level
+	GameManager.change_scene(current_level_path)

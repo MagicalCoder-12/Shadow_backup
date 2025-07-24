@@ -1,6 +1,5 @@
-[gd_scene load_steps=24 format=3 uid="uid://ce0cslus5mqjn"]
+[gd_scene load_steps=23 format=3 uid="uid://ce0cslus5mqjn"]
 
-[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="1"]
 [ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="1_jcyqe"]
 [ext_resource type="Script" path="res://Levels/Scripts/LevelManager.gd" id="1_x75k1"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_2hkqn"]
@@ -147,7 +146,6 @@ flip_h = true
 region_rect = Rect2(1.95564, -32.485, 1275.34, 770.342)
 
 [node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("8_uq0sc")]
-visible = false
 
 [node name="Pause" type="Button" parent="CanvasLayer" groups=["UI"]]
 process_mode = 3
@@ -165,13 +163,8 @@ icon_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("7_c1kre")]
-visible = false
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("13_23710")]
-visible = false
-
-[node name="Player" parent="." instance=ExtResource("1")]
-position = Vector2(539, 2142)
 
 [node name="Cam" type="Camera2D" parent="."]
 anchor_mode = 0

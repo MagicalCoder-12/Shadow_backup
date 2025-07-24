@@ -21,7 +21,6 @@ func _setup_bullet() -> void:
 
 	if glow_sprite:
 		glow_sprite.modulate = Color(0, 1, 1, 0.8) # Cyan glow
-		glow_sprite.scale = Vector2(0.5, 0.5)
 		glow_sprite.visible = true
 
 	visible = true

@@ -29,8 +29,6 @@ signal Victory_pose()
 # === READY ===
 func _ready():
 	# Add to LevelManager group
-	add_to_group("LevelManager")
-	
 	game_over_screen.hide()
 	pause_menu.hide()
 	level_completed.hide()
@@ -60,7 +58,7 @@ func _ready():
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 	wave_manager.wave_started.connect(hud._on_wave_started)
 	wave_manager.all_waves_cleared.connect(_on_wave_manager_all_waves_cleared)
-
+	get_tree().get_root().connect("go_back_requested",_on_pause_pressed)
 	# Initialize waves
 	_initialize_waves()
 
@@ -144,9 +142,6 @@ func _initialize_waves() -> void:
 func _input(event):
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
-			KEY_ESCAPE, KEY_BACK:
-				if not game_over and not has_completed_level:
-					_toggle_pause_menu()
 			KEY_R:
 				if game_over and not has_completed_level:
 					GameManager.is_revive_pending = true
@@ -178,7 +173,6 @@ func _hide_pause_menu():
 
 func _on_pause_pressed():
 	_toggle_pause_menu()
-	print("pause")
 
 func _on_game_paused(paused: bool):
 	if game_over or has_completed_level:
