@@ -6,6 +6,7 @@
 
 [node name="mob4" instance=ExtResource("1_rjmn7")]
 script = ExtResource("2_2j5if")
+movement_pattern = 1
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("3_wkgsk")

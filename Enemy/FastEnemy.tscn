@@ -21,8 +21,7 @@ shadow_rapid_fire_chance = 0.25
 score = 150
 vertical_speed = 600.0
 max_health = 250
-behavior_pattern = 5
-movement_behavior = 1
+movement_pattern = 3
 
 [node name="Sprite2D" parent="." index="0"]
 position = Vector2(2, -4.76837e-07)

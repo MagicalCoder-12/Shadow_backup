@@ -137,11 +137,8 @@ animations = [{
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_bjyvl")
+debug_mode = true
 shadow_texture = ExtResource("2_7jp3o")
-behavior_pattern = 7
-movement_behavior = 6
-adaptive_difficulty = true
-enable_behavior_evolution = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_epr5s")

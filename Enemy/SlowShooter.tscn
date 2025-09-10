@@ -5,8 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://txu0h8ko1k7a" path="res://Textures/Enemy/Enemy_4_D_Medium_NoLight.png" id="3_7mxvi"]
 [ext_resource type="Texture2D" uid="uid://xb66xeunibxm" path="res://Textures/Enemy/Enemy_4_B_Medium_NoLight.png" id="4_amna7"]
 
-[sub_resource type="RectangleShape2D" id="1"]
-size = Vector2(140, 147)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_821pr"]
+size = Vector2(178, 212)
 
 [node name="SlowShooter" instance=ExtResource("1_v2ypl")]
 script = ExtResource("2_m4v04")
@@ -30,14 +30,14 @@ max_health = 400
 speed = 250.0
 fire_rate = 3.0
 shadow_texture = ExtResource("3_7mxvi")
-movement_behavior = 5
+movement_pattern = 1
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("4_amna7")
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(1, 2.5)
-shape = SubResource("1")
+position = Vector2(1, 11)
+shape = SubResource("RectangleShape2D_821pr")
 
 [node name="VisibleOnScreenNotifier2D" parent="." index="2"]
 position = Vector2(4.5, 6.00001)

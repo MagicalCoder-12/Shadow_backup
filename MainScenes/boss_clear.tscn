@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b8xr1w9bni0qf"]
+[gd_scene load_steps=18 format=3 uid="uid://b8xr1xabni0qf"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/boss_clear.gd" id="1_boss_clear"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="2_future_font"]
