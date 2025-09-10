@@ -1,0 +1,41 @@
+[gd_scene load_steps=8 format=3 uid="uid://dsy2feyx5l6m6"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_jvelg"]
+[ext_resource type="Script" path="res://Ships/Scripts/Ship3.gd" id="2_dqtih"]
+[ext_resource type="Texture2D" uid="uid://ci54qil2xa4ko" path="res://Textures/player/Example_ships/Spaceships-12/Spaceships-03-Purple-03.png" id="3_8lbgn"]
+[ext_resource type="Texture2D" uid="uid://c3ogkrsa2jvnk" path="res://Textures/player/ship_textures/ship_03_lvl0.png" id="3_pvn5r"]
+[ext_resource type="Texture2D" uid="uid://ccl5my2qqu1ab" path="res://Textures/player/ship_textures/ship_03_lvl1.png" id="4_0vkc4"]
+[ext_resource type="Texture2D" uid="uid://cqdd05mkuc4dw" path="res://Textures/player/ship_textures/ship_03_lvl2.png" id="5_2p0rf"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_bargi"]
+load_path = "res://.godot/imported/ship_03_lvl0.png-4c564a724fd7af508b2502d2657b8056.ctex"
+
+[node name="astrablade" instance=ExtResource("1_jvelg")]
+script = ExtResource("2_dqtih")
+wave_pattern_count = 2
+shots_per_wave = 2
+wave_spread_angle = 30.0
+wave_fire_delay = 0.15
+pattern_cooldown = 0.6
+base_texture_scale = Vector2(1, 1)
+evolution_texture_scales = Array[Vector2]([])
+default_evolution_scale = Vector2(1, 1)
+ship_id = "Ship3"
+shadow_texture = ExtResource("3_8lbgn")
+evolution_textures = Array[Texture2D]([ExtResource("3_pvn5r"), ExtResource("4_0vkc4"), ExtResource("5_2p0rf")])
+
+[node name="Sprite2D" parent="." index="0"]
+texture = SubResource("CompressedTexture2D_bargi")
+flip_v = true
+
+[node name="Thruster" parent="Sprite2D" index="0"]
+position = Vector2(-0.8, 87.2)
+
+[node name="LeftGun" parent="Sprite2D/FiringPositions" index="0"]
+position = Vector2(-41.76, -16.8)
+
+[node name="RightGun" parent="Sprite2D/FiringPositions" index="1"]
+position = Vector2(39.36, -14.88)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0, 16)

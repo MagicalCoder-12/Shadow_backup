@@ -22,6 +22,7 @@ bg_color = Color(0.0705882, 0.945098, 0.360784, 1)
 border_width_left = 20
 
 [node name="ShadowModeTutorial" type="Control"]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

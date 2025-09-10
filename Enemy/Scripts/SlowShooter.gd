@@ -25,7 +25,6 @@ var charge_shot_timer: float = 0.0
 var is_defensive_mode: bool = false
 var defensive_mode_timer: float = 0.0
 var original_fire_rate: float
-var player_reference: Player = null
 var last_player_position: Vector2
 var player_check_timer: float = 0.0  # Timer to periodically check player reference
 
@@ -284,9 +283,9 @@ func _fire_charge_shot():
 	for child in firing_positions.get_children():
 		var bullet
 		if is_shadow_enemy:
-			bullet = ShadowEBullet.instantiate()
+			bullet = SHADOW_EBULLET.instantiate()
 		else:
-			bullet = EBullet.instantiate()
+			bullet = EBULLET.instantiate()
 		
 		bullet.global_position = child.global_position
 		
@@ -346,9 +345,9 @@ func fire(target_pos: Vector2 = Vector2.ZERO):
 	for child in firing_positions.get_children():
 		var bullet
 		if is_shadow_enemy:
-			bullet = ShadowEBullet.instantiate()
+			bullet = SHADOW_EBULLET.instantiate()
 		else:
-			bullet = EBullet.instantiate()
+			bullet = EBULLET.instantiate()
 		
 		bullet.global_position = child.global_position
 		

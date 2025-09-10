@@ -9,12 +9,12 @@ func spawn_bullet(
 	damage: int = GameManager.DEFAULT_BULLET_DAMAGE
 ) -> Node:
 	if not bullet_scene or not bullet_scene.can_instantiate():
-		print("Invalid bullet scene passed to BulletFactory.spawn_bullet")
+		push_warning("Invalid bullet scene passed to BulletFactory.spawn_bullet")
 		return null
 
 	var bullet: Node = bullet_scene.instantiate()
 	if not bullet is BulletBase:
-		print("Bullet scene does not inherit from BulletBase")
+		push_warning("Bullet scene does not inherit from BulletBase")
 		bullet.queue_free()
 		return null
 

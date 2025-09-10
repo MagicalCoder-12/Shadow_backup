@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3 uid="uid://dtm0xakdd7x6u"]
+
+[ext_resource type="Script" path="res://Bosses/Scripts/energy_ball.gd" id="1_energyball"]
+[ext_resource type="Texture2D" uid="uid://bum6q05vry01v" path="res://Textures/Boss/06/Arcane_Effect_7.png" id="2_arcane"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_energyball"]
+radius = 71.8679
+
+[node name="EnergyBall" type="Area2D"]
+collision_layer = 128
+script = ExtResource("1_energyball")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.5, 0.5, 1, 1)
+scale = Vector2(2, 2)
+texture = ExtResource("2_arcane")
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+amount = 50
+lifetime = 0.5
+explosiveness = 1.0
+texture = ExtResource("2_arcane")
+emission_shape = 1
+emission_sphere_radius = 20.0
+spread = 360.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 30.0
+scale_amount_min = 0.5
+scale_amount_max = 1.5
+color = Color(0.5, 0.5, 1, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_energyball")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+position = Vector2(-3.50002, -3)
+scale = Vector2(7.55, 6.8)
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

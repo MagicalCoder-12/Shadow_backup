@@ -1,57 +1,66 @@
-extends Node
+extends Node2D
 
-### 🔁 SIGNALS ###
+# Revive state tracking
+var is_revive_pending: bool = false
+# 🔁 SIGNALS
+@warning_ignore("unused_signal")
+signal ad_reward_granted(ad_type: String)
+signal currency_updated(currency_type: String, new_amount: int)
 signal on_player_life_changed(life: int)
 signal score_updated(new_score: int)
-signal high_score_updated(new_high_score: int)
+@warning_ignore("unused_signal")
 signal game_over_triggered()
 signal game_paused(paused: bool)
+@warning_ignore("unused_signal")
 signal scene_change_started()
+@warning_ignore("unused_signal")
 signal level_unlocked(new_level: int)
+@warning_ignore("unused_signal")
 signal wave_started(current_wave: int, total_waves: int)
+@warning_ignore("unused_signal")
 signal all_waves_cleared()
+@warning_ignore("unused_signal")
 signal level_completed(level_num: int)
+@warning_ignore("unused_signal")
 signal shadow_mode_activated
 signal shadow_mode_deactivated
+@warning_ignore("unused_signal")
 signal level_star_earned(level_num: int)
-signal ad_reward_granted(ad_type: String)
+@warning_ignore("unused_signal")
 signal ad_failed_to_load(ad_type: String, error_code: Variant)
+@warning_ignore("unused_signal")
 signal revive_completed(success: bool)
+@warning_ignore("unused_signal")
+signal ship_stats_updated(ship_id: String, new_damage: int)
+@warning_ignore("unused_signal")
+signal enemy_killed(enemy: Node)
 
-### 🔒 CONSTANTS ###
-const HIGH_SCORE_FILE_PATH: String = "user://high_score.dat"
-const PROGRESS_FILE_PATH: String = "user://game_progress.dat"
-const LOADER_SCENE: PackedScene = preload("res://Autoloads/screen_loader.tscn")
-const MAP_SCENE: String = "res://Map/map.tscn"
-const SHADOW_MODE_TUTORIAL_SCENE: PackedScene = preload("res://MainScenes/ShadowModeTutorial.tscn")
-const SAVE_VERSION: int = 1
+# 🔒 CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"
 const GROUP_BOSS: String = "Boss"
-const DEFAULT_BULLET_SPEED: float = 3000.0
-const DEFAULT_BULLET_DAMAGE: int = 20
-const MAX_ATTACK_LEVEL: int = 4
 const SUPER_MODE_SPAWN_COUNT: int = 25
-const VIDEO_SCENE: String = "res://UI/VideoPlayback.tscn"
-const START_SCREEN_SCENE: String = "res://MainScenes/start_menu.tscn"
-const UPGRADE_MENU: String = "res://MainScenes/upgrade_menu.tscn"
-const BACKGROUND_MUSIC: AudioStream = preload("res://Textures/Music/Start.ogg")
+const SAVE_VERSION: int = 3
 
-### 🧠 SETTINGS ###
-var autosave_high_score: bool = true
-var autosave_progress: bool = true
-var shadow_mode_unlocked: bool = false
-var shadow_mode_enabled: bool = false
-var shadow_mode_tutorial_shown: bool = false
-var player_spawn_position: Vector2 = Vector2.ZERO
-var is_level_just_completed: bool = false
-var is_video_playing: bool = false
-var is_game_over_screen_active: bool = false
-var is_revive_pending: bool = false
-var selected_ad_type: String = ""
-var is_initialized: bool = false
-var selected_ship_id: String = "noctisol" # Default ship
+# Ascension thresholds for ships (mirroring upgrade_settings.json)
+const ASCENSION_THRESHOLDS: Dictionary = {
+	"Ship1": [4, 8],
+	"Ship2": [4, 8],
+	"Ship3": [4, 8],
+	"Ship4": [4, 8, 12, 16],
+	"Ship5": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
+	"Ship6": [4, 8, 12, 16, 20, 24, 28, 32],
+	"Ship7": [4, 8, 12, 16, 20, 24],
+	"Ship8": [4, 8, 12, 16, 20, 24]
+}
 
-### 🔗 PERSISTENT GAME STATE ###
+# 🧠 MANAGERS - Now using autoload references
+var save_manager: SaveManager
+var ad_manager: AdManager
+var scene_manager: SceneManager
+var player_manager: PlayerManager
+var level_manager: LevelManager
+
+# 🔒 PERSISTENT GAME STATE
 var _score: int = 0
 var score: int:
 	get: return _score
@@ -59,27 +68,16 @@ var score: int:
 		if value != _score:
 			_score = value
 			score_updated.emit(_score)
-			if _score > high_score:
-				high_score = _score
-
-var _high_score: int = 0
-var high_score: int:
-	get: return _high_score
-	set(value):
-		if value != _high_score:
-			_high_score = value
-			high_score_updated.emit(_high_score)
-			if autosave_high_score:
-				save_high_score()
+			# Removed saving per-level score as it's not needed
 
 var _player_lives: int = 3
 var player_lives: int:
 	get: return _player_lives
 	set(value):
 		_player_lives = max(0, value)
-		print("Player lives set to: %d (caller: %s)" % [_player_lives, get_stack()[1]["function"]])
 		on_player_life_changed.emit(_player_lives)
-		if _player_lives == 0 and not is_level_just_completed:
+		# Removed saving per-level lives as it's not needed
+		if _player_lives == 0 and not level_manager.is_level_just_completed:
 			trigger_game_over()
 
 var is_paused: bool = false:
@@ -93,178 +91,64 @@ var is_paused: bool = false:
 var game_over: bool = false
 var game_ended: bool = false
 var game_won: bool = false
-var unlocked_levels: int = 1:
+
+# SHIP AND CURRENCY DATA
+var ships: Array = []
+var _crystal_count: int = 0
+var crystal_count: int:
+	get: return _crystal_count
 	set(value):
-		if value > unlocked_levels:
-			unlocked_levels = value
-			if autosave_progress:
-				save_progress()
-			level_unlocked.emit(value)
-
-var completed_levels: Array = []:
+		_crystal_count = max(0, value)
+		currency_updated.emit("crystals", _crystal_count)
+var _coin_count: int = 0
+var coin_count: int:
+	get: return _coin_count
 	set(value):
-		completed_levels = value
-		if autosave_progress:
-			save_progress()
+		_coin_count = max(0, value)
+		currency_updated.emit("coins", _coin_count)
+var _void_shards_count: int = 0
+var void_shards_count: int:
+	get: return _void_shards_count
+	set(value):
+		_void_shards_count = max(0, value)
+		currency_updated.emit("void_shards", _void_shards_count)
 
-### 🕒 SHADOW MODE TIMER ###
-@onready var shadow_mode_timer: Timer = $ShadowModeTimer
-@onready var admob: Admob = $Admob
+# UPGRADE MENU REFERENCE
+var upgrade_menu_ref: Node = null
 
-### 📱 ADMOB REVIVE STATE ###
-var revive_type: String = "none"
-var is_ad_showing: bool = false
-var ad_retry_count: int = 0
-var max_ad_retries: int = 3
-
-### 📊 PLAYER STATS ###
-var player_stats: Dictionary = {
-	"attack_level": 0,
-	"bullet_damage": DEFAULT_BULLET_DAMAGE,
-	"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
-	"is_shadow_mode_active": false
-}
-
-### 💸 UPGRADE COSTS ###
-var upgrade_costs: Dictionary = {
-	"damage": [100, 200, 400, 800],
-	"health": [150, 300, 600, 1200],
-	"speed": [50, 100, 200, 400]
-}
-
-func set_spawn_position() -> void:
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	player_spawn_position = Vector2(viewport_size.x / 2, viewport_size.y)
+var shadow_mode_timer: Timer = Timer.new()
 
 func _ready() -> void:
-	load_high_score()
-	load_progress()
+	# Reference autoload managers instead of instantiating them
+	save_manager = SaveManager
+	ad_manager = AdManager
+	scene_manager = SceneManager
+	player_manager = PlayerManager
+	level_manager = LevelManager
+
+	# Wait for autoloads to initialize
+	await get_tree().process_frame
+	
+	# Initialize other components
+	player_manager.initialize()
+	scene_manager.initialize()
+	ad_manager.initialize()
+
+	add_child(shadow_mode_timer)
+	shadow_mode_timer.timeout.connect(_on_shadow_mode_timer_timeout)
+
 	get_tree().node_added.connect(_on_node_added)
-	AudioManager.play_background_music(BACKGROUND_MUSIC, false)
-	if not shadow_mode_timer:
-		push_error("ShadowModeTimer node not found in GameManager.")
-	else:
-		shadow_mode_timer.one_shot = true
-		if not shadow_mode_timer.timeout.is_connected(_on_shadow_mode_timer_timeout):
-			shadow_mode_timer.timeout.connect(_on_shadow_mode_timer_timeout)
-	set_spawn_position()
-	if admob:
-		admob.initialize()
 
-func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool) -> void:
-	player_stats["attack_level"] = attack_level
-	player_stats["bullet_damage"] = bullet_damage
-	player_stats["base_bullet_damage"] = base_bullet_damage
-	player_stats["is_shadow_mode_active"] = is_shadow_mode_active
-	print("Saved player stats for current level: %s" % player_stats)
+# Connect revive_completed signal to resume game after ad
+	if not revive_completed.is_connected(_on_revive_completed):
+		revive_completed.connect(_on_revive_completed)
 
-func restore_player_stats(player: Node) -> void:
-	if not player or not player.has_method("set_stats"):
-		push_error("Cannot restore stats: Invalid player node")
-		return
-	player.set_stats(
-		player_stats["attack_level"],
-		player_stats["bullet_damage"],
-		player_stats["base_bullet_damage"],
-		player_stats["is_shadow_mode_active"]
-	)
-	print("Restored player stats for current level: %s" % player_stats)
-
-func save_high_score() -> void:
-	var file: FileAccess = FileAccess.open(HIGH_SCORE_FILE_PATH, FileAccess.WRITE)
-	if file:
-		file.store_var(high_score)
-		file.close()
-	else:
-		push_error("Failed to save high score: Unable to open file at %s" % HIGH_SCORE_FILE_PATH)
-
-func load_high_score() -> void:
-	if FileAccess.file_exists(HIGH_SCORE_FILE_PATH):
-		var file: FileAccess = FileAccess.open(HIGH_SCORE_FILE_PATH, FileAccess.READ)
-		if file:
-			high_score = file.get_var()
-			file.close()
-		else:
-			push_error("Failed to load high score: Unable to open file at %s" % HIGH_SCORE_FILE_PATH)
-
-func save_progress() -> void:
-	var file: FileAccess = FileAccess.open(PROGRESS_FILE_PATH, FileAccess.WRITE)
-	if file:
-		file.store_var(SAVE_VERSION)
-		file.store_var(unlocked_levels)
-		file.store_var(shadow_mode_unlocked)
-		file.store_var(shadow_mode_tutorial_shown)
-		file.store_var(completed_levels)
-		file.store_var(player_lives)
-		file.store_var(selected_ship_id) # Save selected ship
-		file.close()
-	else:
-		push_error("Failed to save progress: Unable to open file at %s" % PROGRESS_FILE_PATH)
-
-func load_progress() -> void:
-	if FileAccess.file_exists(PROGRESS_FILE_PATH):
-		var file: FileAccess = FileAccess.open(PROGRESS_FILE_PATH, FileAccess.READ)
-		if file:
-			var version: int = file.get_var()
-			if version != SAVE_VERSION:
-				push_error("Save file version mismatch. Resetting to defaults.")
-				reset_progress()
-				file.close()
-				return
-			if !file.eof_reached():
-				unlocked_levels = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'unlocked_levels'.")
-				unlocked_levels = 1
-			if !file.eof_reached():
-				shadow_mode_unlocked = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'shadow_mode_unlocked'.")
-				shadow_mode_unlocked = false
-			if !file.eof_reached():
-				shadow_mode_tutorial_shown = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'shadow_mode_tutorial_shown'.")
-				shadow_mode_tutorial_shown = false
-			if !file.eof_reached():
-				completed_levels = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'completed_levels'.")
-				completed_levels = []
-			if !file.eof_reached():
-				player_lives = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'player_lives'.")
-				player_lives = 3
-			if !file.eof_reached():
-				selected_ship_id = file.get_var()
-			else:
-				push_error("Save file corrupted: Missing 'selected_ship_id'.")
-				selected_ship_id = "noctisol"
-			file.close()
-			if unlocked_levels >= 6 and not shadow_mode_unlocked:
-				shadow_mode_unlocked = true
-				save_progress()
-		else:
-			push_error("Failed to load progress: Unable to open file at %s" % PROGRESS_FILE_PATH)
-	else:
-		reset_progress()
-
-func reset_progress() -> void:
-	player_lives = 3
-	player_stats = {
-		"attack_level": 0,
-		"bullet_damage": DEFAULT_BULLET_DAMAGE,
-		"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
-		"is_shadow_mode_active": false
-	}
-	unlocked_levels = 1
-	shadow_mode_unlocked = false
-	shadow_mode_tutorial_shown = false
-	completed_levels = []
-	selected_ship_id = "noctisol"
-	if autosave_progress:
-		save_progress()
+func trigger_game_over() -> void:
+	AudioManager.mute_bus("Bullet", true)
+	AudioManager.mute_bus("Explosion", true)
+	if ad_manager.is_initialized:
+		ad_manager.show_banner_ad()
+	game_over_triggered.emit()
 
 func reset_game() -> void:
 	score = 0
@@ -273,616 +157,160 @@ func reset_game() -> void:
 	game_over = false
 	game_ended = false
 	game_won = false
-	set_spawn_position()
-	shadow_mode_enabled = false
-	shadow_mode_timer.stop()
-	is_level_just_completed = false
-	is_video_playing = false
-	is_game_over_screen_active = false
-	is_revive_pending = false
-	selected_ad_type = ""
-	is_ad_showing = false
-	ad_retry_count = 0
-	revive_type = "none"
-	player_stats = {
-		"attack_level": 0,
-		"bullet_damage": DEFAULT_BULLET_DAMAGE,
-		"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
-		"is_shadow_mode_active": false
-	}
-	AudioManager.play_background_music(BACKGROUND_MUSIC, true)
-	AudioManager.mute_bus("Bullet", false)
-	AudioManager.mute_bus("Explosion", false)
-
-func trigger_game_over() -> void:
-	if game_over or is_level_just_completed:
-		return
-	game_over = true
-	is_paused = false
-	get_tree().paused = false
-	shadow_mode_enabled = false
-	shadow_mode_timer.stop()
-	shadow_mode_deactivated.emit()
-	is_video_playing = false
-	is_game_over_screen_active = true
-	AudioManager.mute_bus("Bullet", true)
-	AudioManager.mute_bus("Explosion", true)
-	if admob and is_initialized:
-		admob.show_banner_ad()
-	game_over_triggered.emit()
-
-func revive_player(lives: int = 2) -> void:
-	if not is_revive_pending:
-		print("Revive attempted but no revive pending")
-		revive_completed.emit(false)
-		return
-
-	print("Reviving player with %d lives (type: %s)" % [lives, revive_type])
+	coins_collected_this_level = 0
+	crystals_collected_this_level = 0
 	
-	game_over = false
-	is_paused = false
+	# Reset all audio state to prevent BGM overlap
+	AudioManager.reset_audio_state()
+	
+	# Reset state managers
+	level_manager.reset_level_state()
+	player_manager.reset_player_stats()
+	player_manager.set_spawn_position()
+	ad_manager.reset_ad_state()
+	
+	# Ensure game tree is unpaused
 	get_tree().paused = false
 	
-	player_lives = lives
-	on_player_life_changed.emit(player_lives)
+	print("[GameManager] Game state fully reset for restart")
+
+# Reset score and lives for each level (per-level progression)
+func reset_for_new_level() -> void:
+	#var current_level = get_current_level()
+	# Always reset score to 0 and lives to 3 for each level
+	_score = 0
+	_player_lives = 3
 	
-	set_spawn_position()
-	
-	if autosave_progress:
-		save_progress()
-	
-	AudioManager.mute_bus("Bullet", false)
-	AudioManager.mute_bus("Explosion", false)
-
-	var current_scene = get_tree().current_scene
-	var player_found = false
-
-	if current_scene:
-		_hide_game_over_screen(current_scene)
-
-		# Try to revive an existing player
-		for player in get_tree().get_nodes_in_group("Player"):
-			if player.ship_id == selected_ship_id:
-				player.revive(player_lives)
-				print("Revived player with ship_id: %s" % selected_ship_id)
-				player_found = true
-				break
-
-		# If no player found, spawn a new one
-		if not player_found:
-			var player_scene_path = "res://Ships/Player_%s.tscn" % selected_ship_id.capitalize()
-			if ResourceLoader.exists(player_scene_path):
-				var player_scene = load(player_scene_path)
-				var player_instance = player_scene.instantiate()
-				player_instance.global_position = player_spawn_position
-				current_scene.call_deferred("add_child", player_instance)
-				player_instance.call_deferred("revive", player_lives)
-				print("Spawned new player with ship_id: %s" % selected_ship_id)
-			else:
-				push_error("Player scene not found: %s" % player_scene_path)
-				revive_completed.emit(false)
-				return
-
-	is_game_over_screen_active = false
-
-	if admob and is_initialized:
-		admob.hide_banner_ad()
-
-	is_revive_pending = false
-	is_ad_showing = false
-	ad_retry_count = 0
-	selected_ad_type = ""
-	revive_type = "none"
-
-	print("Player revived successfully, game_over set to: %s" % game_over)
-	revive_completed.emit(true)
-
-func _hide_game_over_screen(current_scene: Node) -> void:
-	var found = false
-	for child in current_scene.get_children():
-		if child.name == "GameOverScreen":
-			child.visible = false
-			print("Hid GameOverScreen")
-			found = true
-			break
-	if not found:
-		for child in current_scene.get_children():
-			if child is CanvasLayer:
-				for subchild in child.get_children():
-					if subchild.name == "GameOverScreen":
-						subchild.visible = false
-						print("Hid GameOverScreen from CanvasLayer")
-						found = true
-						break
-				if found:
-					break
-	if not found:
-		push_warning("GameOverScreen not found in current scene")
-
-func unlock_shadow_mode() -> void:
-	if not shadow_mode_unlocked:
-		shadow_mode_unlocked = true
-		if autosave_progress:
-			save_progress()
-		update_hud_visibility()
-
-func activate_shadow_mode(duration: float = 2.0) -> void:
-	if shadow_mode_unlocked:
-		shadow_mode_enabled = true
-		shadow_mode_activated.emit()
-		shadow_mode_timer.start(duration)
+	coins_collected_this_level = 0
+	crystals_collected_this_level = 0
+	print("[GameManager] Score and lives reset for new level: score=%d, lives=%d" % [_score, _player_lives])
+	score_updated.emit(_score)
+	on_player_life_changed.emit(_player_lives)
 
 func _on_shadow_mode_timer_timeout() -> void:
-	if shadow_mode_enabled:
-		shadow_mode_enabled = false
+	if level_manager.shadow_mode_enabled:
+		level_manager.shadow_mode_enabled = false
 		shadow_mode_deactivated.emit()
 
-func change_scene(scene_path: String) -> void:
-	if not ResourceLoader.exists(scene_path):
-		push_error("Scene not found: %s" % scene_path)
-		return
-	scene_change_started.emit()
-	var root: Node = get_tree().current_scene
-	if root:
-		for child in root.get_children():
-			if child.name == "LoaderCanvasLayer" or child.name == "VideoPlaybackLayer":
-				continue
-	var loader: Node = LOADER_SCENE.instantiate()
-	loader.name = "LoaderCanvasLayer"
-	root.add_child(loader)
-	for bus in AudioServer.bus_count:
-		var bus_name = AudioServer.get_bus_name(bus)
-		if bus_name != "Background" and bus_name != "Master":
-			AudioServer.set_bus_mute(bus, true)
-	if admob and is_initialized:
-		admob.hide_banner_ad()
-	loader.start_load(scene_path)
-
-func load_level(level_num: int) -> void:
-	if is_level_unlocked(level_num):
-		player_stats = {
-			"attack_level": 0,
-			"bullet_damage": DEFAULT_BULLET_DAMAGE,
-			"base_bullet_damage": DEFAULT_BULLET_DAMAGE,
-			"is_shadow_mode_active": false
-		}
-		player_lives = max(2, player_lives)
-		print("Set player_lives to %d for level %d" % [player_lives, level_num])
-		var level_path: String = "res://Levels/level_%d.tscn" % level_num
-		if level_path != START_SCREEN_SCENE and level_path != MAP_SCENE:
-			AudioManager.stop_background_music()
-		change_scene(level_path)
-		await get_tree().create_timer(0.3).timeout
-		update_hud_visibility(level_num)
-		if admob and is_initialized:
-			admob.hide_banner_ad()
-		var current_scene = get_tree().current_scene
-		if current_scene:
-			var player_scene_path = "res://Player/Player_%s.tscn" % selected_ship_id.capitalize()
-			if ResourceLoader.exists(player_scene_path):
-				var player_scene = load(player_scene_path)
-				var player_instance = player_scene.instantiate()
-				player_instance.global_position = player_spawn_position
-				current_scene.call_deferred("add_child", player_instance)
-				player_instance.call_deferred("set_lives", player_lives)
-				print("Spawned player with ship_id: %s for level %d" % [selected_ship_id, level_num])
-			else:
-				push_error("Player scene not found: %s" % player_scene_path)
-
-func update_hud_visibility(level_num: int = get_current_level()) -> void:
-	var hud: Node = get_tree().current_scene.get_node_or_null("CanvasLayer/HUD")
-	if hud and hud.has_node("ShadowModeButton"):
-		var shadow_button: TextureButton = hud.get_node("ShadowModeButton")
-		var should_be_visible: bool = level_num >= 5 and shadow_mode_unlocked
-		shadow_button.visible = should_be_visible
-		if not should_be_visible:
-			shadow_button.disabled = true
-			if hud.has_method("reset_charge"):
-				hud.reset_charge()
-
-func complete_level(current_level: int) -> void:
-	if game_over and not is_revive_pending:
-		print("Cannot complete level %d, game over" % current_level)
-		return
-	print("Completing level %d" % current_level)
-	is_level_just_completed = true
-	if player_lives == 0:
-		player_lives = 2
-		if autosave_progress:
-			save_progress()
-	if not completed_levels.has(current_level):
-		completed_levels.append(current_level)
-		level_star_earned.emit(current_level)
-		if autosave_progress:
-			save_progress()
-	level_completed.emit(current_level)
-	var should_transition_to_next_level: bool = true
-	if current_level == 5 and not shadow_mode_tutorial_shown:
-		var current_scene = get_tree().current_scene
-		if current_scene:
-			AudioManager.mute_bus("Bullet", true)
-			AudioManager.mute_bus("Explosion", true)
-			var tutorial_layer = CanvasLayer.new()
-			tutorial_layer.name = "ShadowModeTutorialLayer"
-			tutorial_layer.layer = 10
-			var tutorial: Node = SHADOW_MODE_TUTORIAL_SCENE.instantiate()
-			tutorial_layer.add_child(tutorial)
-			current_scene.add_child(tutorial_layer)
-			shadow_mode_tutorial_shown = true
-			if autosave_progress:
-				save_progress()
-			should_transition_to_next_level = false
-			is_level_just_completed = false
-		else:
-			push_error("Cannot add tutorial: No current scene available")
-	if current_level == 10 and not is_video_playing:
-		var current_scene = get_tree().current_scene
-		if current_scene and ResourceLoader.exists(VIDEO_SCENE):
-			is_video_playing = true
-			AudioManager.lower_bus_volumes_except(["Video", "Master"], -10.0)
-			var video_layer = CanvasLayer.new()
-			video_layer.name = "VideoPlaybackLayer"
-			video_layer.layer = 10
-			var video_scene: Node = load(VIDEO_SCENE).instantiate()
-			video_layer.add_child(video_scene)
-			current_scene.add_child(video_layer)
-			should_transition_to_next_level = false
-			if video_scene.has_signal("finished"):
-				video_scene.finished.connect(_on_video_finished.bind(video_layer))
-			else:
-				await get_tree().create_timer(10.0).timeout
-				_on_video_finished(video_layer)
-		else:
-			push_error("Cannot play video: No current scene or VideoPlayback.tscn missing")
-	var next_level: int = current_level + 1
-	if next_level > unlocked_levels:
-		unlocked_levels = next_level
-		if autosave_progress:
-			save_progress()
-		level_unlocked.emit(next_level)
-	if should_transition_to_next_level:
-		print("Next level unlocked: %d" % next_level)
-		is_level_just_completed = false
-
-func _on_video_finished(video_layer: CanvasLayer) -> void:
-	AudioManager.restore_bus_volumes()
-	video_layer.queue_free()
-	is_video_playing = false
-	change_scene(START_SCREEN_SCENE)
-	is_level_just_completed = false
-
-func unlock_next_level(current_level: int) -> void:
-	var next_level: int = current_level + 1
-	var next_level_path: String = "res://Levels/level_%d.tscn" % next_level
-	if ResourceLoader.exists(next_level_path):
-		change_scene(next_level_path)
-	else:
-		change_scene(MAP_SCENE)
-	is_level_just_completed = false
-
-func is_level_unlocked(level: int) -> bool:
-	return level <= unlocked_levels
-
-func is_level_completed(level: int) -> bool:
-	return completed_levels.has(level)
-
-func _on_wave_started(current_wave: int, total_waves: int) -> void:
-	wave_started.emit(current_wave, total_waves)
-
-func _on_all_waves_cleared() -> void:
-	all_waves_cleared.emit()
-
-func _on_level_selected(level_num: int) -> void:
-	if is_level_unlocked(level_num):
-		load_level(level_num)
-
-func _on_boss_defeated() -> void:
-	print("Boss defeated signal received in GameManager")
-	score += 1000
-	var current_level: int = get_current_level()
-	if current_level == 5:
-		unlock_shadow_mode()
-	complete_level(current_level)
-
-func _on_unlock_shadow_mode() -> void:
-	unlock_shadow_mode()
-
-func _on_shadow_unlock_boss_boss_defeated():
-	if game_ended:
-		return
-	game_ended = true
-	game_won = true
-	var victory_screen = preload("res://MainScenes/ShadowModeTutorial.tscn").instantiate()
-	get_tree().current_scene.add_child(victory_screen)
-	is_level_just_completed = false
-
-func _on_game_over_triggered() -> void:
-	if game_ended:
-		return
-	game_ended = true
-	game_won = false
-	print("Game over! Player died.")
-	if not is_revive_pending:
-		AudioManager.mute_bus("Bullet", true)
-		AudioManager.mute_bus("Explosion", true)
-		print("Muted Bullet and Explosion buses during game over")
-
 func _on_node_added(node: Node) -> void:
-	if node is WaveManager:
-		node.wave_started.connect(_on_wave_started)
-		node.all_waves_cleared.connect(_on_all_waves_cleared)
-	if node is Control and node.name == "LoaderCanvasLayer":
-		node.z_index = 100
-	if node.is_in_group(GROUP_BOSS):
-		if node is Area2D and node.has_signal("boss_defeated"):
-			node.boss_defeated.connect(_on_boss_defeated)
-			if node.has_signal("unlock_shadow_mode"):
-				node.unlock_shadow_mode.connect(_on_unlock_shadow_mode)
-		else:
-			push_error("Skipping Boss group node: %s (type: %s, has boss_defeated: %s)" % [
-				node.name, node.get_class(), node.has_signal("boss_defeated")
-			])
-	if node.name == "GameOverScreen":
-		if node.has_signal("player_revived"):
-			node.player_revived.connect(_on_player_revived)
-		if node.has_signal("ad_revive_requested"):
-			node.ad_revive_requested.connect(_on_ad_revive_requested)
-	if node == get_tree().current_scene:
-		var scene_path = node.scene_file_path if node.scene_file_path else ""
-		if scene_path == START_SCREEN_SCENE or scene_path == MAP_SCENE:
-			AudioManager.play_background_music(BACKGROUND_MUSIC, false)
-			if AudioManager.background_player:
-				AudioManager.background_player.stream.loop = true
-				AudioManager.background_player.stream_paused = false
-				print("Background music set to loop in %s" % scene_path)
-			AudioManager.mute_bus("Bullet", true)
-			AudioManager.mute_bus("Explosion", true)
-			if admob and is_initialized:
-				admob.show_banner_ad()
-		else:
-			if AudioManager.background_player:
-				AudioManager.background_player.stream.loop = false
-			AudioManager.mute_bus("Bullet", false)
-			AudioManager.mute_bus("Explosion", false)
-			if admob and is_initialized:
-				admob.hide_banner_ad()
+	level_manager.handle_node_added(node)
+	ad_manager.handle_node_added(node)
+	scene_manager.handle_node_added(node)
 
 func connect_score_signals(target_node: Node) -> void:
 	if target_node.has_method("set_score"):
 		score_updated.connect(target_node.set_score)
-	if target_node.has_method("set_high_score"):
-		high_score_updated.connect(target_node.set_high_score)
+
+# Public API methods
+func change_scene(scene_path: String) -> void:
+	scene_manager.change_scene(scene_path)
+
+func load_level(level_num: int) -> void:
+	level_manager.load_level(level_num)
+
+func complete_level(current_level: int) -> void:
+	level_manager.complete_level(current_level)
+
+func request_ad_revive() -> void:
+	pause_for_ad_revive()  # Pause game before requesting ad
+	ad_manager.request_ad_revive()
+
+func revive_player(lives: int = 2) -> void:
+	print("[DEBUG] GameManager: revive_player called with lives: %d" % lives)
+	player_manager.revive_player(lives)
+	print("[DEBUG] GameManager: revive_player completed")
+
+func spawn_player(lives: int) -> void:
+	player_manager.spawn_player(lives)
+
+func activate_shadow_mode(duration: float = 5.0) -> void:
+	level_manager.activate_shadow_mode(duration)
+
+func unlock_shadow_mode() -> void:
+	level_manager.unlock_shadow_mode()
+
+func is_level_unlocked(level: int) -> bool:
+	return level_manager.is_level_unlocked(level)
+
+func is_level_completed(level: int) -> bool:
+	return level_manager.is_level_completed(level)
 
 func get_current_level() -> int:
-	var scene_path: String = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
-	var regex = RegEx.new()
-	regex.compile("level_(\\d+)\\.tscn")
-	var result = regex.search(scene_path)
-	if result:
-		return int(result.get_string(1))
+	if level_manager:
+		return level_manager.get_current_level()
 	return 0
 
-func _on_admob_initialization_completed(_status_data: InitializationStatus) -> void:
-	is_initialized = true
-	admob.load_banner_ad()
-	admob.load_rewarded_ad()
-	admob.load_rewarded_interstitial_ad()
-	var scene_path = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
-	if scene_path == MAP_SCENE or scene_path == START_SCREEN_SCENE or scene_path == UPGRADE_MENU:
-		await admob.banner_ad_loaded
-		if is_initialized:
-			admob.show_banner_ad()
-			print("Banner ad waving at players from %s!" % scene_path)
-	else:
-		admob.hide_banner_ad()
+func set_upgrade_menu_ref(menu: Node) -> void:
+	upgrade_menu_ref = menu
 
-func _on_admob_banner_ad_loaded(_ad_id: String) -> void:
-	if is_initialized and (get_tree().current_scene.scene_file_path == MAP_SCENE or get_tree().current_scene.scene_file_path == START_SCREEN_SCENE or get_tree().current_scene.scene_file_path == UPGRADE_MENU):
-		admob.show_banner_ad()
+func can_afford(currency_type: String, cost: int) -> bool:
+	match currency_type:
+		"crystals":
+			return _crystal_count >= cost
+		"coins":
+			return _coin_count >= cost
+		"void_shards":
+			return _void_shards_count >= cost
+	return false
 
-func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
-	var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
-	push_warning("Banner ad failed to load. Error: %s, Code: %s. Retrying in 5 seconds..." % [error_info, error_code])
-	if ad_retry_count < max_ad_retries:
-		ad_retry_count += 1
-		await get_tree().create_timer(5.0).timeout
-		if is_initialized:
-			admob.load_banner_ad()
-			print("Retrying banner ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
-	else:
-		push_error("Max retries reached for banner ad. Giving up! 😢")
-		ad_retry_count = 0
+func deduct_currency(currency_type: String, amount: int) -> void:
+	match currency_type:
+		"crystals":
+			crystal_count -= amount
+		"coins":
+			coin_count -= amount
+		"void_shards":
+			void_shards_count -= amount
+	save_manager.save_progress()
 
-func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
-	if is_revive_pending and selected_ad_type == "video" and not is_ad_showing:
-		is_ad_showing = true
-		admob.show_rewarded_ad()
+var coins_collected_this_level: int = 0
+var crystals_collected_this_level: int = 0
 
-func _on_admob_rewarded_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	if is_revive_pending and selected_ad_type == "video":
-		var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
-		var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
-		print("Rewarded video ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
-		ad_failed_to_load.emit("video", error_data)
-		if ad_retry_count < max_ad_retries:
-			ad_retry_count += 1
-			print("Retrying video ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
-			await get_tree().create_timer(5.0).timeout
-			if is_initialized:
-				admob.load_rewarded_ad()
-		else:
-			print("Max retries reached for video ad. Falling back to map! 😞")
-			is_ad_showing = false
-			is_revive_pending = false
-			revive_type = "none"
-			selected_ad_type = ""
-			ad_retry_count = 0
-			revive_completed.emit(false)
-			change_scene(MAP_SCENE)
+func add_currency(currency_type: String, amount: int) -> void:
+	match currency_type:
+		"crystals":
+			crystal_count += amount
+			crystals_collected_this_level += amount
+		"coins":
+			coin_count += amount
+			coins_collected_this_level += amount
+		"void_shards":
+			void_shards_count += amount
+			save_manager.save_progress()
 
-func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
-	is_ad_showing = true
+# Add this function to reset the collected currencies when starting a new level
+func reset_level_currencies() -> void:
+	coins_collected_this_level = 0
+	crystals_collected_this_level = 0
 
-func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void:
-	if is_revive_pending and selected_ad_type == "video":
-		complete_ad_revive()
-	else:
-		is_ad_showing = false
-		revive_type = "none"
-		selected_ad_type = ""
-		ad_retry_count = 0
-		if is_initialized:
-			admob.load_rewarded_ad()
-			print("Preloading next rewarded video ad for future revives.")
-
-func _on_admob_rewarded_ad_user_earned_reward(ad_id: String, _reward_data: RewardItem) -> void:
-	if is_revive_pending and selected_ad_type == "video":
-		ad_reward_granted.emit("video")
-		complete_ad_revive()
-	else:
-		print("Reward earned but no revive pending. Saving it for later! ID: %s" % ad_id)
-
-func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
-	if is_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
-		is_ad_showing = true
-		admob.show_rewarded_interstitial_ad()
-
-func _on_admob_rewarded_interstitial_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	if is_revive_pending and selected_ad_type == "interstitial":
-		var error_info = error_data.message if error_data and error_data.has("message") else str(error_data)
-		var error_code = error_data.code if error_data and error_data.has("code") else "Unknown"
-		print("Rewarded interstitial ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
-		ad_failed_to_load.emit("interstitial", error_data)
-		if ad_retry_count < max_ad_retries:
-			ad_retry_count += 1
-			print("Retrying interstitial ad load, attempt %d/%d" % [ad_retry_count, max_ad_retries])
-			await get_tree().create_timer(5.0).timeout
-			if is_initialized:
-				admob.load_rewarded_interstitial_ad()
-		else:
-			print("Max retries reached for interstitial ad. Falling back to map! 😞")
-			is_ad_showing = false
-			is_revive_pending = false
-			revive_type = "none"
-			selected_ad_type = ""
-			ad_retry_count = 0
-			revive_completed.emit(false)
-			change_scene(MAP_SCENE)
-
-func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: String) -> void:
-	is_ad_showing = true
-
-func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: String) -> void:
-	if is_revive_pending and selected_ad_type == "interstitial":
-		complete_ad_revive()
-	else:
-		is_ad_showing = false
-		revive_type = "none"
-		selected_ad_type = ""
-		ad_retry_count = 0
-		if is_initialized:
-			admob.load_rewarded_interstitial_ad()
-			print("Preloading next rewarded interstitial ad for future revives.")
-
-func _on_admob_rewarded_interstitial_ad_user_earned_reward(ad_id: String, reward_data: RewardItem) -> void:
-	if is_revive_pending and selected_ad_type == "interstitial":
-		print("Player earned reward from interstitial ad! ID: %s, Reward: %s" % [ad_id, reward_data])
-		ad_reward_granted.emit("interstitial")
-		complete_ad_revive()
-	else:
-		print("Reward earned but no revive pending. Stashing it for later! ID: %s" % ad_id)
-
-func _on_ad_revive_requested() -> void:
-	if not admob or not is_initialized:
-		push_error("Cannot request ad revive: AdMob not initialized or missing.")
-		revive_completed.emit(false)
+# New function to pause the game during ad revive
+func pause_for_ad_revive() -> void:
+	if not game_over or level_manager.is_level_just_completed:
 		return
-	if is_ad_showing:
-		print("Ad request ignored: Another ad is already showing. Chill out!")
-		revive_completed.emit(false)
-		return
-	if is_revive_pending:
-		print("Ad request ignored: Revive already pending. Patience, young padawan!")
-		revive_completed.emit(false)
-		return
-	is_revive_pending = true
-	revive_type = "ad"
-	ad_retry_count = 0
-	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
-	print("Requesting %s ad for revive. Fingers crossed! 🤞" % selected_ad_type)
-	if selected_ad_type == "video":
-		if admob.is_rewarded_ad_loaded():
-			is_ad_showing = true
-			admob.show_rewarded_ad()
-			print("Showing rewarded video ad right away!")
-		else:
-			print("Loading rewarded video ad...")
-			admob.load_rewarded_ad()
-	else:
-		if admob.is_rewarded_interstitial_ad_loaded():
-			is_ad_showing = true
-			admob.show_rewarded_interstitial_ad()
-			print("Showing rewarded interstitial ad right away!")
-		else:
-			print("Loading rewarded interstitial ad...")
-			admob.load_rewarded_interstitial_ad()
+	is_paused = true  # Pauses the game tree
+	print("Game paused for ad revive")
 
-func _on_player_revived() -> void:
-	if revive_type != "ad":
-		revive_type = "manual"
-		print("Player revived manually like a sci-fi phoenix! 🔥")
-		revive_player(2)
-	else:
-		print("Player revive triggered, but waiting for ad reward. Hold tight!")
+# New function to resume the game after ad revive
+func resume_after_ad_revive() -> void:
+	if is_paused and not game_over and not level_manager.is_level_just_completed:
+		is_paused = false  # Resumes the game tree
+		print("Game resumed after ad revive")
 
-func complete_ad_revive() -> void:
-	if not is_revive_pending:
-		print("Ad revive attempted: No revive pending. Back to the drawing board!")
-		is_ad_showing = false
-		revive_completed.emit(false)
-		return
-	print("Completing ad revive like a galactic hero! 🌌")
-	var current_scene = get_tree().current_scene
-	var player = null
-	for p in get_tree().get_nodes_in_group("Player"):
-		if p.ship_id == selected_ship_id:
-			player = p
-			break
-	if player and player.is_inside_tree():
-		print("Reviving existing player (ad)")
-		player.revive(2)
-		game_over = false
+# Handle revive completion signal
+func _on_revive_completed(success: bool) -> void:
+	resume_after_ad_revive()
+	if success:
+		print("Revive completed successfully")
 	else:
-		print("Instantiating new player for revive (ad)")
-		var player_scene_path = "res://Ships/Player_%s.tscn" % selected_ship_id.capitalize()
-		if ResourceLoader.exists(player_scene_path):
-			var player_scene = load(player_scene_path)
-			var new_player = player_scene.instantiate()
-			new_player.global_position = player_spawn_position
-			if current_scene:
-				current_scene.call_deferred("add_child", new_player)
-				new_player.call_deferred("revive", 2)
-				game_over = false
-			else:
-				push_error("No current scene to add player")
-				revive_completed.emit(false)
-				return
-		else:
-			push_error("Player scene not found: %s" % player_scene_path)
-			revive_completed.emit(false)
-			return
-	AudioManager.mute_bus("Bullet", false)
-	AudioManager.mute_bus("Explosion", false)
-	print("Unmuted Bullet and Explosion buses in complete_ad_revive")
-	call_deferred("revive_player", 2)
-	if admob and is_initialized:
-		if selected_ad_type == "video":
-			admob.load_rewarded_ad()
-			print("Preloading video ad for next revive")
-		else:
-			admob.load_rewarded_interstitial_ad()
-			print("Preloading interstitial ad for next revive")
-	is_ad_showing = false
-	revive_completed.emit(true)
-	print("Ad revive completed, game_over set to: %s" % game_over)
+		print("Revive failed or was cancelled")
+
+# Notify when ship stats are updated
+func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:
+	ship_stats_updated.emit(ship_id, new_damage)
+	# Update PlayerManager's base damage for the current ship
+	if player_manager.selected_ship_id == ship_id:
+		player_manager.update_current_ship_damage(new_damage)
+
+# Notify when enemy is killed for shadow mode charging
+func notify_enemy_killed(enemy: Node) -> void:
+	enemy_killed.emit(enemy)

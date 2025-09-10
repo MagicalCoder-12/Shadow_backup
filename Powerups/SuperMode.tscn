@@ -2,25 +2,23 @@
 
 [ext_resource type="PackedScene" uid="uid://bdruofng85taf" path="res://Powerups/Health.tscn" id="1"]
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_is77t"]
-load_path = "res://.godot/imported/Pickup_2_E_Small_NoLight.png-c000ab5d35bfa6aef5b660168b2ca89f.ctex"
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_0djak"]
+load_path = "res://.godot/imported/Rockets_Bonus.png-63a4e7e0cdb36d4655835cc6c6dec8d5.ctex"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_is77t"]
-size = Vector2(187, 128)
+[sub_resource type="CircleShape2D" id="CircleShape2D_je321"]
+radius = 76.5261
 
 [node name="SuperMode" instance=ExtResource("1")]
 powerup_type = 1
 
 [node name="Sprite2D" parent="." index="0"]
-scale = Vector2(3, 2.767)
-texture = SubResource("CompressedTexture2D_is77t")
-region_enabled = false
+texture = SubResource("CompressedTexture2D_0djak")
 region_rect = Rect2(282, 6, 186, 186)
 
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0.5, 2)
-shape = SubResource("RectangleShape2D_is77t")
+shape = SubResource("CircleShape2D_je321")
 
 [node name="VisibleOnScreenNotifier2D" parent="." index="2"]
-position = Vector2(1.5, 2.5)
-scale = Vector2(9.35, 6.35)
+position = Vector2(4, -2)
+scale = Vector2(7.7, 7.3)

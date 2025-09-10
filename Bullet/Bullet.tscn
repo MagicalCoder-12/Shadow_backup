@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b1ir205qptwgm" path="res://Textures/Lasers/Laser Sprites/16.png" id="2_v7qj8"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_v7qj8"]
-size = Vector2(24, 77)
+size = Vector2(21.5, 82.5)
 
 [node name="PlayerBullet" type="Area2D"]
 collision_layer = 16

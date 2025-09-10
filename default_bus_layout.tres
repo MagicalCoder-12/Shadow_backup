@@ -1,14 +1,18 @@
-[gd_resource type="AudioBusLayout" load_steps=2 format=3 uid="uid://vt7iqtmav27l"]
+[gd_resource type="AudioBusLayout" load_steps=3 format=3 uid="uid://vt7iqtmav27l"]
 
 [sub_resource type="AudioEffectAmplify" id="AudioEffectAmplify_06aji"]
 resource_name = "Amplify"
+
+[sub_resource type="AudioEffectAmplify" id="AudioEffectAmplify_4f0yv"]
+resource_name = "Amplify"
+volume_db = 24.0
 
 [resource]
 bus/1/name = &"Background"
 bus/1/solo = false
 bus/1/mute = false
 bus/1/bypass_fx = false
-bus/1/volume_db = -4.25003
+bus/1/volume_db = -3.54298
 bus/1/send = &"Master"
 bus/2/name = &"Video"
 bus/2/solo = false
@@ -20,13 +24,13 @@ bus/3/name = &"Bullet"
 bus/3/solo = false
 bus/3/mute = false
 bus/3/bypass_fx = false
-bus/3/volume_db = -25.7583
+bus/3/volume_db = -34.0002
 bus/3/send = &"Master"
 bus/4/name = &"Boss"
 bus/4/solo = false
 bus/4/mute = false
 bus/4/bypass_fx = false
-bus/4/volume_db = 6.02
+bus/4/volume_db = 0.0
 bus/4/send = &"Master"
 bus/4/effect/0/effect = SubResource("AudioEffectAmplify_06aji")
 bus/4/effect/0/enabled = true
@@ -34,5 +38,13 @@ bus/5/name = &"Explosion"
 bus/5/solo = false
 bus/5/mute = false
 bus/5/bypass_fx = false
-bus/5/volume_db = -22.5851
+bus/5/volume_db = -31.0758
 bus/5/send = &"Master"
+bus/6/name = &"Collectables"
+bus/6/solo = false
+bus/6/mute = false
+bus/6/bypass_fx = false
+bus/6/volume_db = 6.02
+bus/6/send = &"Master"
+bus/6/effect/0/effect = SubResource("AudioEffectAmplify_4f0yv")
+bus/6/effect/0/enabled = true

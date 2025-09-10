@@ -14,13 +14,12 @@ func _setup_bullet() -> void:
 	bullet_owner = "satellite"
 	collision_groups = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
 
-	damage = int(GameManager.player_stats["bullet_damage"] * 0.8)
+	damage = int(GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 0.8)
 	if damage <= 0:
 		damage = 10
-		push_warning("SatelliteBullet: Invalid damage from player stats, using default: %d" % damage)
 
 	if glow_sprite:
-		glow_sprite.modulate = Color(0, 1, 1, 0.8) # Cyan glow
+		glow_sprite.modulate = Color(0, 1, 1, 0.8) # Cyan glow for that sci-fi vibe
 		glow_sprite.visible = true
 
 	visible = true
@@ -55,6 +54,7 @@ func _find_nearest_enemy() -> void:
 			closest_enemy = enemy
 
 	target = closest_enemy
+
 
 func _on_lifetime_timer_timeout() -> void:
 	queue_free()

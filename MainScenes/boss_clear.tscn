@@ -1,0 +1,186 @@
+[gd_scene load_steps=18 format=3 uid="uid://b8xr1w9bni0qf"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/boss_clear.gd" id="1_boss_clear"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="2_future_font"]
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_narrow_font"]
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="4_coins_icon"]
+[ext_resource type="Texture2D" uid="uid://brlinyw3kiffu" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_01.png" id="5_crystal_icon"]
+[ext_resource type="Texture2D" uid="uid://cdoua3rmc0hwg" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_02.png" id="6_void_shard_icon"]
+[ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="7_menu_btn"]
+[ext_resource type="Texture2D" uid="uid://crf8s3lmcu0hn" path="res://Textures/UI/Main_Menu/BTNs_Active/Menu_BTN.png" id="8_menu_btn_active"]
+[ext_resource type="Texture2D" uid="uid://cplo7hlkir3ii" path="res://Textures/UI/Main_Menu/BTNs/Replay_BTN.png" id="9_replay_btn"]
+[ext_resource type="Texture2D" uid="uid://bvp1csfyerbbp" path="res://Textures/UI/Main_Menu/BTNs_Active/Replay_BTN.png" id="10_replay_btn_active"]
+[ext_resource type="Texture2D" uid="uid://dnpcvc0hqf6d0" path="res://Textures/UI/Main_Menu/BTNs/Forward_BTN.png" id="11_forward_btn"]
+[ext_resource type="Texture2D" uid="uid://cf2u1w86trya3" path="res://Textures/UI/Main_Menu/BTNs_Active/Forward_BTN.png" id="12_forward_btn_active"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_boss_title"]
+font = ExtResource("2_future_font")
+font_size = 60
+outline_size = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_score"]
+line_spacing = 0.0
+font = ExtResource("3_narrow_font")
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_reward_title"]
+font = ExtResource("3_narrow_font")
+font_size = 48
+font_color = Color(1, 0.8, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_reward_amount"]
+font = ExtResource("3_narrow_font")
+font_size = 44
+
+[sub_resource type="LabelSettings" id="LabelSettings_total_rewards"]
+font = ExtResource("3_narrow_font")
+font_size = 46
+
+[node name="BossClear" type="Control"]
+process_mode = 3
+z_index = 10
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_boss_clear")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0861111
+anchor_top = 0.19
+anchor_right = 0.887037
+anchor_bottom = 0.75
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="BossDefeated" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 25.0
+offset_right = 841.0
+offset_bottom = 105.0
+text = "Boss Defeated!"
+label_settings = SubResource("LabelSettings_boss_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0462428
+anchor_top = 0.12
+anchor_right = 0.965318
+anchor_bottom = 1.02527
+offset_bottom = -46.0
+theme_override_constants/separation = 35
+metadata/_edit_use_anchors_ = true
+
+[node name="Score" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Level Score: 000000000"
+label_settings = SubResource("LabelSettings_score")
+
+[node name="RewardsTitle" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Boss Victory Rewards:"
+label_settings = SubResource("LabelSettings_reward_title")
+horizontal_alignment = 1
+
+[node name="RewardsContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="VoidShardsReward" type="HBoxContainer" parent="Panel/VBoxContainer/RewardsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="VoidShardIcon" type="TextureRect" parent="Panel/VBoxContainer/RewardsContainer/VoidShardsReward"]
+layout_mode = 2
+texture = ExtResource("6_void_shard_icon")
+stretch_mode = 2
+
+[node name="VoidShardLabel" type="Label" parent="Panel/VBoxContainer/RewardsContainer/VoidShardsReward"]
+layout_mode = 2
+text = "Void Shards: +10"
+label_settings = SubResource("LabelSettings_reward_amount")
+vertical_alignment = 1
+
+[node name="CoinsReward" type="HBoxContainer" parent="Panel/VBoxContainer/RewardsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CoinIcon" type="TextureRect" parent="Panel/VBoxContainer/RewardsContainer/CoinsReward"]
+layout_mode = 2
+texture = ExtResource("4_coins_icon")
+stretch_mode = 2
+
+[node name="CoinLabel" type="Label" parent="Panel/VBoxContainer/RewardsContainer/CoinsReward"]
+layout_mode = 2
+text = "Coins: +1000"
+label_settings = SubResource("LabelSettings_reward_amount")
+vertical_alignment = 1
+
+[node name="CrystalsReward" type="HBoxContainer" parent="Panel/VBoxContainer/RewardsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CrystalIcon" type="TextureRect" parent="Panel/VBoxContainer/RewardsContainer/CrystalsReward"]
+layout_mode = 2
+texture = ExtResource("5_crystal_icon")
+stretch_mode = 2
+
+[node name="CrystalLabel" type="Label" parent="Panel/VBoxContainer/RewardsContainer/CrystalsReward"]
+layout_mode = 2
+text = "Crystals: +50"
+label_settings = SubResource("LabelSettings_reward_amount")
+vertical_alignment = 1
+
+[node name="TotalRewards" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Total Rewards Applied!"
+label_settings = SubResource("LabelSettings_total_rewards")
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 50
+metadata/_edit_use_anchors_ = true
+
+[node name="Map" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("7_menu_btn")
+texture_pressed = ExtResource("8_menu_btn_active")
+texture_hover = ExtResource("8_menu_btn_active")
+
+[node name="Restart" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("9_replay_btn")
+texture_pressed = ExtResource("10_replay_btn_active")
+texture_hover = ExtResource("10_replay_btn_active")
+
+[node name="Next" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("11_forward_btn")
+texture_pressed = ExtResource("12_forward_btn_active")
+texture_hover = ExtResource("12_forward_btn_active")
+
+[node name="CountUpTimer" type="Timer" parent="."]
+
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Map" to="." method="_on_map_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Next" to="." method="_on_next_pressed"]

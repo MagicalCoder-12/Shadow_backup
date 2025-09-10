@@ -1,0 +1,86 @@
+[gd_scene load_steps=17 format=3 uid="uid://bebhlpmqnhck0"]
+
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="1_20aeh"]
+[ext_resource type="Script" path="res://Resources/coins.gd" id="1_eec7n"]
+[ext_resource type="Texture2D" uid="uid://r3mjhlpfuxn7" path="res://Textures/Explosion1/Explosion1_1.png" id="3_gpyut"]
+[ext_resource type="Texture2D" uid="uid://cg8huobgbc4hu" path="res://Textures/Explosion1/Explosion1_2.png" id="4_pl0od"]
+[ext_resource type="Texture2D" uid="uid://1wn43rche10p" path="res://Textures/Explosion1/Explosion1_3.png" id="5_0u16d"]
+[ext_resource type="Texture2D" uid="uid://bv40swrvx5sdg" path="res://Textures/Explosion1/Explosion1_4.png" id="6_env56"]
+[ext_resource type="Texture2D" uid="uid://n2tnwncl0dol" path="res://Textures/Explosion1/Explosion1_5.png" id="7_n1elo"]
+[ext_resource type="Texture2D" uid="uid://m01inyg4f5yq" path="res://Textures/Explosion1/Explosion1_6.png" id="8_3hwks"]
+[ext_resource type="Texture2D" uid="uid://bmiimec3kvxef" path="res://Textures/Explosion1/Explosion1_7.png" id="9_a5urh"]
+[ext_resource type="Texture2D" uid="uid://bir16su37ypdt" path="res://Textures/Explosion1/Explosion1_8.png" id="10_me72u"]
+[ext_resource type="Texture2D" uid="uid://qigjgfsbvo58" path="res://Textures/Explosion1/Explosion1_9.png" id="11_asj22"]
+[ext_resource type="Texture2D" uid="uid://b5cc6w6043lan" path="res://Textures/Explosion1/Explosion1_10.png" id="12_ppeq6"]
+[ext_resource type="Texture2D" uid="uid://bitth5lv7mkmu" path="res://Textures/Explosion1/Explosion1_11.png" id="13_wky22"]
+[ext_resource type="AudioStream" uid="uid://dqhhjeg1la2hj" path="res://Textures/Music/coin_collected_08.wav" id="14_s1mx7"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hway3"]
+radius = 40.6602
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_o8o1a"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_gpyut")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_pl0od")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_0u16d")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_env56")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_n1elo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_3hwks")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_a5urh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_me72u")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_asj22")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_ppeq6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_wky22")
+}],
+"loop": false,
+"name": &"collected",
+"speed": 5.0
+}]
+
+[node name="Coins" type="Area2D" groups=["Coins"]]
+audio_bus_name = &"Collectables"
+script = ExtResource("1_eec7n")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_20aeh")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-1, 2.5)
+shape = SubResource("CircleShape2D_hway3")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+sprite_frames = SubResource("SpriteFrames_o8o1a")
+animation = &"collected"
+speed_scale = 3.0
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("14_s1mx7")
+volume_db = 24.0
+pitch_scale = 0.9
+max_polyphony = 2
+bus = &"Collectables"
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]

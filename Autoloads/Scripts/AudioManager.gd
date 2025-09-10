@@ -51,6 +51,18 @@ func stop_background_music() -> void:
 	current_background_music = null
 	print("Background music stopped")
 
+# Reset all audio state for clean restart
+func reset_audio_state() -> void:
+	stop_background_music()
+	# Stop any remaining scene audio players
+	if get_tree() and get_tree().current_scene:
+		stop_scene_audio_players(get_tree().current_scene)
+	# Reset bus states
+	mute_bus("Bullet", false)
+	mute_bus("Explosion", false)
+	mute_bus("Boss", false)
+	print("Audio state reset for restart")
+
 func play_sound_effect(stream: AudioStream, bus: String) -> void:
 	if not stream:
 		push_error("No audio stream provided for sound effect")

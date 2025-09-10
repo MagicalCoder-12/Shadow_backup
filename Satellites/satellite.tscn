@@ -71,7 +71,7 @@ speed_scale = 1.5
 position = Vector2(1, -41)
 
 [node name="CPUParticles2D" type="CPUParticles2D" parent="."]
-position = Vector2(0, 29)
+position = Vector2(-1, 49)
 amount = 500
 emission_shape = 1
 emission_sphere_radius = 5.0

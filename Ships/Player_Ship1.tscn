@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3 uid="uid://b7wevbdavqkkv"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_trwi6"]
+[ext_resource type="Script" path="res://Ships/Scripts/Ship1.gd" id="2_3uhnl"]
+[ext_resource type="Texture2D" uid="uid://kaf0ljwyaim5" path="res://Textures/player/ship_textures/ship_01_lvl0.png" id="2_m5d4w"]
+[ext_resource type="Texture2D" uid="uid://elye2idjkre3" path="res://Textures/player/ship_textures/ship_01_lvl1.png" id="3_y0rjc"]
+[ext_resource type="Texture2D" uid="uid://c3mit102fpxh1" path="res://Textures/player/ship_textures/ship_01_lvl2.png" id="4_b56g1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6y0vx"]
+size = Vector2(236.667, 126)
+
+[node name="Player_Noctisol" instance=ExtResource("1_trwi6")]
+script = ExtResource("2_3uhnl")
+base_texture_scale = Vector2(1, 1)
+evolution_texture_scales = Array[Vector2]([])
+default_evolution_scale = Vector2(1, 1)
+ship_id = "Ship1"
+evolution_textures = Array[Texture2D]([ExtResource("2_m5d4w"), ExtResource("3_y0rjc"), ExtResource("4_b56g1")])
+
+[node name="Thruster" parent="Sprite2D" index="0"]
+position = Vector2(-0.8, 82.4)
+
+[node name="Satellite" parent="Sprite2D" index="2"]
+position = Vector2(-84, 6.66667)
+
+[node name="Satellite2" parent="Sprite2D" index="3"]
+position = Vector2(84.8889, 8.44444)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(3, 30.3333)
+shape = SubResource("RectangleShape2D_6y0vx")

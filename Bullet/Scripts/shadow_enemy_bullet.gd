@@ -94,7 +94,7 @@ func _on_shadow_mode_deactivated():
 
 # Enhanced damage for shadow bullets during shadow mode
 func get_effective_damage() -> int:
-	if is_shadow_bullet and GameManager.shadow_mode_enabled:
+	if is_shadow_bullet and GameManager.level_manager.shadow_mode_enabled:
 		return int(damage * 1.25)  # 25% bonus damage during active shadow mode
 	return damage
 

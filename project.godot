@@ -18,7 +18,7 @@ To combat this terrifying enemy, scientists and engineers designed the SOL Fight
 At its helm stood Captain Adrian Voss, a fearless and brilliant pilot whose unmatched skill and unshakable resolve made him the only one capable of facing the Umbravian onslaught. With the fate of the planet in his hands, he soared into battle—a lone warrior against an empire of darkness.
 
 The war for the universe had begun."
-config/version="1.0.2"
+config/version="1.2"
 run/main_scene="res://MainScenes/start_menu.tscn"
 config/quit_on_go_back=false
 config/features=PackedStringArray("4.3")
@@ -30,9 +30,19 @@ boot_splash/icon="res://Textures/Splash_Screen/Logo/AJ.png"
 
 [autoload]
 
+ConfigLoader="*res://Autoloads/Scripts/ConfigLoader.gd"
 AudioManager="*res://Autoloads/Scripts/AudioManager.gd"
+SaveManager="*res://Autoloads/Scripts/SaveManager.gd"
+AdManager="*res://Autoloads/Scripts/AdManager.gd"
+PlayerManager="*res://Autoloads/Scripts/PlayerManager.gd"
+LevelManager="*res://Autoloads/Scripts/LevelManager.gd"
+SceneManager="*res://Autoloads/Scripts/SceneManager.gd"
 GameManager="*res://Autoloads/game_manager.tscn"
 BulletFactory="*res://Autoloads/Bullet_Factory.tscn"
+
+[debug]
+
+file_logging/enable_file_logging=true
 
 [display]
 
@@ -44,10 +54,6 @@ window/stretch/mode="viewport"
 window/per_pixel_transparency/allowed=true
 window/handheld/orientation=5
 mouse_cursor/custom_image="res://Textures/Splash_Screen/cursor.png"
-
-[editor]
-
-movie_writer/movie_file="D:/programs/Godot/Videos/test.avi"
 
 [editor_plugins]
 
@@ -67,6 +73,8 @@ Enemy=""
 HUD=""
 EnemyBullet="Foe enemy bullets"
 GameManager="For gamemanager"
+Coins="for coins count."
+Crystals="For crystals."
 
 [gui]
 

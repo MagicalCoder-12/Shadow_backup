@@ -41,7 +41,7 @@ func _physics_process(delta):
 		i_frame_timer -= delta
 
 	if playerInArea != null:
-		if GameManager.shadow_mode_enabled:
+		if GameManager.level_manager.shadow_mode_enabled:
 			damage(life) 
 			playerInArea.damage(1)
 		else:

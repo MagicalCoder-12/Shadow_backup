@@ -16,6 +16,7 @@ func _on_exit_pressed() -> void:
 	exit_panel.visible = true
 	var tween = create_tween()
 	tween.tween_property(exit_panel, "modulate:a", 1.0, 0.3).from(0.0)
+	
 
 func _on_close_pressed() -> void:
 	var tween = create_tween()

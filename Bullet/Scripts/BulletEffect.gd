@@ -1,4 +1,5 @@
-extends Sprite2D
+extends EffectBase
 
+# Player bullet effect - uses base cleanup functionality
 func _on_Timer_timeout():
-	queue_free()
+	super._on_timer_timeout()

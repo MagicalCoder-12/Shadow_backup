@@ -50,7 +50,8 @@ bullet_speed = 500.0
 max_minions = 10
 
 [node name="Boss" type="Sprite2D" parent="."]
-position = Vector2(17.0095, 2.13279)
+position = Vector2(13.2547, -14.1836)
+scale = Vector2(0.981179, 0.94762)
 texture = ExtResource("2_vvmta")
 
 [node name="Marker2D" type="Marker2D" parent="Boss"]
@@ -83,7 +84,6 @@ offset_top = -382.0
 offset_right = 442.0
 offset_bottom = -318.0
 texture_under = ExtResource("4_bn1uh")
-texture_over = null
 texture_progress = ExtResource("5_mw6p5")
 
 [node name="TractorBeam" type="AnimatedSprite2D" parent="."]

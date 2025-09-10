@@ -1,83 +1,66 @@
-[gd_scene load_steps=27 format=3 uid="uid://dcdh6o2c8lpmi"]
+[gd_scene load_steps=10 format=3 uid="uid://dct4mwfuj54wm"]
 
-[ext_resource type="PackedScene" uid="uid://s66mklagl4fy" path="res://HUD/HUD.tscn" id="1_hu0ol"]
-[ext_resource type="Script" path="res://Levels/Scripts/LevelManager.gd" id="1_m47b0"]
-[ext_resource type="Shader" path="res://MainScenes/Background.gdshader" id="2_m47b0"]
+[ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_gi04w"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_uk1uv"]
-[ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="3_x7gsr"]
-[ext_resource type="PackedScene" uid="uid://c6uejmh8c7koe" path="res://MainScenes/game_over_screen.tscn" id="4_uk1uv"]
-[ext_resource type="Texture2D" uid="uid://d0hfl38rap3wf" path="res://Textures/UI/Main_Menu/BTNs/Pause_BTN.png" id="5_735wc"]
-[ext_resource type="PackedScene" uid="uid://bog23u7rvkoy" path="res://MainScenes/pause_menu.tscn" id="6_vybpl"]
-[ext_resource type="PackedScene" uid="uid://b2dr1w4bni0qf" path="res://MainScenes/level_completed.tscn" id="7_f6crn"]
-[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Player/Player.tscn" id="8_k35fw"]
-[ext_resource type="Script" path="res://Camera/ShakeCam.gd" id="9_c02se"]
-[ext_resource type="PackedScene" uid="uid://ci2dx8vxi2rne" path="res://Spawner/Spawner.tscn" id="11_5o5kr"]
-[ext_resource type="PackedScene" uid="uid://ch5yid0u7nwuh" path="res://Enemy Manager/wave_manager.tscn" id="12_gmfyt"]
-[ext_resource type="PackedScene" uid="uid://dpbpiarnq8dd1" path="res://Bosses/MidBoss.tscn" id="15_wumdn"]
-[ext_resource type="AudioStream" uid="uid://dpnvp4i23xweo" path="res://Textures/Music/GameSong (mp3cut.net).mp3" id="16_f6crn"]
+[ext_resource type="PackedScene" uid="uid://dpbpiarnq8dd1" path="res://Bosses/MidBoss.tscn" id="3_wj00t"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_2jyfw"]
-shader = ExtResource("2_m47b0")
-shader_parameter/direction = Vector2(0, -1.5)
-shader_parameter/speed_scale = 0.1
-
-[sub_resource type="Resource" id="Resource_cvu6i"]
+[sub_resource type="Resource" id="Resource_dvmrr"]
 script = ExtResource("2_uk1uv")
 formation_type = 0
 entry_pattern = 0
-difficulty = 1
-enemy_type = "BomberBug"
-enemy_density = "Normal"
+difficulty = 3
+enemy_type = "mob1"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_txfju"]
+[sub_resource type="Resource" id="Resource_7aytn"]
 script = ExtResource("2_uk1uv")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
+formation_type = 1
+entry_pattern = 1
+difficulty = 3
 enemy_type = "mob2"
-enemy_density = "Dense"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_375xm"]
+[sub_resource type="Resource" id="Resource_bk6my"]
 script = ExtResource("2_uk1uv")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
+formation_type = 2
+entry_pattern = 2
+difficulty = 3
 enemy_type = "mob3"
-enemy_density = "Dense"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_jvu5f"]
+[sub_resource type="Resource" id="Resource_doo4b"]
 script = ExtResource("2_uk1uv")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
+formation_type = 3
+entry_pattern = 3
+difficulty = 3
 enemy_type = "mob4"
-enemy_density = "Dense"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_ad0kk"]
+[sub_resource type="Resource" id="Resource_g5ksx"]
 script = ExtResource("2_uk1uv")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
+formation_type = 4
+entry_pattern = 4
+difficulty = 3
 enemy_type = "SlowShooter"
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
@@ -86,12 +69,13 @@ formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_1difo"]
+[sub_resource type="Resource" id="Resource_tblhg"]
 script = ExtResource("2_uk1uv")
-formation_type = 4
-entry_pattern = 0
-difficulty = 1
-enemy_type = "BouncerEnemy"
+formation_type = 5
+entry_pattern = 5
+difficulty = 3
+enemy_type = "FastEnemy"
+boss_scene = ExtResource("3_wj00t")
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
@@ -99,130 +83,8 @@ formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_wt3ew"]
-script = ExtResource("2_uk1uv")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob1"
-boss_scene = ExtResource("15_wumdn")
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
+[node name="Level_5" instance=ExtResource("1_gi04w")]
 
-[sub_resource type="Animation" id="Animation_qw32v"]
-resource_name = "fade_in"
-length = 0.5
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("CanvasLayer/PauseMenu:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5, 0.533333),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_kg2kq"]
-resource_name = "fade_out"
-length = 0.5
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("CanvasLayer/PauseMenu:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_ymc22"]
-_data = {
-"fade_in": SubResource("Animation_qw32v"),
-"fade_out": SubResource("Animation_kg2kq")
-}
-
-[node name="Level_5" type="Node"]
-
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="HUD" parent="CanvasLayer" instance=ExtResource("1_hu0ol")]
-z_index = 10
-
-[node name="ParallaxBackground" type="ParallaxBackground" parent="CanvasLayer"]
-
-[node name="ParallaxLayer" type="ParallaxLayer" parent="CanvasLayer/ParallaxBackground"]
-
-[node name="Sprite2D" type="Sprite2D" parent="CanvasLayer/ParallaxBackground/ParallaxLayer"]
-material = SubResource("ShaderMaterial_2jyfw")
-position = Vector2(-604, -154)
-scale = Vector2(1.77891, 4.03472)
-texture = ExtResource("3_x7gsr")
-centered = false
-flip_h = true
-region_rect = Rect2(1.95564, -32.485, 1275.34, 770.342)
-
-[node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("4_uk1uv")]
-
-[node name="Pause" type="Button" parent="CanvasLayer"]
-anchors_preset = -1
-anchor_left = 0.860185
-anchor_top = 0.0104167
-anchor_right = 0.957407
-anchor_bottom = 0.0541667
-offset_right = 105.0
-offset_bottom = 105.0
-grow_horizontal = 0
-scale = Vector2(0.5, 0.5)
-icon = ExtResource("5_735wc")
-flat = true
-metadata/_edit_use_anchors_ = true
-
-[node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("6_vybpl")]
-
-[node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("7_f6crn")]
-
-[node name="Cam" type="Camera2D" parent="."]
-anchor_mode = 0
-script = ExtResource("9_c02se")
-
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." groups=["BackgroundMusic"]]
-process_mode = 3
-position = Vector2(249, 114)
-stream = ExtResource("16_f6crn")
-volume_db = 10.0
-autoplay = true
-bus = &"Background"
-parameters/looping = true
-
-[node name="Spawner" parent="." instance=ExtResource("11_5o5kr")]
-position = Vector2(673, 19)
-
-[node name="WaveManager" parent="." instance=ExtResource("12_gmfyt")]
-current_level = 5
-
-[node name="LevelManager" type="Node2D" parent="." groups=["LevelManager"]]
-script = ExtResource("1_m47b0")
+[node name="LevelManager" parent="." index="4"]
 level_num = 5
-waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_cvu6i"), SubResource("Resource_txfju"), SubResource("Resource_375xm"), SubResource("Resource_jvu5f"), SubResource("Resource_ad0kk"), SubResource("Resource_1difo"), SubResource("Resource_wt3ew")])
-debug_mode = true
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-process_mode = 3
-libraries = {
-"": SubResource("AnimationLibrary_ymc22")
-}
-
-[node name="Player" parent="." instance=ExtResource("8_k35fw")]
-position = Vector2(565, 2046)
-
-[connection signal="pressed" from="CanvasLayer/Pause" to="." method="_on_pause_pressed"]
+waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn"), SubResource("Resource_bk6my"), SubResource("Resource_doo4b"), SubResource("Resource_g5ksx"), SubResource("Resource_tblhg")])

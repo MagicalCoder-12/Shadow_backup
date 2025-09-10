@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://pc4ms7p3xhud"]
+[gd_scene load_steps=38 format=3 uid="uid://pc4ms7p3xhud"]
 
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="1_mddtv"]
 [ext_resource type="Script" path="res://MainScenes/Scripts/upgrade_menu.gd" id="1_uf2vc"]
@@ -10,18 +10,18 @@
 [ext_resource type="Texture2D" uid="uid://cdoua3rmc0hwg" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_02.png" id="9_8sam1"]
 [ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="10_yijgs"]
 [ext_resource type="Texture2D" uid="uid://cwqayejk161mh" path="res://Textures/UI/Main_Menu/BTNs/Upgrade_BTN.png" id="11_sdrtr"]
-[ext_resource type="Texture2D" uid="uid://otsgmcb2bflw" path="res://Textures/player/Spaceships-13/spaceships/b-03.png" id="12_ggd87"]
 [ext_resource type="Texture2D" uid="uid://brlinyw3kiffu" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_01.png" id="12_hj2yo"]
-[ext_resource type="Texture2D" uid="uid://brualhh306n10" path="res://Textures/player/Example_ships/Spaceships-12/Spaceships/Spaceship12-black-01.png" id="13_1yd8l"]
 [ext_resource type="Texture2D" uid="uid://1gjtssyuvrgq" path="res://Textures/UI/Main_Menu/Table_01.png" id="13_gfbbb"]
 [ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="13_n170t"]
-[ext_resource type="Texture2D" uid="uid://fxxcedxrt4x0" path="res://Textures/player/Example_ships/ships-03/Spaceships-03-Blue-01.png" id="16_da35x"]
-[ext_resource type="Texture2D" uid="uid://cvcgrkv2w6nd4" path="res://Textures/player/Example_ships/Drakir/Spaceship-Drakir1.png" id="17_87rmb"]
-[ext_resource type="Texture2D" uid="uid://ryp40weg1ik" path="res://Textures/player/Example_ships/13B.png" id="17_d0mqu"]
-[ext_resource type="Texture2D" uid="uid://ciwynkbd2waty" path="res://Textures/player/Example_ships/AntuZ/SpaceShips/G-01.png" id="17_nwehd"]
-[ext_resource type="Texture2D" uid="uid://bnlluq6ibowiy" path="res://Textures/player/Example_ships/1.png" id="18_o61e6"]
+[ext_resource type="Texture2D" uid="uid://kaf0ljwyaim5" path="res://Textures/player/ship_textures/ship_01_lvl0.png" id="14_spk1m"]
+[ext_resource type="Texture2D" uid="uid://chh7w32nqgbfb" path="res://Textures/player/ship_textures/ship_02_lvl0.png" id="15_fgvn3"]
+[ext_resource type="Texture2D" uid="uid://c3ogkrsa2jvnk" path="res://Textures/player/ship_textures/ship_03_lvl0.png" id="16_wwjej"]
+[ext_resource type="Texture2D" uid="uid://c8tf7nijaonmb" path="res://Textures/player/ship_textures/ship_04_lvl0.png" id="17_qd62r"]
+[ext_resource type="Texture2D" uid="uid://cmpjlx36weqju" path="res://Textures/player/ship_textures/ship_05_lvl0.png" id="18_mgepp"]
 [ext_resource type="AudioStream" uid="uid://cffltim3ki7l0" path="res://Textures/Music/power-up.wav" id="19_gsk1l"]
-[ext_resource type="Texture2D" uid="uid://r2xfa5p6ygpb" path="res://Textures/player/Example_ships/1B.png" id="19_y6kte"]
+[ext_resource type="Texture2D" uid="uid://ekui6ko7t814" path="res://Textures/player/ship_textures/ship_06_lvl0.png" id="19_xi3qs"]
+[ext_resource type="Texture2D" uid="uid://n3xkkipbaqqw" path="res://Textures/player/ship_textures/ship_07_lvl0.png" id="20_symq1"]
+[ext_resource type="Texture2D" uid="uid://djxdxx523tjm2" path="res://Textures/player/ship_textures/ship_08_lvl0.png" id="21_wxflo"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gmmlx"]
 font = ExtResource("13_n170t")
@@ -46,9 +46,24 @@ font_size = 40
 font = ExtResource("1_mddtv")
 font_size = 40
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q8bu7"]
+bg_color = Color(0, 1, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i47je"]
+bg_color = Color(0, 1, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5osyu"]
+bg_color = Color(0, 1, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g33kw"]
+bg_color = Color(0, 1, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kxgyk"]
+bg_color = Color(0.313726, 0.717647, 0, 1)
+
 [sub_resource type="LabelSettings" id="LabelSettings_xifhc"]
 font = ExtResource("13_n170t")
-font_size = 60
+font_size = 50
 
 [sub_resource type="LabelSettings" id="LabelSettings_1r538"]
 font = ExtResource("13_n170t")
@@ -73,6 +88,7 @@ font = ExtResource("1_mddtv")
 font_size = 50
 
 [node name="Upgrade_Menu" type="Control"]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -110,13 +126,13 @@ anchor_right = 0.32642
 anchor_bottom = 0.09125
 metadata/_edit_use_anchors_ = true
 
-[node name="Ascend_crystals" type="Label" parent="HBoxContainer"]
+[node name="Void_Shards_display" type="Label" parent="HBoxContainer"]
 layout_mode = 2
 text = "Ascend: 10"
 label_settings = SubResource("LabelSettings_gmmlx")
 vertical_alignment = 2
 
-[node name="Ascend_crystal" type="TextureRect" parent="HBoxContainer"]
+[node name="Void_shards" type="TextureRect" parent="HBoxContainer"]
 layout_mode = 2
 texture = ExtResource("9_8sam1")
 stretch_mode = 2
@@ -135,7 +151,7 @@ metadata/_edit_use_anchors_ = true
 layout_mode = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="Crystals" type="Label" parent="Resources/HBoxContainer"]
+[node name="Crystals_display" type="Label" parent="Resources/HBoxContainer"]
 layout_mode = 2
 text = "Crystals: 1000"
 label_settings = SubResource("LabelSettings_n5e6d")
@@ -155,14 +171,14 @@ theme_override_constants/separation = 20
 alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Coins" type="Label" parent="Resources/Money"]
+[node name="Coins_display" type="Label" parent="Resources/Money"]
 layout_mode = 2
 text = "Coins: 10000"
 label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Coin" type="TextureRect" parent="Resources/Money"]
+[node name="Coins" type="TextureRect" parent="Resources/Money"]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 texture = ExtResource("10_yijgs")
@@ -225,13 +241,21 @@ texture_normal = ExtResource("11_sdrtr")
 texture_pressed = ExtResource("7_8wbq3")
 texture_hover = ExtResource("7_8wbq3")
 
-[node name="Money" type="Label" parent="UI/HBoxContainer/Upgrade_coins"]
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/HBoxContainer/Upgrade_coins"]
 layout_mode = 0
-offset_left = 6.0
-offset_top = 200.0
-offset_right = 270.0
-offset_bottom = 328.0
-text = "Coins: 5000"
+offset_top = 229.0
+offset_right = 299.0
+offset_bottom = 293.0
+
+[node name="Coins2" type="TextureRect" parent="UI/HBoxContainer/Upgrade_coins/HBoxContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+texture = ExtResource("10_yijgs")
+metadata/_edit_use_anchors_ = true
+
+[node name="Coins_amt" type="Label" parent="UI/HBoxContainer/Upgrade_coins/HBoxContainer"]
+layout_mode = 2
+text = " 5000"
 label_settings = SubResource("LabelSettings_ytpva")
 vertical_alignment = 1
 
@@ -241,13 +265,25 @@ texture_normal = ExtResource("11_sdrtr")
 texture_pressed = ExtResource("7_8wbq3")
 texture_hover = ExtResource("7_8wbq3")
 
-[node name="Crystal" type="Label" parent="UI/HBoxContainer/Upgrade_Crystals"]
-layout_mode = 0
-offset_left = -22.0
-offset_top = 202.0
-offset_right = 261.0
-offset_bottom = 330.0
-text = "Crystals: 50"
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/HBoxContainer/Upgrade_Crystals"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.138095
+anchor_top = 0.713333
+anchor_right = 1.21905
+anchor_bottom = 1.02667
+alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Crstal2" type="TextureRect" parent="UI/HBoxContainer/Upgrade_Crystals/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+texture = ExtResource("12_hj2yo")
+metadata/_edit_use_anchors_ = true
+
+[node name="Crystal_amt" type="Label" parent="UI/HBoxContainer/Upgrade_Crystals/HBoxContainer"]
+layout_mode = 2
+text = " 50"
 label_settings = SubResource("LabelSettings_7w585")
 vertical_alignment = 1
 
@@ -259,6 +295,7 @@ custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 35
+theme_override_styles/pressed = SubResource("StyleBoxFlat_q8bu7")
 text = "Watch Ads for
 crystals"
 text_overrun_behavior = 2
@@ -267,41 +304,62 @@ text_overrun_behavior = 2
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 40
+theme_override_styles/pressed = SubResource("StyleBoxFlat_i47je")
 text = "Watch Ads for
 Money"
 text_overrun_behavior = 2
 
-[node name="Ascend" type="Button" parent="UI"]
+[node name="Buy_Ascend" type="HBoxContainer" parent="UI"]
 anchors_preset = -1
-anchor_left = 0.0461482
-anchor_top = 0.36
-anchor_right = 0.93
-anchor_bottom = 0.423333
-offset_left = 4.15997
-offset_top = -11.0001
-offset_right = 49.5999
-offset_bottom = -10.0001
+anchor_left = -0.000925926
+anchor_top = 0.37875
+anchor_right = 0.976852
+anchor_bottom = 0.416667
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Buy" type="Button" parent="UI/Buy_Ascend"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 60
+theme_override_styles/pressed = SubResource("StyleBoxFlat_5osyu")
+text = "Buy"
+
+[node name="Selected" type="Button" parent="UI/Buy_Ascend"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 60
+theme_override_styles/pressed = SubResource("StyleBoxFlat_g33kw")
+text = "Select
+"
+
+[node name="Ascend" type="Button" parent="UI/Buy_Ascend"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+theme_override_font_sizes/font_size = 60
+theme_override_styles/pressed = SubResource("StyleBoxFlat_kxgyk")
 text = "Ascend"
 text_overrun_behavior = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="Ascend_crystal" type="TextureRect" parent="UI/Ascend"]
+[node name="Void_shard" type="TextureRect" parent="UI/Buy_Ascend/Ascend"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.206
-anchor_top = 0.869281
-anchor_right = 0.402
-anchor_bottom = 1.5817
+anchor_left = 0.259823
+anchor_top = 0.791209
+anchor_right = 0.405577
+anchor_bottom = 1.98901
 texture = ExtResource("9_8sam1")
 metadata/_edit_use_anchors_ = true
 
-[node name="Acend_amt" type="Label" parent="UI/Ascend"]
+[node name="Void_Shard" type="Label" parent="UI/Buy_Ascend/Ascend"]
 layout_mode = 0
-offset_left = 396.0
-offset_top = 152.0
-offset_right = 684.0
-offset_bottom = 243.0
+offset_left = 337.0
+offset_top = 99.0
+offset_right = 577.0
+offset_bottom = 174.0
 text = "Cost:50
 "
 label_settings = SubResource("LabelSettings_xifhc")
@@ -309,10 +367,10 @@ vertical_alignment = 1
 
 [node name="WarningPanel" type="Panel" parent="UI"]
 visible = false
-offset_left = 166.0
-offset_top = 680.0
-offset_right = 862.0
-offset_bottom = 1072.0
+offset_left = 151.0
+offset_top = 703.0
+offset_right = 847.0
+offset_bottom = 1095.0
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
@@ -329,20 +387,20 @@ metadata/_edit_use_anchors_ = true
 
 [node name="SelectedShipDisplay" type="Control" parent="."]
 layout_mode = 1
-anchor_left = 0.0171326
-anchor_top = 0.100833
+anchor_left = 0.03156
+anchor_top = 0.101667
 anchor_right = 0.551849
-anchor_bottom = 0.356666
+anchor_bottom = 0.354167
 grow_horizontal = 2
 metadata/_edit_use_anchors_ = true
 
 [node name="SelectedShip" type="TextureRect" parent="SelectedShipDisplay"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0893761
-anchor_top = 0.0423453
-anchor_right = 0.984823
-anchor_bottom = 0.934853
+anchor_left = 0.0103986
+anchor_top = 0.0429043
+anchor_right = 0.984402
+anchor_bottom = 0.968647
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
@@ -364,10 +422,10 @@ theme_type_variation = &"Details_panel"
 
 [node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel"]
 layout_mode = 2
-anchor_left = 0.0752687
-anchor_top = 0.361583
-anchor_right = 0.875269
-anchor_bottom = 0.903956
+anchor_left = 0.0817204
+anchor_top = 0.271186
+anchor_right = 0.939785
+anchor_bottom = 1.29567
 grow_vertical = 2
 theme = ExtResource("7_462bn")
 metadata/_edit_use_anchors_ = true
@@ -375,43 +433,33 @@ metadata/_edit_use_anchors_ = true
 [node name="Stats" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails"]
 layout_mode = 2
 
-[node name="Speed" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
-layout_mode = 2
-text = "Speed: 2000"
-label_settings = SubResource("LabelSettings_68fc6")
-vertical_alignment = 1
-
 [node name="Damage" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
 layout_mode = 2
 text = "Damage: 20"
 label_settings = SubResource("LabelSettings_68fc6")
 vertical_alignment = 1
 
+[node name="StatusLabel" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Upgrades to next ascension: %d\" % next_requirements[\"upgrades_needed\"]"
+label_settings = SubResource("LabelSettings_4xt2x")
+autowrap_mode = 3
+metadata/_edit_use_anchors_ = true
+
 [node name="ShipName" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
-offset_left = 7.0
-offset_top = 45.8979
-offset_right = 467.0
-offset_bottom = 145.898
+offset_left = 2.0
+offset_top = 17.0
+offset_right = 462.0
+offset_bottom = 117.0
 text = "Ship Name"
 label_settings = SubResource("LabelSettings_68fc6")
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 text_overrun_behavior = 2
-
-[node name="StatusLabel" type="Label" parent="SelectedShipDisplay"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.02361
-anchor_top = 0.513031
-anchor_right = 1.79089
-anchor_bottom = 1.27036
-text = "Upgrades to next ascension: %d\" % next_requirements[\"upgrades_needed\"]"
-label_settings = SubResource("LabelSettings_4xt2x")
-autowrap_mode = 3
-metadata/_edit_use_anchors_ = true
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 0
@@ -438,7 +486,7 @@ anchor_left = 0.0633333
 anchor_top = 0.0933333
 anchor_right = 0.953333
 anchor_bottom = 0.953333
-texture = ExtResource("12_ggd87")
+texture = ExtResource("14_spk1m")
 metadata/_edit_use_anchors_ = true
 
 [node name="Label" type="Label" parent="ScrollContainer/GridContainer/Ship1"]
@@ -468,7 +516,7 @@ offset_top = 198.999
 offset_right = 232.0
 offset_bottom = 198.9
 rotation = 3.14159
-texture = ExtResource("13_1yd8l")
+texture = ExtResource("15_fgvn3")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -501,7 +549,7 @@ offset_top = 175.9
 offset_right = 176.9
 offset_bottom = 176.1
 rotation = 3.14159
-texture = ExtResource("16_da35x")
+texture = ExtResource("16_wwjej")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -529,7 +577,7 @@ anchor_left = 0.12
 anchor_top = 0.08
 anchor_right = 0.863333
 anchor_bottom = 0.856667
-texture = ExtResource("17_d0mqu")
+texture = ExtResource("17_qd62r")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -556,7 +604,7 @@ anchor_left = 0.0733333
 anchor_top = 0.136667
 anchor_right = 0.94
 anchor_bottom = 0.883333
-texture = ExtResource("18_o61e6")
+texture = ExtResource("18_mgepp")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -588,7 +636,7 @@ offset_left = 7.99998
 offset_top = 1.52588e-05
 offset_right = 7.89999
 offset_bottom = -0.100037
-texture = ExtResource("19_y6kte")
+texture = ExtResource("19_xi3qs")
 expand_mode = 1
 
 [node name="Label6" type="Label" parent="ScrollContainer/GridContainer/Ship6"]
@@ -620,7 +668,7 @@ offset_top = 200.0
 offset_right = 237.9
 offset_bottom = 200.1
 rotation = 3.14159
-texture = ExtResource("17_nwehd")
+texture = ExtResource("20_symq1")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -648,7 +696,7 @@ anchor_left = 0.153333
 anchor_top = 0.19
 anchor_right = 0.89
 anchor_bottom = 0.826667
-texture = ExtResource("17_87rmb")
+texture = ExtResource("21_wxflo")
 expand_mode = 1
 metadata/_edit_use_anchors_ = true
 
@@ -735,7 +783,9 @@ stream = ExtResource("19_gsk1l")
 [connection signal="pressed" from="UI/HBoxContainer/Upgrade_Crystals" to="." method="_on_upgrade_crystals_pressed"]
 [connection signal="pressed" from="UI/HBoxContainer/VBoxContainer/Ads_crystal" to="." method="_on_ad_crystals_pressed"]
 [connection signal="pressed" from="UI/HBoxContainer/VBoxContainer/Ads_Coins" to="." method="_on_ad_coins_pressed"]
-[connection signal="pressed" from="UI/Ascend" to="." method="_on_ascend_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Buy" to="." method="_on_buy_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Selected" to="." method="_on_selected_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Ascend" to="." method="_on_ascend_pressed"]
 [connection signal="gui_input" from="ScrollContainer/GridContainer/Ship1" to="." method="_on_ship1_selected"]
 [connection signal="gui_input" from="ScrollContainer/GridContainer/Ship2" to="." method="_on_ship2_selected"]
 [connection signal="gui_input" from="ScrollContainer/GridContainer/Ship3" to="." method="_on_ship3_selected"]

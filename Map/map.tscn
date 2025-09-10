@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bs74tol27j6sb"]
+[gd_scene load_steps=17 format=3 uid="uid://bs74tol27j6sb"]
 
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="2_3g1qk"]
 [ext_resource type="Texture2D" uid="uid://b1u8585mn0uux" path="res://Textures/Background/Mapbackground.png" id="2_6yc6o"]
@@ -11,10 +11,9 @@
 [ext_resource type="Texture2D" uid="uid://dewuheq0cmgte" path="res://Textures/UI/Main_Menu/Star_03.png" id="8_uh8jt"]
 [ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="11_0th5g"]
 [ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="11_31513"]
-[ext_resource type="Texture2D" uid="uid://c0ddjequ5dtqq" path="res://Textures/UI/Main_Menu/Backward_BTN.png" id="11_pa6h5"]
 [ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="11_ptuj4"]
 [ext_resource type="Texture2D" uid="uid://g6s5vmg16xj5" path="res://Textures/Background/Background.png" id="12_rr5ff"]
-[ext_resource type="Texture2D" uid="uid://5u6berhnohyf" path="res://Textures/UI/Main_Menu/Shop_BTN.png" id="13_0appe"]
+[ext_resource type="Texture2D" uid="uid://g7jw3gmvkv4p" path="res://Textures/UI/Main_Menu/BTNs/Shop_BTN.png" id="14_hry20"]
 [ext_resource type="Texture2D" uid="uid://cnsxlue1203ri" path="res://Textures/UI/Main_Menu/BTNs_Active/Shop_BTN.png" id="16_t5i76"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_bmidu"]
@@ -257,16 +256,16 @@ offset_right = 252.0
 offset_bottom = 2192.0
 texture_normal = ExtResource("11_31513")
 texture_pressed = ExtResource("11_0th5g")
-texture_hover = ExtResource("11_pa6h5")
+texture_hover = ExtResource("11_31513")
 
-[node name="TextureButton" type="TextureButton" parent="."]
+[node name="Shop" type="TextureButton" parent="."]
 layout_mode = 0
 offset_left = 854.0
 offset_top = 1972.0
 offset_right = 1064.0
 offset_bottom = 2182.0
-texture_normal = ExtResource("13_0appe")
+texture_normal = ExtResource("14_hry20")
 texture_pressed = ExtResource("16_t5i76")
 
 [connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="TextureButton" to="." method="_on_texture_button_pressed"]
+[connection signal="pressed" from="Shop" to="." method="_on_shop_pressed"]

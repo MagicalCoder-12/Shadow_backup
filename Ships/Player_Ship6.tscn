@@ -1,0 +1,41 @@
+[gd_scene load_steps=13 format=3 uid="uid://btwx058uep788"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_jy018"]
+[ext_resource type="Texture2D" uid="uid://dkvimc6ksllu0" path="res://Textures/player/Example_ships/11B.png" id="2_cgmm3"]
+[ext_resource type="Texture2D" uid="uid://ekui6ko7t814" path="res://Textures/player/ship_textures/ship_06_lvl0.png" id="2_vss4i"]
+[ext_resource type="Texture2D" uid="uid://brktu57qslusv" path="res://Textures/player/ship_textures/ship_06_lvl1.png" id="3_rh1bh"]
+[ext_resource type="Texture2D" uid="uid://divhharr74bey" path="res://Textures/player/ship_textures/ship_06_lvl2.png" id="4_ujyi2"]
+[ext_resource type="Texture2D" uid="uid://61el2xacrjtg" path="res://Textures/player/ship_textures/ship_06_lvl3.png" id="5_7qwfd"]
+[ext_resource type="Texture2D" uid="uid://2a7scb5blf23" path="res://Textures/player/ship_textures/ship_06_lvl4.png" id="6_siop8"]
+[ext_resource type="Texture2D" uid="uid://sjtdpxiq6ch0" path="res://Textures/player/ship_textures/ship_06_lvl5.png" id="7_dbof8"]
+[ext_resource type="Texture2D" uid="uid://clb7g8i5hqsgf" path="res://Textures/player/ship_textures/ship_06_lvl6.png" id="8_agiwo"]
+[ext_resource type="Texture2D" uid="uid://mdsxotrpuol0" path="res://Textures/player/ship_textures/ship_06_lvl7.png" id="9_p1j57"]
+[ext_resource type="Texture2D" uid="uid://cejba3fyl85ss" path="res://Textures/player/ship_textures/ship_06_lvl8.png" id="10_2dqhw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s7uq2"]
+size = Vector2(738, 189)
+
+[node name="Player_Ship6" instance=ExtResource("1_jy018")]
+scale = Vector2(1, 1)
+ship_id = "Ship6"
+shadow_texture = ExtResource("2_cgmm3")
+evolution_textures = Array[Texture2D]([ExtResource("2_vss4i"), ExtResource("3_rh1bh"), ExtResource("4_ujyi2"), ExtResource("5_7qwfd"), ExtResource("6_siop8"), ExtResource("7_dbof8"), ExtResource("8_agiwo"), ExtResource("9_p1j57"), ExtResource("10_2dqhw")])
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_vss4i")
+
+[node name="LeftGun" parent="Sprite2D/FiringPositions" index="0"]
+position = Vector2(-88.8, -69.6)
+
+[node name="RightGun" parent="Sprite2D/FiringPositions" index="1"]
+position = Vector2(86.4, -64.8)
+
+[node name="Satellite" parent="Sprite2D" index="2"]
+position = Vector2(-183, 1)
+
+[node name="Satellite2" parent="Sprite2D" index="3"]
+position = Vector2(187, 5)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(-19, 21.5)
+shape = SubResource("RectangleShape2D_s7uq2")

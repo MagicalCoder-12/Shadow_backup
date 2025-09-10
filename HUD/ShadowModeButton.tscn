@@ -1,0 +1,51 @@
+[gd_scene load_steps=8 format=3 uid="uid://bq8v4j2h5n8yc"]
+
+[ext_resource type="Script" path="res://HUD/ShadowModeButton.gd" id="1_shadow"]
+[ext_resource type="Texture2D" uid="uid://bsc7wxa30tblr" path="res://Textures/guibuttons/BlackButton-Active.png" id="2_2egk6"]
+[ext_resource type="Texture2D" uid="uid://c4so8sombbim3" path="res://Textures/guibuttons/BlueButton-Hover.png" id="3_i3h5r"]
+[ext_resource type="Texture2D" uid="uid://jinuo75d44cf" path="res://Textures/UI/Main_Menu/resied _button.png" id="4_ba1i1"]
+[ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="5_gbckn"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="6_doa7v"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qo1kb"]
+font = ExtResource("6_doa7v")
+font_size = 40
+
+[node name="ShadowModeButton" type="Control" groups=["UI"]]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_shadow")
+metadata/_edit_use_anchors_ = true
+
+[node name="TextureButton" type="TextureButton" parent="."]
+process_mode = 3
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 1
+texture_normal = ExtResource("2_2egk6")
+texture_pressed = ExtResource("3_i3h5r")
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="TextureButton"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+fill_mode = 3
+texture_under = ExtResource("4_ba1i1")
+texture_progress = ExtResource("5_gbckn")
+
+[node name="Label" type="Label" parent="TextureButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Shadow Mode"
+label_settings = SubResource("LabelSettings_qo1kb")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[connection signal="pressed" from="TextureButton" to="." method="_on_texture_button_pressed"]

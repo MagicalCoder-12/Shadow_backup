@@ -2,10 +2,10 @@ extends Area2D
 class_name BulletBase
 
 ## Speed of the bullet in pixels per second.
-@export var speed: float = 600.0 # Assuming a default value if GameManager is not available here
+@export var speed: float = 600.0
 
 ## Damage dealt by the bullet.
-@export var damage: int = 1 # Assuming a default value
+@export var damage: int = 1
 
 ## Whether the bullet is active (can move and deal damage).
 @export var is_active: bool = true
@@ -14,21 +14,16 @@ class_name BulletBase
 @export var bullet_owner: String = "player"
 
 ## Groups this bullet can collide with.
-@export var collision_groups: Array[String] = ["damageable", "boss"] # Using string literals for example
+@export var collision_groups: Array[String] = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
 
 ## Velocity vector of the bullet.
 var velocity: Vector2
 
 func _ready() -> void:
-
 	if speed <= 0:
-		# Using a generic default if GameManager isn't accessible in this context
 		speed = 600.0
-		print("Warning: Bullet speed is non-positive. Setting to default: %s" % speed)
 	if damage <= 0:
-		# Using a generic default
-		damage = 1
-		print("Warning: Bullet damage is non-positive. Setting to default: %s" % damage)
+		damage = 10
 
 	velocity = Vector2.UP.rotated(global_rotation) * speed
 
@@ -78,7 +73,6 @@ func _on_area_entered(area: Area2D) -> void:
 
 ## Virtual method for derived classes to customize collision behavior.
 func _on_collision(_area: Area2D) -> void:
-	# Example: Play an impact animation or sound
 	pass
 
 ## Frees the bullet when it exits the screen.

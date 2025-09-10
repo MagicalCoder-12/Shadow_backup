@@ -56,4 +56,4 @@ func complete_loading():
 	var scene = ResourceLoader.load_threaded_get(target_scene_path)
 	if scene:
 		get_tree().change_scene_to_packed(scene)
-	queue_free()
+	call_deferred("queue_free")
