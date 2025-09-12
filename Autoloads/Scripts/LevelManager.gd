@@ -18,11 +18,12 @@ signal level_loaded(level_num: int)
 
 func _ready() -> void:
 	gm = GameManager
+	print("LevelManager: _ready() called")
 	# Defer initialization until all autoloads are ready
 	call_deferred("initialize")
 
 func initialize() -> void:
-	pass
+	print("LevelManager: initialize() called")
 
 func load_level(level_num: int) -> void:
 	if not is_level_unlocked(level_num):
@@ -83,6 +84,12 @@ func complete_level(current_level: int) -> void:
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 	
+	print("LevelManager: Emitting level_completed signal for level %d" % current_level)
+	print("LevelManager: GameManager exists: %s" % (gm != null))
+	if gm:
+		print("LevelManager: GameManager.level_completed signal connected: %s" % gm.level_completed.get_connections().size())
+		for connection in gm.level_completed.get_connections():
+			print("LevelManager: Connected to: %s" % connection.callable.get_object())
 	gm.level_completed.emit(current_level)
 	
 	var should_transition_to_next_level: bool = true
@@ -222,15 +229,35 @@ func reset_level_progress() -> void:
 	completed_levels = []
 
 func handle_node_added(node: Node) -> void:
+	print("LevelManager: handle_node_added called for node: %s" % node.name)
 	if node is WaveManager:
-		node.wave_started.connect(_on_wave_started)
-		node.all_waves_cleared.connect(_on_all_waves_cleared)
+		print("LevelManager: Connecting WaveManager signals")
+		if not node.wave_started.is_connected(_on_wave_started):
+			node.wave_started.connect(_on_wave_started)
+			print("LevelManager: Connected wave_started signal")
+		else:
+			print("LevelManager: wave_started signal already connected")
+			
+		if not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
+			node.all_waves_cleared.connect(_on_all_waves_cleared)
+			print("LevelManager: Connected all_waves_cleared signal")
+		else:
+			print("LevelManager: all_waves_cleared signal already connected")
 	
 	if node.is_in_group(gm.GROUP_BOSS):
+		print("LevelManager: Node is in boss group")
 		if node is Area2D and node.has_signal("boss_defeated"):
-			node.boss_defeated.connect(_on_boss_defeated)
+			if not node.boss_defeated.is_connected(_on_boss_defeated):
+				node.boss_defeated.connect(_on_boss_defeated)
+				print("LevelManager: Connected boss_defeated signal")
+			else:
+				print("LevelManager: boss_defeated signal already connected")
 		if node.has_signal("unlock_shadow_mode"):
-			node.unlock_shadow_mode.connect(_on_unlock_shadow_mode)
+			if not node.unlock_shadow_mode.is_connected(_on_unlock_shadow_mode):
+				node.unlock_shadow_mode.connect(_on_unlock_shadow_mode)
+				print("LevelManager: Connected unlock_shadow_mode signal")
+			else:
+				print("LevelManager: unlock_shadow_mode signal already connected")
 
 func _on_wave_started(current_wave: int, total_waves: int) -> void:
 	gm.wave_started.emit(current_wave, total_waves)
@@ -239,18 +266,22 @@ func _on_all_waves_cleared() -> void:
 	gm.all_waves_cleared.emit()
 
 func _on_boss_defeated() -> void:
+	print("LevelManager: _on_boss_defeated called")
 	print("LevelManager: Boss defeated signal received")
 	gm.score += 1000
 	var current_level: int = get_current_level()
+	print("LevelManager: Current level is %d" % current_level)
 	if current_level == 5:
 		unlock_shadow_mode()
 	
 	# For boss levels, complete the level properly
 	if current_level % 5 == 0 and current_level > 0:
 		# Emit the level completed signal which will trigger the boss clear screen
+		print("LevelManager: Emitting level_completed signal for boss level %d" % current_level)
 		gm.level_completed.emit(current_level)
 	else:
 		# For non-boss levels, complete normally
+		print("LevelManager: Completing non-boss level %d normally" % current_level)
 		complete_level(current_level)
 
 func _on_unlock_shadow_mode() -> void:

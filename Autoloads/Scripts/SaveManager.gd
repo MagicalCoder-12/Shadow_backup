@@ -14,6 +14,8 @@ const DEFAULT_RESOURCES: Dictionary = {
 # Per-level data storage
 var level_scores: Dictionary = {}  # level_num -> score
 var level_lives: Dictionary = {}   # level_num -> lives
+// Added boss_levels_completed to track which boss levels have been completed
+var boss_levels_completed: Array = []  # Array of boss level numbers that have been completed
 
 func _ready() -> void:
 	gm = GameManager
@@ -34,7 +36,7 @@ func save_progress() -> void:
 	if not autosave_progress:
 		return
 	
-	# Check if managers are ready before saving
+	// Check if managers are ready before saving
 	if not gm.level_manager or not gm.player_manager:
 		push_warning("SaveManager: Cannot save progress, managers not ready yet")
 		return
@@ -55,6 +57,8 @@ func save_progress() -> void:
 
 		file.store_var(level_scores)
 		file.store_var(level_lives)
+		// Save boss_levels_completed data
+		file.store_var(boss_levels_completed)
 		file.close()
 	else:
 		push_error("Failed to save progress: Unable to open file at %s" % progress_file_path)
@@ -70,33 +74,33 @@ func load_progress() -> void:
 				file.close()
 				return
 			
-			# Load data with null checks for managers
+			// Load data with null checks for managers
 			if !file.eof_reached() and gm.level_manager:
 				gm.level_manager.unlocked_levels = file.get_var()
 			else:
-				file.get_var()  # Skip this value if manager not ready
+				file.get_var()  // Skip this value if manager not ready
 				
 			if !file.eof_reached() and gm.level_manager:
 				gm.level_manager.shadow_mode_unlocked = file.get_var()
 			else:
-				file.get_var()  # Skip this value if manager not ready
+				file.get_var()  // Skip this value if manager not ready
 				
 			if !file.eof_reached() and gm.level_manager:
 				gm.level_manager.shadow_mode_tutorial_shown = file.get_var()
 			else:
-				file.get_var()  # Skip this value if manager not ready
+				file.get_var()  // Skip this value if manager not ready
 				
 			if !file.eof_reached() and gm.level_manager:
 				gm.level_manager.completed_levels = file.get_var()
 			else:
-				file.get_var()  # Skip this value if manager not ready
+				file.get_var()  // Skip this value if manager not ready
 				
 			if !file.eof_reached():
 				gm.player_lives = file.get_var()
 			if !file.eof_reached() and gm.player_manager:
 				gm.player_manager.selected_ship_id = file.get_var()
 			else:
-				file.get_var()  # Skip this value if manager not ready
+				file.get_var()  // Skip this value if manager not ready
 				
 			if !file.eof_reached():
 				gm.ships = file.get_var()
@@ -118,12 +122,18 @@ func load_progress() -> void:
 			else:
 				level_lives = {}
 			
-			# Validate ships data
+			// Load boss_levels_completed data
+			if !file.eof_reached():
+				boss_levels_completed = file.get_var()
+			else:
+				boss_levels_completed = []
+			
+			// Validate ships data
 			if gm.ships.is_empty() or not gm.ships is Array:
 				gm.ships = _get_default_ships()
 				push_warning("Loaded ships data was invalid. Using default data.")
 			
-			# Ensure all ships have required fields and valid textures
+			// Ensure all ships have required fields and valid textures
 			for ship in gm.ships:
 				if not ship.has("unlocked"):
 					ship["unlocked"] = false
@@ -153,6 +163,8 @@ func reset_progress() -> void:
 	gm.void_shards_count = DEFAULT_RESOURCES["void_shards_count"]
 	level_scores = {}
 	level_lives = {}
+	// Reset boss_levels_completed data
+	boss_levels_completed = []
 	if autosave_progress:
 		save_progress()
 

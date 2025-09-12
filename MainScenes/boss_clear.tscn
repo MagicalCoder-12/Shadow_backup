@@ -19,9 +19,8 @@ font_size = 60
 outline_size = 10
 
 [sub_resource type="LabelSettings" id="LabelSettings_score"]
-line_spacing = 0.0
 font = ExtResource("3_narrow_font")
-font_size = 52
+font_size = 47
 
 [sub_resource type="LabelSettings" id="LabelSettings_reward_title"]
 font = ExtResource("3_narrow_font")
@@ -30,7 +29,7 @@ font_color = Color(1, 0.8, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_reward_amount"]
 font = ExtResource("3_narrow_font")
-font_size = 44
+font_size = 50
 
 [sub_resource type="LabelSettings" id="LabelSettings_total_rewards"]
 font = ExtResource("3_narrow_font")
@@ -82,17 +81,20 @@ vertical_alignment = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.0462428
-anchor_top = 0.12
+anchor_top = 0.151786
 anchor_right = 0.965318
-anchor_bottom = 1.02527
+anchor_bottom = 0.982887
 offset_bottom = -46.0
 theme_override_constants/separation = 35
 metadata/_edit_use_anchors_ = true
 
 [node name="Score" type="Label" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 text = "Level Score: 000000000"
 label_settings = SubResource("LabelSettings_score")
+vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="RewardsTitle" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -117,6 +119,7 @@ stretch_mode = 2
 layout_mode = 2
 text = "Void Shards: +10"
 label_settings = SubResource("LabelSettings_reward_amount")
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CoinsReward" type="HBoxContainer" parent="Panel/VBoxContainer/RewardsContainer"]
@@ -132,6 +135,7 @@ stretch_mode = 2
 layout_mode = 2
 text = "Coins: +1000"
 label_settings = SubResource("LabelSettings_reward_amount")
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CrystalsReward" type="HBoxContainer" parent="Panel/VBoxContainer/RewardsContainer"]
@@ -147,6 +151,7 @@ stretch_mode = 2
 layout_mode = 2
 text = "Crystals: +50"
 label_settings = SubResource("LabelSettings_reward_amount")
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TotalRewards" type="Label" parent="Panel/VBoxContainer"]
@@ -154,6 +159,10 @@ layout_mode = 2
 text = "Total Rewards Applied!"
 label_settings = SubResource("LabelSettings_total_rewards")
 horizontal_alignment = 1
+
+[node name="Gap" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -178,8 +187,6 @@ layout_mode = 2
 texture_normal = ExtResource("11_forward_btn")
 texture_pressed = ExtResource("12_forward_btn_active")
 texture_hover = ExtResource("12_forward_btn_active")
-
-[node name="CountUpTimer" type="Timer" parent="."]
 
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Map" to="." method="_on_map_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Restart" to="." method="_on_restart_pressed"]

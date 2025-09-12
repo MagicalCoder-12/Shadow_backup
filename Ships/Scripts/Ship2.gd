@@ -18,7 +18,7 @@ func _ready() -> void:
 	base_texture_scale = Vector2(1.5, 1.5)
 	evolution_texture_scales = [Vector2(1.3, 1.3), Vector2(1.5, 1.5)]  # upgrade_1, upgrade_2
 	default_evolution_scale = Vector2(1.0, 1.0)
-	
+
 	super._ready()  # Call BaseShip's _ready for evolution scaling
 	plBullet = preload("res://Bullet/player_bullet_2.tscn")  # Default bullet for normal mode
 	

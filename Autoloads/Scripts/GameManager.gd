@@ -187,6 +187,10 @@ func reset_for_new_level() -> void:
 	score_updated.emit(_score)
 	on_player_life_changed.emit(_player_lives)
 
+func complete_level(current_level: int) -> void:
+	print("[GameManager] complete_level called for level: %d" % current_level)
+	level_manager.complete_level(current_level)
+
 func _on_shadow_mode_timer_timeout() -> void:
 	if level_manager.shadow_mode_enabled:
 		level_manager.shadow_mode_enabled = false
@@ -207,9 +211,6 @@ func change_scene(scene_path: String) -> void:
 
 func load_level(level_num: int) -> void:
 	level_manager.load_level(level_num)
-
-func complete_level(current_level: int) -> void:
-	level_manager.complete_level(current_level)
 
 func request_ad_revive() -> void:
 	pause_for_ad_revive()  # Pause game before requesting ad

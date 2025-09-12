@@ -71,6 +71,7 @@ func start_next_wave() -> void:
 	if current_wave >= total_waves:
 		if debug_mode:
 			print("WaveManager: All waves completed for level %d" % current_level)
+		print("WaveManager: Emitting all_waves_cleared signal")
 		all_waves_cleared.emit()
 		return
 	
@@ -215,6 +216,7 @@ func _on_formation_complete() -> void:
 func _on_all_enemies_destroyed() -> void:
 	if debug_mode:
 		print("WaveManager: All enemies destroyed for wave %d" % (current_wave + 1))
+	print("WaveManager: Calling _complete_wave from _on_all_enemies_destroyed")
 	_complete_wave()
 
 func _verify_enemy_count() -> void:
@@ -264,6 +266,7 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 	if enemies_alive <= 0 and wave_in_progress and not waiting_for_next_wave:
 		if debug_mode:
 			print("WaveManager: Conditions met for wave completion - calling _complete_wave()")
+		print("WaveManager: Calling _complete_wave from _on_enemy_killed")
 		_complete_wave()
 
 func _complete_wave():
