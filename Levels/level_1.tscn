@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://ce0cslus5mqjn"]
+[gd_scene load_steps=24 format=3 uid="uid://ce0cslus5mqjn"]
 
 [ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="1_jcyqe"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_2hkqn"]
@@ -20,53 +20,66 @@ shader = ExtResource("3_l63sq")
 shader_parameter/direction = Vector2(0, -1.5)
 shader_parameter/speed_scale = 0.1
 
-[sub_resource type="Resource" id="Resource_3ksnv"]
+[sub_resource type="Resource" id="Resource_mnx1g"]
 script = ExtResource("2_2hkqn")
 formation_type = 0
 entry_pattern = 0
 difficulty = 1
 enemy_type = "mob1"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_02jfn"]
+[sub_resource type="Resource" id="Resource_mw0rq"]
 script = ExtResource("2_2hkqn")
 formation_type = 0
 entry_pattern = 0
 difficulty = 1
-enemy_type = "mob2"
+enemy_type = "mob1"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_1r4y0"]
+[sub_resource type="Resource" id="Resource_to45i"]
 script = ExtResource("2_2hkqn")
 formation_type = 0
 entry_pattern = 0
 difficulty = 1
-enemy_type = "mob3"
+enemy_type = "mob1"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
-[sub_resource type="Resource" id="Resource_rjduf"]
+[sub_resource type="Resource" id="Resource_8f7sh"]
 script = ExtResource("2_2hkqn")
 formation_type = 0
 entry_pattern = 0
 difficulty = 1
-enemy_type = "mob4"
+enemy_type = "mob1"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_746vp"]
+script = ExtResource("2_2hkqn")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
@@ -169,12 +182,11 @@ bus = &"Background"
 parameters/looping = true
 
 [node name="Spawner" parent="." instance=ExtResource("4")]
-position = Vector2(673, 19)
+position = Vector2(549, 68)
 
 [node name="LevelManager" type="Node2D" parent="."]
 script = ExtResource("11_awp4e")
-waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_3ksnv"), SubResource("Resource_02jfn"), SubResource("Resource_1r4y0"), SubResource("Resource_rjduf")])
-debug_mode = true
+waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_mnx1g"), SubResource("Resource_mw0rq"), SubResource("Resource_to45i"), SubResource("Resource_8f7sh"), SubResource("Resource_746vp")])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 process_mode = 3
@@ -183,6 +195,7 @@ libraries = {
 }
 
 [node name="WaveManager" parent="." instance=ExtResource("13_nmwl1")]
+wave_delay = 1.5
 debug_mode = false
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

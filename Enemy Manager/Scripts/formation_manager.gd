@@ -10,6 +10,11 @@ signal enemy_died(enemy: Enemy)
 @export var debug_mode: bool = false
 @export var formation_completion_delay: float = 0.5
 
+# New export for spawn point indicator
+@export var show_spawn_indicators: bool = true
+@export var spawn_indicator_duration: float = 1.0
+@export var spawn_indicator_blink_count: int = 3
+
 var viewport_size: Vector2
 var screen_width: float
 var screen_height: float
@@ -152,6 +157,13 @@ func _calculate_formation_positions(enemy_count: int) -> void:
 			_calculate_v_formation(enemy_count, formation_center, formation_spacing)
 		formation_enums.FormationType.DIAMOND:
 			_calculate_diamond_formation(enemy_count, formation_center, formation_radius, formation_spacing)
+		# New formation types
+		formation_enums.FormationType.V_WAVE:
+			_calculate_v_wave_formation(enemy_count, formation_center, formation_spacing)
+		formation_enums.FormationType.CLUSTER:
+			_calculate_cluster_formation(enemy_count, formation_center, 5)  # Default cluster size of 5
+		formation_enums.FormationType.DYNAMIC:
+			_calculate_dynamic_formation(enemy_count, formation_center, Time.get_ticks_msec() / 1000.0)
 		_:
 			# Default to circle formation
 			_calculate_circle_formation(enemy_count, formation_center, formation_radius)
@@ -163,6 +175,44 @@ func _calculate_formation_positions(enemy_count: int) -> void:
 	
 	if debug_mode:
 		print("FormationManager: Generated ", formation_positions.size(), " formation positions")
+
+# --- New Formation Calculation Methods ---
+
+func _calculate_v_wave_formation(enemy_count: int, center: Vector2, spacing: float):
+	var rows = ceil(sqrt(enemy_count))
+	var cols = ceil(float(enemy_count) / rows)
+	
+	for i in range(enemy_count):
+		var row = i / cols
+		var col = i % int(cols)
+		
+		# Create wave pattern
+		var wave_offset = sin(row * 0.5) * spacing
+		var pos = center + Vector2(col * spacing - (cols * spacing / 2), row * spacing + wave_offset)
+		formation_positions.append(pos)
+
+func _calculate_cluster_formation(enemy_count: int, center: Vector2, cluster_size: int = 5):
+	var clusters = ceil(float(enemy_count) / cluster_size)
+	
+	for c in range(clusters):
+		var cluster_center = Vector2(
+			center.x + (c % 3 - 1) * 200,
+			center.y + (c / 3) * 150
+		)
+		
+		var cluster_count = min(cluster_size, enemy_count - c * cluster_size)
+		for i in range(cluster_count):
+			var angle = i * (2 * PI / cluster_count)
+			var pos = cluster_center + Vector2(cos(angle) * 50, sin(angle) * 50)
+			formation_positions.append(pos)
+
+func _calculate_dynamic_formation(enemy_count: int, center: Vector2, time: float):
+	# Formation positions change over time
+	for i in range(enemy_count):
+		var angle = i * (2 * PI / enemy_count) + time * 0.5
+		var radius = 100 + sin(time + i) * 50
+		var pos = center + Vector2(cos(angle) * radius, sin(angle) * radius)
+		formation_positions.append(pos)
 
 func _calculate_circle_formation(enemy_count: int, center: Vector2, radius: float) -> void:
 	var angle_step = 2.0 * PI / enemy_count
@@ -235,6 +285,11 @@ func _calculate_spawn_positions(enemy_count: int) -> void:
 			_calculate_side_spawn_positions(enemy_count)
 		formation_enums.EntryPattern.TOP_DIVE:
 			_calculate_top_spawn_positions(enemy_count)
+		# New entry patterns
+		formation_enums.EntryPattern.STAGGERED:
+			_calculate_staggered_entry_positions(enemy_count, 5)  # Default group size of 5
+		formation_enums.EntryPattern.AMBUSH:
+			_calculate_ambush_entry_positions(enemy_count, 3)  # Default ambush count of 3
 		_:
 			# Default to top dive
 			_calculate_top_spawn_positions(enemy_count)
@@ -248,6 +303,39 @@ func _calculate_spawn_positions(enemy_count: int) -> void:
 	
 	if debug_mode:
 		print("FormationManager: Generated ", spawn_positions.size(), " spawn positions")
+
+# --- New Entry Position Calculation Methods ---
+
+func _calculate_staggered_entry_positions(enemy_count: int, group_size: int = 5):
+	# Calculate entry positions for staggered group entry
+	var groups = ceil(float(enemy_count) / group_size)
+	
+	for g in range(groups):
+		var group_start = g * group_size
+		var group_end = min((g + 1) * group_size, enemy_count)
+		
+		# Position group members together but with slight variations
+		var group_center_x = randf_range(100, screen_width - 100)
+		
+		for i in range(group_start, group_end):
+			var offset_x = randf_range(-30, 30)
+			var spawn_x = clamp(group_center_x + offset_x, 50, screen_width - 50)
+			var spawn_y = -SPAWN_BUFFER - (g * 50)  # Stagger groups vertically
+			spawn_positions.append(Vector2(spawn_x, spawn_y))
+
+func _calculate_ambush_entry_positions(enemy_count: int, ambush_count: int = 3):
+	# Calculate standard entry positions for most enemies
+	_calculate_top_spawn_positions(enemy_count - ambush_count)
+	
+	# Calculate edge entry positions for ambush enemies
+	for i in range(ambush_count):
+		var side = 1 if i % 2 == 0 else -1
+		#Keep enemies within screen bounds - spawn just outside but not too far
+		var spawn_x = screen_width * 0.5 + side * (screen_width * 0.4)  # Changed from 0.5 + SPAWN_BUFFER to 0.4
+		# Clamp to ensure they don't go beyond reasonable boundaries
+		spawn_x = clamp(spawn_x, -50, screen_width + 50)  # Small buffer for entry effect
+		var spawn_y = randf_range(100, 300)
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
 func _calculate_side_spawn_positions(enemy_count: int) -> void:
 	for i in range(enemy_count):
@@ -306,6 +394,10 @@ func _spawn_enemies_sequence(enemy_count: int) -> void:
 	
 	if debug_mode:
 		print("FormationManager: Starting to spawn ", enemy_count, " enemies")
+	
+	# Show spawn indicators before spawning enemies
+	if show_spawn_indicators and enemy_count > 0:
+		await _show_spawn_indicators(enemy_count)
 	
 	# Spawn enemies one by one
 	for i in range(enemy_count):
@@ -499,3 +591,50 @@ func _draw() -> void:
 		
 		var radius = current_wave_config.get_formation_radius()
 		draw_arc(center, radius, 0, 2 * PI, 32, DEBUG_CENTER_COLOR, 2.0)
+
+# New method to show spawn point indicators
+func _show_spawn_indicators(enemy_count: int) -> void:
+	if not show_spawn_indicators:
+		return
+	
+	var indicator_nodes: Array[Node2D] = []
+	
+	# Create visual indicators at each spawn position
+	for i in range(min(enemy_count, spawn_positions.size())):
+		var spawn_pos = spawn_positions[i]
+		
+		# Create a visual indicator using a simple colored circle
+		var indicator = Node2D.new()
+		indicator.name = "SpawnIndicator_%d" % i
+		indicator.position = spawn_pos
+		
+		# Create a colored circle
+		var circle = ColorRect.new()
+		circle.name = "IndicatorCircle"
+		circle.size = Vector2(32, 32)
+		circle.position = Vector2(-16, -16)  # Center the circle
+		circle.color = Color(1.0, 0.2, 0.2, 0.8)  # Red color with transparency
+		
+		indicator.add_child(circle)
+		add_child(indicator)
+		indicator_nodes.append(indicator)
+		
+		# Create tween for blinking effect
+		if is_instance_valid(indicator) and indicator.has_method("create_tween"):
+			var tween = indicator.create_tween()
+			tween.set_loops(spawn_indicator_blink_count)
+			
+			# Blink animation: scale and fade
+			tween.tween_property(circle, "scale", Vector2(2.0, 2.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+			tween.tween_property(indicator, "modulate:a", 0.2, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+			tween.tween_property(circle, "scale", Vector2(1.0, 1.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+			tween.tween_property(indicator, "modulate:a", 0.8, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+	
+	# Wait for the indicator duration
+	if get_tree():
+		await get_tree().create_timer(spawn_indicator_duration).timeout
+	
+	# Clean up indicator nodes
+	for indicator in indicator_nodes:
+		if is_instance_valid(indicator):
+			indicator.queue_free()

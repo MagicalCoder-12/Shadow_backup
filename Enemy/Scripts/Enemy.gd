@@ -63,8 +63,22 @@ var difficulty_multipliers: Dictionary = {
 }
 
 # --- Movement Behavior ---
-enum MovementPattern { FORMATION_HOLD, SIDE_TO_SIDE, CIRCLE, DIVE }
+enum MovementPattern { 
+	FORMATION_HOLD, 
+	SIDE_TO_SIDE, 
+	CIRCLE, 
+	DIVE,
+	DIVE_BOMB_PATTERN,  # New pattern
+	SWARM_PATTERN,      # New pattern
+	AMBUSH_PATTERN      # New pattern
+}
 @export var movement_pattern: MovementPattern = MovementPattern.FORMATION_HOLD
+
+# --- New Exported Properties for Enhanced Movement Patterns ---
+@export var dive_bomb_probability: float = 0.1
+@export var swarm_coherence: float = 0.8
+@export var ambush_probability: float = 0.15
+@export var elite_spawn_probability: float = 0.05
 
 # --- Core State Variables ---
 var original_speed: float
@@ -95,6 +109,14 @@ var viewport_size: Vector2
 var time_since_spawn: float = 0.0
 var shield_damage_reduction: float = 0.5
 
+# --- New Variables for Enhanced Movement Patterns ---
+var should_dive_bomb: bool = false
+var is_diving: bool = false
+var dive_target: Vector2
+var swarm_center: Vector2
+var ambush_position: Vector2
+var is_ambushing: bool = false
+
 # --- Initialization ---
 func _ready():
 	viewport_size = get_viewport().get_visible_rect().size
@@ -120,8 +142,20 @@ func _ready():
 		shadow_core_shield.visible = true
 		shadow_core_shield.play("default")
 	
+	# Initialize new movement pattern variables
+	_init_movement_patterns()
+	
 	if debug_mode:
 		print("Enemy spawned: ", enemy_type)
+
+func _init_movement_patterns():
+	# Initialize variables for new movement patterns
+	should_dive_bomb = randf() < dive_bomb_probability
+	is_diving = false
+	dive_target = Vector2.ZERO
+	swarm_center = Vector2.ZERO
+	ambush_position = Vector2.ZERO
+	is_ambushing = false
 
 func _on_tree_exiting():
 	if debug_mode:
@@ -136,8 +170,24 @@ func _setup_fire_timer():
 
 func _connect_signals():
 	if visible_on_screen_notifier_2d:
-		visible_on_screen_notifier_2d.screen_exited.connect(_on_screen_exited)
-
+		# Only connect screen_entered if not already connected
+		if not visible_on_screen_notifier_2d.is_connected("screen_entered", _on_visible_on_screen_notifier_2d_screen_entered):
+			visible_on_screen_notifier_2d.screen_entered.connect(_on_visible_on_screen_notifier_2d_screen_entered)
+			if debug_mode:
+				print("Boss: Connected screen_entered signal")
+		else:
+			if debug_mode:
+				print("Boss: Skipped connecting screen_entered signal - already connected")
+		
+		# Only connect screen_exited if not already connected
+		if not visible_on_screen_notifier_2d.is_connected("screen_exited", _on_visible_on_screen_notifier_2d_screen_exited):
+			visible_on_screen_notifier_2d.screen_exited.connect(_on_visible_on_screen_notifier_2d_screen_exited)
+			if debug_mode:
+				print("Boss: Connected screen_exited signal")
+		else:
+			if debug_mode:
+				print("Boss: Skipped connecting screen_exited signal - already connected")
+				
 func _disconnect_all_signals():
 	if GameManager and GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
 		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
@@ -233,19 +283,95 @@ func _perform_formation_movement(delta: float):
 			else:
 				# Return to formation
 				global_position = global_position.lerp(formation_position, 2.0 * delta)
+				
+		# New movement patterns
+		MovementPattern.DIVE_BOMB_PATTERN:
+			_handle_dive_bomb_pattern(delta)
+			
+		MovementPattern.SWARM_PATTERN:
+			_handle_swarm_pattern(delta)
+			
+		MovementPattern.AMBUSH_PATTERN:
+			_handle_ambush_pattern(delta)
+
+# --- New Movement Pattern Implementations ---
+
+func _handle_dive_bomb_pattern(delta: float):
+	if should_dive_bomb and not is_diving:
+		is_diving = true
+		if is_instance_valid(player_reference):
+			dive_target = player_reference.global_position
+		else:
+			# If no player, dive straight down
+			dive_target = global_position + Vector2(0, 1000)
+	elif is_diving:
+		# Execute dive toward target
+		var direction = (dive_target - global_position).normalized()
+		global_position += direction * speed * 2.0 * delta
+	else:
+		# Return to formation when not diving
+		global_position = global_position.lerp(formation_position, 2.0 * delta)
+
+func _handle_swarm_pattern(delta: float):
+	# Move in coordination with nearby enemies
+	# For simplicity, we'll simulate swarm behavior by moving in a pattern around the formation position
+	# In a full implementation, this would communicate with nearby enemies
+	var swarm_offset = Vector2(
+		sin(time_since_spawn * swarm_coherence) * 30.0,
+		cos(time_since_spawn * swarm_coherence) * 20.0
+	)
+	var target_pos = formation_position + swarm_offset
+	global_position = global_position.lerp(target_pos, 2.0 * delta)
+
+func _handle_ambush_pattern(delta: float):
+	# Hide at screen edges and ambush the player
+	if not is_ambushing:
+		# Position at screen edge
+		if randf() < 0.5:
+			# Left edge
+			ambush_position = Vector2(-30, randf_range(50, viewport_size.y - 50))
+		else:
+			# Right edge
+			ambush_position = Vector2(viewport_size.x + 30, randf_range(50, viewport_size.y - 50))
+		
+		global_position = ambush_position
+		is_ambushing = true
+	else:
+		# Check if player is near, then attack
+		if is_instance_valid(player_reference):
+			var distance_to_player = global_position.distance_to(player_reference.global_position)
+			if distance_to_player < 300:  # Attack when player is close
+				var direction = (player_reference.global_position - global_position).normalized()
+				global_position += direction * speed * 1.5 * delta
+			# Otherwise stay in ambush position
+			else:
+				global_position = global_position.lerp(ambush_position, 1.0 * delta)
 
 func _handle_shooting(_delta: float):
 	if not arrived_at_formation or not is_instance_valid(player_reference):
 		return
 	
-	# Fire timer handles the shooting interval
+	# Enhanced shooting logic based on enemy type or special conditions
+	# For now, we'll keep the existing logic but add a placeholder for enhanced patterns
 	pass
 
 func _on_fire_timer_timeout():
 	if not is_alive or not arrived_at_formation or not is_instance_valid(player_reference):
 		return
 	
-	_fire_at_player()
+	# Determine which shooting pattern to use
+	# This could be based on enemy type, difficulty, or random chance
+	var shooting_pattern = randi() % 3  # Randomly choose between 0, 1, 2
+	
+	match shooting_pattern:
+		0:
+			_fire_at_player()  # Standard aimed shooting
+		1:
+			_fire_spread_shot(3, PI/4)  # 3 bullets in a spread
+		2:
+			_fire_burst_shot(3, 0.1)  # 3 bullets in a burst
+		_:
+			_fire_at_player()  # Fallback to standard shooting
 
 func _fire_at_player():
 	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
@@ -266,6 +392,55 @@ func _fire_at_player():
 	
 	if debug_mode:
 		print("Enemy fired bullet")
+
+# --- Enhanced Shooting Patterns ---
+
+func _fire_spread_shot(bullet_count: int = 3, spread_angle: float = PI/4):
+	for i in range(bullet_count):
+		var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
+		var bullet = bullet_scene.instantiate()
+		
+		if not bullet:
+			continue
+		
+		# Calculate spread angle
+		var angle_offset = spread_angle * (i - (bullet_count-1)/2.0) / (bullet_count-1)
+		var direction = Vector2.ZERO
+		if is_instance_valid(player_reference):
+			direction = (player_reference.global_position - global_position).normalized()
+		else:
+			direction = Vector2(0, 1)  # Default downward direction
+		
+		direction = direction.rotated(angle_offset)
+		
+		bullet.global_position = global_position
+		bullet.rotation = direction.angle() + PI/2
+		get_tree().current_scene.add_child(bullet)
+
+func _fire_burst_shot(burst_count: int = 3, burst_delay: float = 0.1):
+	# This would typically be implemented with a coroutine or timer
+	# For now, we'll just fire all bullets immediately but with slight position offsets
+	for i in range(burst_count):
+		var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
+		var bullet = bullet_scene.instantiate()
+		
+		if not bullet:
+			continue
+		
+		# Calculate direction to player with slight variation for each burst
+		var direction = Vector2.ZERO
+		if is_instance_valid(player_reference):
+			direction = (player_reference.global_position - global_position).normalized()
+		else:
+			direction = Vector2(0, 1)  # Default downward direction
+		
+		# Add slight angular variation for each burst
+		var angle_variation = (i - (burst_count-1)/2.0) * 0.1
+		direction = direction.rotated(angle_variation)
+		
+		bullet.global_position = global_position
+		bullet.rotation = direction.angle() + PI/2
+		get_tree().current_scene.add_child(bullet)
 
 # --- Formation Setup ---
 @warning_ignore("unused_parameter")
@@ -448,6 +623,15 @@ func _drop_resources():
 		if crystal.has_method("set_value"):
 			crystal.set_value(scaled_crystal_reward)
 		get_tree().current_scene.call_deferred("add_child", crystal)
+		
+		# NEW: Drop power-ups occasionally
+		if randf() < 0.1:  # 10% chance to drop a power-up
+			_drop_powerup()
+
+func _drop_powerup():
+	# This would instantiate and drop a power-up
+	# Implementation would depend on your power-up system
+	pass
 
 func _play_death_animation():
 	if enemy_explosion:
@@ -468,7 +652,12 @@ func _on_death_animation_finished():
 	queue_free()
 
 # --- Screen Management ---
-func _on_screen_exited():
+func _on_visible_on_screen_notifier_2d_screen_entered() -> void:
+	# Enemy has entered the screen
+	pass
+
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
+	# Enemy has exited the screen
 	if is_in_entry_phase:
 		# Don't remove if still in entry phase
 		return

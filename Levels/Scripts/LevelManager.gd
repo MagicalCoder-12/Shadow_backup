@@ -230,16 +230,18 @@ func revive_player():
 	_on_player_revived()
 	
 # === LEVEL COMPLETE ===
-	
 func _on_level_completed(_level_num: int):
 	AudioManager.mute_bus("Bullet", true)
 	get_tree().paused = false
 	emit_signal("Victory_pose")
+	
+	# Wait for player victory pose animation to complete before showing level completed UI
 	var player = get_tree().get_first_node_in_group("Player")
-	if player:
+	if player and player.has_signal("victory_pose_done"):
+		# Wait for the victory pose animation to finish
 		await player.victory_pose_done
 	_show_level_completed_ui()
-	
+
 func _show_level_completed_ui():
 	get_tree().paused = false
 	pause_menu.hide()

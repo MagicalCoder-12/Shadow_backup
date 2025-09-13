@@ -311,7 +311,14 @@ func revive_player():
 func _on_level_completed(_level_num: int):
 	print("[Level Debug] _on_level_completed called with level: %d" % _level_num)
 	AudioManager.mute_bus("Bullet", true)
-	#emit_signal("Victory_pose")
+	emit_signal("Victory_pose")
+	
+	# Wait for player victory pose animation to complete before showing level completed UI
+	var player = get_tree().get_first_node_in_group("Player")
+	if player and player.has_signal("victory_pose_done"):
+		# Wait for the victory pose animation to finish
+		await player.victory_pose_done
+		
 	_show_level_completed_ui()
 	# Check if this is a boss level
 	if _is_boss_level(_level_num):

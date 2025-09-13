@@ -40,6 +40,11 @@ var wave_completion_time: float = 0.0
 # Game state references
 var game_manager: Node = null
 
+# New variables for dynamic wave progression
+var player_performance: float = 0.5  # 0.0 (struggling) to 1.0 (excelling)
+var elite_enemy_spawned: bool = false
+var swarm_spawned: bool = false
+
 func _ready():
 	game_manager = GameManager
 	if debug_mode:
@@ -67,6 +72,140 @@ func start_waves() -> void:
 	
 	start_next_wave()
 
+# --- New Methods for Dynamic Wave Progression ---
+
+func _adjust_wave_difficulty(player_performance: float):
+	# Modify enemy count, health, and shooting frequency based on player performance
+	# player_performance: 0.0 (struggling) to 1.0 (excelling)
+	if current_wave_config:
+		if player_performance > 0.7:  # Player is doing well
+			# Increase difficulty
+			current_wave_config.difficulty = formation_enums.DifficultyLevel.HARD
+		elif player_performance < 0.3:  # Player is struggling
+			# Decrease difficulty
+			current_wave_config.difficulty = formation_enums.DifficultyLevel.EASY
+		else:
+			# Keep normal difficulty
+			current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+
+func _trigger_event_wave(event_type: String):
+	# Spawn special enemy formations based on events
+	# Examples: Boss rushes, swarm attacks, elite enemy appearances
+	match event_type:
+		"swarm":
+			_spawn_enemy_swarm(10, "mob1")
+		"elite":
+			_spawn_elite_enemy()
+		_:
+			if debug_mode:
+				print("WaveManager: Unknown event wave type: %s" % event_type)
+
+func _spawn_elite_enemy():
+	# Create an elite enemy with enhanced stats and rewards
+	if not formation_manager_scene:
+		push_error("WaveManager: No formation manager scene assigned")
+		return
+	
+	# Create a temporary wave config for the elite enemy
+	var elite_config = WaveConfig.new()
+	elite_config.enemy_type = "EliteEnemy"
+	elite_config.formation_type = formation_enums.FormationType.CIRCLE
+	elite_config.entry_pattern = formation_enums.EntryPattern.TOP_DIVE
+	elite_config.difficulty = formation_enums.DifficultyLevel.HARD
+	elite_config.formation_center = Vector2(640, 300)
+	elite_config.formation_radius = 100.0
+	
+	# Create formation manager for elite enemy
+	var elite_formation_manager = formation_manager_scene.instantiate() as FormationManager
+	if not elite_formation_manager:
+		push_error("WaveManager: Failed to instantiate formation manager for elite enemy")
+		return
+	
+	# Ensure we're in the scene tree before trying to access current_scene
+	if not get_tree():
+		push_error("WaveManager: Not in scene tree, cannot spawn elite enemy")
+		elite_formation_manager.queue_free()
+		return
+	
+	# Get the target parent - prefer current_scene, fall back to our parent
+	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	if not target_parent:
+		push_error("WaveManager: No valid parent found for elite enemy")
+		elite_formation_manager.queue_free()
+		return
+	
+	# Add to scene and connect signals
+	target_parent.call_deferred("add_child", elite_formation_manager)
+	active_formations.append(elite_formation_manager)
+	
+	if elite_formation_manager.has_signal("enemy_spawned"):
+		elite_formation_manager.enemy_spawned.connect(_on_enemy_spawned)
+	if elite_formation_manager.has_signal("formation_complete"):
+		elite_formation_manager.formation_complete.connect(_on_formation_complete)
+	if elite_formation_manager.has_signal("all_enemies_destroyed"):
+		elite_formation_manager.all_enemies_destroyed.connect(_on_all_enemies_destroyed)
+	
+	# Start formation spawning after FormationManager is added to scene tree
+	elite_formation_manager.call_deferred("spawn_formation", elite_config)
+	
+	elite_enemy_spawned = true
+	
+	if debug_mode:
+		print("WaveManager: Elite enemy spawned")
+
+func _spawn_enemy_swarm(count: int, enemy_type: String):
+	# Spawn a swarm of enemies
+	if not formation_manager_scene:
+		push_error("WaveManager: No formation manager scene assigned")
+		return
+	
+	# Create a temporary wave config for the swarm
+	var swarm_config = WaveConfig.new()
+	swarm_config.enemy_type = enemy_type
+	swarm_config.formation_type = formation_enums.FormationType.CLUSTER
+	swarm_config.entry_pattern = formation_enums.EntryPattern.STAGGERED
+	swarm_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+	swarm_config.formation_center = Vector2(640, 500)
+	swarm_config.formation_radius = 150.0
+	
+	# Create formation manager for swarm
+	var swarm_formation_manager = formation_manager_scene.instantiate() as FormationManager
+	if not swarm_formation_manager:
+		push_error("WaveManager: Failed to instantiate formation manager for swarm")
+		return
+	
+	# Ensure we're in the scene tree before trying to access current_scene
+	if not get_tree():
+		push_error("WaveManager: Not in scene tree, cannot spawn swarm")
+		swarm_formation_manager.queue_free()
+		return
+	
+	# Get the target parent - prefer current_scene, fall back to our parent
+	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	if not target_parent:
+		push_error("WaveManager: No valid parent found for swarm")
+		swarm_formation_manager.queue_free()
+		return
+	
+	# Add to scene and connect signals
+	target_parent.call_deferred("add_child", swarm_formation_manager)
+	active_formations.append(swarm_formation_manager)
+	
+	if swarm_formation_manager.has_signal("enemy_spawned"):
+		swarm_formation_manager.enemy_spawned.connect(_on_enemy_spawned)
+	if swarm_formation_manager.has_signal("formation_complete"):
+		swarm_formation_manager.formation_complete.connect(_on_formation_complete)
+	if swarm_formation_manager.has_signal("all_enemies_destroyed"):
+		swarm_formation_manager.all_enemies_destroyed.connect(_on_all_enemies_destroyed)
+	
+	# Start formation spawning after FormationManager is added to scene tree
+	swarm_formation_manager.call_deferred("spawn_formation", swarm_config)
+	
+	swarm_spawned = true
+	
+	if debug_mode:
+		print("WaveManager: Enemy swarm spawned with %d enemies" % count)
+
 func start_next_wave() -> void:
 	if current_wave >= total_waves:
 		if debug_mode:
@@ -83,6 +222,9 @@ func start_next_wave() -> void:
 	current_wave_config = waves[current_wave]
 	wave_in_progress = true
 	wave_start_time = Time.get_unix_time_from_system()
+	
+	# Adjust difficulty based on player performance
+	_adjust_wave_difficulty(player_performance)
 	
 	if debug_mode:
 		print("WaveManager: Starting wave %d/%d (Level: %d)" % [current_wave + 1, total_waves, current_level])

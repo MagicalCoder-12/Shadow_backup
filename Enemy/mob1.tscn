@@ -9,7 +9,7 @@ script = ExtResource("2_mcyab")
 vertical_speed = 600.0
 max_health = 300
 speed = 300.0
-movement_pattern = 2
+movement_pattern = 5
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_onp4f")

@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://d2550fg3euhqj"]
+
+[ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_jerhw"]
+
+[node name="Level_11" instance=ExtResource("1_jerhw")]
+
+[node name="LevelManager" parent="." index="4"]
+level_num = 11
+
+[node name="WaveManager" parent="." index="6"]
+wave_delay = 1.5
+debug_mode = false

@@ -11,7 +11,8 @@ radius = 98.0204
 script = ExtResource("2_f14bn")
 score = 300
 max_health = 300
-behavior_pattern = 6
+enemy_type = "Bomber"
+movement_pattern = 4
 
 [node name="Sprite2D" parent="." index="0"]
 scale = Vector2(1.83163, 2.25)

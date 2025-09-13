@@ -73,7 +73,7 @@ layout_mode = 0
 offset_left = 29.0
 offset_top = 169.0
 offset_right = 706.0
-offset_bottom = 355.0
+offset_bottom = 315.0
 theme_override_constants/separation = 50
 
 [node name="Score" type="Label" parent="PanelContainer/Panel/ScoreContainer"]
@@ -85,10 +85,10 @@ metadata/_edit_use_anchors_ = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Panel"]
 layout_mode = 0
-offset_left = 12.0
-offset_top = 323.0
-offset_right = 726.0
-offset_bottom = 541.0
+offset_left = 20.0
+offset_top = 371.0
+offset_right = 734.0
+offset_bottom = 589.0
 alignment = 1
 
 [node name="Map" type="TextureButton" parent="PanelContainer/Panel/HBoxContainer"]
