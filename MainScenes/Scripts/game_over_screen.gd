@@ -10,6 +10,7 @@ const MAP_SCENE: String = "res://Map/map.tscn"
 var current_level
 
 # Signals
+@warning_ignore("unused_signal")
 signal player_revived
 @warning_ignore("unused_signal")
 signal ad_revive_requested

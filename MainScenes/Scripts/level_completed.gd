@@ -14,9 +14,6 @@ var screen_shown: bool = false  # Track if the screen has been shown
 
 # Add a method to initialize the screen when it's actually shown
 func initialize():
-	if debug:
-		print("[LevelCompleted Debug] initialize() called")
-	
 	if not signals_connected:
 		# Connect score signals from GameManager and level completion
 		if GameManager:

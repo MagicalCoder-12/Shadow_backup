@@ -99,7 +99,7 @@ func _calculate_boss_rewards() -> Dictionary:
 		boss_rewards_config = ConfigLoader.upgrade_settings.get("boss_level_rewards", {})
 	
 	# Default rewards if config not found
-	var default_rewards = {
+	var _default_rewards = {
 		"coins": 1000,
 		"crystals": 50,
 		"void_shards": 10
