@@ -16,14 +16,12 @@ var revive_timeout_timer: Timer
 
 func _ready() -> void:
 	gm = GameManager
-	_debug_log("AdManager initialized with GameManager")
 	# Defer initialization until all autoloads are ready
 	call_deferred("initialize")
 
 func initialize() -> void:
 	admob = gm.get_node_or_null("Admob")
 	if admob:
-		_debug_log("Admob node found, setting up initialization")
 		# Wait a frame to ensure all autoloads are ready
 		await gm.get_tree().process_frame
 		# Connect all the Admob signals

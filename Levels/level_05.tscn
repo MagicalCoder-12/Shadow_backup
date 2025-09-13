@@ -183,7 +183,7 @@ position = Vector2(673, 19)
 
 [node name="WaveManager" parent="." instance=ExtResource("11_a3mc8")]
 
-[node name="LevelManager" type="Node2D" parent="." groups=["LevelManager"]]
+[node name="LevelManager" type="Node2D" parent="."]
 script = ExtResource("12_qr8bl")
 level_num = 5
 waves = Array[ExtResource("13_t3ira")]([SubResource("Resource_5sjy0"), SubResource("Resource_xq8a0"), SubResource("Resource_1wvdh"), SubResource("Resource_k1dj2"), SubResource("Resource_fshke")])

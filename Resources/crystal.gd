@@ -11,6 +11,7 @@ var coin_gravity: float
 var restitution: float
 var is_grounded: bool = false
 var bottom_bounds: float
+var crystal_value: int = 3  # Default value
 @onready var sprite_2d: Sprite2D = $Sprite2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
@@ -47,7 +48,10 @@ func _ready() -> void:
 	# Connect area_entered signal
 	if not area_entered.is_connected(_on_area_entered):
 		area_entered.connect(_on_area_entered)
-	
+
+# Function to set the crystal value
+func set_value(value: int) -> void:
+	crystal_value = value
 
 # === PHYSICS PROCESS ===
 func _physics_process(delta: float) -> void:
@@ -76,8 +80,8 @@ func _physics_process(delta: float) -> void:
 # === SIGNALS ===
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Player"):
-		# Increase crystal count in GameManager
-		GameManager.add_currency("crystals", 3)
+		# Increase crystal count in GameManager with the crystal value
+		GameManager.add_currency("crystals", crystal_value)
 		animated_sprite_2d.show()
 		animated_sprite_2d.play("collected")
 		audio_stream_player_2d.play()

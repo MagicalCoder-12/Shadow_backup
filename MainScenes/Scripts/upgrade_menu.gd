@@ -104,30 +104,34 @@ func _initialize_ui() -> void:
 # ================================
 func _get_current_upgrade_costs() -> Dictionary:
 	if GameManager.ships.is_empty() or selected_ship_index >= GameManager.ships.size():
-		return {"crystal_cost": 20, "coin_cost": 1000, "void_shard_cost": 10}
+		return {"crystal_cost": 50, "coin_cost": 100, "void_shard_cost": 100}
 
 	var ship = GameManager.ships[selected_ship_index]
 	if not ship is Dictionary:
-		return {"crystal_cost": 20, "coin_cost": 1000, "void_shard_cost": 10}
+		return {"crystal_cost": 50, "coin_cost": 100, "void_shard_cost": 100}
 
 	var upgrade_count = ship.get("upgrade_count", 0)
-	var base_crystal_cost = 10
+	
+	# Get base costs and scaling factor from config
+	var base_crystal_cost = 50
 	var base_coin_cost = 100
-	var ascend_cost = 50
-	var upgrade_scaling_factor = UPGRADE_SCALING_FACTOR
+	var ascend_cost = 100
+	var upgrade_scaling_factor = 1.25  # Default scaling factor
 
 	# Use ConfigLoader if available
-	if is_instance_valid(ConfigLoader):
-		base_crystal_cost = ConfigLoader.upgrade_settings.get("upgrade_crystal_cost", 10)
+	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
+		base_crystal_cost = ConfigLoader.upgrade_settings.get("upgrade_crystal_cost", 50)
 		base_coin_cost = ConfigLoader.upgrade_settings.get("upgrade_coin_cost", 100)
-		ascend_cost = ConfigLoader.upgrade_settings.get("upgrade_ascend_cost", 50)
-		upgrade_scaling_factor = ConfigLoader.upgrade_settings.get("upgrade_scaling_factor", UPGRADE_SCALING_FACTOR)
+		ascend_cost = ConfigLoader.upgrade_settings.get("upgrade_ascend_cost", 100)
+		upgrade_scaling_factor = ConfigLoader.upgrade_settings.get("upgrade_scaling_factor", 1.25)
 	else:
-		push_warning("ConfigLoader not available. Using default upgrade costs.")
+		push_warning("ConfigLoader not available or upgrade_settings missing. Using default upgrade costs.")
 
-	# Linear cost calculation: base_cost * (1 + upgrade_count * scaling_factor)
-	var crystal_cost = base_crystal_cost * (1 + upgrade_count * upgrade_scaling_factor)
-	var coin_cost = base_coin_cost * (1 + upgrade_count * upgrade_scaling_factor)
+	# Exponential cost calculation: base_cost * (scaling_factor ^ upgrade_count)
+	# This creates a steeper progression curve that makes early upgrades affordable
+	# but later upgrades increasingly expensive
+	var crystal_cost = base_crystal_cost * pow(upgrade_scaling_factor, float(upgrade_count))
+	var coin_cost = base_coin_cost * pow(upgrade_scaling_factor, float(upgrade_count))
 
 	# Ascension cost: constant or slight scaling
 	var void_shard_cost = ascend_cost  # Constant cost for ascension
@@ -560,27 +564,25 @@ func _show_rewarded_ad(reward_type: String) -> void:
 
 func _grant_ad_reward(reward_type: String) -> void:
 	var ad_rewards = {}
-	if is_instance_valid(ConfigLoader):
-		ad_rewards = ConfigLoader.upgrade_settings.get("ad_rewards", {})
+	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
+		ad_rewards = ConfigLoader.upgrade_settings
 	else:
 		push_warning("ConfigLoader not available. Using default ad rewards.")
+		# Default values if config not found
 		ad_rewards = {
-			"ad_crystal_reward": 100,
+			"ad_crystal_reward": 15,
 			"ad_ascend_reward": 10,
-			"ad_coins_reward": 1000
+			"ad_coins_reward": 750
 		}
-
-	if ad_rewards.is_empty():
-		return
-
+	
 	match reward_type:
 		"crystals":
-			var crystal_reward = ad_rewards.get("ad_crystal_reward", 100)
+			var crystal_reward = ad_rewards.get("ad_crystal_reward", 15)
 			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 10)
 			GameManager.add_currency("crystals", crystal_reward)
 			GameManager.add_currency("void_shards", void_shard_reward)
 		"coins":
-			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
+			var coins_reward = ad_rewards.get("ad_coins_reward", 750)
 			GameManager.add_currency("coins", coins_reward)
 
 	_update_currency_display()

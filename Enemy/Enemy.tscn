@@ -137,7 +137,6 @@ animations = [{
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_bjyvl")
-debug_mode = true
 shadow_texture = ExtResource("2_7jp3o")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

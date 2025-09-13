@@ -158,7 +158,7 @@ parameters/looping = true
 [node name="Spawner" parent="." instance=ExtResource("4")]
 position = Vector2(673, 19)
 
-[node name="LevelManager" type="Node2D" parent="." groups=["LevelManager"]]
+[node name="LevelManager" type="Node2D" parent="."]
 script = ExtResource("11_awp4e")
 waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_3ksnv"), SubResource("Resource_02jfn"), SubResource("Resource_1r4y0")])
 debug_mode = true

@@ -11,6 +11,7 @@ var coin_gravity: float
 var restitution: float
 var is_grounded: bool = false
 var bottom_bounds: float
+var coin_value: int = 10  # Default value
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var audio_stream_player_2d: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
@@ -44,7 +45,10 @@ func _ready() -> void:
 	# Connect area_entered signal
 	if not area_entered.is_connected(_on_area_entered):
 		area_entered.connect(_on_area_entered)
-	
+
+# Function to set the coin value
+func set_value(value: int) -> void:
+	coin_value = value
 
 # === PHYSICS PROCESS ===
 func _physics_process(delta: float) -> void:
@@ -75,8 +79,8 @@ func _physics_process(delta: float) -> void:
 # === SIGNALS ===
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Player"):
-		# Increase coin count in GameManager
-		GameManager.add_currency("coins", 10)
+		# Increase coin count in GameManager with the coin value
+		GameManager.add_currency("coins", coin_value)
 		animated_sprite_2d.show()
 		animated_sprite_2d.play("collected")
 		audio_stream_player_2d.play()

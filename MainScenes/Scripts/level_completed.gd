@@ -3,37 +3,27 @@ extends Control
 @onready var scoreLabel := $Panel/VBoxContainer/Score
 @onready var crystalsLabel := $Panel/VBoxContainer/Crystal_texture/Crystals
 @onready var coins_label: Label = $Panel/VBoxContainer/Coin_texture/Coins
-// Removed count_up_timer as it's no longer needed
-// @onready var count_up_timer: Timer = $CountUpTimer
 
 const Map = "res://Map/map.tscn"
-// Removed animation constants as they're no longer needed
-// const COIN_COUNT_UP_SPEED: float = 0.05  # Time per coin increment in seconds
-// const SCORE_COIN_CONVERSION_RATE: float = 100.0  # 100 score points = 1 coin
-// const DELAY_BETWEEN_ANIMATIONS: float = 1.0  # Delay between collected and score coin animations
 var current_level: int
 var collected_coins: int = 0
 var collected_crystals: int = 0
-// Removed coins_from_score and total_coins as they're no longer needed
-// var coins_from_score: int = 0
-// var total_coins: int = 0
-// Removed is_animating as it's no longer needed
-// var is_animating: bool = false
-var debug: bool = true  # Enable or disable debug logging
+var debug: bool = false  # Enable or disable debug logging
 var signals_connected: bool = false
+var screen_shown: bool = false  # Track if the screen has been shown
 
-// Add a method to initialize the screen when it's actually shown
+# Add a method to initialize the screen when it's actually shown
 func initialize():
 	if debug:
 		print("[LevelCompleted Debug] initialize() called")
 	
 	if not signals_connected:
-		// Connect score signals from GameManager and level completion
+		# Connect score signals from GameManager and level completion
 		if GameManager:
 			if debug:
 				print("[LevelCompleted Debug] GameManager found, connecting signals")
 			
-			// Check if signals are already connected before connecting
+			# Check if signals are already connected before connecting
 			if not GameManager.score_updated.is_connected(set_score):
 				GameManager.score_updated.connect(set_score)
 				if debug:
@@ -64,7 +54,7 @@ func initialize():
 			current_level = 1
 		signals_connected = true
 	
-	// Show current values
+	# Show current values
 	if GameManager:
 		set_score(GameManager.score)
 		set_crystals("crystals", GameManager.crystal_count)
@@ -73,25 +63,28 @@ func initialize():
 	if debug:
 		print("[LevelCompleted Debug] Level completed screen ready for level %d, score: %d" % [current_level, GameManager.score if GameManager else 0])
 	
-	// Make sure the screen is hidden by default
+	# Make sure the screen is hidden by default
 	hide()
 
 func _ready():
-	// Auto-initialize when the node is ready, but only if not already initialized
-	print("[LevelCompleted Debug] _ready() called")
+	# Auto-initialize when the node is ready, but only if not already initialized
+	if debug:
+		print("[LevelCompleted Debug] _ready() called")
 	if not signals_connected:
-		print("[LevelCompleted Debug] _ready() called, auto-initializing")
+		if debug:
+			print("[LevelCompleted Debug] _ready() called, auto-initializing")
 		initialize()
 	else:
-		print("[LevelCompleted Debug] _ready() called, already initialized")
+		if debug:
+			print("[LevelCompleted Debug] _ready() called, already initialized")
 	
-	// Make sure the screen is hidden by default
+	# Make sure the screen is hidden by default
 	hide()
 
 func set_score(value: int) -> void:
 	if debug:
 		print("[LevelCompleted Debug] set_score called with value: %d" % value)
-	// Update the score label
+	# Update the score label
 	if scoreLabel:
 		scoreLabel.text = "Score: %d" % value
 	else:
@@ -101,7 +94,7 @@ func set_score(value: int) -> void:
 func set_crystals(currency_type: String, value: int) -> void:
 	if debug:
 		print("[LevelCompleted Debug] set_crystals called with type: %s, value: %d" % [currency_type, value])
-	// Update the crystals label when crystals are updated
+	# Update the crystals label when crystals are updated
 	if currency_type == "crystals":
 		if crystalsLabel:
 			crystalsLabel.text = "Crystals: %d" % value
@@ -118,22 +111,29 @@ func _on_level_completed(_level_num: int) -> void:
 			print("[LevelCompleted Debug] GameManager.coins_collected_this_level: %d" % (GameManager.coins_collected_this_level if GameManager else 0))
 			print("[LevelCompleted Debug] GameManager.crystals_collected_this_level: %d" % (GameManager.crystals_collected_this_level if GameManager else 0))
 	
-	// Get the collected coins and crystals for this level
+	# Only proceed if the screen is actually being shown
+	if not is_visible_in_tree():
+		if debug:
+			print("[LevelCompleted Debug] Screen not visible, ignoring level completion")
+		return
+	
+	# Get the collected coins and crystals for this level
 	collected_coins = GameManager.coins_collected_this_level if GameManager else 0
 	collected_crystals = GameManager.crystals_collected_this_level if GameManager else 0
-	// Removed coins_from_score calculation as it's no longer needed
-	// coins_from_score = _calculate_coins_from_score()
-	// total_coins = collected_coins + coins_from_score
 	
-	// Log initial coin counts
-	if debug:
-		print("[LevelCompleted Debug] Starting level completed: collected_coins=%d, collected_crystals=%d" % [collected_coins, collected_crystals])
-		print("[LevelCompleted Debug] Checking UI elements:")
-		print("[LevelCompleted Debug] scoreLabel exists: %s" % (scoreLabel != null))
-		print("[LevelCompleted Debug] coins_label exists: %s" % (coins_label != null))
-		print("[LevelCompleted Debug] crystalsLabel exists: %s" % (crystalsLabel != null))
+	# Add level completion rewards based on level difficulty
+	var level_completion_rewards = _calculate_level_completion_rewards(_level_num)
+	collected_coins += level_completion_rewards.coins
+	collected_crystals += level_completion_rewards.crystals
 	
-	// Set labels directly without animation
+	# Update GameManager's currency counts with the additional rewards
+	if GameManager:
+		GameManager.coin_count += level_completion_rewards.coins
+		GameManager.crystal_count += level_completion_rewards.crystals
+		GameManager.currency_updated.emit("coins", GameManager.coin_count)
+		GameManager.currency_updated.emit("crystals", GameManager.crystal_count)
+	
+	# Set labels directly without animation
 	if coins_label:
 		coins_label.text = "Coins: %d" % collected_coins
 		if debug:
@@ -142,7 +142,7 @@ func _on_level_completed(_level_num: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] ERROR: coins_label is null!")
 			
-	// Show collected crystals for this level, not the total
+	# Show collected crystals for this level, not the total
 	if crystalsLabel:
 		crystalsLabel.text = "Crystals: %d" % collected_crystals
 		if debug:
@@ -151,7 +151,7 @@ func _on_level_completed(_level_num: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] ERROR: crystalsLabel is null!")
 	
-	// Show initial score
+	# Show initial score
 	if scoreLabel:
 		scoreLabel.text = "Score: %d" % (GameManager.score if GameManager else 0)
 		if debug:
@@ -160,30 +160,38 @@ func _on_level_completed(_level_num: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] ERROR: scoreLabel is null!")
 	
-	// Play sound effect when level completed screen is shown
+	# Play sound effect when level completed screen is shown
 	_play_sound_effect("level_completed")
 	
-	// Make sure the screen is visible
+	# Make sure the screen is visible
 	show()
 	if debug:
 		print("[LevelCompleted Debug] Level completed screen shown")
 
-// Removed animation functions as they're no longer needed
-// func _on_collected_coin_count_up() -> void:
-// func _on_total_coins_count_up() -> void:
-// func _on_safety_timeout() -> void:
-
-// Removed _calculate_coins_from_score as it's no longer needed
-// func _calculate_coins_from_score() -> int:
-
-// Removed _update_total_coins as it's no longer needed
-// func _update_total_coins() -> void:
+func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
+	# Get reward configuration
+	var reward_config = {}
+	if ConfigLoader and ConfigLoader.upgrade_settings:
+		reward_config = ConfigLoader.upgrade_settings
+	
+	# Default values if config not found
+	var base_coins = reward_config.get("level_completion_base_coins", 200)
+	var base_crystals = reward_config.get("level_completion_base_crystals", 10)
+	
+	# Calculate rewards based on level number with diminishing returns
+	# Using square root to provide growth that slows over time
+	var level_multiplier = pow(float(level_num), 0.75)
+	
+	return {
+		"coins": int(base_coins * level_multiplier),
+		"crystals": int(base_crystals * level_multiplier)
+	}
 
 func _play_sound_effect(sound_type: String) -> void:
 	if AudioManager:
 		var sound_stream: AudioStream
 		if sound_type == "level_completed":
-			// Use a different sound for level completion
+			# Use a different sound for level completion
 			sound_stream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
 		else:
 			sound_stream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
@@ -200,11 +208,6 @@ func _play_sound_effect(sound_type: String) -> void:
 func _on_next_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_next_pressed called")
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[LevelCompleted Debug] Next pressed during animation, waiting for completion")
-	// 	return
 	if GameManager and GameManager.level_manager:
 		GameManager.level_manager.unlock_next_level(current_level)
 		if debug:
@@ -216,11 +219,6 @@ func _on_next_pressed() -> void:
 func _on_map_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_map_pressed called")
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[LevelCompleted Debug] Map pressed during animation, waiting for completion")
-	// 	return
 	if GameManager:
 		GameManager.change_scene(Map)
 		if debug:
@@ -232,11 +230,6 @@ func _on_map_pressed() -> void:
 func _on_restart_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_restart_pressed called")
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[LevelCompleted Debug] Restart pressed during animation, waiting for completion")
-	// 	return
 	if GameManager:
 		GameManager.is_paused = false
 		GameManager.reset_game()

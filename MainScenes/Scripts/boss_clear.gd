@@ -1,31 +1,26 @@
 extends Control
 
+# Onready references
 @onready var scoreLabel := $Panel/VBoxContainer/Score
 @onready var void_shard_label: Label = $Panel/VBoxContainer/RewardsContainer/VoidShardsReward/VoidShardLabel
 @onready var coin_label: Label = $Panel/VBoxContainer/RewardsContainer/CoinsReward/CoinLabel
 @onready var crystal_label: Label = $Panel/VBoxContainer/RewardsContainer/CrystalsReward/CrystalLabel
 @onready var total_rewards_label: Label = $Panel/VBoxContainer/TotalRewards
-// Removed count_up_timer as it's no longer needed
-// @onready var count_up_timer: Timer = $CountUpTimer
 
+# Constants
 const Map = "res://Map/map.tscn"
 
-// Boss clear rewards - these are the special rewards for defeating bosses
-const BOSS_VOID_SHARDS_REWARD: int = 10
-const BOSS_COINS_REWARD: int = 1000
-const BOSS_CRYSTALS_REWARD: int = 50
-
+# Boss clear rewards - these will be calculated based on level
 var current_level: int
-// Removed is_animating as it's no longer needed
-// var is_animating: bool = false
-var debug: bool = true  # Enable or disable debug logging
+var debug: bool = false  # Enable or disable debug logging
 var signals_connected: bool = false
+var screen_shown: bool = false  # Track if the screen has been shown
 
-// Add a method to initialize the screen when it's actually shown
+# Add a method to initialize the screen when it's actually shown
 func initialize():
 	print("[BossClear Debug] initialize() called")
 	if not signals_connected:
-		// Connect signals from GameManager 
+		# Connect signals from GameManager 
 		if GameManager:
 			print("[BossClear Debug] GameManager found, connecting signals")
 			if not GameManager.score_updated.is_connected(set_score):
@@ -33,31 +28,36 @@ func initialize():
 				print("[BossClear Debug] Connected score_updated signal")
 			else:
 				print("[BossClear Debug] score_updated signal already connected")
+			
+			# Connect boss level completed signal
+			if not GameManager.level_completed.is_connected(_on_boss_level_completed):
+				GameManager.level_completed.connect(_on_boss_level_completed)
+				print("[BossClear Debug] Connected level_completed signal")
+			else:
+				print("[BossClear Debug] level_completed signal already connected")
+				
 			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
 		else:
 			push_error("Error: GameManager not found! Boss clear screen is adrift.")
 			current_level = 1
 		signals_connected = true
 	
-	// Initialize display
+	# Initialize display
 	print("[BossClear Debug] Setting initial score display")
 	set_score(GameManager.score if GameManager else 0)
 	get_tree().get_root().connect("go_back_requested", _on_map_pressed)
 	
-	// Show boss rewards immediately
+	# Show boss rewards immediately
 	_show_boss_rewards()
-	// Apply boss rewards when the screen is shown
-	_apply_boss_rewards()
 	
 	if debug:
 		print("[BossClear Debug] Boss clear screen ready for level %d, score: %d" % [current_level, GameManager.score if GameManager else 0])
 	
-	// Make sure the screen is visible
-	show()
-	print("[BossClear Debug] Boss clear screen shown")
+	# Make sure the screen is hidden by default
+	hide()
 
 func _ready():
-	// Auto-initialize when the node is ready, but only if not already initialized
+	# Auto-initialize when the node is ready, but only if not already initialized
 	print("[BossClear Debug] _ready() called")
 	if not signals_connected:
 		print("[BossClear Debug] _ready() called, auto-initializing")
@@ -66,70 +66,128 @@ func _ready():
 		print("[BossClear Debug] _ready() called, already initialized")
 
 func set_score(value: int) -> void:
-	// Update the score label
-	print("[BossClear Debug] set_score called with value: %d" % value)
+	# Update the score label
+	if debug:
+		print("[BossClear Debug] set_score called with value: %d" % value)
 	if scoreLabel:
 		scoreLabel.text = "Level Score: %d" % value
-		print("[BossClear Debug] scoreLabel.text set to: %s" % scoreLabel.text)
+		if debug:
+			print("[BossClear Debug] scoreLabel.text set to: %s" % scoreLabel.text)
 	else:
-		print("[BossClear Debug] ERROR: scoreLabel is null!")
+		if debug:
+			print("[BossClear Debug] ERROR: scoreLabel is null!")
 
 func _show_boss_rewards() -> void:
-	// Display the rewards that will be given
-	void_shard_label.text = "Void Shards: +%d" % BOSS_VOID_SHARDS_REWARD
-	coin_label.text = "Coins: +%d" % BOSS_COINS_REWARD
-	crystal_label.text = "Crystals: +%d" % BOSS_CRYSTALS_REWARD
+	# Calculate rewards based on level
+	var rewards = _calculate_boss_rewards()
+	
+	# Display the rewards that will be given
+	if void_shard_label:
+		void_shard_label.text = "Void Shards: +%d" % rewards.void_shards
+	if coin_label:
+		coin_label.text = "Coins: +%d" % rewards.coins
+	if crystal_label:
+		crystal_label.text = "Crystals: +%d" % rewards.crystals
 	
 	if debug:
-		print("[BossClear Debug] Displaying boss rewards: %d void shards, %d coins, %d crystals" % [BOSS_VOID_SHARDS_REWARD, BOSS_COINS_REWARD, BOSS_CRYSTALS_REWARD])
+		print("[BossClear Debug] Displaying boss rewards: %d void shards, %d coins, %d crystals" % [rewards.void_shards, rewards.coins, rewards.crystals])
+
+func _calculate_boss_rewards() -> Dictionary:
+	# Get reward configuration
+	var boss_rewards_config = {}
+	if ConfigLoader and ConfigLoader.upgrade_settings:
+		boss_rewards_config = ConfigLoader.upgrade_settings.get("boss_level_rewards", {})
+	
+	# Default rewards if config not found
+	var default_rewards = {
+		"coins": 1000,
+		"crystals": 50,
+		"void_shards": 10
+	}
+	
+	# Check if we have specific rewards for this level
+	if boss_rewards_config.has(str(current_level)):
+		return boss_rewards_config[str(current_level)]
+	
+	# Calculate rewards based on level number (boss levels are 5, 10, 15, 20, etc.)
+	@warning_ignore("integer_division")
+	var level_multiplier = current_level / 5  # 1 for level 5, 2 for level 10, etc.
+	
+	return {
+		"coins": int(1000 * level_multiplier),
+		"crystals": int(50 * level_multiplier),
+		"void_shards": int(10 * level_multiplier)
+	}
+
+func _on_boss_level_completed(_level_num: int) -> void:
+	print("[BossClear Debug] _on_boss_level_completed called with level: %d" % _level_num)
+	
+	# Only proceed if the screen is actually being shown
+	if not is_visible_in_tree():
+		if debug:
+			print("[BossClear Debug] Screen not visible, ignoring boss level completion")
+		return
+	
+	# Apply boss rewards when the screen is shown
+	_apply_boss_rewards()
+	
+	# Make sure the screen is visible
+	show()
+	print("[BossClear Debug] Boss clear screen shown")
 
 func _apply_boss_rewards() -> void:
 	if GameManager:
-		// Check if this is the first time completing this boss level
+		# Calculate rewards
+		var rewards = _calculate_boss_rewards()
+		
+		# Check if this is the first time completing this boss level
 		var boss_levels_completed = GameManager.save_manager.boss_levels_completed
 		var is_first_time = not boss_levels_completed.has(current_level)
 		
 		if is_first_time:
 			print("[BossClear Debug] First time completing boss level %d, applying rewards" % current_level)
-			// Add the special boss rewards only for first time
-			GameManager.add_currency("void_shards", BOSS_VOID_SHARDS_REWARD)
-			GameManager.add_currency("coins", BOSS_COINS_REWARD)
-			GameManager.add_currency("crystals", BOSS_CRYSTALS_REWARD)
+			# Add the special boss rewards only for first time
+			GameManager.add_currency("void_shards", rewards.void_shards)
+			GameManager.add_currency("coins", rewards.coins)
+			GameManager.add_currency("crystals", rewards.crystals)
 			
-			// Mark this boss level as completed
+			# Mark this boss level as completed
 			boss_levels_completed.append(current_level)
-			// SaveManager will handle saving the updated boss_levels_completed array
+			# SaveManager will handle saving the updated boss_levels_completed array
 		else:
 			print("[BossClear Debug] Boss level %d already completed before, no bonus rewards" % current_level)
-			// Update the UI to show no rewards
-			void_shard_label.text = "Void Shards: +0"
-			coin_label.text = "Coins: +0"
-			crystal_label.text = "Crystals: +0"
+			# Update the UI to show no rewards
+			if void_shard_label:
+				void_shard_label.text = "Void Shards: +0"
+			if coin_label:
+				coin_label.text = "Coins: +0"
+			if crystal_label:
+				crystal_label.text = "Crystals: +0"
 		
-		// Also add any collected coins from the level (if any)
+		# Also add any collected coins from the level (if any)
 		var collected_coins = GameManager.coins_collected_this_level if GameManager else 0
 		if collected_coins > 0:
 			GameManager.add_currency("coins", collected_coins)
 			if debug:
 				print("[BossClear Debug] Added %d collected coins from level" % collected_coins)
 		
-		// Reset level collected coins
+		# Reset level collected coins
 		GameManager.coins_collected_this_level = 0
 		
-		// Save progress
+		# Save progress
 		if GameManager.save_manager and GameManager.save_manager.autosave_progress:
 			GameManager.save_manager.save_progress()
 		
-		// Play reward sound effect
+		# Play reward sound effect
 		_play_sound_effect("boss_victory")
 		
 		if debug:
 			if is_first_time:
-				print("[BossClear Debug] Applied boss rewards: %d void shards, %d coins, %d crystals" % [BOSS_VOID_SHARDS_REWARD, BOSS_COINS_REWARD, BOSS_CRYSTALS_REWARD])
+				print("[BossClear Debug] Applied boss rewards: %d void shards, %d coins, %d crystals" % [rewards.void_shards, rewards.coins, rewards.crystals])
 			else:
 				print("[BossClear Debug] No boss rewards applied for previously completed boss level")
 			
-		// Show total rewards applied message
+		# Show total rewards applied message
 		if total_rewards_label:
 			if is_first_time:
 				total_rewards_label.text = "Total Rewards Applied!"
@@ -155,11 +213,6 @@ func _play_sound_effect(sound_type: String) -> void:
 			print("[BossClear Debug] Warning: AudioManager not found, cannot play sound effect")
 
 func _on_next_pressed() -> void:
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[BossClear Debug] Next pressed during animation, waiting for completion")
-	// 	return
 	
 	if GameManager and GameManager.level_manager:
 		GameManager.level_manager.unlock_next_level(current_level)
@@ -170,12 +223,6 @@ func _on_next_pressed() -> void:
 			print("[BossClear Debug] Error: GameManager or level_manager missing, can't unlock next level!")
 
 func _on_map_pressed() -> void:
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[BossClear Debug] Map pressed during animation, waiting for completion")
-	// 	return
-	
 	if GameManager:
 		GameManager.change_scene(Map)
 		if debug:
@@ -185,12 +232,6 @@ func _on_map_pressed() -> void:
 			print("[BossClear Debug] Error: GameManager missing, can't warp to map!")
 
 func _on_restart_pressed() -> void:
-	// Removed is_animating check as it's no longer needed
-	// if is_animating:
-	// 	if debug:
-	// 		print("[BossClear Debug] Restart pressed during animation, waiting for completion")
-	// 	return
-	
 	if GameManager:
 		GameManager.is_paused = false
 		GameManager.reset_game()

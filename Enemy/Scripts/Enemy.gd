@@ -410,17 +410,43 @@ func die():
 	died.emit()
 
 func _drop_resources():
-	# Drop coins - reduced from 1-3 to 1-2 coins
+	# Get current level from GameManager
+	var current_level = 1
+	if GameManager and GameManager.level_manager:
+		current_level = GameManager.level_manager.get_current_level()
+	
+	# Get reward configuration
+	var reward_config = {}
+	if ConfigLoader and ConfigLoader.upgrade_settings:
+		reward_config = ConfigLoader.upgrade_settings.get("enemy_drop_rewards", {})
+	
+	# Default values if config not found
+	var coins_per_enemy = reward_config.get("coins_per_enemy", 15)
+	var crystal_drop_chance = reward_config.get("crystal_drop_chance", 0.2)
+	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
+	
+	# Scale rewards based on level (higher levels give more rewards)
+	var level_multiplier = pow(float(current_level), 0.5)  # Square root scaling
+	var scaled_coins = int(coins_per_enemy * level_multiplier)
+	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
+	
+	# Drop coins - 1-2 coins per enemy with level scaling
 	var coin_count = randi_range(1, 2)
 	for i in range(coin_count):
 		var coin = COINS.instantiate()
 		coin.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		# Set the coin value based on the scaled reward
+		if coin.has_method("set_value"):
+			coin.set_value(scaled_coins)
 		get_tree().current_scene.call_deferred("add_child", coin)
 	
-	# Drop crystal occasionally
-	if randf() < 0.15: # 15% chance (changed from 30%)
+	# Drop crystal occasionally with scaled reward
+	if randf() < crystal_drop_chance:
 		var crystal = CRYSTAL.instantiate()
 		crystal.global_position = global_position
+		# Set the crystal value based on the scaled reward
+		if crystal.has_method("set_value"):
+			crystal.set_value(scaled_crystal_reward)
 		get_tree().current_scene.call_deferred("add_child", crystal)
 
 func _play_death_animation():
