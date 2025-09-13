@@ -6,7 +6,3 @@
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 16
-
-[node name="WaveManager" parent="." index="6"]
-wave_delay = 1.5
-debug_mode = false

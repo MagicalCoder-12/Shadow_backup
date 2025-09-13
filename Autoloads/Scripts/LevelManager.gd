@@ -21,8 +21,6 @@ func _ready() -> void:
 	# Defer initialization until all autoloads are ready
 	call_deferred("initialize")
 
-func initialize() -> void:
-	print("LevelManager: initialize() called")
 
 func load_level(level_num: int) -> void:
 	if not is_level_unlocked(level_num):
@@ -74,6 +72,25 @@ func complete_level(current_level: int) -> void:
 	if gm.save_manager.autosave_progress:
 		gm.save_manager.save_progress()
 	
+	#Handle special level completions
+	var should_transition_to_next_level: bool = true
+	var is_boss_level: bool = current_level % 5 == 0 and current_level > 0
+	
+	# Handle special level completions
+	if current_level == 5 and not shadow_mode_tutorial_shown:
+		_show_shadow_mode_tutorial()
+		should_transition_to_next_level = false
+		is_level_just_completed = false
+	elif is_boss_level:
+		# This is a boss level, the Level scene will handle showing the boss clear scene
+		# We don't want to transition to next level automatically for boss levels
+		should_transition_to_next_level = false
+		is_level_just_completed = false
+	elif current_level == 20 and not is_video_playing:
+		_play_ending_video()
+		should_transition_to_next_level = false
+	
+	# Only add to completed levels if not already completed
 	if not completed_levels.has(current_level):
 		completed_levels.append(current_level)
 		gm.level_star_earned.emit(current_level)
@@ -83,23 +100,12 @@ func complete_level(current_level: int) -> void:
 	if gm:
 		for connection in gm.level_completed.get_connections():
 			print("LevelManager: Connected to: %s" % connection.callable.get_object())
+	print("LevelManager: Emitting level_completed signal for level %d" % current_level)
 	gm.level_completed.emit(current_level)
 	
-	var should_transition_to_next_level: bool = true
-	
-	# Handle special level completions
-	if current_level == 5 and not shadow_mode_tutorial_shown:
-		_show_shadow_mode_tutorial()
-		should_transition_to_next_level = false
-		is_level_just_completed = false
-	
-	if current_level == 10 and not is_video_playing:
-		_play_ending_video()
-		should_transition_to_next_level = false
-	
-	# Unlock next level
+	# Unlock next level (but only if it's the next sequential level)
 	var next_level: int = current_level + 1
-	if next_level > unlocked_levels:
+	if next_level == unlocked_levels + 1:  # Only unlock if it's the next sequential level
 		unlocked_levels = next_level
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
@@ -160,7 +166,6 @@ func _on_video_finished(video_layer: CanvasLayer) -> void:
 func unlock_next_level(current_level: int) -> void:
 	var next_level: int = current_level + 1
 	var next_level_path: String = "res://Levels/level_%d.tscn" % next_level
-	
 	if ResourceLoader.exists(next_level_path):
 		gm.change_scene(next_level_path)
 	else:
@@ -255,13 +260,8 @@ func _on_boss_defeated() -> void:
 	if current_level == 5:
 		unlock_shadow_mode()
 	
-	# For boss levels, complete the level properly
-	if current_level % 5 == 0 and current_level > 0:
-		# Emit the level completed signal which will trigger the boss clear screen
-		gm.level_completed.emit(current_level)
-	else:
-		# For non-boss levels, complete normally
-		complete_level(current_level)
+	# For all levels, complete the level properly through the unified flow
+	complete_level(current_level)
 
 func _on_unlock_shadow_mode() -> void:
 	unlock_shadow_mode()

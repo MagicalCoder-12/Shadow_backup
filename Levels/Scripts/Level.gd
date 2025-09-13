@@ -158,7 +158,7 @@ func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:
 	
 	# Check enemy type for non-boss waves
 	if not wave.is_boss_wave():
-		var valid_enemies = ["mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug"]
+		var valid_enemies = ["mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug","ShadowSentinel","PhasePhantom","OblivionTank"]
 		if not wave.enemy_type in valid_enemies:
 			push_warning("LevelManager: Wave %d has invalid enemy_type '%s'" % [wave_index + 1, wave.enemy_type])
 			return false
@@ -311,15 +311,17 @@ func revive_player():
 func _on_level_completed(_level_num: int):
 	print("[Level Debug] _on_level_completed called with level: %d" % _level_num)
 	AudioManager.mute_bus("Bullet", true)
+	print("[Level Debug] Emitting Victory_pose signal")
 	emit_signal("Victory_pose")
 	
 	# Wait for player victory pose animation to complete before showing level completed UI
 	var player = get_tree().get_first_node_in_group("Player")
 	if player and player.has_signal("victory_pose_done"):
 		# Wait for the victory pose animation to finish
+		print("[Level Debug] Waiting for player victory_pose_done signal")
 		await player.victory_pose_done
+		print("[Level Debug] Player victory_pose_done signal received")
 		
-	_show_level_completed_ui()
 	# Check if this is a boss level
 	if _is_boss_level(_level_num):
 		print("[Level Debug] Boss level detected")
@@ -428,8 +430,9 @@ func _on_wave_manager_all_waves_cleared():
 		if is_boss_wave:
 			print("Level.gd: Boss wave cleared, waiting for boss defeated signal")
 		else:
-			print("Level.gd: Non-boss wave cleared, completing level normally")
-			GameManager.level_manager.complete_level(level_num)
+			print("Level.gd: Non-boss wave cleared, completing level through LevelManager")
+			# Call LevelManager.complete_level instead of emitting signal directly
+			GameManager.level_manager.complete_level(current_level_num)
 
 # === SHADOW MODE ===
 func _on_shadow_mode_activated():
@@ -463,14 +466,7 @@ func _on_boss_defeated() -> void:
 			print("Level.gd: Unlocking shadow mode for level 5")
 			GameManager.level_manager.unlock_shadow_mode()
 		
-		# For boss levels, complete the level properly
-		if current_level % 5 == 0:
-			print("Level.gd: Boss level detected, emitting level_completed signal")
-			# Emit the level completed signal which will trigger the boss clear screen
-			GameManager.level_completed.emit(current_level)
-		else:
-			print("Level.gd: Non-boss level, completing level normally")
-			# For non-boss levels, complete normally
-			GameManager.level_manager.complete_level(current_level)
+		# Always call LevelManager.complete_level for consistent handling
+		GameManager.level_manager.complete_level(current_level)
 	else:
 		print("Level.gd: Revive pending, ignoring boss defeat")

@@ -195,7 +195,6 @@ libraries = {
 }
 
 [node name="WaveManager" parent="." instance=ExtResource("13_nmwl1")]
-wave_delay = 1.5
 debug_mode = false
 
 [connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

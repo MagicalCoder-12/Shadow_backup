@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://dcvjjm6vxt334"]
+[gd_scene load_steps=37 format=3 uid="uid://dcvjjm6vxt334"]
 
 [ext_resource type="Script" path="res://Enemy/Scripts/shadow_sentinel.gd" id="1_ei7oe"]
 [ext_resource type="Texture2D" uid="uid://gm4b6s0ymw17" path="res://Textures/Enemy/Enemy_1_B_Small_NoLight.png" id="2_35tnw"]
@@ -21,6 +21,18 @@
 [ext_resource type="Texture2D" uid="uid://c387rmoj2p163" path="res://Textures/Enemy/explosion4/k2_0013.png" id="17_0wp7m"]
 [ext_resource type="Texture2D" uid="uid://6m1fe2bdfct6" path="res://Textures/Enemy/explosion4/k2_0014.png" id="18_vnfbl"]
 [ext_resource type="Texture2D" uid="uid://crkdp7doace1k" path="res://Textures/Enemy/explosion4/k2_0015.png" id="19_hawi6"]
+[ext_resource type="Texture2D" uid="uid://tan1olo16d8h" path="res://Textures/shield2/00.png" id="22_5mom5"]
+[ext_resource type="Texture2D" uid="uid://d2q6c17w0q4yu" path="res://Textures/shield2/01.png" id="23_8kx7p"]
+[ext_resource type="Texture2D" uid="uid://dcel1qd52h0is" path="res://Textures/shield2/02.png" id="24_pmldy"]
+[ext_resource type="Texture2D" uid="uid://brf8bex1purbb" path="res://Textures/shield2/03.png" id="25_qwyih"]
+[ext_resource type="Texture2D" uid="uid://cfo8jtlwtrnt" path="res://Textures/shield2/04.png" id="26_hgepu"]
+[ext_resource type="Texture2D" uid="uid://dh66b6exojp6b" path="res://Textures/shield2/05.png" id="27_sxp25"]
+[ext_resource type="Texture2D" uid="uid://bm26mk5jt8ny8" path="res://Textures/shield2/06.png" id="28_kpjpj"]
+[ext_resource type="Texture2D" uid="uid://bqiknsfrlguw7" path="res://Textures/shield2/07.png" id="29_60h3q"]
+[ext_resource type="Texture2D" uid="uid://kc07enot62f8" path="res://Textures/shield2/08.png" id="30_tcn3j"]
+[ext_resource type="Texture2D" uid="uid://4wm7oi3miwrh" path="res://Textures/shield2/09.png" id="31_4j0qf"]
+[ext_resource type="Texture2D" uid="uid://c1xtm46qou2uv" path="res://Textures/shield2/10.png" id="32_e2f7e"]
+[ext_resource type="Texture2D" uid="uid://dd2gok67auikn" path="res://Textures/shield2/11.png" id="33_1pxat"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_kjw2x"]
 radius = 80.0
@@ -74,6 +86,50 @@ animations = [{
 "texture": ExtResource("19_hawi6")
 }],
 "loop": false,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xs7dk"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("22_5mom5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_8kx7p")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_pmldy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_qwyih")
+}, {
+"duration": 1.0,
+"texture": ExtResource("26_hgepu")
+}, {
+"duration": 1.0,
+"texture": ExtResource("27_sxp25")
+}, {
+"duration": 1.0,
+"texture": ExtResource("28_kpjpj")
+}, {
+"duration": 1.0,
+"texture": ExtResource("29_60h3q")
+}, {
+"duration": 1.0,
+"texture": ExtResource("30_tcn3j")
+}, {
+"duration": 1.0,
+"texture": ExtResource("31_4j0qf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("32_e2f7e")
+}, {
+"duration": 1.0,
+"texture": ExtResource("33_1pxat")
+}],
+"loop": true,
 "name": &"default",
 "speed": 5.0
 }]
@@ -135,6 +191,11 @@ autostart = true
 
 [node name="CloneTimer" type="Timer" parent="."]
 one_shot = true
+
+[node name="ShadowCoreShield" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -3)
+scale = Vector2(1.05938, 0.559375)
+sprite_frames = SubResource("SpriteFrames_xs7dk")
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

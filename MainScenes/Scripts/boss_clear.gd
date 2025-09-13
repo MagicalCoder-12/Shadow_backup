@@ -45,7 +45,6 @@ func initialize():
 	# Initialize display
 	print("[BossClear Debug] Setting initial score display")
 	set_score(GameManager.score if GameManager else 0)
-	get_tree().get_root().connect("go_back_requested", _on_map_pressed)
 	
 	# Show boss rewards immediately
 	_show_boss_rewards()

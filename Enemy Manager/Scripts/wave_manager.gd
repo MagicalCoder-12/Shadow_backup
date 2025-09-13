@@ -74,19 +74,36 @@ func start_waves() -> void:
 
 # --- New Methods for Dynamic Wave Progression ---
 
-func _adjust_wave_difficulty(player_performance: float):
+func _adjust_wave_difficulty(new_player_performance: float):
+	# Update class-level player_performance
+	player_performance = clamp(new_player_performance, 0.0, 1.0)
+	
 	# Modify enemy count, health, and shooting frequency based on player performance
-	# player_performance: 0.0 (struggling) to 1.0 (excelling)
-	if current_wave_config:
-		if player_performance > 0.7:  # Player is doing well
-			# Increase difficulty
-			current_wave_config.difficulty = formation_enums.DifficultyLevel.HARD
-		elif player_performance < 0.3:  # Player is struggling
-			# Decrease difficulty
-			current_wave_config.difficulty = formation_enums.DifficultyLevel.EASY
-		else:
-			# Keep normal difficulty
-			current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+	if not current_wave_config:
+		if debug_mode:
+			print("WaveManager: No wave config to adjust difficulty")
+		return
+	
+	if not formation_enums:
+		push_warning("WaveManager: formation_enums not found, defaulting to NORMAL difficulty")
+		current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL if formation_enums else 1
+		return
+	
+	if player_performance > 0.7:  # Player is doing well
+		# Increase difficulty
+		current_wave_config.difficulty = formation_enums.DifficultyLevel.HARD
+		if debug_mode:
+			print("WaveManager: Difficulty set to HARD (player_performance: %.2f)" % player_performance)
+	elif player_performance < 0.3:  # Player is struggling
+		# Decrease difficulty
+		current_wave_config.difficulty = formation_enums.DifficultyLevel.EASY
+		if debug_mode:
+			print("WaveManager: Difficulty set to EASY (player_performance: %.2f)" % player_performance)
+	else:
+		# Keep normal difficulty
+		current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+		if debug_mode:
+			print("WaveManager: Difficulty set to NORMAL (player_performance: %.2f)" % player_performance)
 
 func _trigger_event_wave(event_type: String):
 	# Spawn special enemy formations based on events
@@ -109,9 +126,9 @@ func _spawn_elite_enemy():
 	# Create a temporary wave config for the elite enemy
 	var elite_config = WaveConfig.new()
 	elite_config.enemy_type = "EliteEnemy"
-	elite_config.formation_type = formation_enums.FormationType.CIRCLE
-	elite_config.entry_pattern = formation_enums.EntryPattern.TOP_DIVE
-	elite_config.difficulty = formation_enums.DifficultyLevel.HARD
+	elite_config.formation_type = formation_enums.FormationType.CIRCLE if formation_enums else 0
+	elite_config.entry_pattern = formation_enums.EntryPattern.TOP_DIVE if formation_enums else 0
+	elite_config.difficulty = formation_enums.DifficultyLevel.HARD if formation_enums else 2
 	elite_config.formation_center = Vector2(640, 300)
 	elite_config.formation_radius = 100.0
 	
@@ -162,11 +179,12 @@ func _spawn_enemy_swarm(count: int, enemy_type: String):
 	# Create a temporary wave config for the swarm
 	var swarm_config = WaveConfig.new()
 	swarm_config.enemy_type = enemy_type
-	swarm_config.formation_type = formation_enums.FormationType.CLUSTER
-	swarm_config.entry_pattern = formation_enums.EntryPattern.STAGGERED
-	swarm_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+	swarm_config.formation_type = formation_enums.FormationType.CLUSTER if formation_enums else 0
+	swarm_config.entry_pattern = formation_enums.EntryPattern.STAGGERED if formation_enums else 0
+	swarm_config.difficulty = formation_enums.DifficultyLevel.NORMAL if formation_enums else 1
 	swarm_config.formation_center = Vector2(640, 500)
 	swarm_config.formation_radius = 150.0
+	swarm_config.count = count  # Assuming WaveConfig has a count property
 	
 	# Create formation manager for swarm
 	var swarm_formation_manager = formation_manager_scene.instantiate() as FormationManager

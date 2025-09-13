@@ -172,7 +172,7 @@ func reset_game() -> void:
 	# Ensure game tree is unpaused
 	get_tree().paused = false
 	
-	print("[GameManager] Game state fully reset for restart")
+
 
 # Reset score and lives for each level (per-level progression)
 func reset_for_new_level() -> void:
@@ -183,12 +183,10 @@ func reset_for_new_level() -> void:
 	
 	coins_collected_this_level = 0
 	crystals_collected_this_level = 0
-	print("[GameManager] Score and lives reset for new level: score=%d, lives=%d" % [_score, _player_lives])
 	score_updated.emit(_score)
 	on_player_life_changed.emit(_player_lives)
 
 func complete_level(current_level: int) -> void:
-	print("[GameManager] complete_level called for level: %d" % current_level)
 	level_manager.complete_level(current_level)
 
 func _on_shadow_mode_timer_timeout() -> void:
@@ -217,9 +215,7 @@ func request_ad_revive() -> void:
 	ad_manager.request_ad_revive()
 
 func revive_player(lives: int = 2) -> void:
-	print("[DEBUG] GameManager: revive_player called with lives: %d" % lives)
 	player_manager.revive_player(lives)
-	print("[DEBUG] GameManager: revive_player completed")
 
 func spawn_player(lives: int) -> void:
 	player_manager.spawn_player(lives)

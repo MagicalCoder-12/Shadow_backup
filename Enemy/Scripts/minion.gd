@@ -389,7 +389,7 @@ func _on_minion_died():
 # Override die to add minion-specific death effects
 func die():
 	# Emit death signal first for manager sync
-	died.emit(self)
+	died.emit()
 	# Shadow minions explode with bullets
 	if is_shadow_enemy and randf() < 0.5:
 		_minion_death_burst()

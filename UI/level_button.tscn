@@ -8,7 +8,7 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_7imot"]
 font = ExtResource("4_kx6qo")
-font_size = 35
+font_size = 30
 
 [node name="LevelButton" type="TextureButton"]
 custom_minimum_size = Vector2(100, 100)

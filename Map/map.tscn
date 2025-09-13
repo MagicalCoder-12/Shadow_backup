@@ -1,11 +1,12 @@
-[gd_scene load_steps=17 format=3 uid="uid://bs74tol27j6sb"]
+[gd_scene load_steps=19 format=3 uid="uid://bs74tol27j6sb"]
 
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="2_3g1qk"]
 [ext_resource type="Texture2D" uid="uid://b1u8585mn0uux" path="res://Textures/Background/Mapbackground.png" id="2_6yc6o"]
 [ext_resource type="PackedScene" uid="uid://q8xvk7xqckbr" path="res://UI/level_button.tscn" id="2_njngi"]
 [ext_resource type="Script" path="res://Map/map.gd" id="3_8svjd"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="4_0bgbn"]
 [ext_resource type="Script" path="res://Map/camera_2d.gd" id="4_86j4t"]
-[ext_resource type="Texture2D" uid="uid://plwfeqd2sebm" path="res://Textures/UI/Main_Menu/BG.png" id="4_ksxpc"]
+[ext_resource type="Texture2D" uid="uid://b6a2r8ennyrn7" path="res://Textures/Background/bg2.png" id="4_eiwrt"]
 [ext_resource type="Texture2D" uid="uid://x8bdqinealjc" path="res://Textures/guibuttons/RedButton-Active.png" id="7_lymsy"]
 [ext_resource type="Texture2D" uid="uid://dutffj6j65vue" path="res://Textures/guibuttons/RedButton-Hover.png" id="8_5cbny"]
 [ext_resource type="Texture2D" uid="uid://dewuheq0cmgte" path="res://Textures/UI/Main_Menu/Star_03.png" id="8_uh8jt"]
@@ -25,6 +26,9 @@ outline_color = Color(1, 0, 0, 1)
 shadow_size = 100
 shadow_color = Color(1, 1, 0, 0)
 
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t0nxn"]
+load_path = "res://.godot/imported/bg4.png-7d654569044a3e7981966d5bb99e9fd4.ctex"
+
 [node name="Map" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -37,10 +41,10 @@ script = ExtResource("3_8svjd")
 [node name="Label" type="Label" parent="."]
 top_level = true
 layout_mode = 0
-offset_left = -346.0
-offset_top = -4539.0
-offset_right = 1555.0
-offset_bottom = -3718.0
+offset_left = -359.0
+offset_top = -10256.0
+offset_right = 1542.0
+offset_bottom = -9435.0
 theme_override_colors/font_color = Color(0.952941, 0.996078, 0.294118, 1)
 theme_override_font_sizes/font_size = 200
 text = "More Levels 
@@ -55,17 +59,33 @@ scale = Vector2(1.26367, 2.88086)
 texture = ExtResource("12_rr5ff")
 flip_v = true
 
+[node name="Space2" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -68.0
+offset_top = -5896.0
+offset_right = 1265.0
+offset_bottom = -3003.0
+texture = ExtResource("4_eiwrt")
+
+[node name="Space3" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -79.0
+offset_top = -8801.0
+offset_right = 1254.0
+offset_bottom = -5908.0
+texture = SubResource("CompressedTexture2D_t0nxn")
+
 [node name="Space" type="TextureRect" parent="."]
+modulate = Color(0.777569, 0.584156, 0.35576, 1)
 layout_mode = 0
 offset_left = -86.0
 offset_top = -3165.0
 offset_right = 1261.0
 offset_bottom = -66.0
-texture = ExtResource("4_ksxpc")
-flip_v = true
+texture = ExtResource("4_0bgbn")
 
 [node name="Commingsoon" type="Sprite2D" parent="."]
-position = Vector2(626, -3846.75)
+position = Vector2(623, -9494)
 scale = Vector2(1.5, 1.44873)
 texture = ExtResource("2_6yc6o")
 
@@ -209,10 +229,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton9" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 538.0
-offset_top = -1959.0
-offset_right = 638.0
-offset_bottom = -1859.0
+offset_left = 543.0
+offset_top = -2040.0
+offset_right = 643.0
+offset_bottom = -1940.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton9"]
 layout_mode = 0
@@ -226,15 +246,183 @@ stretch_mode = 4
 
 [node name="LevelButton10" parent="LevelButtons" instance=ExtResource("2_njngi")]
 offset_left = 370.0
-offset_top = -2815.0
+offset_top = -2924.0
 offset_right = 470.0
-offset_bottom = -2715.0
+offset_bottom = -2824.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton10"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton11" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 681.0
+offset_top = -3573.0
+offset_right = 781.0
+offset_bottom = -3473.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton11"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton12" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 278.0
+offset_top = -3986.0
+offset_right = 378.0
+offset_bottom = -3886.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton12"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton13" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 467.0
+offset_top = -4584.0
+offset_right = 567.0
+offset_bottom = -4484.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton13"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton14" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 666.0
+offset_top = -5163.0
+offset_right = 766.0
+offset_bottom = -5063.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton14"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton15" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 663.0
+offset_top = -5919.0
+offset_right = 763.0
+offset_bottom = -5819.0
+scale = Vector2(5.5, 5.5)
+texture_normal = ExtResource("7_lymsy")
+texture_pressed = ExtResource("8_5cbny")
+texture_hover = ExtResource("8_5cbny")
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton15"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton16" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 498.0
+offset_top = -6501.0
+offset_right = 598.0
+offset_bottom = -6401.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton16"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton17" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 817.0
+offset_top = -6987.0
+offset_right = 917.0
+offset_bottom = -6887.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton17"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton18" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 427.0
+offset_top = -7516.0
+offset_right = 527.0
+offset_bottom = -7416.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton18"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton19" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 797.0
+offset_top = -7848.0
+offset_right = 897.0
+offset_bottom = -7748.0
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton19"]
+layout_mode = 0
+offset_left = 79.2
+offset_top = -30.2
+offset_right = 133.2
+offset_bottom = 18.8
+texture = ExtResource("8_uh8jt")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="LevelButton20" parent="LevelButtons" instance=ExtResource("2_njngi")]
+offset_left = 322.0
+offset_top = -8750.0
+offset_right = 422.0
+offset_bottom = -8650.0
+scale = Vector2(5, 5)
+texture_normal = ExtResource("7_lymsy")
+texture_pressed = ExtResource("8_5cbny")
+texture_hover = ExtResource("8_5cbny")
+
+[node name="Star" type="TextureRect" parent="LevelButtons/LevelButton20"]
 layout_mode = 0
 offset_left = 79.2
 offset_top = -30.2

@@ -14,6 +14,10 @@ var is_revive_pending: bool = false
 var revive_timeout_timer: Timer
 @export var enable_debug_logging: bool = false  # Toggle for debug messages
 
+# Signals
+signal ad_reward_granted(ad_type: String)
+signal ad_failed_to_load(ad_type: String, error_data: Variant)
+
 func _ready() -> void:
 	gm = GameManager
 	# Defer initialization until all autoloads are ready
@@ -417,17 +421,21 @@ func _fallback_to_map() -> void:
 	_debug_log("Falling back to map scene due to ad failure")
 
 func _grant_reward(reward_type: String) -> void:
-	var ad_crystal_reward = ConfigLoader.upgrade_settings.get("ad_crystal_reward", 10)
-	var ad_ascend_reward = ConfigLoader.upgrade_settings.get("ad_ascend_reward", 5)
+	var ad_crystal_reward = ConfigLoader.upgrade_settings.get("ad_crystal_reward", 15)
+	var ad_ascend_reward = ConfigLoader.upgrade_settings.get("ad_ascend_reward", 10)
 	var ad_coins_reward = ConfigLoader.upgrade_settings.get("ad_coins_reward", 5000)
+	
+	# Also emit signal for UI updates
 	match reward_type:
 		"crystals":
 			gm.add_currency("crystals", ad_crystal_reward)
 			gm.add_currency("void_shards", ad_ascend_reward)
 			_debug_log("Granted %d crystals and %d void_shards" % [ad_crystal_reward, ad_ascend_reward])
+			gm.ad_reward_granted.emit("crystals")
 		"coins":
 			gm.add_currency("coins", ad_coins_reward)
 			_debug_log("Granted %d coins" % ad_coins_reward)
+			gm.ad_reward_granted.emit("coins")
 
 func handle_node_added(_node: Node) -> void:
 	pass  # Placeholder, not needed for static ReviveAdButton
@@ -440,3 +448,43 @@ func _on_revive_timeout() -> void:
 		complete_ad_revive()
 	else:
 		_debug_log("Timeout triggered but no revive pending")
+
+# New function to request reward ads
+func request_reward_ad(reward_type: String) -> void:
+	_debug_log("Requesting reward ad for: %s" % reward_type)
+	if not admob or not is_initialized:
+		push_error("Cannot request reward ad: AdMob not initialized or missing.")
+		# Grant reward directly if ads aren't available
+		_grant_reward(reward_type)
+		return
+
+	if is_ad_showing:
+		print("Ad request ignored: Another ad is already showing.")
+		# Grant reward directly if another ad is showing
+		_grant_reward(reward_type)
+		return
+
+	# Set up reward state
+	is_reward_ad_pending = true
+	current_reward_type = reward_type
+	ad_retry_count = 0
+	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
+	
+	_debug_log("Requesting %s ad for reward: %s" % [selected_ad_type, reward_type])
+
+	if selected_ad_type == "video":
+		if admob.is_rewarded_ad_loaded():
+			is_ad_showing = true
+			admob.show_rewarded_ad()
+			_debug_log("Showing rewarded video ad")
+		else:
+			admob.load_rewarded_ad()
+			_debug_log("Loading rewarded video ad")
+	else:
+		if admob.is_rewarded_interstitial_ad_loaded():
+			is_ad_showing = true
+			admob.show_rewarded_interstitial_ad()
+			_debug_log("Showing rewarded interstitial ad")
+		else:
+			admob.load_rewarded_interstitial_ad()
+			_debug_log("Loading rewarded interstitial ad")

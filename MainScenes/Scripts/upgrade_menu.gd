@@ -79,9 +79,23 @@ func _ready() -> void:
 func _connect_gamemanager_signals() -> void:
 	"""Connect to relevant GameManager signals"""
 	if GameManager.has_signal("ad_reward_granted"):
-		GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
+		if not GameManager.ad_reward_granted.is_connected(_on_ad_reward_granted):
+			GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
 	if GameManager.has_signal("currency_updated"):
-		GameManager.currency_updated.connect(_on_currency_updated)
+		if not GameManager.currency_updated.is_connected(_on_currency_updated):
+			GameManager.currency_updated.connect(_on_currency_updated)
+	
+	# Also connect to AdManager signals
+	_connect_ad_signals()
+
+func _connect_ad_signals() -> void:
+	if GameManager.ad_manager:
+		if GameManager.ad_manager.has_signal("ad_reward_granted"):
+			if not GameManager.ad_manager.ad_reward_granted.is_connected(_on_ad_reward_granted):
+				GameManager.ad_manager.ad_reward_granted.connect(_on_ad_reward_granted)
+		if GameManager.ad_manager.has_signal("ad_failed_to_load"):
+			if not GameManager.ad_manager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
+				GameManager.ad_manager.ad_failed_to_load.connect(_on_ad_failed_to_load)
 
 func _on_currency_updated(_currency_type: String, _new_amount: int) -> void:
 	_update_currency_display()
@@ -501,9 +515,15 @@ func _show_ascend_failed_feedback() -> void:
 	pass
 
 func _on_ad_reward_granted(ad_type: String) -> void:
-	if ad_type == "video" or ad_type == "interstitial":
-		is_ad_loading = false
-		_update_currency_display()
+	# Update UI when reward is granted through ads
+	_update_currency_display()
+	_show_ad_reward_message(ad_type)
+	is_ad_loading = false
+
+func _on_ad_failed_to_load(_ad_type: String, _error_data: Variant) -> void:
+	# Handle ad failure
+	is_ad_loading = false
+	# UI can show an error message if needed
 
 func _on_back_pressed() -> void:
 	_save_ship_progress()
@@ -560,7 +580,10 @@ func _show_rewarded_ad(reward_type: String) -> void:
 		is_ad_loading = true
 		GameManager.ad_manager.request_reward_ad(reward_type)
 	else:
+		# If ads aren't available, grant reward directly and update UI
 		_grant_ad_reward(reward_type)
+		_update_currency_display()
+		_show_ad_reward_message(reward_type)
 
 func _grant_ad_reward(reward_type: String) -> void:
 	var ad_rewards = {}
@@ -581,23 +604,49 @@ func _grant_ad_reward(reward_type: String) -> void:
 			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 10)
 			GameManager.add_currency("crystals", crystal_reward)
 			GameManager.add_currency("void_shards", void_shard_reward)
+			_show_ad_reward_message("crystals")
 		"coins":
 			var coins_reward = ad_rewards.get("ad_coins_reward", 750)
 			GameManager.add_currency("coins", coins_reward)
+			_show_ad_reward_message("coins")
+		_:
+			push_warning("Unknown reward type: %s" % reward_type)
+			_show_ad_reward_message(reward_type)
 
-	_update_currency_display()
-	_show_ad_reward_message(reward_type)
-
-func _show_ad_reward_message(_reward_type: String) -> void:
-	@warning_ignore("unused_variable")
+func _show_ad_reward_message(reward_type: String) -> void:
 	var ad_rewards = {}
-	if is_instance_valid(ConfigLoader):
-		ad_rewards = ConfigLoader.upgrade_settings.get("ad_rewards", {})
+	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
+		ad_rewards = ConfigLoader.upgrade_settings
 	else:
+		# Default values if config not found
 		ad_rewards = {
-			"ad_crystal_reward": 100,
-			"ad_coins_reward": 1000
+			"ad_crystal_reward": 15,
+			"ad_ascend_reward": 10,
+			"ad_coins_reward": 750
 		}
+	
+	var message = ""
+	match reward_type:
+		"crystals":
+			var crystal_reward = ad_rewards.get("ad_crystal_reward", 15)
+			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 10)
+			message = "Rewarded: %d Crystals and %d Void Shards!" % [crystal_reward, void_shard_reward]
+		"coins":
+			var coins_reward = ad_rewards.get("ad_coins_reward", 750)
+			message = "Rewarded: %d Coins!" % coins_reward
+		_:
+			message = "Reward granted!"
+	
+	# Display the message to the user
+	warning.text = message
+	warning_panel.show()
+	
+	# Update the currency display
+	_update_currency_display()
+	
+	# Hide the message after a delay
+	await get_tree().create_timer(2.0).timeout
+	warning_panel.hide()
 
 # ================================
 # SAVE/LOAD SYSTEM

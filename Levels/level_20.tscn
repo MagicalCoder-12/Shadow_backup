@@ -1,12 +1,143 @@
-[gd_scene load_steps=2 format=3 uid="uid://pashsvmfo5yv"]
+[gd_scene load_steps=13 format=3 uid="uid://pashsvmfo5yv"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_g1d3d"]
+[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_3xxbo"]
+
+[sub_resource type="Resource" id="Resource_joty3"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_5n4b7"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_4aujh"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_u0udy"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_5jrpr"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_2xnp3"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_6oi66"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_ux0e7"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_a3h6j"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
+[sub_resource type="Resource" id="Resource_6n0w8"]
+script = ExtResource("2_3xxbo")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
 
 [node name="Level_20" instance=ExtResource("1_g1d3d")]
 
+[node name="PauseMenu" parent="CanvasLayer" index="4"]
+modulate = Color(1, 1, 1, 0)
+
 [node name="LevelManager" parent="." index="4"]
 level_num = 20
-
-[node name="WaveManager" parent="." index="6"]
-wave_delay = 1.5
-debug_mode = false
+waves = Array[ExtResource("2_3xxbo")]([SubResource("Resource_joty3"), SubResource("Resource_5n4b7"), SubResource("Resource_4aujh"), SubResource("Resource_u0udy"), SubResource("Resource_5jrpr"), SubResource("Resource_2xnp3"), SubResource("Resource_6oi66"), SubResource("Resource_ux0e7"), SubResource("Resource_a3h6j"), SubResource("Resource_6n0w8")])

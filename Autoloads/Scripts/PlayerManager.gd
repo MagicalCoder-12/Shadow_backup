@@ -69,32 +69,26 @@ func set_spawn_position() -> void:
 	player_spawn_position = Vector2(viewport_size.x / 2, viewport_size.y)
 
 func spawn_player(lives: int) -> void:
-	print("[DEBUG] Spawning player with lives: %d, selected_ship_id: %s" % [lives, str(selected_ship_id)])
 	var current_scene = gm.get_tree().current_scene
 	if not current_scene:
-		print("[DEBUG] No current scene available to spawn player.")
 		return
 
 	var player_scene_path = "res://Ships/Player_%s.tscn" % selected_ship_id
-	print("[DEBUG] Player scene path: %s" % player_scene_path)
 	if ResourceLoader.exists(player_scene_path):
 		var player_scene = load(player_scene_path)
 		var player_instance = player_scene.instantiate()
 		player_instance.global_position = player_spawn_position
 		current_scene.call_deferred("add_child", player_instance)
 		player_instance.call_deferred("set_lives", lives)
-		print("[DEBUG] Player spawned successfully with ship_id: %s" % selected_ship_id)
 	else:
 		print("[DEBUG] Player scene not found at path: %s" % player_scene_path)
 
 func revive_player(lives: int = 2) -> void:
-	print("[DEBUG] Revive process started. Checking revive conditions...")
 	if not gm.ad_manager.is_revive_pending and gm.ad_manager.revive_type != "manual":
 		print("[DEBUG] Revive conditions not met. is_revive_pending: %s, revive_type: %s" % [str(gm.ad_manager.is_revive_pending), str(gm.ad_manager.revive_type)])
 		gm.revive_completed.emit(false)
 		return
 
-	print("[DEBUG] Revive conditions met. Proceeding with revive...")
 	gm.game_over = false
 	gm.is_paused = false
 	gm.get_tree().paused = false
@@ -116,17 +110,13 @@ func revive_player(lives: int = 2) -> void:
 	if current_scene:
 		_hide_game_over_screen(current_scene)
 
-	print("[DEBUG] Searching for existing player nodes in group 'Player'...")
 	for player in gm.get_tree().get_nodes_in_group("Player"):
-		print("[DEBUG] Found player node: %s" % str(player))
 		if player.ship_id == selected_ship_id:
-			print("[DEBUG] Reviving existing player node with ship_id: %s" % str(player.ship_id))
 			player.revive(lives)
 			player_found = true
 			break
 
 	if not player_found:
-		print("[DEBUG] No existing player found. Spawning a new player...")
 		spawn_player(lives)
 
 	gm.level_manager.is_game_over_screen_active = false
@@ -134,7 +124,6 @@ func revive_player(lives: int = 2) -> void:
 	if gm.ad_manager.is_initialized:
 		gm.ad_manager.hide_banner_ad()
 
-	print("[DEBUG] Revive process completed.")
 
 func _hide_game_over_screen(current_scene: Node) -> void:
 	var found = false
@@ -166,8 +155,7 @@ func reset_player_stats() -> void:
 		"is_shadow_mode_active": false,
 		"is_super_mode_active": false
 	}
-	# Note: Don't reset selected_ship_id on restart, preserve player's ship choice
-	print("[DEBUG] PlayerManager: Player stats reset for restart")
+
 
 # Update damage for the currently selected ship
 func update_current_ship_damage(new_damage: int) -> void:

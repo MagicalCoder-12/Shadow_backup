@@ -129,7 +129,28 @@ func _connect_signals() -> void:
 	# Connect to LevelManager
 	var level_manager = get_tree().get_first_node_in_group("LevelManager")
 	if level_manager:
-		level_manager.Victory_pose.connect(_on_victory_pose)
+		if level_manager.has_signal("Victory_pose"):
+			level_manager.Victory_pose.connect(_on_victory_pose)
+		else:
+			_debug_log("LevelManager does not have Victory_pose signal")
+	
+	# Connect to Level node
+	var level_node = get_tree().get_first_node_in_group("Level")
+	if level_node and level_node.has_signal("Victory_pose"):
+		level_node.Victory_pose.connect(_on_victory_pose)
+	else:
+		# Try to find the Level node by name if not in group
+		level_node = get_parent()
+		while level_node and not (level_node is Node and level_node.has_signal("Victory_pose")):
+			level_node = level_node.get_parent()
+			if level_node == null:
+				break
+		
+		if level_node and level_node.has_signal("Victory_pose"):
+			level_node.Victory_pose.connect(_on_victory_pose)
+			_debug_log("Connected to Level node by hierarchy traversal")
+		else:
+			_debug_log("Could not find Level node with Victory_pose signal")
 	
 	# Connect GameManager signals
 	GameManager.on_player_life_changed.connect(_on_player_life_changed)
@@ -609,7 +630,11 @@ func _on_game_over_triggered() -> void:
 	queue_free()
 	
 func _on_victory_pose():
-	animation_player.play("Player_sweep")
+	_debug_log("Playing victory pose animation")
+	if animation_player:
+		animation_player.play("Player_sweep")
+	else:
+		_debug_log("AnimationPlayer not found, cannot play victory pose")
 		
 func _on_level_completed(_level_num):
 	input_enabled = false
@@ -632,6 +657,7 @@ func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:
 
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == "Player_sweep":
+		_debug_log("Victory pose animation finished")
 		emit_signal("victory_pose_done", anim_name)
 
 # Handle collisions with enemies and enemy bullets
