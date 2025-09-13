@@ -8,9 +8,8 @@ const Map = "res://Map/map.tscn"
 var current_level: int
 var collected_coins: int = 0
 var collected_crystals: int = 0
-var debug: bool = false  # Enable or disable debug logging
+var debug: bool = true  # Enable or disable debug logging
 var signals_connected: bool = false
-var screen_shown: bool = false  # Track if the screen has been shown
 
 # Add a method to initialize the screen when it's actually shown
 func initialize():
@@ -37,14 +36,6 @@ func initialize():
 				if debug:
 					print("[LevelCompleted Debug] currency_updated signal already connected")
 			
-			if not GameManager.level_completed.is_connected(_on_level_completed):
-				GameManager.level_completed.connect(_on_level_completed)
-				if debug:
-					print("[LevelCompleted Debug] Connected level_completed signal")
-			else:
-				if debug:
-					print("[LevelCompleted Debug] level_completed signal already connected")
-			
 			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
 		else:
 			push_error("Error: GameManager not found! Level completed screen is adrift.")
@@ -55,13 +46,6 @@ func initialize():
 	if GameManager:
 		set_score(GameManager.score)
 		set_crystals("crystals", GameManager.crystal_count)
-	
-	get_tree().get_root().connect("go_back_requested", _on_map_pressed)
-	if debug:
-		print("[LevelCompleted Debug] Level completed screen ready for level %d, score: %d" % [current_level, GameManager.score if GameManager else 0])
-	
-	# Make sure the screen is hidden by default
-	hide()
 
 func _ready():
 	# Auto-initialize when the node is ready, but only if not already initialized
@@ -107,12 +91,6 @@ func _on_level_completed(_level_num: int) -> void:
 			print("[LevelCompleted Debug] GameManager.score: %d" % GameManager.score)
 			print("[LevelCompleted Debug] GameManager.coins_collected_this_level: %d" % (GameManager.coins_collected_this_level if GameManager else 0))
 			print("[LevelCompleted Debug] GameManager.crystals_collected_this_level: %d" % (GameManager.crystals_collected_this_level if GameManager else 0))
-	
-	# Only proceed if the screen is actually being shown
-	if not is_visible_in_tree():
-		if debug:
-			print("[LevelCompleted Debug] Screen not visible, ignoring level completion")
-		return
 	
 	# Get the collected coins and crystals for this level
 	collected_coins = GameManager.coins_collected_this_level if GameManager else 0
