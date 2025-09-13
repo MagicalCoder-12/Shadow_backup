@@ -223,7 +223,7 @@ func update_ship_ui() -> void:
 		_update_ascend_button_visibility()
 		_update_upgrade_buttons_state()
 	else:
-		var cost = {"R": 150, "SR": 500, "SSR": 1000}.get(ship["rank"], 0)
+		var cost = {"R": 250, "SR": 650, "SSR": 2000}.get(ship["rank"], 0)
 		buy_button.show()
 		selected.hide()
 		upgrade_coins_button.hide()

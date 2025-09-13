@@ -28,13 +28,14 @@ func initialize():
 				if debug:
 					print("[LevelCompleted Debug] score_updated signal already connected")
 			
-			if not GameManager.currency_updated.is_connected(set_crystals):
-				GameManager.currency_updated.connect(set_crystals)
+			# Connect level completed signal
+			if not GameManager.level_completed.is_connected(_on_level_completed):
+				GameManager.level_completed.connect(_on_level_completed)
 				if debug:
-					print("[LevelCompleted Debug] Connected currency_updated signal")
+					print("[LevelCompleted Debug] Connected level_completed signal")
 			else:
 				if debug:
-					print("[LevelCompleted Debug] currency_updated signal already connected")
+					print("[LevelCompleted Debug] level_completed signal already connected")
 			
 			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
 		else:
@@ -45,7 +46,6 @@ func initialize():
 	# Show current values
 	if GameManager:
 		set_score(GameManager.score)
-		set_crystals("crystals", GameManager.crystal_count)
 
 func _ready():
 	# Auto-initialize when the node is ready, but only if not already initialized
@@ -72,11 +72,17 @@ func set_score(value: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] scoreLabel is null!")
 
-func set_crystals(currency_type: String, value: int) -> void:
+func set_currency(currency_type: String, value: int) -> void:
 	if debug:
-		print("[LevelCompleted Debug] set_crystals called with type: %s, value: %d" % [currency_type, value])
-	# Update the crystals label when crystals are updated
-	if currency_type == "crystals":
+		print("[LevelCompleted Debug] set_currency called with type: %s, value: %d" % [currency_type, value])
+	# Update the currency labels
+	if currency_type == "coins":
+		if coins_label:
+			coins_label.text = "Coins: %d" % value
+		else:
+			if debug:
+				print("[LevelCompleted Debug] coins_label is null!")
+	elif currency_type == "crystals":
 		if crystalsLabel:
 			crystalsLabel.text = "Crystals: %d" % value
 		else:
@@ -101,14 +107,7 @@ func _on_level_completed(_level_num: int) -> void:
 	collected_coins += level_completion_rewards.coins
 	collected_crystals += level_completion_rewards.crystals
 	
-	# Update GameManager's currency counts with the additional rewards
-	if GameManager:
-		GameManager.coin_count += level_completion_rewards.coins
-		GameManager.crystal_count += level_completion_rewards.crystals
-		GameManager.currency_updated.emit("coins", GameManager.coin_count)
-		GameManager.currency_updated.emit("crystals", GameManager.crystal_count)
-	
-	# Set labels directly without animation
+	# Show collected coins and crystals for this level
 	if coins_label:
 		coins_label.text = "Coins: %d" % collected_coins
 		if debug:
@@ -117,7 +116,7 @@ func _on_level_completed(_level_num: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] ERROR: coins_label is null!")
 			
-	# Show collected crystals for this level, not the total
+	# Show collected crystals for this level
 	if crystalsLabel:
 		crystalsLabel.text = "Crystals: %d" % collected_crystals
 		if debug:
@@ -185,6 +184,7 @@ func _on_next_pressed() -> void:
 		print("[LevelCompleted Debug] _on_next_pressed called")
 	if GameManager and GameManager.level_manager:
 		GameManager.level_manager.unlock_next_level(current_level)
+		GameManager.score=0
 		if debug:
 			print("[LevelCompleted Debug] Unlocking next level after %d, onward and upward!" % current_level)
 	else:

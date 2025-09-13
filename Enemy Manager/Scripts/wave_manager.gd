@@ -155,39 +155,53 @@ func _spawn_boss_wave() -> void:
 		_complete_wave()
 		return
 	
-	# Instantiate and spawn the boss
+	# Instantiate and spawn the boss ABOVE the screen
 	var boss_instance = current_wave_config.boss_scene.instantiate()
 	if not boss_instance:
 		push_error("WaveManager: Failed to instantiate boss scene")
 		_complete_wave()
 		return
 	
-	# Position the boss 150 pixels below the top boundary
 	var viewport_rect = get_viewport().get_visible_rect()
-	var boss_position = Vector2(current_wave_config.formation_center.x, 150)
-	# Ensure boss stays within screen bounds
+	var boss_position = Vector2(current_wave_config.formation_center.x, -200)  # Spawn off-screen above
+	# Clamp x to screen bounds
 	boss_position.x = clamp(boss_position.x, 100, viewport_rect.size.x - 100)
 	boss_instance.global_position = boss_position
 	
-	# Add boss to scene
+	# Add boss to scene deferred
 	target_parent.call_deferred("add_child", boss_instance)
 	
-	# Track the boss
+	# Wait a frame for it to be in the tree, then connect
+	call_deferred("_connect_boss_signals", boss_instance)
+	
+	# Track the boss (but don't increment enemies_alive yet—wait for descent)
 	current_boss = boss_instance
 	active_enemies.append(boss_instance)
 	_connected_enemies.append(boss_instance)
-	enemies_alive = 1
-	
-	# Connect boss death signal
-	if boss_instance.has_signal("died"):
-		boss_instance.died.connect(_on_enemy_killed.bind(boss_instance))
-	elif boss_instance.has_signal("boss_defeated"):
-		boss_instance.boss_defeated.connect(_on_enemy_killed.bind(boss_instance))
+	# enemies_alive = 1  # Defer this until descent completes
 	
 	enemy_spawned.emit(boss_instance)
 	
 	if debug_mode:
-		print("WaveManager: Boss spawned at position %s (150px below top, Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
+		print("WaveManager: Boss spawned off-screen at %s (will descend to y=400, Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
+
+func _connect_boss_signals(boss: Node2D) -> void:
+	if not is_instance_valid(boss):
+		return
+	
+	# Connect death signal
+	if boss.has_signal("died"):
+		boss.died.connect(_on_enemy_killed.bind(boss))
+	elif boss.has_signal("boss_defeated"):
+		boss.boss_defeated.connect(_on_enemy_killed.bind(boss))
+	
+	# New: Connect descent completed to start full tracking
+	if boss.has_signal("descent_completed"):
+		boss.descent_completed.connect(func(): 
+			enemies_alive = 1
+			if debug_mode:
+				print("WaveManager: Boss descent complete - now tracking as alive enemy")
+		)
 
 func _on_enemy_spawned(enemy: Node2D) -> void:
 	if not is_instance_valid(enemy):

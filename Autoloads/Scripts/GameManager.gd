@@ -68,7 +68,7 @@ var score: int:
 		if value != _score:
 			_score = value
 			score_updated.emit(_score)
-			# Removed saving per-level score as it's not needed
+
 
 var _player_lives: int = 3
 var player_lives: int:

@@ -9,7 +9,7 @@
 
 	"ad_crystal_reward": 15,
 	"ad_ascend_reward": 10,
-	"ad_coins_reward": 750,
+	"ad_coins_reward": 1000,
 	
 
 	"level_completion_base_coins": 200,
@@ -41,7 +41,7 @@
 
 	"enemy_drop_rewards": {
 		"coins_per_enemy": 15,
-		"crystal_drop_chance": 0.1,
+		"crystal_drop_chance": 0.2,
 		"crystal_reward_per_drop": 1
 	},
 	

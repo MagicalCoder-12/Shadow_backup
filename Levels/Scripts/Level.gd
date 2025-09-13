@@ -344,6 +344,15 @@ func _show_level_completed_ui():
 	else:
 		print("[Level Debug] level_completed does not have initialize method!")
 		
+	# Call the _on_level_completed function directly
+	var current_level_num = GameManager.level_manager.get_current_level()
+	print("[Level Debug] Calling level_completed._on_level_completed(%d)" % current_level_num)
+	if level_completed.has_method("_on_level_completed"):
+		level_completed._on_level_completed(current_level_num)
+		print("[Level Debug] level_completed._on_level_completed() called successfully")
+	else:
+		print("[Level Debug] level_completed does not have _on_level_completed method!")
+		
 	if is_inside_tree() and level_completed:
 		var tween = create_tween()
 		if tween:
@@ -364,6 +373,16 @@ func _show_boss_clear_ui():
 			print("[Level Debug] boss_clear.initialize() called successfully")
 		else:
 			print("[Level Debug] boss_clear does not have initialize method!")
+			
+		# Call the _on_boss_level_completed function directly
+		var current_level_num = GameManager.level_manager.get_current_level()
+		print("[Level Debug] Calling boss_clear._on_boss_level_completed(%d)" % current_level_num)
+		if boss_clear.has_method("_on_boss_level_completed"):
+			boss_clear._on_boss_level_completed(current_level_num)
+			print("[Level Debug] boss_clear._on_boss_level_completed() called successfully")
+		else:
+			print("[Level Debug] boss_clear does not have _on_boss_level_completed method!")
+			
 		if is_inside_tree():
 			var tween = create_tween()
 			if tween:

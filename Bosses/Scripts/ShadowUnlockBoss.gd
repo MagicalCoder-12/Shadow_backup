@@ -1,15 +1,16 @@
 extends Area2D
 class_name ShadowUnlockBoss
 
-## Simplified AI Boss with two-phase system
+## Simplified AI Boss with two-phase system + initial descent
 ## Phase 1: Simple spiral pattern
 ## Phase 2: Converging storm pattern
 
-# Boss Phases
+# Boss Phases (added DESCENT)
 enum BossPhase {
-	PHASE_1,    # Normal phase (100% - 50% health)
-	PHASE_2,    # Shadow phase (50% - 0% health)
-	TRANSITION  # Brief transition between phases
+	DESCENT,   # Initial drop from off-screen
+	PHASE_1,   # Normal phase (100% - 50% health)
+	PHASE_2,   # Shadow phase (50% - 0% health)
+	TRANSITION # Brief transition between phases
 }
 
 ## Core Stats
@@ -19,6 +20,7 @@ enum BossPhase {
 @export var base_attack_interval_p2: float = 1.2  # Phase 2 attack speed (faster)
 @export var projectile_scene: PackedScene
 @export var move_speed: float = 150.0
+@export var descent_target_y: float = 400.0  # Pixels below top of screen
 
 ## Visual Components - Different sprites for each phase
 var normal_boss_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png")
@@ -36,21 +38,24 @@ const PHASE_TRANSITION_EFFECT = preload("res://Bosses/phase_transition_effect.ts
 @onready var boss_death: AudioStreamPlayer = $BossDeath
 @onready var phase_change: AudioStreamPlayer2D = $PhaseChange
 
-## Signals
+## Signals (added descent_completed)
 @warning_ignore("unused_signal")
 signal phase_changed(new_phase: BossPhase)
 @warning_ignore("unused_signal")
 signal boss_defeated
 @warning_ignore("unused_signal")
 signal unlock_shadow_mode
+@warning_ignore("unused_signal")
+signal descent_completed  # New: Fired when boss reaches descent_target_y
 
 ## Phase System
-var current_phase: BossPhase = BossPhase.PHASE_1
+var current_phase: BossPhase = BossPhase.DESCENT  # Start in descent
 var current_health: int
+var has_completed_descent: bool = false
 
 func _ready() -> void:
 	_initialize_boss()
-	_setup_attack_timer()
+	_setup_attack_timer()  # Won't fire until after descent
 
 func _initialize_boss() -> void:
 	current_health = max_health
@@ -65,16 +70,41 @@ func _initialize_boss() -> void:
 func _setup_attack_timer() -> void:
 	attack_timer.wait_time = base_attack_interval_p1
 	attack_timer.timeout.connect(_execute_attack_pattern)
-	attack_timer.start()
+	# Don't start yet—wait for descent
 
 func _physics_process(delta: float) -> void:
 	if current_health <= 0:
 		return
 	
-	_check_phase_transition()
+	_handle_descent(delta)
 	
-	# Simple movement - stay near center of screen
-	var center = Vector2(get_viewport().size.x / 2, 200)
+	if has_completed_descent:
+		_handle_normal_movement(delta)
+		_check_phase_transition()
+
+func _handle_descent(delta: float) -> void:
+	if current_phase != BossPhase.DESCENT:
+		return
+	
+	# Move straight down until target y
+	var target_y = get_viewport().get_visible_rect().position.y + descent_target_y
+	global_position.y += move_speed * delta  # Simple downward speed
+	
+	if global_position.y >= target_y:
+		global_position.y = target_y  # Snap to exact position
+		_complete_descent()
+
+func _complete_descent() -> void:
+	current_phase = BossPhase.PHASE_1
+	has_completed_descent = true
+	attack_timer.start()  # Now start attacks
+	emit_signal("descent_completed")
+	
+
+
+func _handle_normal_movement(delta: float) -> void:
+	# Updated center to match descent target
+	var center = Vector2(get_viewport().size.x / 2, descent_target_y)
 	var radius = 200
 	var target_position = center + Vector2(
 		cos(Time.get_ticks_msec() * 0.001) * radius,
@@ -114,7 +144,7 @@ func _execute_phase_transition() -> void:
 	effect.global_position = global_position
 	sprite_2d.texture = shadow_boss_sprite
 	
-	await get_tree().create_timer(2.0).timeout
+	await get_tree().create_timer(2.5).timeout  # Slightly longer for drama
 	
 	current_phase = BossPhase.PHASE_2
 	attack_timer.wait_time = base_attack_interval_p2
@@ -124,7 +154,7 @@ func _execute_phase_transition() -> void:
 	emit_signal("phase_changed", BossPhase.PHASE_2)
 
 func _execute_attack_pattern() -> void:
-	if current_health <= 0 or current_phase == BossPhase.TRANSITION:
+	if current_health <= 0 or current_phase == BossPhase.TRANSITION or current_phase == BossPhase.DESCENT:
 		return
 	
 	_show_muzzle_flash()
@@ -158,7 +188,7 @@ func _pattern_p1_spiral_wave() -> void:
 func _pattern_p2_converging_storm() -> void:
 	var player = get_tree().get_first_node_in_group("Player")
 	if not player:
-		return
+		return  # Added null check for safety
 	
 	var beam_count = 16
 	var target_pos = player.global_position
