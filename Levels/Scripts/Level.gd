@@ -49,7 +49,6 @@ func _ready():
 	if not pause_button:
 		push_error("PauseButton not found")
 	else:
-		pause_button.grab_focus()
 		if not pause_button.pressed.is_connected(_on_pause_pressed):
 			pause_button.pressed.connect(_on_pause_pressed)
 
@@ -221,14 +220,6 @@ func _on_level_loaded(_level_num: int) -> void:
 	print("Level.gd: Received level_loaded signal for level %d" % _level_num)
 	_spawn_player(GameManager.player_lives)
 
-# === INPUT HANDLER ===
-func _input(event):
-	if event is InputEventKey and event.pressed:
-		match event.keycode:
-			# R key revive is now handled by game_over_screen.gd
-			# to ensure proper ad integration and avoid conflicts
-			pass
-
 # === PAUSE TOGGLE & TWEEN ===
 func _toggle_pause_menu():
 	if has_completed_level:
@@ -320,12 +311,8 @@ func revive_player():
 func _on_level_completed(_level_num: int):
 	print("[Level Debug] _on_level_completed called with level: %d" % _level_num)
 	AudioManager.mute_bus("Bullet", true)
-	get_tree().paused = false
-	emit_signal("Victory_pose")
-	var player = get_tree().get_first_node_in_group("Player")
-	if player:
-		await player.victory_pose_done
-	
+	#emit_signal("Victory_pose")
+	_show_level_completed_ui()
 	# Check if this is a boss level
 	if _is_boss_level(_level_num):
 		print("[Level Debug] Boss level detected")
@@ -413,11 +400,8 @@ func _on_wave_manager_all_waves_cleared():
 			is_boss_wave = true
 		
 		if is_boss_wave:
-			# For boss waves, we don't immediately complete the level
-			# The boss defeated signal will handle level completion
 			print("Level.gd: Boss wave cleared, waiting for boss defeated signal")
 		else:
-			# For non-boss waves, complete the level normally
 			print("Level.gd: Non-boss wave cleared, completing level normally")
 			GameManager.level_manager.complete_level(level_num)
 
@@ -454,7 +438,7 @@ func _on_boss_defeated() -> void:
 			GameManager.level_manager.unlock_shadow_mode()
 		
 		# For boss levels, complete the level properly
-		if current_level % 5 == 0 and current_level > 0:
+		if current_level % 5 == 0:
 			print("Level.gd: Boss level detected, emitting level_completed signal")
 			# Emit the level completed signal which will trigger the boss clear screen
 			GameManager.level_completed.emit(current_level)

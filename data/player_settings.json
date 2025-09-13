@@ -1,4 +1,5 @@
 {
+	"version": 1,
 	"speed": 2000.0,
 	"touch_speed": 500.0,
 	"smoothness": 0.3,

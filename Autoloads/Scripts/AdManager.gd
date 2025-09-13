@@ -12,7 +12,7 @@ var max_ad_retries: int = 3
 var revive_type: String = "none"
 var is_revive_pending: bool = false
 var revive_timeout_timer: Timer
-@export var enable_debug_logging: bool = true  # Toggle for debug messages
+@export var enable_debug_logging: bool = false  # Toggle for debug messages
 
 func _ready() -> void:
 	gm = GameManager

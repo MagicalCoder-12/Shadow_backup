@@ -39,7 +39,7 @@ signal enemy_killed(enemy: Node)
 const GROUP_DAMAGEABLE: String = "damageable"
 const GROUP_BOSS: String = "Boss"
 const SUPER_MODE_SPAWN_COUNT: int = 25
-const SAVE_VERSION: int = 3
+const SAVE_VERSION: int = 1
 
 # Ascension thresholds for ships (mirroring upgrade_settings.json)
 const ASCENSION_THRESHOLDS: Dictionary = {

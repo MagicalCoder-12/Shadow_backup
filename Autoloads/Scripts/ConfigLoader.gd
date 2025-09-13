@@ -7,6 +7,9 @@ var upgrade_settings: Dictionary = {}
 var hud_settings: Dictionary = {}
 var level_waves: Dictionary = {} # Key: level number (int), Value: Array of wave configs
 
+# Add SAVE_VERSION constant for JSON files
+const SAVE_VERSION: int = 1
+
 # File paths
 const GAME_SETTINGS_PATH = "res://data/game_settings.json"
 const SHIPS_PATH = "res://data/ships.json"
@@ -45,17 +48,19 @@ func _ready() -> void:
 		push_error("Failed to load HUD settings. Using fallback defaults.")
 		hud_settings = _get_default_hud_settings()
 
-	
 func _get_default_game_settings() -> Dictionary:
-	return {
+	var defaults = {
 		"progress_file_path": "user://game_progress.dat",
 		"default_bullet_speed": 3000.0,
 		"default_bullet_damage": 20,
 		"max_attack_level": 4,
 	}
+	# Add version information to defaults
+	defaults["version"] = SAVE_VERSION
+	return defaults
 
 func _get_default_ships_data() -> Array:
-	return [
+	var defaults = [
 	{
 		"id": "Ship1",
 		"display_name": "NoctiSol",
@@ -63,6 +68,7 @@ func _get_default_ships_data() -> Array:
 		"current_evolution_stage": 0,
 		"max_evolution_stage": 2,
 		"final_rank": "LR",
+		"speed": 2000,
 		"damage": 20,
 		"upgrade_count": 0,
 		"can_evolve": true,
@@ -232,11 +238,11 @@ func _get_default_ships_data() -> Array:
 			"upgrade_6": "res://Textures/player/ship_textures/ship_08_lvl6.png"
 			}
 		}
-	]  
-
+	]
+	return defaults
 
 func _get_default_upgrade_settings() -> Dictionary:
-	return {
+	var defaults = {
 	"upgrade_crystal_cost": 50,
 	"upgrade_coin_cost": 5000,
 	"upgrade_ascend_cost": 100,
@@ -264,12 +270,18 @@ func _get_default_upgrade_settings() -> Dictionary:
 		"Ship8": ["Oblivion Viper", "Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Universal Leviathan", "Infinity Wyrm"]
 			}
 		}
+	# Add version information to defaults
+	defaults["version"] = SAVE_VERSION
+	return defaults
 
 func _get_default_hud_settings() -> Dictionary:
-	return {
+	var defaults = {
 		"charge_per_enemy": 10.0,
 		"max_charge": 100.0
 	}
+	# Add version information to defaults
+	defaults["version"] = SAVE_VERSION
+	return defaults
 
 func _load_json_file(path: String, default: Variant) -> Variant:
 	"""
@@ -290,7 +302,45 @@ func _load_json_file(path: String, default: Variant) -> Variant:
 	var error = json.parse(json_string)
 	
 	if error == OK:
-		return json.get_data()
+		var data = json.get_data()
+		# Check if the data is a dictionary and has a version field
+		if data is Dictionary and data.has("version"):
+			if data["version"] != SAVE_VERSION:
+				push_error("JSON file version mismatch in %s. Expected version %d, got %d. Using defaults." % [path, SAVE_VERSION, data["version"]])
+				return default
+			# Return the data without the version field
+			data.erase("version")
+			return data
+		else:
+			# For arrays or data without version field, return as is
+			# In a real implementation, you might want to handle version checking differently for arrays
+			return data
 	else:
 		push_error("Error parsing JSON file at %s: %s" % [path, json.get_error_message()])
 		return default
+
+func _save_json_file(path: String, data: Variant) -> void:
+	"""
+	Saves data to a JSON file with version information.
+	"""
+	var data_to_save = data
+	
+	# Add version information to the data if it's a dictionary
+	if data is Dictionary:
+		data_to_save = data.duplicate()
+		data_to_save["version"] = SAVE_VERSION
+	elif data is Array:
+		# For arrays, save the data as is
+		# In a more complex implementation, you might want to save version information separately
+		data_to_save = data
+	else:
+		# For other types, wrap in a dictionary with version
+		data_to_save = {"data": data, "version": SAVE_VERSION}
+	
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(data_to_save, "\t")
+		file.store_string(json_string)
+		file.close()
+	else:
+		push_error("Could not write to JSON file at path: %s" % path)
