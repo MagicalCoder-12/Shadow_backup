@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://cm2w1gck7tvqw"]
+
+[ext_resource type="PackedScene" uid="uid://buhy6iijixga5" path="res://Bullet/Bullet.tscn" id="1_223cp"]
+[ext_resource type="Texture2D" uid="uid://c4yla54jecb58" path="res://Textures/Lasers/Laser Sprites/66.png" id="2_tgnsr"]
+
+[node name="plShadow_bullet" instance=ExtResource("1_223cp")]
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_tgnsr")

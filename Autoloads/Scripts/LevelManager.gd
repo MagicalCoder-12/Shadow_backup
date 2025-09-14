@@ -18,8 +18,6 @@ signal level_loaded(level_num: int)
 
 func _ready() -> void:
 	gm = GameManager
-	# Defer initialization until all autoloads are ready
-	call_deferred("initialize")
 
 
 func load_level(level_num: int) -> void:
@@ -72,7 +70,7 @@ func complete_level(current_level: int) -> void:
 	if gm.save_manager.autosave_progress:
 		gm.save_manager.save_progress()
 	
-	#Handle special level completions
+	# Handle special level completions
 	var should_transition_to_next_level: bool = true
 	var is_boss_level: bool = current_level % 5 == 0 and current_level > 0
 	

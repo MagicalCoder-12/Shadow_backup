@@ -1,8 +1,7 @@
-[gd_scene load_steps=36 format=3 uid="uid://yhgx8wnsget8"]
+[gd_scene load_steps=35 format=3 uid="uid://yhgx8wnsget8"]
 
 [ext_resource type="Script" path="res://Enemy/Scripts/phase_phantom.gd" id="1_a6ebx"]
 [ext_resource type="Texture2D" uid="uid://b0cqck5xoix0u" path="res://Textures/Enemy/Enemy_2Light.png" id="2_dckf6"]
-[ext_resource type="Texture2D" uid="uid://dk8mqktbkryku" path="res://Textures/Enemy/Enemy2_shadow.png" id="2_vix5v"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_o5xt3"]
 [ext_resource type="AudioStream" uid="uid://ljdsj4tqc73j" path="res://Textures/Music/Explosion2.wav" id="4_mp8wm"]
 [ext_resource type="Texture2D" uid="uid://chkqk03a36hcq" path="res://Textures/Enemy/explosion4/k2_0001.png" id="5_0388l"]
@@ -138,7 +137,6 @@ scale = Vector2(2, 2)
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_a6ebx")
-shadow_texture = ExtResource("2_vix5v")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(0.8, 0.8)

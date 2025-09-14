@@ -16,7 +16,6 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @export var dash_speed: float = 800.0
 @export var dash_duration: float = 0.3
 @export var dash_interval: float = 6.0
-@export var tractor_beam_duration: float = 2.0
 @export var invincibility_duration: float = 3.0
 @export var bullet_lifetime: float = 3.0
 @export var bullet_speed: float = 350.0 # Reduced from 400.0
@@ -38,7 +37,6 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @onready var attack_timer: Timer = $AttackTimer
 @onready var phase_timer: Timer = $PhaseTimer
 @onready var minion_spawn_timer: Timer = $MinionSpawnTimer
-@onready var tractor_beam: AnimatedSprite2D = $TractorBeam
 @onready var boss_death: AudioStreamPlayer = $BossDeath
 @onready var phase_change: AudioStreamPlayer2D = $PhaseChange
 @onready var boss_death_particles: CPUParticles2D = $BossDeathParticles
@@ -55,7 +53,6 @@ var is_invincible: bool = false
 var dash_cooldown: float = 0.0
 var effects_layer: Node
 var shadow_mode_active: bool = false
-var tractor_beam_active: bool = false
 
 # Minion management
 var active_minions: Array[Node] = []
@@ -116,7 +113,6 @@ func _ready() -> void:
 	attack_timer.start()
 	last_position = global_position
 	effects_layer = get_tree().current_scene.get_node_or_null("Effects")
-	tractor_beam.visible = false
 
 	# Initialize minion system
 	_setup_minion_spawn_timer()
@@ -176,8 +172,6 @@ func _physics_process(delta: float) -> void:
 	if dash_cooldown <= 0.0 and randf() < 0.1 * delta and current_phase != BossPhase.INTRO:
 		perform_dash()
 
-	if tractor_beam_active:
-		update_tractor_beam()
 
 	# Update minion management
 	_update_minion_management()
@@ -200,14 +194,6 @@ func perform_dash() -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "global_position:x", target_x, dash_duration).set_trans(Tween.TRANS_QUAD)
 	await tween.finished
-
-func update_tractor_beam() -> void:
-	var player = get_tree().get_first_node_in_group("Player")
-	if player:
-		tractor_beam.global_position = player.global_position
-		var pull_strength = 200.0 if shadow_mode_active else 100.0
-		var direction = (global_position - player.global_position).normalized()
-		player.global_position += direction * pull_strength * get_process_delta_time()
 
 func take_damage(amount: int) -> void:
 	if defeated or is_invincible or amount <= 0:
@@ -246,8 +232,6 @@ func take_damage(amount: int) -> void:
 		attack_timer.stop()
 		phase_timer.stop()
 		minion_spawn_timer.stop()
-		tractor_beam.visible = false
-		tractor_beam_active = false
 		boss_death_particles.emitting = true
 		boss_death.play()
 		print("Playing boss death effects")
@@ -437,8 +421,9 @@ func _on_attack_timer_timeout() -> void:
 	if defeated:
 		return
 	
-	# Reduced attack weights to make long-range attacks less frequent
-	var attack_weights = [0.2, 0.2, 0.15, 0.1, 0.35] if current_phase == BossPhase.ENRAGED else [0.25, 0.25, 0.15, 0.1, 0.25]
+	# Updated attack weights to remove tractor beam and add more damaging attacks
+	# Weights: [spread_shot, homing_missiles, laser_burst, energy_ball, command_minions]
+	var attack_weights = [0.2, 0.2, 0.15, 0.2, 0.25] if current_phase == BossPhase.ENRAGED else [0.25, 0.25, 0.15, 0.15, 0.2]
 	var attack = [0, 1, 2, 3, 4][rand_weighted(attack_weights)]
 	match attack:
 		0:
@@ -448,7 +433,7 @@ func _on_attack_timer_timeout() -> void:
 		2:
 			fire_laser_burst()
 		3:
-			fire_tractor_beam()
+			fire_energy_ball()  # New damaging attack
 		4:
 			command_minions()
 	
@@ -585,20 +570,36 @@ func fire_laser_burst() -> void:
 				print("Error: Failed to instantiate bullet for laser burst")
 		await get_tree().create_timer(0.15 if current_phase == BossPhase.ENRAGED else 0.2).timeout # Increased delay
 
-func fire_tractor_beam() -> void:
-	if tractor_beam_active:
+func fire_energy_ball() -> void:
+	# Load the energy ball scene
+	var energy_ball_scene = preload("res://Bosses/energy_ball.tscn")
+	if not energy_ball_scene or not energy_ball_scene.can_instantiate():
+		print("Error: Cannot spawn energy balls, energy_ball_scene invalid")
 		return
-	tractor_beam_active = true
-	tractor_beam.visible = true
-	tractor_beam.play("default")
-	var tween = create_tween()
-	tween.tween_property(tractor_beam, "modulate:a", 1.0, 0.5)
-	await get_tree().create_timer(tractor_beam_duration * (0.7 if shadow_mode_active else 1.0)).timeout
-	tween = create_tween()
-	tween.tween_property(tractor_beam, "modulate:a", 0.0, 0.5)
-	await tween.finished
-	tractor_beam.visible = false
-	tractor_beam_active = false
+	
+	# Fire energy balls from all markers
+	var markers = [left, center, right]
+	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
+	var damage_multiplier = 2 if current_phase == BossPhase.ENRAGED else 1.5 if current_phase == BossPhase.PHASE2 else 1
+	
+	for marker in markers:
+		var energy_ball = energy_ball_scene.instantiate()
+		if energy_ball:
+			energy_ball.global_position = marker.global_position
+			# Set direction towards player
+			var player = get_tree().get_first_node_in_group("Player")
+			var target_pos = player.global_position if player else global_position + Vector2(0, 1000)
+			var direction = (target_pos - marker.global_position).normalized()
+			energy_ball.direction = direction
+			energy_ball.speed = 200.0 * speed_multiplier
+			energy_ball.damage = int(3 * damage_multiplier)  # Energy balls do more damage
+			get_tree().current_scene.call_deferred("add_child", energy_ball)
+			print("Spawned energy ball from %s" % marker.name)
+		else:
+			print("Error: Failed to instantiate energy ball")
+
+func fire_tractor_beam() -> void:
+	pass  # Remove tractor beam functionality
 
 func _on_shadow_mode_activated() -> void:
 	shadow_mode_active = true

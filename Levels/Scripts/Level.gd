@@ -165,7 +165,12 @@ func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:
 	
 	if debug_mode:
 		var debug_string = wave.as_debug_string() if wave.has_method("as_debug_string") else "WaveConfig"
-		print("LevelManager: Validated Wave %d: %s" % [wave_index + 1, debug_string])
+		print("LevelManager: Validated Wave %d: %s (Boss: %s, Enemy Count: %d)" % [
+			wave_index + 1,
+			debug_string,
+			wave.is_boss_wave(),
+			wave.get_enemy_count()
+		])
 	
 	return true
 
@@ -321,91 +326,6 @@ func _on_level_completed(_level_num: int):
 		print("[Level Debug] Waiting for player victory_pose_done signal")
 		await player.victory_pose_done
 		print("[Level Debug] Player victory_pose_done signal received")
-		
-	# Check if this is a boss level
-	if _is_boss_level(_level_num):
-		print("[Level Debug] Boss level detected")
-		# Check if this is the first time completing this boss
-		var boss_levels_completed = GameManager.save_manager.boss_levels_completed
-		var is_first_time = not boss_levels_completed.has(_level_num)
-		
-		if is_first_time:
-			print("[Level Debug] First time completing boss level %d, showing boss clear UI" % _level_num)
-			_show_boss_clear_ui()
-		else:
-			print("[Level Debug] Boss level %d already completed before, showing level completed UI" % _level_num)
-			_show_level_completed_ui()
-	else:
-		print("[Level Debug] Non-boss level, showing level completed UI")
-		_show_level_completed_ui()
-
-func _show_level_completed_ui():
-	print("[Level Debug] _show_level_completed_ui called")
-	get_tree().paused = false
-	pause_menu.hide()
-	level_completed.modulate.a = 0.0
-	level_completed.show()
-	# Initialize the level completed screen
-	print("[Level Debug] Calling level_completed.initialize()")
-	if level_completed.has_method("initialize"):
-		level_completed.initialize()
-		print("[Level Debug] level_completed.initialize() called successfully")
-	else:
-		print("[Level Debug] level_completed does not have initialize method!")
-		
-	# Call the _on_level_completed function directly
-	var current_level_num = GameManager.level_manager.get_current_level()
-	print("[Level Debug] Calling level_completed._on_level_completed(%d)" % current_level_num)
-	if level_completed.has_method("_on_level_completed"):
-		level_completed._on_level_completed(current_level_num)
-		print("[Level Debug] level_completed._on_level_completed() called successfully")
-	else:
-		print("[Level Debug] level_completed does not have _on_level_completed method!")
-		
-	if is_inside_tree() and level_completed:
-		var tween = create_tween()
-		if tween:
-			tween.tween_property(level_completed, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	GameManager.save_manager.save_progress()
-
-func _show_boss_clear_ui():
-	print("[Level Debug] _show_boss_clear_ui called")
-	get_tree().paused = false
-	pause_menu.hide()
-	if boss_clear:
-		boss_clear.modulate.a = 0.0
-		boss_clear.show()
-		# Initialize the boss clear screen
-		print("[Level Debug] Calling boss_clear.initialize()")
-		if boss_clear.has_method("initialize"):
-			boss_clear.initialize()
-			print("[Level Debug] boss_clear.initialize() called successfully")
-		else:
-			print("[Level Debug] boss_clear does not have initialize method!")
-			
-		# Call the _on_boss_level_completed function directly
-		var current_level_num = GameManager.level_manager.get_current_level()
-		print("[Level Debug] Calling boss_clear._on_boss_level_completed(%d)" % current_level_num)
-		if boss_clear.has_method("_on_boss_level_completed"):
-			boss_clear._on_boss_level_completed(current_level_num)
-			print("[Level Debug] boss_clear._on_boss_level_completed() called successfully")
-		else:
-			print("[Level Debug] boss_clear does not have _on_boss_level_completed method!")
-			
-		if is_inside_tree():
-			var tween = create_tween()
-			if tween:
-				tween.tween_property(boss_clear, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	else:
-		# Fallback to normal level completed if boss_clear scene not available
-		print("[Level] Boss clear scene not found, showing normal level completed")
-		_show_level_completed_ui()
-	GameManager.save_manager.save_progress()
-
-# === BOSS LEVEL DETECTION ===
-func _is_boss_level(level_number: int) -> bool:
-	# Boss levels occur every 5 levels: 5, 10, 15, 20, etc.
-	return level_number % 5 == 0 and level_number > 0
 
 # === WAVE CLEARED ===
 func _on_wave_manager_all_waves_cleared():

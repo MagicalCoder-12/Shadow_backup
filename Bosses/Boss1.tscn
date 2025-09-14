@@ -1,36 +1,16 @@
-[gd_scene load_steps=15 format=3 uid="uid://bvb27mesmd4mo"]
+[gd_scene load_steps=11 format=3 uid="uid://bvb27mesmd4mo"]
 
 [ext_resource type="Script" path="res://Bosses/Scripts/boss_1.gd" id="1_5c45g"]
 [ext_resource type="Texture2D" uid="uid://bghegjllovrjq" path="res://Textures/Boss/B1.png" id="2_vvmta"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_r0gn5"]
-[ext_resource type="Texture2D" uid="uid://b5i7d8y6mboyh" path="res://Textures/Lasers/tractor_beam/00.png" id="4_604o8"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="4_bn1uh"]
-[ext_resource type="Texture2D" uid="uid://bu701j6m1mk2m" path="res://Textures/Lasers/tractor_beam/01.png" id="5_l4vkp"]
 [ext_resource type="Texture2D" uid="uid://hcsvihieifv7" path="res://Textures/UI/Main_Menu/Boss_HP_Bar_2.png" id="5_mw6p5"]
-[ext_resource type="Texture2D" uid="uid://mbjsmk11fcvk" path="res://Textures/Lasers/tractor_beam/02.png" id="6_8718t"]
 [ext_resource type="Texture2D" uid="uid://vww23vh7ph4p" path="res://Textures/Lasers/explosion.png" id="7_j30ty"]
 [ext_resource type="AudioStream" uid="uid://ywr4cb2khhyc" path="res://Textures/Music/BossOpressorDeath.wav" id="8_anksc"]
 [ext_resource type="AudioStream" uid="uid://d0hou0ybwsa1p" path="res://Textures/Music/monster_60_attack.wav" id="9_6bcr1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kpgky"]
 size = Vector2(11.7253, 15.1964)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_gp5sv"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("4_604o8")
-}, {
-"duration": 1.0,
-"texture": ExtResource("5_l4vkp")
-}, {
-"duration": 1.0,
-"texture": ExtResource("6_8718t")
-}],
-"loop": true,
-"name": &"default",
-"speed": 5.0
-}]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dsyg1"]
 particles_animation = true
@@ -85,12 +65,6 @@ offset_right = 442.0
 offset_bottom = -318.0
 texture_under = ExtResource("4_bn1uh")
 texture_progress = ExtResource("5_mw6p5")
-
-[node name="TractorBeam" type="AnimatedSprite2D" parent="."]
-position = Vector2(24, 340)
-scale = Vector2(1.24609, 1.62891)
-sprite_frames = SubResource("SpriteFrames_gp5sv")
-autoplay = "default"
 
 [node name="BossDeathParticles" type="CPUParticles2D" parent="."]
 material = SubResource("CanvasItemMaterial_dsyg1")

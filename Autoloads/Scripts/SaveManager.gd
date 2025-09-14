@@ -6,7 +6,7 @@ var autosave_progress: bool = true
 
 # Default resource values for new or reset progress
 const DEFAULT_RESOURCES: Dictionary = {
-	"crystal_count": 200,
+	"crystal_count": 150,
 	"coin_count": 500,
 	"void_shards_count": 100
 }
@@ -16,6 +16,10 @@ var level_scores: Dictionary = {}  # level_num -> score
 var level_lives: Dictionary = {}   # level_num -> lives
 # Added boss_levels_completed to track which boss levels have been completed
 var boss_levels_completed: Array = []  # Array of boss level numbers that have been completed
+
+# Added: Ad usage tracking variables
+var ad_usage_count: int = 0
+var ad_last_used_time: int = 0
 
 func _ready() -> void:
 	gm = GameManager
@@ -59,6 +63,11 @@ func save_progress() -> void:
 		file.store_var(level_lives)
 		# Save boss_levels_completed data
 		file.store_var(boss_levels_completed)
+		
+		# Added: Save ad usage data
+		file.store_var(ad_usage_count)
+		file.store_var(ad_last_used_time)
+		
 		file.close()
 	else:
 		push_error("Failed to save progress: Unable to open file at %s" % progress_file_path)
@@ -127,6 +136,17 @@ func load_progress() -> void:
 				boss_levels_completed = file.get_var()
 			else:
 				boss_levels_completed = []
+			
+			# Added: Load ad usage data
+			if !file.eof_reached():
+				ad_usage_count = file.get_var()
+			else:
+				ad_usage_count = 0
+				
+			if !file.eof_reached():
+				ad_last_used_time = file.get_var()
+			else:
+				ad_last_used_time = 0
 			
 			# Validate ships data
 			if gm.ships.is_empty() or not gm.ships is Array:

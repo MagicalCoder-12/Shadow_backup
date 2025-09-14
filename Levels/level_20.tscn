@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://pashsvmfo5yv"]
+[gd_scene load_steps=14 format=3 uid="uid://pashsvmfo5yv"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_g1d3d"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_3xxbo"]
+[ext_resource type="PackedScene" uid="uid://b88dxokqk2pv5" path="res://Bosses/Boss_3.tscn" id="3_ccetm"]
 
 [sub_resource type="Resource" id="Resource_joty3"]
 script = ExtResource("2_3xxbo")
@@ -126,6 +127,7 @@ formation_type = 0
 entry_pattern = 0
 difficulty = 1
 enemy_type = "mob1"
+boss_scene = ExtResource("3_ccetm")
 enemy_density = "Normal"
 formation_center = Vector2(640, 600)
 formation_radius = 150.0

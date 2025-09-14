@@ -1,17 +1,18 @@
 {
 	"version": 1,
 	"upgrade_crystal_cost": 50,
-	"upgrade_coin_cost": 100,
+	"upgrade_coin_cost": 250,
 	"upgrade_ascend_cost": 100,
 	
-	"upgrade_scaling_factor": 1.25,
-	
 
-	"ad_crystal_reward": 15,
-	"ad_ascend_reward": 10,
+	"crystal_scaling_factor": 1.10,
+	"coin_scaling_factor": 1.25,
+	"ascend_scaling_factor": 1.05,
+	
+	"ad_crystal_reward": 20,
+	"ad_ascend_reward": 15,
 	"ad_coins_reward": 1000,
 	
-
 	"level_completion_base_coins": 200,
 	"level_completion_base_crystals": 10,
 
@@ -38,14 +39,12 @@
 		}
 	},
 	
-
 	"enemy_drop_rewards": {
 		"coins_per_enemy": 15,
 		"crystal_drop_chance": 0.2,
 		"crystal_reward_per_drop": 1
 	},
 	
-
 	"ascension_thresholds": {
 		"Ship1": [4, 8],
 		"Ship2": [4, 8],
@@ -57,7 +56,6 @@
 		"Ship8": [4, 8, 12, 16, 20, 24]
 	},
 	
-
 	"ship_evolution_names": {
 		"Ship1": ["NoctiSol", "Solstice", "Eclipse Sovereign"],
 		"Ship2": ["Aether Strike", "Void Piercer", "Quantum Saber"],

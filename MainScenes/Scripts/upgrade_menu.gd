@@ -4,7 +4,8 @@ extends Control
 # CONSTANTS & CONFIGURATION
 # ================================
 const MAP = "res://Map/map.tscn"
-const UPGRADE_SCALING_FACTOR = 1.15  # Increased from 1.5 to 1.15 for 15% scaling
+const AD_LIMIT_PER_HOUR = 10
+const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 
 # ================================
 # UI NODE REFERENCES
@@ -44,6 +45,9 @@ const UPGRADE_SCALING_FACTOR = 1.15  # Increased from 1.5 to 1.15 for 15% scalin
 # ================================
 var selected_ship_index: int = 0
 var is_ad_loading: bool = false
+var ad_usage_count: int = 0
+var ad_last_used_time: int = 0
+var ad_usage_timer: Timer
 
 # Ship mapping & indexing
 var name_to_index = {
@@ -65,6 +69,9 @@ func _ready() -> void:
 	_connect_gamemanager_signals()
 
 	get_tree().get_root().connect("go_back_requested", Callable(self, "_on_back_pressed"))
+
+	# Initialize ad usage tracking
+	_initialize_ad_tracking()
 
 	# Check if ships data is available
 	if GameManager.ships.is_empty():
@@ -113,42 +120,108 @@ func _initialize_ui() -> void:
 
 	update_ship_ui()
 
+func _initialize_ad_tracking() -> void:
+	ad_usage_timer = Timer.new()
+	add_child(ad_usage_timer)
+	ad_usage_timer.wait_time = 1.0  # Check every second
+	ad_usage_timer.timeout.connect(_on_ad_timer_timeout)
+	ad_usage_timer.start()
+	
+	# Load ad usage data from save if available
+	_load_ad_usage_data()
+
+func _load_ad_usage_data() -> void:
+	if GameManager.save_manager:
+		# Fixed: Access SaveManager properties directly instead of trying to use return value of load_progress()
+		ad_usage_count = GameManager.save_manager.ad_usage_count
+		ad_last_used_time = GameManager.save_manager.ad_last_used_time
+
+func _save_ad_usage_data() -> void:
+	# Save ad usage data to SaveManager and call save_progress()
+	if GameManager.save_manager:
+		GameManager.save_manager.ad_usage_count = ad_usage_count
+		GameManager.save_manager.ad_last_used_time = ad_last_used_time
+		GameManager.save_manager.save_progress()
+	
+func _on_ad_timer_timeout() -> void:
+	var current_time = Time.get_unix_time_from_system() as int
+	# Reset ad usage count if more than an hour has passed
+	if current_time - ad_last_used_time >= AD_COOLDOWN_SECONDS:
+		ad_usage_count = 0
+
+func _can_show_rewarded_ad() -> bool:
+	var current_time = Time.get_unix_time_from_system() as int
+	# Reset count if cooldown period has passed
+	if current_time - ad_last_used_time >= AD_COOLDOWN_SECONDS:
+		ad_usage_count = 0
+		return true
+	
+	# Check if we're within the limit
+	return ad_usage_count < AD_LIMIT_PER_HOUR
+
+func _record_ad_usage() -> void:
+	ad_usage_count += 1
+	ad_last_used_time = Time.get_unix_time_from_system() as int
+	_save_ad_usage_data()
+
+func _show_ad_limit_message() -> void:
+	var message = "Ad limit reached! You can watch ads again in %d minutes." % _get_remaining_cooldown_minutes()
+	warning.text = message
+	warning_panel.show()
+	
+	# Update the currency display
+	_update_currency_display()
+	
+	# Hide the message after a delay
+	await get_tree().create_timer(3.0).timeout
+	warning_panel.hide()
+
+func _get_remaining_cooldown_minutes() -> int:
+	var current_time = Time.get_unix_time_from_system() as int
+	var elapsed_time = current_time - ad_last_used_time
+	var remaining_time = max(0, AD_COOLDOWN_SECONDS - elapsed_time)
+	return ceil(remaining_time / 60.0)
+
 # ================================
 # CURRENCY MANAGEMENT
 # ================================
 func _get_current_upgrade_costs() -> Dictionary:
 	if GameManager.ships.is_empty() or selected_ship_index >= GameManager.ships.size():
-		return {"crystal_cost": 50, "coin_cost": 100, "void_shard_cost": 100}
+		return {"crystal_cost": 50, "coin_cost": 250, "void_shard_cost": 100}
 
 	var ship = GameManager.ships[selected_ship_index]
 	if not ship is Dictionary:
-		return {"crystal_cost": 50, "coin_cost": 100, "void_shard_cost": 100}
+		return {"crystal_cost": 50, "coin_cost": 250, "void_shard_cost": 100}
 
 	var upgrade_count = ship.get("upgrade_count", 0)
 	
-	# Get base costs and scaling factor from config
+	# Get base costs and scaling factors from config
 	var base_crystal_cost = 50
-	var base_coin_cost = 100
+	var base_coin_cost = 250
 	var ascend_cost = 100
-	var upgrade_scaling_factor = 1.25  # Default scaling factor
+	
+	# Changed: Use different scaling factors for each currency type
+	var crystal_scaling_factor = 1.10
+	var coin_scaling_factor = 1.25
+	var ascend_scaling_factor = 1.05
 
 	# Use ConfigLoader if available
 	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
 		base_crystal_cost = ConfigLoader.upgrade_settings.get("upgrade_crystal_cost", 50)
-		base_coin_cost = ConfigLoader.upgrade_settings.get("upgrade_coin_cost", 100)
+		base_coin_cost = ConfigLoader.upgrade_settings.get("upgrade_coin_cost", 250)
 		ascend_cost = ConfigLoader.upgrade_settings.get("upgrade_ascend_cost", 100)
-		upgrade_scaling_factor = ConfigLoader.upgrade_settings.get("upgrade_scaling_factor", 1.25)
+		
+		# Changed: Load different scaling factors if available in config
+		crystal_scaling_factor = ConfigLoader.upgrade_settings.get("crystal_scaling_factor", 1.10)
+		coin_scaling_factor = ConfigLoader.upgrade_settings.get("coin_scaling_factor", 1.25)
+		ascend_scaling_factor = ConfigLoader.upgrade_settings.get("ascend_scaling_factor", 1.05)
 	else:
 		push_warning("ConfigLoader not available or upgrade_settings missing. Using default upgrade costs.")
 
-	# Exponential cost calculation: base_cost * (scaling_factor ^ upgrade_count)
-	# This creates a steeper progression curve that makes early upgrades affordable
-	# but later upgrades increasingly expensive
-	var crystal_cost = base_crystal_cost * pow(upgrade_scaling_factor, float(upgrade_count))
-	var coin_cost = base_coin_cost * pow(upgrade_scaling_factor, float(upgrade_count))
-
-	# Ascension cost: constant or slight scaling
-	var void_shard_cost = ascend_cost  # Constant cost for ascension
+	# Changed: Use different scaling factors for each currency type
+	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count))
+	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count))
+	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(upgrade_count))
 
 	return {
 		"crystal_cost": int(crystal_cost),
@@ -237,14 +310,21 @@ func update_ship_ui() -> void:
 		_update_ascend_button_visibility()
 		_update_upgrade_buttons_state()
 	else:
-		var cost = {"R": 250, "SR": 650, "SSR": 2000}.get(ship["rank"], 0)
+		var cost = ship.get("purchase_cost", 0)
 		buy_button.show()
 		selected.hide()
 		upgrade_coins_button.hide()
 		upgrade_crystals_button.hide()
-		buy_button.text = "Buy for %d crystals" % cost
+		if cost <= 0:
+			buy_button.text = "Get Free Ship"
+			status_label.text = "Free Ship - Unlock Now!"
+		else:
+			buy_button.text = "Buy for %d crystals" % cost
+			status_label.text = "Locked - Cost: %d crystals" % cost
 		selected_ship.modulate = Color.BLACK
-		status_label.text = "Locked - Cost: %d crystals" % cost
+		
+		# Ensure ascend button is hidden for locked ships
+		ascend.visible = false
 
 func _update_ascend_button_visibility() -> void:
 	var ship = GameManager.ships[selected_ship_index]
@@ -519,6 +599,10 @@ func _on_ad_reward_granted(ad_type: String) -> void:
 	_update_currency_display()
 	_show_ad_reward_message(ad_type)
 	is_ad_loading = false
+	
+	# Record ad usage for crystals and coins
+	if ad_type == "crystals" or ad_type == "coins":
+		_record_ad_usage()
 
 func _on_ad_failed_to_load(_ad_type: String, _error_data: Variant) -> void:
 	# Handle ad failure
@@ -552,7 +636,19 @@ func _on_buy_pressed() -> void:
 	if ship["unlocked"]:
 		return
 
-	var cost = {"R": 150, "SR": 500, "SSR": 1000}.get(ship["rank"], 0)
+	# Handle free ships vs paid ships
+	var cost = ship.get("purchase_cost", 0)
+	
+	# If cost is 0 or not defined, unlock the ship immediately without deducting currency
+	if cost <= 0:
+		ship["unlocked"] = true
+		GameManager.save_manager.save_progress()
+		_update_all_ship_textures()
+		update_ship_ui()
+		_update_currency_display()
+		return
+	
+	# For paid ships, check if player can afford and deduct currency
 	if GameManager.can_afford("crystals", cost):
 		GameManager.deduct_currency("crystals", cost)
 		ship["unlocked"] = true
@@ -568,11 +664,19 @@ func _on_buy_pressed() -> void:
 # ================================
 func _on_ad_crystals_pressed() -> void:
 	if not is_ad_loading:
-		_show_rewarded_ad("crystals")
+		# Check ad limit before showing ad
+		if _can_show_rewarded_ad():
+			_show_rewarded_ad("crystals")
+		else:
+			_show_ad_limit_message()
 
 func _on_ad_coins_pressed() -> void:
 	if not is_ad_loading:
-		_show_rewarded_ad("coins")
+		# Check ad limit before showing ad
+		if _can_show_rewarded_ad():
+			_show_rewarded_ad("coins")
+		else:
+			_show_ad_limit_message()
 
 func _show_rewarded_ad(reward_type: String) -> void:
 	# Use GameManager's ad system
@@ -593,20 +697,20 @@ func _grant_ad_reward(reward_type: String) -> void:
 		push_warning("ConfigLoader not available. Using default ad rewards.")
 		# Default values if config not found
 		ad_rewards = {
-			"ad_crystal_reward": 15,
+			"ad_crystal_reward": 10,
 			"ad_ascend_reward": 10,
-			"ad_coins_reward": 750
+			"ad_coins_reward": 1000
 		}
 	
 	match reward_type:
 		"crystals":
-			var crystal_reward = ad_rewards.get("ad_crystal_reward", 15)
-			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 10)
+			var crystal_reward = ad_rewards.get("ad_crystal_reward", 20)
+			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 15)
 			GameManager.add_currency("crystals", crystal_reward)
 			GameManager.add_currency("void_shards", void_shard_reward)
 			_show_ad_reward_message("crystals")
 		"coins":
-			var coins_reward = ad_rewards.get("ad_coins_reward", 750)
+			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
 			GameManager.add_currency("coins", coins_reward)
 			_show_ad_reward_message("coins")
 		_:
@@ -620,19 +724,19 @@ func _show_ad_reward_message(reward_type: String) -> void:
 	else:
 		# Default values if config not found
 		ad_rewards = {
-			"ad_crystal_reward": 15,
-			"ad_ascend_reward": 10,
-			"ad_coins_reward": 750
+			"ad_crystal_reward": 20,
+			"ad_ascend_reward": 15,
+			"ad_coins_reward": 1000
 		}
 	
 	var message = ""
 	match reward_type:
 		"crystals":
-			var crystal_reward = ad_rewards.get("ad_crystal_reward", 15)
-			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 10)
+			var crystal_reward = ad_rewards.get("ad_crystal_reward", 20)
+			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 15)
 			message = "Rewarded: %d Crystals and %d Void Shards!" % [crystal_reward, void_shard_reward]
 		"coins":
-			var coins_reward = ad_rewards.get("ad_coins_reward", 750)
+			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
 			message = "Rewarded: %d Coins!" % coins_reward
 		_:
 			message = "Reward granted!"

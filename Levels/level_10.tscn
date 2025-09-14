@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_sgl13"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_7y1m2"]
-[ext_resource type="PackedScene" uid="uid://bvb27mesmd4mo" path="res://Bosses/Boss1.tscn" id="3_u1qkd"]
+[ext_resource type="PackedScene" uid="uid://ccpqmepj3j62j" path="res://Bosses/Boss_2.tscn" id="3_u1qkd"]
 
 [sub_resource type="Resource" id="Resource_dvmrr"]
 script = ExtResource("2_7y1m2")

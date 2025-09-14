@@ -43,14 +43,16 @@ func _initialize_player_stats() -> void:
 		"attack_level": 0,
 		"bullet_damage": default_bullet_damage,
 		"base_bullet_damage": default_bullet_damage,
-		"is_shadow_mode_active": false
+		"is_shadow_mode_active": false,
+		"is_super_mode_active": false
 	}
 
-func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool) -> void:
+func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool, is_super_mode_active: bool = false) -> void:
 	player_stats["attack_level"] = attack_level
 	player_stats["bullet_damage"] = bullet_damage
 	player_stats["base_bullet_damage"] = base_bullet_damage
 	player_stats["is_shadow_mode_active"] = is_shadow_mode_active
+	player_stats["is_super_mode_active"] = is_super_mode_active
 
 func restore_player_stats(player: Node) -> void:
 	if not player or not player.has_method("set_stats"):
@@ -61,8 +63,12 @@ func restore_player_stats(player: Node) -> void:
 		player_stats["attack_level"],
 		player_stats["bullet_damage"],
 		player_stats["base_bullet_damage"],
-		player_stats["is_shadow_mode_active"]
+		player_stats["is_shadow_mode_active"],
+		false  # Always restore with super mode deactivated
 	)
+	
+	# Ensure super mode is properly deactivated on revival
+	player_stats["is_super_mode_active"] = false
 
 func set_spawn_position() -> void:
 	var viewport_size: Vector2 = gm.get_viewport().get_visible_rect().size

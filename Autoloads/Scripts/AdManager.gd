@@ -15,7 +15,9 @@ var revive_timeout_timer: Timer
 @export var enable_debug_logging: bool = false  # Toggle for debug messages
 
 # Signals
+@warning_ignore("unused_signal")
 signal ad_reward_granted(ad_type: String)
+@warning_ignore("unused_signal")
 signal ad_failed_to_load(ad_type: String, error_data: Variant)
 
 func _ready() -> void:

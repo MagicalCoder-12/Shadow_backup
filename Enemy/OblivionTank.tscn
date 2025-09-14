@@ -1,8 +1,7 @@
-[gd_scene load_steps=36 format=3 uid="uid://cwuhyoc4d13q2"]
+[gd_scene load_steps=35 format=3 uid="uid://cwuhyoc4d13q2"]
 
 [ext_resource type="Script" path="res://Enemy/Scripts/oblivion_tank.gd" id="1_qhiup"]
 [ext_resource type="Texture2D" uid="uid://bfp2eh0rwd6gu" path="res://Textures/Enemy/Enemy_4_C_Small_NoLight.png" id="2_qr6kr"]
-[ext_resource type="Texture2D" uid="uid://txu0h8ko1k7a" path="res://Textures/Enemy/Enemy_4_D_Medium_NoLight.png" id="2_s8rba"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_o5xt4"]
 [ext_resource type="AudioStream" uid="uid://ljdsj4tqc73j" path="res://Textures/Music/Explosion2.wav" id="4_mp8wm"]
 [ext_resource type="Texture2D" uid="uid://chkqk03a36hcq" path="res://Textures/Enemy/explosion4/k2_0001.png" id="5_0388l"]
@@ -137,7 +136,6 @@ animations = [{
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_qhiup")
-shadow_texture = ExtResource("2_s8rba")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(1.5, 1.5)
@@ -184,8 +182,8 @@ autostart = true
 one_shot = true
 
 [node name="ShadowCoreShield" type="AnimatedSprite2D" parent="."]
-position = Vector2(0, -3)
-scale = Vector2(1.05938, 0.559375)
+position = Vector2(-3.00001, -0.500002)
+scale = Vector2(1.125, 0.665625)
 sprite_frames = SubResource("SpriteFrames_17opp")
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
