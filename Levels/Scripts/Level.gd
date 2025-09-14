@@ -53,67 +53,41 @@ func _ready():
 			pause_button.pressed.connect(_on_pause_pressed)
 
 	# Connect signals
-	print("Level.gd: Connecting GameManager signals")
 	if not GameManager.game_over_triggered.is_connected(_game_over_triggered):
 		GameManager.game_over_triggered.connect(_game_over_triggered)
-		print("Level.gd: Connected game_over_triggered signal")
-	else:
-		print("Level.gd: game_over_triggered signal already connected")
+
 		
 	if not GameManager.game_paused.is_connected(_on_game_paused):
 		GameManager.game_paused.connect(_on_game_paused)
-		print("Level.gd: Connected game_paused signal")
-	else:
-		print("Level.gd: game_paused signal already connected")
+
 		
 	if not GameManager.level_completed.is_connected(_on_level_completed):
 		GameManager.level_completed.connect(_on_level_completed)
-		print("Level.gd: Connected level_completed signal")
-	else:
-		print("Level.gd: level_completed signal already connected")
+
 		
 	if not GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
 		GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-		print("Level.gd: Connected shadow_mode_activated signal")
-	else:
-		print("Level.gd: shadow_mode_activated signal already connected")
+
 		
 	if not GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
 		GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
-		print("Level.gd: Connected shadow_mode_deactivated signal")
-	else:
-		print("Level.gd: shadow_mode_deactivated signal already connected")
-	
-	print("Level.gd: Connecting wave_manager signals")
+
 	if not wave_manager.wave_started.is_connected(hud._on_wave_started):
 		wave_manager.wave_started.connect(hud._on_wave_started)
-		print("Level.gd: Connected wave_manager.wave_started to hud._on_wave_started")
-	else:
-		print("Level.gd: wave_manager.wave_started already connected to hud._on_wave_started")
+
 		
 	if not wave_manager.all_waves_cleared.is_connected(_on_wave_manager_all_waves_cleared):
 		wave_manager.all_waves_cleared.connect(_on_wave_manager_all_waves_cleared)
-		print("Level.gd: Connected wave_manager.all_waves_cleared signal")
-	else:
-		print("Level.gd: wave_manager.all_waves_cleared signal already connected")
-	
 	get_tree().get_root().connect("go_back_requested",_on_pause_pressed)
 	
 	# Connect game_over_screen signals for revive functionality
 	if game_over_screen and game_over_screen.has_signal("player_revived"):
 		if not game_over_screen.player_revived.is_connected(_on_player_revived):
 			game_over_screen.player_revived.connect(_on_player_revived)
-			print("Level.gd: Connected to game_over_screen.player_revived signal")
-		else:
-			print("Level.gd: game_over_screen.player_revived signal already connected")
-	else:
-		push_warning("Level.gd: game_over_screen or player_revived signal not found")
 		
 	if not GameManager.level_manager.level_loaded.is_connected(_on_level_loaded):
 		GameManager.level_manager.level_loaded.connect(_on_level_loaded)
-		print("Level.gd: Connected to level_loaded signal")
-	else:
-		print("Level.gd: level_loaded signal already connected")
+
 	
 	# Initialize waves
 	_initialize_waves()
@@ -354,6 +328,75 @@ func _on_wave_manager_all_waves_cleared():
 			# Call LevelManager.complete_level instead of emitting signal directly
 			GameManager.level_manager.complete_level(current_level_num)
 
+# === BOSS DEFEATED ===
+func _on_boss_defeated() -> void:
+	print("Level.gd: _on_boss_defeated called")
+	if not GameManager.is_revive_pending:
+		print("Level.gd: Revive not pending, processing boss defeat")
+		GameManager.score += 1000
+		var current_level: int = GameManager.level_manager.get_current_level()
+		print("Level.gd: Current level is %d" % current_level)
+		if current_level == 5:
+			print("Level.gd: Unlocking shadow mode for level 5")
+			GameManager.level_manager.unlock_shadow_mode()
+		
+		# Check if this is the first time completing this boss level
+		var boss_levels_completed = GameManager.save_manager.boss_levels_completed
+		var is_first_time = not boss_levels_completed.has(current_level)
+		
+		if is_first_time:
+			# Show boss clear screen for first time completion
+			_show_boss_clear_ui()
+		else:
+			# For subsequent completions, show normal level completed screen
+			_show_level_completed_ui()
+	else:
+		print("Level.gd: Revive pending, ignoring boss defeat")
+
+func _show_boss_clear_ui():
+	print("[Level Debug] _show_boss_clear_ui called")
+	get_tree().paused = false
+	pause_menu.hide()
+	if boss_clear:
+		boss_clear.modulate.a = 0.0
+		boss_clear.show()
+		# Initialize the boss clear screen
+		print("[Level Debug] Calling boss_clear.initialize()")
+		if boss_clear.has_method("initialize"):
+			boss_clear.initialize()
+			print("[Level Debug] boss_clear.initialize() called successfully")
+		else:
+			print("[Level Debug] boss_clear does not have initialize method!")
+			
+		if is_inside_tree():
+			var tween = create_tween()
+			if tween:
+				tween.tween_property(boss_clear, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	else:
+		# Fallback to normal level completed if boss_clear scene not available
+		print("[Level] Boss clear scene not found, showing normal level completed")
+		_show_level_completed_ui()
+
+func _show_level_completed_ui():
+	print("[Level Debug] _show_level_completed_ui called")
+	get_tree().paused = false
+	pause_menu.hide()
+	level_completed.modulate.a = 0.0
+	level_completed.show()
+	# Initialize the level completed screen
+	print("[Level Debug] Calling level_completed.initialize()")
+	if level_completed.has_method("initialize"):
+		level_completed.initialize()
+		print("[Level Debug] level_completed.initialize() called successfully")
+	else:
+		print("[Level Debug] level_completed does not have initialize method!")
+		
+	if is_inside_tree() and level_completed:
+		var tween = create_tween()
+		if tween:
+			tween.tween_property(level_completed, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	GameManager.save_manager.save_progress()
+
 # === SHADOW MODE ===
 func _on_shadow_mode_activated():
 	wave_manager._on_shadow_mode_activated()
@@ -374,19 +417,3 @@ func handle_node_added(node: Node) -> void:
 				print("Level.gd: boss_defeated signal already connected")
 		else:
 			print("Level.gd: Boss node does not have boss_defeated signal")
-
-func _on_boss_defeated() -> void:
-	print("Level.gd: _on_boss_defeated called")
-	if not GameManager.is_revive_pending:
-		print("Level.gd: Revive not pending, processing boss defeat")
-		GameManager.score += 1000
-		var current_level: int = GameManager.level_manager.get_current_level()
-		print("Level.gd: Current level is %d" % current_level)
-		if current_level == 5:
-			print("Level.gd: Unlocking shadow mode for level 5")
-			GameManager.level_manager.unlock_shadow_mode()
-		
-		# Always call LevelManager.complete_level for consistent handling
-		GameManager.level_manager.complete_level(current_level)
-	else:
-		print("Level.gd: Revive pending, ignoring boss defeat")

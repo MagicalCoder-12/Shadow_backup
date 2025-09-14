@@ -157,6 +157,8 @@ func load_progress() -> void:
 			for ship in gm.ships:
 				if not ship.has("unlocked"):
 					ship["unlocked"] = false
+				if not ship.has("ascend_count"):
+					ship["ascend_count"] = 0
 				if ship.has("textures"):
 					for key in ship["textures"]:
 						var path = ship["textures"][key]
@@ -211,6 +213,7 @@ func _get_default_ships() -> Array:
 		"speed": 2000,
 		"damage": 20,
 		"upgrade_count": 0,
+		"ascend_count": 0,
 		"can_evolve": true,
 		"can_ascend": false,
 		"unlocked": false,

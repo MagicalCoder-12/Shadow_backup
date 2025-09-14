@@ -28,13 +28,6 @@ func initialize():
 				print("[BossClear Debug] Connected score_updated signal")
 			else:
 				print("[BossClear Debug] score_updated signal already connected")
-			
-			# Connect boss level completed signal
-			if not GameManager.level_completed.is_connected(_on_boss_level_completed):
-				GameManager.level_completed.connect(_on_boss_level_completed)
-				print("[BossClear Debug] Connected level_completed signal")
-			else:
-				print("[BossClear Debug] level_completed signal already connected")
 				
 			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
 		else:
@@ -118,22 +111,6 @@ func _calculate_boss_rewards() -> Dictionary:
 		"void_shards": int(10 * level_multiplier)
 	}
 
-func _on_boss_level_completed(_level_num: int) -> void:
-	print("[BossClear Debug] _on_boss_level_completed called with level: %d" % _level_num)
-	
-	# Only proceed if the screen is actually being shown
-	if not is_visible_in_tree():
-		if debug:
-			print("[BossClear Debug] Screen not visible, ignoring boss level completion")
-		return
-	
-	# Apply boss rewards when the screen is shown
-	_apply_boss_rewards()
-	
-	# Make sure the screen is visible
-	show()
-	print("[BossClear Debug] Boss clear screen shown")
-
 func _apply_boss_rewards() -> void:
 	if GameManager:
 		# Calculate rewards
@@ -154,14 +131,7 @@ func _apply_boss_rewards() -> void:
 			boss_levels_completed.append(current_level)
 			# SaveManager will handle saving the updated boss_levels_completed array
 		else:
-			print("[BossClear Debug] Boss level %d already completed before, no bonus rewards" % current_level)
-			# Update the UI to show no rewards
-			if void_shard_label:
-				void_shard_label.text = "Void Shards: +0"
-			if coin_label:
-				coin_label.text = "Coins: +0"
-			if crystal_label:
-				crystal_label.text = "Crystals: +0"
+			print("[BossClear Debug] Boss level %d already completed before" % current_level)
 		
 		# Also add any collected coins from the level (if any)
 		var collected_coins = GameManager.coins_collected_this_level if GameManager else 0
@@ -184,14 +154,14 @@ func _apply_boss_rewards() -> void:
 			if is_first_time:
 				print("[BossClear Debug] Applied boss rewards: %d void shards, %d coins, %d crystals" % [rewards.void_shards, rewards.coins, rewards.crystals])
 			else:
-				print("[BossClear Debug] No boss rewards applied for previously completed boss level")
+				print("[BossClear Debug] No additional boss rewards for previously completed boss level")
 			
 		# Show total rewards applied message
 		if total_rewards_label:
 			if is_first_time:
 				total_rewards_label.text = "Total Rewards Applied!"
 			else:
-				total_rewards_label.text = "Level Completed! (No bonus rewards)"
+				total_rewards_label.text = "Level Completed!"
 			total_rewards_label.show()
 			if debug:
 				print("[BossClear Debug] Showing total rewards applied message")

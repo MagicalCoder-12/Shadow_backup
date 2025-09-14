@@ -723,7 +723,7 @@ func _handle_enemy_collision(enemy: Area2D) -> void:
 	
 	# Damage or destroy the enemy
 	if enemy.has_method("damage"):
-		enemy.damage(50)  # Deal significant damage to enemy on collision
+		enemy.damage(100)  # Deal significant damage to enemy on collision
 	
 	_debug_log("Player collided with enemy: %s" % enemy.name)
 

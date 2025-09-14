@@ -194,13 +194,14 @@ func _get_current_upgrade_costs() -> Dictionary:
 		return {"crystal_cost": 50, "coin_cost": 250, "void_shard_cost": 100}
 
 	var upgrade_count = ship.get("upgrade_count", 0)
+	var ascend_count = ship.get("ascend_count", 0)  # New property
 	
 	# Get base costs and scaling factors from config
 	var base_crystal_cost = 50
 	var base_coin_cost = 250
 	var ascend_cost = 100
 	
-	# Changed: Use different scaling factors for each currency type
+	# Use different scaling factors for each currency type
 	var crystal_scaling_factor = 1.10
 	var coin_scaling_factor = 1.25
 	var ascend_scaling_factor = 1.05
@@ -211,17 +212,19 @@ func _get_current_upgrade_costs() -> Dictionary:
 		base_coin_cost = ConfigLoader.upgrade_settings.get("upgrade_coin_cost", 250)
 		ascend_cost = ConfigLoader.upgrade_settings.get("upgrade_ascend_cost", 100)
 		
-		# Changed: Load different scaling factors if available in config
+		# Load different scaling factors if available in config
 		crystal_scaling_factor = ConfigLoader.upgrade_settings.get("crystal_scaling_factor", 1.10)
 		coin_scaling_factor = ConfigLoader.upgrade_settings.get("coin_scaling_factor", 1.25)
 		ascend_scaling_factor = ConfigLoader.upgrade_settings.get("ascend_scaling_factor", 1.05)
 	else:
 		push_warning("ConfigLoader not available or upgrade_settings missing. Using default upgrade costs.")
 
-	# Changed: Use different scaling factors for each currency type
-	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count))
-	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count))
-	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(upgrade_count))
+	# Use different scaling factors for each currency type
+	# Only non-ascend upgrades affect crystal/coin costs
+	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count - ascend_count))
+	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count - ascend_count))
+	# Ascend costs scale independently
+	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(ascend_count))
 
 	return {
 		"crystal_cost": int(crystal_cost),
@@ -479,6 +482,10 @@ func _manual_ascend_ship(ship_index: int) -> bool:
 		return false
 
 	_deduct_currency(costs["void_shard_cost"], "void_shards")
+
+	# Increment both counters
+	ship["upgrade_count"] += 1
+	ship["ascend_count"] += 1
 
 	var ship_id = ship["id"]
 	var new_stage = ship["current_evolution_stage"] + 1

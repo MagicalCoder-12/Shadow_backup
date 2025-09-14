@@ -58,10 +58,8 @@ func load_level(level_num: int) -> void:
 
 func complete_level(current_level: int) -> void:
 	if gm.game_over and not gm.ad_manager.is_revive_pending:
-		print("LevelManager: Cannot complete level %d, game over" % current_level)
 		return
 	
-	print("LevelManager: Completing level %d" % current_level)
 	is_level_just_completed = true
 	
 	if gm.player_lives == 0:
@@ -80,8 +78,8 @@ func complete_level(current_level: int) -> void:
 		should_transition_to_next_level = false
 		is_level_just_completed = false
 	elif is_boss_level:
-		# This is a boss level, the Level scene will handle showing the boss clear scene
-		# We don't want to transition to next level automatically for boss levels
+		# For boss levels, we don't automatically emit level_completed signal
+		# The Level scene will handle showing the appropriate screen (boss clear or level completed)
 		should_transition_to_next_level = false
 		is_level_just_completed = false
 	elif current_level == 20 and not is_video_playing:
@@ -95,11 +93,13 @@ func complete_level(current_level: int) -> void:
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 	
-	if gm:
-		for connection in gm.level_completed.get_connections():
-			print("LevelManager: Connected to: %s" % connection.callable.get_object())
-	print("LevelManager: Emitting level_completed signal for level %d" % current_level)
-	gm.level_completed.emit(current_level)
+	# For non-boss levels, emit the level_completed signal
+	if not is_boss_level:
+		if gm:
+			for connection in gm.level_completed.get_connections():
+				print("LevelManager: Connected to: %s" % connection.callable.get_object())
+		print("LevelManager: Emitting level_completed signal for level %d" % current_level)
+		gm.level_completed.emit(current_level)
 	
 	# Unlock next level (but only if it's the next sequential level)
 	var next_level: int = current_level + 1
@@ -228,13 +228,9 @@ func handle_node_added(node: Node) -> void:
 	if node is WaveManager:
 		if not node.wave_started.is_connected(_on_wave_started):
 			node.wave_started.connect(_on_wave_started)
-		else:
-			print("LevelManager: wave_started signal already connected")
 			
 		if not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
 			node.all_waves_cleared.connect(_on_all_waves_cleared)
-		else:
-			print("LevelManager: all_waves_cleared signal already connected")
 	
 	if node.is_in_group(gm.GROUP_BOSS):
 		if node is Area2D and node.has_signal("boss_defeated"):

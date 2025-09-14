@@ -169,4 +169,3 @@ func update_current_ship_damage(new_damage: int) -> void:
 	# If not in shadow mode or super mode, also update current bullet damage
 	if not player_stats.get("is_shadow_mode_active", false) and not player_stats.get("is_super_mode_active", false):
 		player_stats["bullet_damage"] = new_damage
-	print("[DEBUG] PlayerManager: Updated ship damage to %d for ship %s" % [new_damage, selected_ship_id])

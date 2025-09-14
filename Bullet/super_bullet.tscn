@@ -1,11 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://dj7d773d60krd"]
+[gd_scene load_steps=4 format=3 uid="uid://dj7d773d60krd"]
 
 [ext_resource type="PackedScene" uid="uid://buhy6iijixga5" path="res://Bullet/Bullet.tscn" id="1_36wm6"]
 [ext_resource type="Texture2D" uid="uid://ccaj6tcbj5u3p" path="res://Textures/Lasers/Laser Sprites/63.png" id="2_d4feq"]
+[ext_resource type="Script" path="res://Bullet/Scripts/super_bullet.gd" id="2_wdwi8"]
 
 [node name="SuperBullet" instance=ExtResource("1_36wm6")]
 scale = Vector2(2, 2)
-speed = 5000.0
+script = ExtResource("2_wdwi8")
+speed = 600.0
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_d4feq")
