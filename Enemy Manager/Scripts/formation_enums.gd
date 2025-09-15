@@ -25,7 +25,10 @@ enum EntryPattern {
 	LOOP,
 	WAVE_ENTRY,
 	STAGGERED,      # New entry pattern
-	AMBUSH          # New entry pattern
+	AMBUSH,         # New entry pattern
+	MULTI_SIDE,     # New entry pattern
+	RANDOM_EDGE,    # New entry pattern
+	CORNER_AMBUSH   # New entry pattern
 }
 
 # Difficulty levels for enemy behavior

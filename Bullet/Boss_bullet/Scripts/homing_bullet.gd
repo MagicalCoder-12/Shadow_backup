@@ -90,6 +90,9 @@ func set_damage(new_damage: int) -> void:
 ## Handles collision with the player.
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("Player"):
+		# Check if player is in grace period after revival
+		if area.has_method("is_just_revived") and area.is_just_revived():
+			return
 		area.call("damage", damage)
 		call_deferred("queue_free")
 

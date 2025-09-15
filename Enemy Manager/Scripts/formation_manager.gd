@@ -290,6 +290,13 @@ func _calculate_spawn_positions(enemy_count: int) -> void:
 			_calculate_staggered_entry_positions(enemy_count, 5)  # Default group size of 5
 		formation_enums.EntryPattern.AMBUSH:
 			_calculate_ambush_entry_positions(enemy_count, 3)  # Default ambush count of 3
+		# Enemy Spawn Variation Design - New entry patterns
+		formation_enums.EntryPattern.MULTI_SIDE:
+			_calculate_multi_side_positions(enemy_count)
+		formation_enums.EntryPattern.RANDOM_EDGE:
+			_calculate_random_edge_positions(enemy_count)
+		formation_enums.EntryPattern.CORNER_AMBUSH:
+			_calculate_corner_ambush_positions(enemy_count)
 		_:
 			# Default to top dive
 			_calculate_top_spawn_positions(enemy_count)
@@ -353,6 +360,84 @@ func _calculate_top_spawn_positions(enemy_count: int) -> void:
 		var spawn_x = spacing * (i + 1)
 		var spawn_y = -SPAWN_BUFFER
 		spawn_positions.append(Vector2(spawn_x, spawn_y))
+
+# NEW METHODS FOR ENEMY SPAWN VARIATION DESIGN
+# --- New Entry Position Calculation Methods for Enemy Spawn Variation ---
+
+func _calculate_multi_side_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
+	# Calculate enemies per side
+	var enemies_per_side = enemy_count / 3
+	var remainder = enemy_count % 3
+	
+	# Top side enemies
+	var top_count = enemies_per_side + (1 if remainder > 0 else 0)
+	var top_spacing = screen_width / (top_count + 1)
+	
+	for i in range(top_count):
+		var spawn_x = top_spacing * (i + 1)
+		var spawn_y = -SPAWN_BUFFER
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
+	
+	# Left side enemies
+	var left_count = enemies_per_side + (1 if remainder > 1 else 0)
+	var left_spacing = (screen_height - 200) / (left_count + 1)
+	
+	for i in range(left_count):
+		var spawn_x = -SPAWN_BUFFER
+		var spawn_y = 100 + left_spacing * (i + 1)
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
+	
+	# Right side enemies
+	var right_count = enemies_per_side
+	var right_spacing = (screen_height - 200) / (right_count + 1)
+	
+	for i in range(right_count):
+		var spawn_x = screen_width + SPAWN_BUFFER
+		var spawn_y = 100 + right_spacing * (i + 1)
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
+
+func _calculate_random_edge_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
+	for i in range(enemy_count):
+		# Randomly select an edge (0: top, 1: bottom, 2: left, 3: right)
+		var edge = randi() % 4
+		var spawn_x: float
+		var spawn_y: float
+		
+		match edge:
+			0:  # Top edge
+				spawn_x = randf_range(50, screen_width - 50)
+				spawn_y = -SPAWN_BUFFER
+			1:  # Bottom edge
+				spawn_x = randf_range(50, screen_width - 50)
+				spawn_y = screen_height + SPAWN_BUFFER
+			2:  # Left edge
+				spawn_x = -SPAWN_BUFFER
+				spawn_y = randf_range(100, screen_height - 100)
+			3:  # Right edge
+				spawn_x = screen_width + SPAWN_BUFFER
+				spawn_y = randf_range(100, screen_height - 100)
+		
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
+
+func _calculate_corner_ambush_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
+	# Define corner positions
+	var corners = [
+		Vector2(-SPAWN_BUFFER, -SPAWN_BUFFER),           # Top-left
+		Vector2(screen_width + SPAWN_BUFFER, -SPAWN_BUFFER),  # Top-right
+		Vector2(-SPAWN_BUFFER, screen_height + SPAWN_BUFFER), # Bottom-left
+		Vector2(screen_width + SPAWN_BUFFER, screen_height + SPAWN_BUFFER)  # Bottom-right
+	]
+	
+	# Assign enemies to corners in round-robin fashion
+	for i in range(enemy_count):
+		var corner_index = i % 4
+		spawn_positions.append(corners[corner_index])
 
 func _calculate_entry_paths(enemy_count: int) -> void:
 	entry_paths.clear()

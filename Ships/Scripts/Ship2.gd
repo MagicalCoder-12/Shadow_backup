@@ -40,7 +40,7 @@ func _ready() -> void:
 	default_evolution_scale = Vector2(1.0, 1.0)
 
 	super._ready()  # Call BaseShip's _ready for evolution scaling
-	plBullet = preload("res://Bullet/player_bullet_2.tscn")  # Default bullet for normal mode
+	plBullet = preload("res://Bullet/PlBullet/player_bullet_2.tscn")  # Default bullet for normal mode
 	
 	# Setup burst-fire timers for normal mode
 	burst_timer = Timer.new()
@@ -168,7 +168,7 @@ func _fire_shadow_burst_shot() -> void:
 		return
 	
 	# Fire shadow bullets in a circular pattern
-	var bullet_scene: PackedScene = preload("res://Bullet/plshadow_bullet.tscn")  # Distinct shadow bullet
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")  # Distinct shadow bullet
 	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_speed_multiplier
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
 	
@@ -273,7 +273,7 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 
 func _setup_super_mode_bullets() -> void:
 	# Switch to PlayerBullet2 for super mode with enhanced arch effect
-	plBullet = preload("res://Bullet/player_bullet_2.tscn")  # Ensure PlayerBullet2 is used
+	plBullet = preload("res://Bullet/PlBullet/super2.tscn")  # Ensure PlayerBullet2 is used
 	fire_delay_timer.wait_time = super_mode_fire_delay  # From Player.gd export
 	_debug_log("Ship2 super mode bullets set to PlayerBullet2 with delay %.2f" % fire_delay_timer.wait_time)
 
@@ -291,7 +291,7 @@ func _apply_ship_specific_stats() -> void:
 	shadow_burst_sequence_delay = 0.3
 	
 	# Super mode configurations
-	super_burst_count = 7
+	super_burst_count = 3
 	super_burst_spread = 60.0
 	
 	_debug_log("Applied Ship2-specific stats")

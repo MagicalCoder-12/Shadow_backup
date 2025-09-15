@@ -10,11 +10,12 @@ var is_level_just_completed: bool = false
 var is_video_playing: bool = false
 var is_game_over_screen_active: bool = false
 
-const SHADOW_MODE_TUTORIAL_SCENE: PackedScene = preload("res://MainScenes/ShadowModeTutorial.tscn")
-const BACKGROUND_MUSIC: AudioStream = preload("res://Textures/Music/Start.ogg")
-
 # Signals
 signal level_loaded(level_num: int)
+signal boss_defeated
+
+const SHADOW_MODE_TUTORIAL_SCENE: PackedScene = preload("res://MainScenes/ShadowModeTutorial.tscn")
+const BACKGROUND_MUSIC: AudioStream = preload("res://Textures/Music/Start.ogg")
 
 func _ready() -> void:
 	gm = GameManager
@@ -70,16 +71,12 @@ func complete_level(current_level: int) -> void:
 	
 	# Handle special level completions
 	var should_transition_to_next_level: bool = true
+	@warning_ignore("unused_variable")
 	var is_boss_level: bool = current_level % 5 == 0 and current_level > 0
 	
 	# Handle special level completions
 	if current_level == 5 and not shadow_mode_tutorial_shown:
 		_show_shadow_mode_tutorial()
-		should_transition_to_next_level = false
-		is_level_just_completed = false
-	elif is_boss_level:
-		# For boss levels, we don't automatically emit level_completed signal
-		# The Level scene will handle showing the appropriate screen (boss clear or level completed)
 		should_transition_to_next_level = false
 		is_level_just_completed = false
 	elif current_level == 20 and not is_video_playing:
@@ -93,13 +90,13 @@ func complete_level(current_level: int) -> void:
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 	
-	# For non-boss levels, emit the level_completed signal
-	if not is_boss_level:
-		if gm:
-			for connection in gm.level_completed.get_connections():
-				print("LevelManager: Connected to: %s" % connection.callable.get_object())
-		print("LevelManager: Emitting level_completed signal for level %d" % current_level)
-		gm.level_completed.emit(current_level)
+	# For boss levels, emit the level_completed signal to show boss clear screen
+	# For non-boss levels, also emit the level_completed signal
+	if gm:
+		for connection in gm.level_completed.get_connections():
+			print("LevelManager: Connected to: %s" % connection.callable.get_object())
+	print("LevelManager: Emitting level_completed signal for level %d" % current_level)
+	gm.level_completed.emit(current_level)
 	
 	# Unlock next level (but only if it's the next sequential level)
 	var next_level: int = current_level + 1
@@ -255,6 +252,9 @@ func _on_boss_defeated() -> void:
 	var current_level: int = get_current_level()
 	if current_level == 5:
 		unlock_shadow_mode()
+	
+	# Emit boss_defeated signal for the Level scene to handle
+	boss_defeated.emit()
 	
 	# For all levels, complete the level properly through the unified flow
 	complete_level(current_level)

@@ -9,6 +9,8 @@ size = Vector2(52, 316)
 [node name="ShadowEnemy_Bullet" type="Area2D" groups=["EnemyBullet"]]
 collision_layer = 64
 script = ExtResource("2_qsnhr")
+shadow_damage_multiplier = 1.0
+shadow_speed_multiplier = 1.5
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -6)

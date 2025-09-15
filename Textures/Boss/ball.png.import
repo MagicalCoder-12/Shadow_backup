@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dk4qw0g87i5ar"
-path="res://.godot/imported/ships_biomech.png-9fdd867f837e6470ecb407c85f5e4a93.ctex"
+uid="uid://bcnw1tp07vyss"
+path="res://.godot/imported/ball.png-9e470ee645b116e1e6099d6c1244c94c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Textures/Boss/ships_biomech.png"
-dest_files=["res://.godot/imported/ships_biomech.png-9fdd867f837e6470ecb407c85f5e4a93.ctex"]
+source_file="res://Textures/Boss/ball.png"
+dest_files=["res://.godot/imported/ball.png-9e470ee645b116e1e6099d6c1244c94c.ctex"]
 
 [params]
 

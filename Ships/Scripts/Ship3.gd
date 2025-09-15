@@ -51,7 +51,7 @@ func _ready():
 	default_evolution_scale = Vector2(1.0, 1.0)
 	
 	super._ready()
-	plBullet = preload("res://Bullet/player_bullet_3.tscn") 
+	plBullet = preload("res://Bullet/PlBullet/player_bullet_3.tscn") 
 	# Setup wave-pattern timers for normal mode
 	wave_timer = Timer.new()
 	wave_timer.wait_time = wave_fire_delay
@@ -113,8 +113,8 @@ func shoot() -> void:
 		# Simplified shadow mode - same as Ship1
 		_shoot_shadow_mode()
 	elif is_super_mode and not is_shadow_mode:
-		# Super mode still uses wave pattern
-		_shoot_super_mode()
+		# Use default super mode pattern instead of Ship3-specific wave pattern
+		_shoot_normal_bullets(plSuperBullet, super_mode_bullet_speed, GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage))
 	else:
 		# Normal wave-pattern for regular mode
 		_shoot_normal_wave()
@@ -135,7 +135,7 @@ func _shoot_normal_wave() -> void:
 
 func _shoot_shadow_mode() -> void:
 	# Simplified shadow mode - fire bullets like Ship1, not using wave patterns
-	var bullet_scene: PackedScene = preload("res://Bullet/plshadow_bullet.tscn")
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
 	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * 1.2  # shadow_speed_multiplier
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
 	
@@ -158,10 +158,6 @@ func _shoot_shadow_mode() -> void:
 	# Play shooting sound
 	if AudioManager:
 		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
-
-func _shoot_super_mode() -> void:
-	# Enhanced wave pattern for super mode
-	_fire_super_wave_shot()
 
 func _fire_wave_shot() -> void:
 	if current_wave_shot >= shots_per_wave:
@@ -290,7 +286,7 @@ func _fire_shadow_wave_shot() -> void:
 			return
 	
 	# Fire shadow bullets with wave pattern
-	var bullet_scene: PackedScene = preload("res://Bullet/plshadow_bullet.tscn")  # Distinct shadow bullet
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")  # Distinct shadow bullet
 	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_speed_multiplier
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
 	
@@ -303,20 +299,8 @@ func _fire_shadow_wave_shot() -> void:
 	current_wave_shot += 1
 
 func _fire_super_wave_shot() -> void:
-	# Fire super bullets with enhanced wave pattern
-	var bullet_scene: PackedScene = plSuperBullet
-	var bullet_speed: float = super_mode_bullet_speed
-	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
-	
-	# Cycle through enhanced wave patterns rapidly
-	_fire_super_wave_bullets(bullet_scene, bullet_speed, bullet_damage)
-	
-	# Cycle pattern for next shot
-	_cycle_super_wave_pattern()
-	
-	# Play super mode shooting sound
-	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+	# This function is no longer needed as we're using the default super pattern
+	pass
 
 func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Fire bullets based on current shadow wave pattern
@@ -328,35 +312,7 @@ func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, b
 		WavePattern.SHADOW_DIAGONAL:
 			_fire_shadow_diagonal_wave(bullet_scene, bullet_speed, bullet_damage)
 
-func _fire_super_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Fire bullets with enhanced wave pattern for super mode
-	# Limit total bullets to 15 regardless of firing positions
-	var firing_children = firing_positions.get_children()
-	if firing_children.size() == 0:
-		return
-	
-	# Calculate bullets per firing position to stay within 15 total bullets
-	var total_bullets = 0
-	var bullets_per_position = max(1, total_bullets / firing_children.size())
-	bullets_per_position = min(bullets_per_position, 2)  # Cap at 5 bullets per position
-	
-	for child in firing_children:
-		# Fire limited bullets in a spread pattern
-		var spread_angle: float = deg_to_rad(30)
-		var angle_step: float = spread_angle / max(1, bullets_per_position - 1) if bullets_per_position > 1 else 0
-		var start_angle: float = -spread_angle / 2.0
-		
-		for i in range(bullets_per_position):
-			var angle: float = start_angle + i * angle_step
-			var bullet: Node = BulletFactory.spawn_bullet(
-				bullet_scene,
-				child.global_position,
-				child.rotation + angle,
-				bullet_speed,
-				bullet_damage
-			)
-			if bullet:
-				get_tree().current_scene.call_deferred("add_child", bullet)
+
 
 func _fire_shadow_horizontal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Horizontal wave (left to right)
@@ -421,9 +377,8 @@ func _cycle_shadow_wave_pattern() -> void:
 	_debug_log("Ship3 cycled to shadow pattern: %s" % WavePattern.keys()[shadow_current_pattern])
 
 func _cycle_super_wave_pattern() -> void:
-	# Cycle through enhanced patterns for super mode
-	shadow_current_pattern = (shadow_current_pattern + 1) % WavePattern.size() as WavePattern
-	_debug_log("Ship3 cycled to super pattern: %s" % WavePattern.keys()[shadow_current_pattern])
+	# This function is no longer needed as we're using the default super pattern
+	pass
 
 func _on_pattern_cooldown_finished() -> void:
 	# Pattern cooldown completed, ready for next wave

@@ -8,9 +8,9 @@ size = Vector2(28, 134)
 
 [node name="EnemyBullet" type="Area2D" groups=["EnemyBullet"]]
 z_index = 1
-scale = Vector2(0.6, 0.6)
 collision_layer = 64
 script = ExtResource("1_vf00a")
+speed = 1500.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(3.683e-07, 15.9685)

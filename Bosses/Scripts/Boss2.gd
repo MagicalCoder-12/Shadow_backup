@@ -9,7 +9,7 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @export var stage_2_max_health: int = 60000 # Stage 2
 @export var stage_1_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldTAURUS2.png")
 @export var stage_2_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldTAURUS12.png")
-@export var projectile_scene: PackedScene = preload("res://Bosses/homing_bullet.tscn")
+@export var projectile_scene: PackedScene = preload("res://Bullet/Boss_bullet/homing_bullet.tscn")
 @export var move_speed: float = 250.0
 @export var move_range: float = 400.0
 @export var attack_interval: float = 4.0
@@ -431,6 +431,9 @@ func _on_area_entered(area: Area2D) -> void:
 	if defeated:
 		return
 	if area.is_in_group("Player"):
+		# Check if player is in grace period after revival
+		if area.has_method("is_just_revived") and area.is_just_revived():
+			return
 		area.call("damage", 1)
 
 func _on_attack_timer_timeout() -> void:

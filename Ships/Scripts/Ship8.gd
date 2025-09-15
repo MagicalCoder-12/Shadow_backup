@@ -1,6 +1,6 @@
 extends BaseShip
 
-# Ship8: Oblivion Viper - A serpentine vessel that strikes from the void
+# Ship8: Void Serpent - A serpentine vessel that strikes from the void
 # SSR rank ship with 5 evolution stages (max_evolution_stage corrected)
 
 func _ready():

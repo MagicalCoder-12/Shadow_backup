@@ -1,5 +1,5 @@
 {
 	"version": 1,
-	"charge_per_enemy": 10.0,
+	"charge_per_enemy": 3.0,
 	"max_charge": 100.0
 }

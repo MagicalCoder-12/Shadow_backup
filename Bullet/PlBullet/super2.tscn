@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bopu7be41kgdd"]
+
+[ext_resource type="PackedScene" uid="uid://ds3nbbjqkkkla" path="res://Bullet/PlBullet/player_bullet_2.tscn" id="1_ggwws"]
+
+[node name="super" instance=ExtResource("1_ggwws")]
+
+[node name="Sprite2D" parent="." index="0"]
+modulate = Color(1, 0, 0.576471, 1)

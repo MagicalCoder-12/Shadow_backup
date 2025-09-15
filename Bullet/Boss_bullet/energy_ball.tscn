@@ -1,41 +1,99 @@
-[gd_scene load_steps=4 format=3 uid="uid://dtm0xakdd7x6u"]
+[gd_scene load_steps=14 format=3 uid="uid://dtm0xakdd7x6u"]
 
-[ext_resource type="Script" path="res://Bullet/Scripts/energy_ball.gd" id="1_energyball"]
-[ext_resource type="Texture2D" uid="uid://bum6q05vry01v" path="res://Textures/Boss/06/Arcane_Effect_7.png" id="2_arcane"]
+[ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/energy_ball.gd" id="1_energyball"]
+[ext_resource type="Texture2D" uid="uid://bcnw1tp07vyss" path="res://Textures/Boss/ball.png" id="2_rpceq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_olngl"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(198, 192, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dkhjv"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(99, 192, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lyooc"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(0, 192, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_63y51"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(198, 96, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bummq"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(99, 96, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gollr"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(0, 96, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rnhht"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(198, 0, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nui33"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(99, 0, 99, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_66bwr"]
+atlas = ExtResource("2_rpceq")
+region = Rect2(0, 0, 99, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_x1si1"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_olngl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dkhjv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lyooc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_63y51")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bummq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gollr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rnhht")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nui33")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_66bwr")
+}],
+"loop": false,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_energyball"]
-radius = 71.8679
+radius = 49.0102
 
 [node name="EnergyBall" type="Area2D"]
 collision_layer = 128
 script = ExtResource("1_energyball")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.5, 0.5, 1, 1)
-scale = Vector2(2, 2)
-texture = ExtResource("2_arcane")
-
-[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
-amount = 50
-lifetime = 0.5
-explosiveness = 1.0
-texture = ExtResource("2_arcane")
-emission_shape = 1
-emission_sphere_radius = 20.0
-spread = 360.0
-gravity = Vector2(0, 0)
-initial_velocity_min = 10.0
-initial_velocity_max = 30.0
-scale_amount_min = 0.5
-scale_amount_max = 1.5
-color = Color(0.5, 0.5, 1, 1)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(1.5, 1.5)
+sprite_frames = SubResource("SpriteFrames_x1si1")
+frame = 8
+frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, -10)
 shape = SubResource("CircleShape2D_energyball")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
-position = Vector2(-3.50002, -3)
-scale = Vector2(7.55, 6.8)
+position = Vector2(5.5, -6.5)
+scale = Vector2(4.95, 4.45)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

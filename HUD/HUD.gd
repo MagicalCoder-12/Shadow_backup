@@ -6,14 +6,32 @@ var pLifeIcon := preload("uid://ceg6sboym3t71")
 @onready var scoreLabel := $Score
 @onready var timer_label: Label = $TextureRect/Timer  
 @onready var shadow_mode_button: ShadowModeButton = $ShadowModeButton
+@onready var h_box_container: HBoxContainer = $HBoxContainer
+@onready var power_symbol: TextureRect = $HBoxContainer/PowerSymbol
+@onready var power_symbol_2: TextureRect = $HBoxContainer/PowerSymbol2
+@onready var power_symbol_3: TextureRect = $HBoxContainer/PowerSymbol3
+@onready var power_symbol_4: TextureRect = $HBoxContainer/PowerSymbol4
+
 @export var charge_per_enemy: float = 10.0
 @export var max_charge: float = 100.0
 var elapsed_time: float = 0.0
+
+# Track the number of attack boost powerups collected
+var attack_boost_count: int = 0
 
 func _ready():
 	if not pLifeIcon or not pLifeIcon.can_instantiate():
 		push_error("Invalid pLifeIcon preload")
 	clear_lives()
+	
+	# Initialize attack_boost_count from PlayerManager
+	if GameManager.player_manager:
+		attack_boost_count = GameManager.player_manager.player_stats.get("attack_level", 0)
+	
+	# Hide all power symbols initially
+	hide_all_power_symbols()
+	# Show power symbols based on initial attack level
+	update_power_symbols()
 	
 	# Load HUD settings from ConfigLoader
 	_load_hud_settings()
@@ -27,6 +45,11 @@ func _ready():
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 	GameManager.enemy_killed.connect(_on_enemy_killed)
+	# Connect to player manager for attack boost notifications
+	GameManager.ship_stats_updated.connect(_on_ship_stats_updated)
+	# Connect to level manager for level loaded notifications
+	if GameManager.level_manager:
+		GameManager.level_manager.level_loaded.connect(_on_level_loaded)
 	if shadow_mode_button:
 		shadow_mode_button.set_enabled(false)
 		# Connect shadow mode button signal (if not already connected in .tscn)
@@ -37,6 +60,54 @@ func _ready():
 	_on_player_life_changed(GameManager.player_lives)
 	update_button_visibility()
 	start_timer()
+
+
+func _on_level_loaded(_level_num: int):
+	"""Called when a new level is loaded"""
+	reset_hud_state()
+
+# Hide all power symbols initially
+func hide_all_power_symbols():
+	if power_symbol:
+		power_symbol.hide()
+	if power_symbol_2:
+		power_symbol_2.hide()
+	if power_symbol_3:
+		power_symbol_3.hide()
+	if power_symbol_4:
+		power_symbol_4.hide()
+
+# Show power symbols based on attack boost count
+func update_power_symbols():
+	# Hide all symbols first
+	hide_all_power_symbols()
+	
+	# Show symbols based on attack boost count
+	match attack_boost_count:
+		1:
+			if power_symbol:
+				power_symbol.show()
+		2:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+		3:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+			if power_symbol_3:
+				power_symbol_3.show()
+		4:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+			if power_symbol_3:
+				power_symbol_3.show()
+			if power_symbol_4:
+				power_symbol_4.show()
 
 func _load_hud_settings() -> void:
 	"""Load HUD settings from ConfigLoader"""
@@ -149,6 +220,16 @@ func update_button_visibility():
 	if shadow_mode_button:
 		shadow_mode_button.set_enabled(should_be_visible)
 
+# Reset HUD state for new level
+func reset_hud_state():
+	attack_boost_count = 0
+	hide_all_power_symbols()
+	reset_charge()
+	update_button_visibility()
+	start_timer()
+	_on_player_life_changed(GameManager.player_lives)
+	_on_score_updated(GameManager.score)
+
 # Resets shadow mode charge
 func reset_charge():
 	if shadow_mode_button:
@@ -162,3 +243,18 @@ func _on_shadow_mode_activated():
 # Handle shadow mode deactivation
 func _on_shadow_mode_deactivated():
 	update_button_visibility()
+
+# Update power symbols when ship stats change
+@warning_ignore("unused_parameter")
+func _on_ship_stats_updated(ship_id: String, new_damage: int):
+	"""Called when ship stats are updated, which happens when collecting attack boost powerups"""
+	# Get the current attack level from PlayerManager
+	var current_attack_level = GameManager.player_manager.player_stats.get("attack_level", 0)
+	
+	# Update attack boost count if it has changed
+	if current_attack_level != attack_boost_count:
+		attack_boost_count = current_attack_level
+		update_power_symbols()
+		
+		# Ensure count doesn't exceed the number of power symbols we have
+		attack_boost_count = min(attack_boost_count, 4)

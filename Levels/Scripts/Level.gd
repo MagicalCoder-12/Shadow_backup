@@ -369,10 +369,8 @@ func _show_boss_clear_ui():
 	get_tree().paused = false
 	pause_menu.hide()
 	if boss_clear:
-		# Remove the modulate alpha setting that was making it transparent
-		# boss_clear.modulate.a = 0.0
 		boss_clear.show()
-		# Initialize the boss clear screen
+		# Initialize and show the boss clear screen
 		print("[Level Debug] Calling boss_clear.initialize()")
 		if boss_clear.has_method("initialize"):
 			boss_clear.initialize()
@@ -380,8 +378,12 @@ func _show_boss_clear_ui():
 		else:
 			print("[Level Debug] boss_clear does not have initialize method!")
 			
-		# Show the boss clear screen immediately without tween
-		boss_clear.modulate.a = 1.0
+		# Show the boss clear screen and apply rewards
+		if boss_clear.has_method("show_boss_clear"):
+			boss_clear.show_boss_clear()
+			print("[Level Debug] boss_clear.show_boss_clear() called successfully")
+		else:
+			print("[Level Debug] boss_clear does not have show_boss_clear method!")
 	else:
 		# Fallback to normal level completed if boss_clear scene not available
 		print("[Level] Boss clear scene not found, showing normal level completed")
@@ -391,7 +393,6 @@ func _show_level_completed_ui():
 	print("[Level Debug] _show_level_completed_ui called")
 	get_tree().paused = false
 	pause_menu.hide()
-	level_completed.modulate.a = 0.0
 	level_completed.show()
 	# Initialize the level completed screen
 	print("[Level Debug] Calling level_completed.initialize()")
@@ -401,6 +402,23 @@ func _show_level_completed_ui():
 	else:
 		print("[Level Debug] level_completed does not have initialize method!")
 		
+	# Apply any rewards for subsequent boss level completions
+	var current_level_num = GameManager.level_manager.get_current_level()
+	var boss_levels_completed = GameManager.save_manager.boss_levels_completed
+	var is_boss_level = current_level_num % 5 == 0 and current_level_num > 0
+	var is_first_time = not boss_levels_completed.has(current_level_num)
+	
+	if is_boss_level and not is_first_time:
+		# For subsequent boss level completions, apply the regular level completion rewards
+		if GameManager.save_manager.autosave_progress:
+			GameManager.save_manager.save_progress()
+		
+		# Play reward sound effect
+		if AudioManager:
+			var sound_stream: AudioStream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
+			if sound_stream:
+				AudioManager.play_sound_effect(sound_stream, "Master")
+	
 	if is_inside_tree() and level_completed:
 		var tween = create_tween()
 		if tween:
@@ -427,3 +445,25 @@ func handle_node_added(node: Node) -> void:
 				print("Level.gd: boss_defeated signal already connected")
 		else:
 			print("Level.gd: Boss node does not have boss_defeated signal")
+	
+	# Also connect to LevelManager's boss_defeated signal for boss waves spawned by WaveManager
+	if node is WaveManager:
+		# Connect to the boss defeated signal from LevelManager
+		if not GameManager.level_manager.boss_defeated.is_connected(_on_level_manager_boss_defeated):
+			GameManager.level_manager.boss_defeated.connect(_on_level_manager_boss_defeated)
+			print("Level.gd: Connected LevelManager boss_defeated signal")
+
+func _on_level_manager_boss_defeated() -> void:
+	print("Level.gd: _on_level_manager_boss_defeated called")
+	# This is called when a boss is defeated through LevelManager
+	# Show the appropriate screen based on whether it's the first time completing this boss level
+	var current_level: int = GameManager.level_manager.get_current_level()
+	var boss_levels_completed = GameManager.save_manager.boss_levels_completed
+	var is_first_time = not boss_levels_completed.has(current_level)
+	
+	if is_first_time:
+		# Show boss clear screen for first time completion
+		_show_boss_clear_ui()
+	else:
+		# For subsequent completions, show normal level completed screen
+		_show_level_completed_ui()

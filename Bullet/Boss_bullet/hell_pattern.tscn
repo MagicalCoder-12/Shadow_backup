@@ -1,15 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://byg84ie7778o1"]
+[gd_scene load_steps=4 format=3 uid="uid://byg84ie7778o1"]
 
 [ext_resource type="Texture2D" uid="uid://dijy18kkuc222" path="res://Textures/Lasers/Laser Sprites/02.png" id="1_1grdc"]
+[ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/hell_pattern.gd" id="1_s6ruc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ypd1e"]
 size = Vector2(13, 22)
 
 [node name="HellPattern" type="Area2D"]
 collision_layer = 128
+script = ExtResource("1_s6ruc")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-rotation = 1.5708
 texture = ExtResource("1_1grdc")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -19,3 +20,5 @@ shape = SubResource("RectangleShape2D_ypd1e")
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
 position = Vector2(1.5, -2)
 scale = Vector2(0.85, 1.2)
+
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

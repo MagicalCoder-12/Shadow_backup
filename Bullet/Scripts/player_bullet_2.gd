@@ -16,8 +16,6 @@ func _process(delta: float) -> void:
 	time += delta
 	var offset = sin(time * arch_frequency) * arch_amplitude
 	position.x += offset * delta  # Apply horizontal offset for arch curve
-	# Fade modulate to orange over time for gradient effect
-	sprite_2d.modulate = sprite_2d.modulate.lerp(Color(1.0, 0.5, 0.1, 1.0), delta)  # Fade to orange
 
 
 func _on_visible_on_screen_notifier_2d_screen_exited() -> void:

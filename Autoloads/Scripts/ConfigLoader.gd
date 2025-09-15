@@ -221,12 +221,12 @@ func _get_default_ships_data() -> Array:
 		},
 	{
 		"id": "Ship8",
-		"display_name": "Oblivion Viper",
-		"rank": "SR",
+		"display_name": "Void Serpent",
+		"rank": "SSR",
 		"current_evolution_stage": 0,
-		"max_evolution_stage": 6,
+		"max_evolution_stage": 5,
 		"final_rank": "LR",
-		"damage": 55,
+		"damage": 90,
 		"upgrade_count": 0,
 		"ascend_count": 0,
 		"can_evolve": true,
@@ -239,8 +239,7 @@ func _get_default_ships_data() -> Array:
 			"upgrade_2": "res://Textures/player/ship_textures/ship_08_lvl2.png",
 			"upgrade_3": "res://Textures/player/ship_textures/ship_08_lvl3.png",
 			"upgrade_4": "res://Textures/player/ship_textures/ship_08_lvl4.png",
-			"upgrade_5": "res://Textures/player/ship_textures/ship_08_lvl5.png",
-			"upgrade_6": "res://Textures/player/ship_textures/ship_08_lvl6.png"
+			"upgrade_5": "res://Textures/player/ship_textures/ship_08_lvl5.png"
 			}
 		}
 	]
@@ -272,7 +271,7 @@ func _get_default_upgrade_settings() -> Dictionary:
 		"Ship5": ["Umbra Wraith", "Shadow Reaper", "Darkness Incarnate", "Void Phantom", "Abyssal Terror", "Nightmare Sovereign", "Obsidian Specter", "Eclipse Revenant", "Nether Shade", "Celestial Wraith","Ethereal Scythe"],
 		"Ship6": ["Void Howler", "Cosmic Screamer", "Stellar Devourer", "Galactic Destroyer", "Nova Reaver", "Quantum Predator","Singularity Hunter", "Infinity Ravager", "Omniverse Annihilator"],
 		"Ship7": ["Tenebris Fang", "Shadow Blade", "Darkness Cutter", "Void Ripper", "Abyssal Slicer", "Nightmare Edge", "Phantom Cleaver", "Spectral Razor"],
-		"Ship8": ["Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Universal Leviathan", "Infinity Wyrm"]
+		"Ship8": ["Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Infinity Wyrm"]
 			}
 		}
 	# Add version information to defaults

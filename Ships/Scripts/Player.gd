@@ -113,6 +113,10 @@ func _setup_references() -> void:
 		push_warning("DeathAnimation node is missing or not properly set up")
 	if not invincibility_timer:
 		push_error("InvincibilityTimer node is missing in Player.tscn")
+	else:
+		# Connect the invincibility timer timeout signal
+		if not invincibility_timer.is_connected("timeout", _on_invincibility_timer_timeout):
+			invincibility_timer.connect("timeout", _on_invincibility_timer_timeout)
 	if not plBullet or not plBullet.can_instantiate():
 		push_error("Invalid plBullet scene")
 	if not plSuperBullet or not plSuperBullet.can_instantiate():
@@ -425,6 +429,7 @@ func _setup_revival_state() -> void:
 		death_animation.emitting = false
 	
 	invincibility_timer.start(5.0)
+	just_revived = true  # Ensure just_revived is set when starting invincibility
 	if collision_shape:
 		set_collision_layer_value(1, false)
 	
@@ -433,6 +438,7 @@ func _setup_revival_state() -> void:
 	GameManager.game_over = false
 	satellite.set_shooting_active(true)
 	satellite_2.set_shooting_active(true)
+	_debug_log("Revival state setup complete, invincibility timer started, just_revived set to true")
 
 func set_lives(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
@@ -498,6 +504,7 @@ func _on_invincibility_timer_timeout() -> void:
 		set_collision_layer_value(1, true)  # Re-enable layer 1
 	else:
 		push_error("CollisionShape2D is null, cannot re-enable collision")
+	_debug_log("Invincibility timer finished, just_revived set to false")
 
 func set_stats(attack_level_value: int, bullet_damage_value: int, base_bullet_damage_value: int, shadow_mode_active: bool, super_mode_active: bool = false) -> void:
 	_reset_firing_positions()
@@ -557,6 +564,9 @@ func apply_bullet_damage_increase(amount: int) -> void:
 	
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
 		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats["base_bullet_damage"] * 2
+	
+	# Notify GameManager that ship stats have been updated
+	GameManager.notify_ship_stats_updated(ship_id, GameManager.player_manager.player_stats["base_bullet_damage"])
 
 func add_firing_position(level: int) -> void:
 	var new_marker := Marker2D.new()
@@ -746,3 +756,6 @@ func _handle_enemy_bullet_collision(bullet: Area2D) -> void:
 		bullet.queue_free()
 	
 	_debug_log("Player hit by bullet: %s (damage: %d)" % [bullet.name, bullet_damage])
+
+func is_just_revived() -> bool:
+	return just_revived

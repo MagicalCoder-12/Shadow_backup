@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=3 uid="uid://s66mklagl4fy"]
+[gd_scene load_steps=10 format=3 uid="uid://s66mklagl4fy"]
 
 [ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
 [ext_resource type="Script" path="res://HUD/HUD.gd" id="2"]
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="3_hsjlv"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="4_bkns3"]
 [ext_resource type="Texture2D" uid="uid://bosx1bop5mg50" path="res://Textures/UI/Main_Menu/Clock_Icon.png" id="7_36gqn"]
+[ext_resource type="PackedScene" uid="uid://d0e0vvw0ntlk8" path="res://HUD/Power_symbol.tscn" id="7_d42kf"]
 [ext_resource type="PackedScene" uid="uid://bq8v4j2h5n8yc" path="res://HUD/ShadowModeButton.tscn" id="8_shadow"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_amwvk"]
@@ -98,5 +99,28 @@ label_settings = SubResource("LabelSettings_qp8j6")
 horizontal_alignment = 2
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 145.0
+offset_right = 179.0
+offset_bottom = 185.0
+
+[node name="PowerSymbol" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PowerSymbol2" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PowerSymbol3" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PowerSymbol4" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [connection signal="shadow_mode_requested" from="ShadowModeButton" to="." method="_on_shadow_mode_requested"]

@@ -180,6 +180,19 @@ func _play_sound_effect(sound_type: String) -> void:
 		if debug:
 			print("[BossClear Debug] Warning: AudioManager not found, cannot play sound effect")
 
+# Add a method to show the boss clear screen
+func show_boss_clear():
+	if not screen_shown:
+		# Apply the boss rewards
+		_apply_boss_rewards()
+		
+		# Make sure the screen is visible
+		show()
+		screen_shown = true
+		
+		if debug:
+			print("[BossClear Debug] Boss clear screen shown and rewards applied")
+
 func _on_next_pressed() -> void:
 	
 	if GameManager and GameManager.level_manager:

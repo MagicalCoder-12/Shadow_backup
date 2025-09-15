@@ -34,8 +34,8 @@ signal shadow_state_changed(is_shadow: bool)
 @export var shadow_spawn_probability: float = 0.3
 @export var shadow_health_multiplier: float = 1.5
 @export var shadow_score_multiplier: float = 2.0
-@export var shadow_damage_multiplier: float = 1.5
-@export var fire_rate: float = 2.0
+@export var shadow_damage_multiplier: float = 1.0
+@export var fire_rate: float = 1.5  # Reduced from 2.0 to 1.5
 @export var entry_speed_multiplier: float = 1.0
 @export var entry_shadow_shield_time: float = 2.0
 @export var shadow_texture: Texture2D
@@ -52,13 +52,13 @@ var difficulty_multipliers: Dictionary = {
 		"health": 0.8, "damage": 0.7, "fire_rate": 0.7, "speed": 0.8, "score": 0.8, "shadow_chance": 0.05
 	},
 	formation_enums.DifficultyLevel.NORMAL: {
-		"health": 1.0, "damage": 1.0, "fire_rate": 1.0, "speed": 1.0, "score": 1.0, "shadow_chance": 0.3
+		"health": 1.0, "damage": 1.0, "fire_rate": 0.8, "speed": 1.0, "score": 1.0, "shadow_chance": 0.3  # Reduced fire_rate from 1.0 to 0.8
 	},
 	formation_enums.DifficultyLevel.HARD: {
-		"health": 1.5, "damage": 1.3, "fire_rate": 1.3, "speed": 1.2, "score": 1.5, "shadow_chance": 0.5
+		"health": 1.5, "damage": 1.3, "fire_rate": 1.0, "speed": 1.2, "score": 1.5, "shadow_chance": 0.5  # Reduced fire_rate from 1.3 to 1.0
 	},
 	formation_enums.DifficultyLevel.NIGHTMARE: {
-		"health": 2.0, "damage": 1.5, "fire_rate": 1.5, "speed": 1.5, "score": 2.0, "shadow_chance": 0.7
+		"health": 2.0, "damage": 1.5, "fire_rate": 1.2, "speed": 1.5, "score": 2.0, "shadow_chance": 0.7  # Reduced fire_rate from 1.5 to 1.2
 	}
 }
 
@@ -352,24 +352,47 @@ func _handle_shooting(_delta: float):
 		return
 	
 	# Enhanced shooting logic based on enemy type or special conditions
-	# For now, we'll keep the existing logic but add a placeholder for enhanced patterns
+	# In shadow mode, enemies shoot more aggressively
+	if GameManager.level_manager.shadow_mode_enabled:
+		# In shadow mode, increase the chance of using advanced shooting patterns, but not too frequently
+		if randf() < 0.1:  # Reduced from 0.15 to 0.1 (10% chance)
+			var advanced_pattern = randi() % 2  # Choose between spread shot and burst shot
+			match advanced_pattern:
+				0:
+					_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
+				1:
+					_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
+			return
+	
+	# Standard shooting logic
 	pass
 
 func _on_fire_timer_timeout():
 	if not is_alive or not arrived_at_formation or not is_instance_valid(player_reference):
 		return
 	
-	# Determine which shooting pattern to use
-	# This could be based on enemy type, difficulty, or random chance
-	var shooting_pattern = randi() % 3  # Randomly choose between 0, 1, 2
+	# In shadow mode, enemies shoot more aggressively but with reasonable limits
+	if GameManager.level_manager.shadow_mode_enabled:
+		# Higher chance of using advanced shooting patterns in shadow mode, but controlled
+		var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
+		
+		match shooting_pattern:
+			0, 1, 2:  # 60% chance of standard shooting
+				_fire_at_player()  # Standard aimed shooting (most common)
+			3:
+				_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
+			4:
+				_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
+		return
+	
+	# Standard shooting logic - even in normal mode, reduce frequency of advanced patterns
+	var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
 	
 	match shooting_pattern:
-		0:
+		0, 1, 2:  # 75% chance of standard shooting
 			_fire_at_player()  # Standard aimed shooting
-		1:
-			_fire_spread_shot(3, PI/4)  # 3 bullets in a spread
-		2:
-			_fire_burst_shot(3, 0.1)  # 3 bullets in a burst
+		3:
+			_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
 		_:
 			_fire_at_player()  # Fallback to standard shooting
 
@@ -395,7 +418,7 @@ func _fire_at_player():
 
 # --- Enhanced Shooting Patterns ---
 
-func _fire_spread_shot(bullet_count: int = 3, spread_angle: float = PI/4):
+func _fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI/6):  # Reduced defaults
 	for i in range(bullet_count):
 		var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
 		var bullet = bullet_scene.instantiate()
@@ -417,7 +440,8 @@ func _fire_spread_shot(bullet_count: int = 3, spread_angle: float = PI/4):
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
 
-func _fire_burst_shot(burst_count: int = 3, burst_delay: float = 0.1):
+@warning_ignore("unused_parameter")
+func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduced defaults
 	for i in range(burst_count):
 		var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
 		var bullet = bullet_scene.instantiate()
@@ -433,7 +457,7 @@ func _fire_burst_shot(burst_count: int = 3, burst_delay: float = 0.1):
 			direction = Vector2(0, 1)  # Default downward direction
 		
 		# Add slight angular variation for each burst
-		var angle_variation = (i - (burst_count-1)/2.0) * 0.1
+		var angle_variation = (i - (burst_count-1)/2.0) * 0.05  # Reduced from 0.1 to 0.05
 		direction = direction.rotated(angle_variation)
 		
 		bullet.global_position = global_position
@@ -530,12 +554,55 @@ func _on_shadow_mode_activated():
 	if debug_mode:
 		print("Shadow mode activated for enemy")
 	
-	if not is_shadow_enemy and randf() < shadow_spawn_probability:
+	# Make all enemies shadow enemies when shadow mode is activated
+	# This will make the game more challenging and interesting
+	if not is_shadow_enemy:
 		_make_shadow_enemy()
+	
+	# Increase fire rate in shadow mode to make enemies more threatening, but not excessively
+	fire_timer.wait_time = (1.0 / fire_rate) * 0.85  # 15% faster firing (more reasonable)
+	
+	# Increase movement speed in shadow mode
+	speed = original_speed * 1.2  # Reduced from 1.3 to 1.2
+	vertical_speed = original_vertical_speed * 1.2
+	
+	# Change movement pattern to more aggressive patterns in shadow mode
+	if movement_pattern == MovementPattern.FORMATION_HOLD:
+		movement_pattern = MovementPattern.DIVE_BOMB_PATTERN
+	elif movement_pattern == MovementPattern.SIDE_TO_SIDE:
+		movement_pattern = MovementPattern.DIVE
+	elif movement_pattern == MovementPattern.CIRCLE:
+		movement_pattern = MovementPattern.SWARM_PATTERN
+	
+	# Make enemies more aggressive in shadow mode
+	# Increase damage output
+	damage_amount = int(damage_amount * 1.2)  # Reduced from 1.3 to 1.2
+	
+	# Add visual enhancements for shadow mode
+	if sprite:
+		sprite.modulate = Color(0.3, 0.3, 1.0, 1.0)  # More intense blue tint
 
+		
 func _on_shadow_mode_deactivated():
 	if debug_mode:
 		print("Shadow mode deactivated for enemy")
+	
+	# Reset fire rate when shadow mode is deactivated
+	fire_timer.wait_time = 1.0 / fire_rate
+	
+	# Reset movement speed
+	speed = original_speed
+	vertical_speed = original_vertical_speed
+	
+	# Reset damage
+	damage_amount = int(damage_amount / 1.2)  # Adjusted to match activation
+	
+	# Reset visual enhancements
+	if sprite and is_shadow_enemy:
+		sprite.modulate = Color(0.4, 0.4, 1.0, 0.8)  # Reset to shadow enemy color
+		if shadow_tween:
+			shadow_tween.kill()
+			shadow_tween = null
 
 # --- Damage and Health ---
 func damage(amount: int):
