@@ -7,9 +7,6 @@ var upgrade_settings: Dictionary = {}
 var hud_settings: Dictionary = {}
 var level_waves: Dictionary = {} # Key: level number (int), Value: Array of wave configs
 
-# Add SAVE_VERSION constant for JSON files
-const SAVE_VERSION: int = 1
-
 # File paths
 const GAME_SETTINGS_PATH = "res://data/game_settings.json"
 const SHIPS_PATH = "res://data/ships.json"
@@ -56,7 +53,7 @@ func _get_default_game_settings() -> Dictionary:
 		"max_attack_level": 4,
 	}
 	# Add version information to defaults
-	defaults["version"] = SAVE_VERSION
+	defaults["version"] = GameManager.SAVE_VERSION
 	return defaults
 
 func _get_default_ships_data() -> Array:
@@ -252,11 +249,11 @@ func _get_default_ships_data() -> Array:
 func _get_default_upgrade_settings() -> Dictionary:
 	var defaults = {
 	"upgrade_crystal_cost": 50,
-	"upgrade_coin_cost": 5000,
+	"upgrade_coin_cost": 500,
 	"upgrade_ascend_cost": 100,
 	"ad_crystal_reward": 10,
 	"ad_ascend_reward": 5,
-	"ad_coins_reward": 5000,
+	"ad_coins_reward": 1000,
 	"ascension_thresholds": {
 		"Ship1": [4, 8],
 		"Ship2": [4, 8],
@@ -265,7 +262,7 @@ func _get_default_upgrade_settings() -> Dictionary:
 		"Ship5": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
 		"Ship6": [4, 8, 12, 16, 20, 24, 28, 32],
 		"Ship7": [4, 8, 12, 16, 20, 24],
-		"Ship8": [4, 8, 12, 16, 20, 24]
+		"Ship8": [4, 8, 12, 16, 20]
 	},
 	"ship_evolution_names": {
 		"Ship1": ["NoctiSol", "Solstice", "Eclipse Sovereign"],
@@ -275,11 +272,11 @@ func _get_default_upgrade_settings() -> Dictionary:
 		"Ship5": ["Umbra Wraith", "Shadow Reaper", "Darkness Incarnate", "Void Phantom", "Abyssal Terror", "Nightmare Sovereign", "Obsidian Specter", "Eclipse Revenant", "Nether Shade", "Celestial Wraith","Ethereal Scythe"],
 		"Ship6": ["Void Howler", "Cosmic Screamer", "Stellar Devourer", "Galactic Destroyer", "Nova Reaver", "Quantum Predator","Singularity Hunter", "Infinity Ravager", "Omniverse Annihilator"],
 		"Ship7": ["Tenebris Fang", "Shadow Blade", "Darkness Cutter", "Void Ripper", "Abyssal Slicer", "Nightmare Edge", "Phantom Cleaver", "Spectral Razor"],
-		"Ship8": ["Oblivion Viper", "Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Universal Leviathan", "Infinity Wyrm"]
+		"Ship8": ["Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Universal Leviathan", "Infinity Wyrm"]
 			}
 		}
 	# Add version information to defaults
-	defaults["version"] = SAVE_VERSION
+	defaults["version"] = GameManager.SAVE_VERSION
 	return defaults
 
 func _get_default_hud_settings() -> Dictionary:
@@ -288,7 +285,7 @@ func _get_default_hud_settings() -> Dictionary:
 		"max_charge": 100.0
 	}
 	# Add version information to defaults
-	defaults["version"] = SAVE_VERSION
+	defaults["version"] = GameManager.SAVE_VERSION
 	return defaults
 
 func _load_json_file(path: String, default: Variant) -> Variant:
@@ -313,8 +310,8 @@ func _load_json_file(path: String, default: Variant) -> Variant:
 		var data = json.get_data()
 		# Check if the data is a dictionary and has a version field
 		if data is Dictionary and data.has("version"):
-			if data["version"] != SAVE_VERSION:
-				push_error("JSON file version mismatch in %s. Expected version %d, got %d. Using defaults." % [path, SAVE_VERSION, data["version"]])
+			if data["version"] != GameManager.SAVE_VERSION:
+				push_error("JSON file version mismatch in %s. Expected version %d, got %d. Using defaults." % [path, GameManager.SAVE_VERSION, data["version"]])
 				return default
 			# Return the data without the version field
 			data.erase("version")
@@ -336,14 +333,14 @@ func _save_json_file(path: String, data: Variant) -> void:
 	# Add version information to the data if it's a dictionary
 	if data is Dictionary:
 		data_to_save = data.duplicate()
-		data_to_save["version"] = SAVE_VERSION
+		data_to_save["version"] = GameManager.SAVE_VERSION
 	elif data is Array:
 		# For arrays, save the data as is
 		# In a more complex implementation, you might want to save version information separately
 		data_to_save = data
 	else:
 		# For other types, wrap in a dictionary with version
-		data_to_save = {"data": data, "version": SAVE_VERSION}
+		data_to_save = {"data": data, "version": GameManager.SAVE_VERSION}
 	
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file:

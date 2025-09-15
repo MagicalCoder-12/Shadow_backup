@@ -26,9 +26,9 @@ real_banner_id = "ca-app-pub-4574794641011089/8835487030"
 real_interstitial_id = "ca-app-pub-4574794641011089/1653929187 "
 real_rewarded_id = "ca-app-pub-4574794641011089/7227247115"
 real_rewarded_interstitial_id = "ca-app-pub-4574794641011089/9233036305"
-max_banner_ad_cache = 2
-max_interstitial_ad_cache = 2
-max_rewarded_ad_cache = 2
-max_rewarded_interstitial_ad_cache = 2
+max_banner_ad_cache = 5
+max_interstitial_ad_cache = 5
+max_rewarded_ad_cache = 5
+max_rewarded_interstitial_ad_cache = 10
 
 [connection signal="timeout" from="ShadowModeTimer" to="." method="_on_shadow_mode_timer_timeout"]

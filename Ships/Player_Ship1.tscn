@@ -7,7 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://c3mit102fpxh1" path="res://Textures/player/ship_textures/ship_01_lvl2.png" id="4_b56g1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6y0vx"]
-size = Vector2(236.667, 126)
+size = Vector2(221.333, 126)
 
 [node name="Player_Noctisol" instance=ExtResource("1_trwi6")]
 script = ExtResource("2_3uhnl")
@@ -27,5 +27,5 @@ position = Vector2(-84, 6.66667)
 position = Vector2(84.8889, 8.44444)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(3, 30.3333)
+position = Vector2(6.66667, 30.3333)
 shape = SubResource("RectangleShape2D_6y0vx")

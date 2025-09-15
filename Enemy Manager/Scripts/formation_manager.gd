@@ -193,7 +193,7 @@ func _calculate_v_wave_formation(enemy_count: int, center: Vector2, spacing: flo
 
 func _calculate_cluster_formation(enemy_count: int, center: Vector2, cluster_size: int = 5):
 	var clusters = ceil(float(enemy_count) / cluster_size)
-	
+
 	for c in range(clusters):
 		var cluster_center = Vector2(
 			center.x + (c % 3 - 1) * 200,

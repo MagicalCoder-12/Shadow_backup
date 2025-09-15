@@ -2,9 +2,9 @@ extends Area2D
 class_name Enemy
 
 # --- Preloaded Resources ---
-const EBULLET = preload("res://Bullet/Enemy_Bullet.tscn")
-const SHADOW_EBULLET = preload("res://Bullet/shadow_enemy_bullet.tscn")
-const BOMB = preload("res://Bullet/Bomb.tscn")
+const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
+const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
+const BOMB = preload("res://Bullet/Ebullet/Bomb.tscn")
 const COINS = preload("res://Resources/Coins.tscn")
 const CRYSTAL = preload("res://Resources/Crystal.tscn")
 
@@ -418,8 +418,6 @@ func _fire_spread_shot(bullet_count: int = 3, spread_angle: float = PI/4):
 		get_tree().current_scene.add_child(bullet)
 
 func _fire_burst_shot(burst_count: int = 3, burst_delay: float = 0.1):
-	# This would typically be implemented with a coroutine or timer
-	# For now, we'll just fire all bullets immediately but with slight position offsets
 	for i in range(burst_count):
 		var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
 		var bullet = bullet_scene.instantiate()

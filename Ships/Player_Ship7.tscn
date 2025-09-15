@@ -11,11 +11,11 @@
 [ext_resource type="Texture2D" uid="uid://b8t5hg0raa2d" path="res://Textures/player/ship_textures/ship_07_lvl6.png" id="8_elj5c"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_7wk26"]
-radius = 265.0
-height = 940.0
+radius = 110.0
+height = 346.0
 
 [node name="Player_Ship7" instance=ExtResource("1_w7ml8")]
-scale = Vector2(0.8, 0.8)
+scale = Vector2(1, 1)
 ship_id = "Ship7"
 shadow_texture = ExtResource("2_evhxp")
 evolution_textures = Array[Texture2D]([ExtResource("2_6srv6"), ExtResource("3_8mwok"), ExtResource("4_d568r"), ExtResource("5_mu816"), ExtResource("6_odd6q"), ExtResource("7_bov56"), ExtResource("8_elj5c")])
@@ -43,5 +43,5 @@ position = Vector2(171.875, -15.625)
 scale = Vector2(1, 1)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(-13.75, 28.75)
+position = Vector2(0, 18)
 shape = SubResource("CapsuleShape2D_7wk26")

@@ -33,9 +33,12 @@ func _ready():
 	game_over_screen.hide()
 	pause_menu.hide()
 	level_completed.hide()
-	if boss_clear:
-		boss_clear.hide()
+	boss_clear.hide()
 	game_over = GameManager.game_over
+
+	# Hide banner ad when entering a level
+	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
+		GameManager.ad_manager.hide_banner_ad()
 
 	# HUD check
 	if not hud:
@@ -197,6 +200,9 @@ func _check_and_spawn_player() -> void:
 
 func _on_level_loaded(_level_num: int) -> void:
 	print("Level.gd: Received level_loaded signal for level %d" % _level_num)
+	# Hide banner ad when level is loaded
+	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
+		GameManager.ad_manager.hide_banner_ad()
 	_spawn_player(GameManager.player_lives)
 
 # === PAUSE TOGGLE & TWEEN ===
@@ -257,6 +263,11 @@ func _game_over_triggered():
 	game_over_screen._on_score_updated(GameManager.score)
 	game_over_screen.modulate.a = 0.0
 	game_over_screen.show()
+	
+	# Show banner ad when game over screen is displayed
+	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
+		GameManager.ad_manager.show_banner_ad()
+	
 	if is_inside_tree() and game_over_screen:
 		var tween = create_tween()
 		if tween:
@@ -358,7 +369,8 @@ func _show_boss_clear_ui():
 	get_tree().paused = false
 	pause_menu.hide()
 	if boss_clear:
-		boss_clear.modulate.a = 0.0
+		# Remove the modulate alpha setting that was making it transparent
+		# boss_clear.modulate.a = 0.0
 		boss_clear.show()
 		# Initialize the boss clear screen
 		print("[Level Debug] Calling boss_clear.initialize()")
@@ -368,10 +380,8 @@ func _show_boss_clear_ui():
 		else:
 			print("[Level Debug] boss_clear does not have initialize method!")
 			
-		if is_inside_tree():
-			var tween = create_tween()
-			if tween:
-				tween.tween_property(boss_clear, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		# Show the boss clear screen immediately without tween
+		boss_clear.modulate.a = 1.0
 	else:
 		# Fallback to normal level completed if boss_clear scene not available
 		print("[Level] Boss clear scene not found, showing normal level completed")

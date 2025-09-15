@@ -1,7 +1,7 @@
 [gd_scene load_steps=16 format=3 uid="uid://dpbpiarnq8dd1"]
 
 [ext_resource type="Script" path="res://Bosses/Scripts/ShadowUnlockBoss.gd" id="1_mwcmj"]
-[ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bosses/homing_bullet.tscn" id="2_uo67q"]
+[ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bullet/Boss_bullet/homing_bullet.tscn" id="2_uo67q"]
 [ext_resource type="Texture2D" uid="uid://bna0irko30tcn" path="res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png" id="3_lya23"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_uo67q"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="5_oe4f5"]

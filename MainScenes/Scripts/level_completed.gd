@@ -141,6 +141,10 @@ func _on_level_completed(_level_num: int) -> void:
 	show()
 	if debug:
 		print("[LevelCompleted Debug] Level completed screen shown")
+	
+	# Reset level currencies since they've been accounted for
+	if GameManager:
+		GameManager.reset_level_currencies()
 
 func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
 	# Get reward configuration

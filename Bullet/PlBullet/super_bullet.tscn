@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dj7d773d60krd"]
 
-[ext_resource type="PackedScene" uid="uid://buhy6iijixga5" path="res://Bullet/Bullet.tscn" id="1_36wm6"]
+[ext_resource type="PackedScene" uid="uid://buhy6iijixga5" path="res://Bullet/PlBullet/Bullet.tscn" id="1_36wm6"]
 [ext_resource type="Texture2D" uid="uid://ccaj6tcbj5u3p" path="res://Textures/Lasers/Laser Sprites/63.png" id="2_d4feq"]
 [ext_resource type="Script" path="res://Bullet/Scripts/super_bullet.gd" id="2_wdwi8"]
 

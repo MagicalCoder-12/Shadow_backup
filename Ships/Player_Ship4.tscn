@@ -9,8 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://dh4pqvtonptme" path="res://Textures/player/ship_textures/ship_04_lvl4.png" id="6_g7hh6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gkwpx"]
-radius = 336.0
-height = 672.0
+radius = 105.0
+height = 226.0
 
 [node name="Player_Ship4" instance=ExtResource("1_uurdh")]
 scale = Vector2(1, 1)
@@ -40,4 +40,5 @@ position = Vector2(169.6, 28)
 scale = Vector2(1, 1)
 
 [node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0, 34)
 shape = SubResource("CapsuleShape2D_gkwpx")

@@ -12,6 +12,7 @@ var max_ad_retries: int = 3
 var revive_type: String = "none"
 var is_revive_pending: bool = false
 var revive_timeout_timer: Timer
+var is_banner_showing: bool = false
 @export var enable_debug_logging: bool = false  # Toggle for debug messages
 
 # Signals
@@ -200,6 +201,12 @@ func request_ad_revive() -> void:
 
 	_debug_log("Requesting %s ad for revive" % selected_ad_type)
 
+	# Hide banner ad before showing rewarded ad to prevent conflicts
+	if is_banner_showing:
+		_debug_log("Hiding banner ad before showing rewarded ad")
+		admob.hide_banner_ad()
+		is_banner_showing = false
+
 	if selected_ad_type == "video":
 		if admob.is_rewarded_ad_loaded():
 			is_ad_showing = true
@@ -223,6 +230,12 @@ func complete_ad_revive() -> void:
 		print("[DEBUG] AdManager: No revive pending in GameManager")
 		_debug_log("No revive pending in GameManager")
 		return
+	
+	# Show banner ad again after rewarded ad is complete
+	if is_initialized:
+		_debug_log("Showing banner ad after rewarded ad completion")
+		admob.show_banner_ad()
+		is_banner_showing = true
 	
 	# Stop timeout timer
 	if revive_timeout_timer and revive_timeout_timer.time_left > 0:
@@ -250,16 +263,19 @@ func reset_ad_state() -> void:
 	ad_retry_count = 0
 	if is_initialized:
 		admob.load_banner_ad()
+		is_banner_showing = true
 	_debug_log("Ad state reset")
 
 func show_banner_ad() -> void:
 	if is_initialized:
 		admob.show_banner_ad()
+		is_banner_showing = true
 		_debug_log("Banner ad shown")
 
 func hide_banner_ad() -> void:
 	if is_initialized:
 		admob.hide_banner_ad()
+		is_banner_showing = false
 		_debug_log("Banner ad hidden")
 
 func _on_admob_initialization_completed(_status_data: InitializationStatus) -> void:
@@ -267,6 +283,7 @@ func _on_admob_initialization_completed(_status_data: InitializationStatus) -> v
 	admob.load_banner_ad()
 	admob.load_rewarded_ad()
 	admob.load_rewarded_interstitial_ad()
+	is_banner_showing = true
 	_debug_log("Admob initialization completed, loading ads")
 
 func _on_admob_banner_ad_loaded(_ad_id: String) -> void:
@@ -292,10 +309,20 @@ func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
 	_debug_log("Rewarded video ad loaded")
 	if is_revive_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
+		# Hide banner ad before showing rewarded ad
+		if is_banner_showing:
+			_debug_log("Hiding banner ad before showing rewarded video ad")
+			admob.hide_banner_ad()
+			is_banner_showing = false
 		admob.show_rewarded_ad()
 		_debug_log("Showing rewarded video ad after load")
 	elif is_reward_ad_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
+		# Hide banner ad before showing rewarded ad
+		if is_banner_showing:
+			_debug_log("Hiding banner ad before showing rewarded video ad for reward")
+			admob.hide_banner_ad()
+			is_banner_showing = false
 		admob.show_rewarded_ad()
 		_debug_log("Showing rewarded video ad for reward")
 
@@ -334,6 +361,11 @@ func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
+		# Show banner ad again after rewarded ad is dismissed
+		if is_initialized:
+			_debug_log("Showing banner ad after rewarded video ad dismissed")
+			admob.show_banner_ad()
+			is_banner_showing = true
 		if is_initialized:
 			admob.load_rewarded_ad()
 		_debug_log("Reloading rewarded video ad")
@@ -354,10 +386,20 @@ func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
 	_debug_log("Rewarded interstitial ad loaded")
 	if is_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
+		# Hide banner ad before showing rewarded ad
+		if is_banner_showing:
+			_debug_log("Hiding banner ad before showing rewarded interstitial ad")
+			admob.hide_banner_ad()
+			is_banner_showing = false
 		admob.show_rewarded_interstitial_ad()
 		_debug_log("Showing rewarded interstitial ad after load")
 	elif is_reward_ad_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
+		# Hide banner ad before showing rewarded ad
+		if is_banner_showing:
+			_debug_log("Hiding banner ad before showing rewarded interstitial ad for reward")
+			admob.hide_banner_ad()
+			is_banner_showing = false
 		admob.show_rewarded_interstitial_ad()
 		_debug_log("Showing rewarded interstitial ad for reward")
 
@@ -396,6 +438,11 @@ func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: St
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
+		# Show banner ad again after rewarded ad is dismissed
+		if is_initialized:
+			_debug_log("Showing banner ad after rewarded interstitial ad dismissed")
+			admob.show_banner_ad()
+			is_banner_showing = true
 		if is_initialized:
 			admob.load_rewarded_interstitial_ad()
 		_debug_log("Reloading rewarded interstitial ad")
@@ -418,6 +465,11 @@ func _fallback_to_map() -> void:
 	revive_type = "none"
 	selected_ad_type = ""
 	ad_retry_count = 0
+	# Show banner ad again when falling back to map
+	if is_initialized:
+		_debug_log("Showing banner ad when falling back to map")
+		admob.show_banner_ad()
+		is_banner_showing = true
 	gm.revive_completed.emit(false)
 	gm.change_scene(gm.scene_manager.MAP_SCENE)
 	_debug_log("Falling back to map scene due to ad failure")
@@ -446,6 +498,11 @@ func _on_revive_timeout() -> void:
 	_debug_log("Revive timeout triggered - ad took too long to complete")
 	if is_revive_pending:
 		_debug_log("Forcing revive completion due to timeout")
+		# Show banner ad again when timeout occurs
+		if is_initialized:
+			_debug_log("Showing banner ad when revive timeout occurs")
+			admob.show_banner_ad()
+			is_banner_showing = true
 		# Force complete the revive since the ad system seems stuck
 		complete_ad_revive()
 	else:
@@ -473,6 +530,12 @@ func request_reward_ad(reward_type: String) -> void:
 	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
 	
 	_debug_log("Requesting %s ad for reward: %s" % [selected_ad_type, reward_type])
+
+	# Hide banner ad before showing rewarded ad to prevent conflicts
+	if is_banner_showing:
+		_debug_log("Hiding banner ad before showing rewarded ad for reward")
+		admob.hide_banner_ad()
+		is_banner_showing = false
 
 	if selected_ad_type == "video":
 		if admob.is_rewarded_ad_loaded():

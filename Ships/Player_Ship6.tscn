@@ -13,7 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://cejba3fyl85ss" path="res://Textures/player/ship_textures/ship_06_lvl8.png" id="10_2dqhw"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s7uq2"]
-size = Vector2(738, 189)
+size = Vector2(307, 65)
 
 [node name="Player_Ship6" instance=ExtResource("1_jy018")]
 scale = Vector2(1, 1)
@@ -37,5 +37,5 @@ position = Vector2(-183, 1)
 position = Vector2(187, 5)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(-19, 21.5)
+position = Vector2(1.5, 6.5)
 shape = SubResource("RectangleShape2D_s7uq2")

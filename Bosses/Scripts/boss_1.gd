@@ -9,7 +9,7 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @export var stage_2_max_health: int = 60000 # Stage 2
 @export var stage_1_sprite: Texture2D = preload("res://Textures/Boss/B1.png")
 @export var stage_2_sprite: Texture2D = preload("res://Textures/Boss/Final_boss.png")
-@export var projectile_scene: PackedScene = preload("res://Bosses/homing_bullet.tscn")
+@export var projectile_scene: PackedScene = preload("res://Bullet/Boss_bullet/homing_bullet.tscn")
 @export var move_speed: float = 250.0
 @export var move_range: float = 400.0
 @export var attack_interval: float = 4.0
@@ -421,8 +421,8 @@ func _on_attack_timer_timeout() -> void:
 	if defeated:
 		return
 	
-	# Updated attack weights to remove tractor beam and add more damaging attacks
-	# Weights: [spread_shot, homing_missiles, laser_burst, energy_ball, command_minions]
+	# Updated attack weights to remove tractor beam and add bullet hell attack
+	# Weights: [spread_shot, homing_missiles, laser_burst, bullet_hell, command_minions]
 	var attack_weights = [0.2, 0.2, 0.15, 0.2, 0.25] if current_phase == BossPhase.ENRAGED else [0.25, 0.25, 0.15, 0.15, 0.2]
 	var attack = [0, 1, 2, 3, 4][rand_weighted(attack_weights)]
 	match attack:
@@ -433,7 +433,7 @@ func _on_attack_timer_timeout() -> void:
 		2:
 			fire_laser_burst()
 		3:
-			fire_energy_ball()  # New damaging attack
+			fire_bullet_hell()  # New bullet hell attack using energy balls
 		4:
 			command_minions()
 	
@@ -572,7 +572,7 @@ func fire_laser_burst() -> void:
 
 func fire_energy_ball() -> void:
 	# Load the energy ball scene
-	var energy_ball_scene = preload("res://Bosses/energy_ball.tscn")
+	var energy_ball_scene = preload("res://Bullet/Boss_bullet/energy_ball.tscn")
 	if not energy_ball_scene or not energy_ball_scene.can_instantiate():
 		print("Error: Cannot spawn energy balls, energy_ball_scene invalid")
 		return
@@ -597,6 +597,35 @@ func fire_energy_ball() -> void:
 			print("Spawned energy ball from %s" % marker.name)
 		else:
 			print("Error: Failed to instantiate energy ball")
+
+func fire_bullet_hell() -> void:
+	# Load the energy ball scene for bullet hell attack
+	var energy_ball_scene = preload("res://Bullet/Boss_bullet/energy_ball.tscn")
+	if not energy_ball_scene or not energy_ball_scene.can_instantiate():
+		print("Error: Cannot spawn energy balls for bullet hell, energy_ball_scene invalid")
+		# Fallback to regular bullets
+		fire_spread_shot()
+		return
+	
+	# Create a bullet hell pattern with many energy balls
+	var bullet_count = 12 if current_phase == BossPhase.ENRAGED else 8 if current_phase == BossPhase.PHASE2 else 6
+	var speed_multiplier = 1.3 if current_phase == BossPhase.ENRAGED else 1.1 if current_phase == BossPhase.PHASE2 else 1.0
+	var damage_multiplier = 2 if current_phase == BossPhase.ENRAGED else 1.5 if current_phase == BossPhase.PHASE2 else 1
+	
+	# Create bullets in a circular pattern
+	for i in range(bullet_count):
+		var energy_ball = energy_ball_scene.instantiate()
+		if energy_ball:
+			energy_ball.global_position = global_position
+			# Calculate direction for circular pattern
+			var angle = (2 * PI * i) / bullet_count
+			var direction = Vector2(cos(angle), sin(angle))
+			energy_ball.direction = direction
+			energy_ball.speed = 150.0 * speed_multiplier
+			energy_ball.damage = int(2 * damage_multiplier)  # Energy balls do more damage
+			get_tree().current_scene.call_deferred("add_child", energy_ball)
+	
+	print("Fired bullet hell attack with %d energy balls" % bullet_count)
 
 func fire_tractor_beam() -> void:
 	pass  # Remove tractor beam functionality

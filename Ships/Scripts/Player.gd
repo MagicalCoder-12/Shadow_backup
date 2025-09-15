@@ -5,9 +5,9 @@ class_name Player
 signal victory_pose_done()
 
 # Preloaded scenes
-var plBullet: PackedScene = preload("res://Bullet/Bullet.tscn")
-var plSuperBullet: PackedScene = preload("res://Bullet/super_bullet.tscn")
-var plShadowBullet: PackedScene = preload("res://Bullet/plshadow_bullet.tscn")
+var plBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")
+var plSuperBullet: PackedScene = preload("res://Bullet/PlBullet/super_bullet.tscn")
+var plShadowBullet: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
 # Node references
 @onready var sprite_2d: Sprite2D = $Sprite2D
 @onready var firing_positions: Node2D = $Sprite2D/FiringPositions

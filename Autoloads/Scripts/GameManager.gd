@@ -146,8 +146,9 @@ func _ready() -> void:
 func trigger_game_over() -> void:
 	AudioManager.mute_bus("Bullet", true)
 	AudioManager.mute_bus("Explosion", true)
-	if ad_manager.is_initialized:
-		ad_manager.show_banner_ad()
+	# Banner ad will be shown by AdManager when appropriate
+	# if ad_manager.is_initialized:
+	# 	ad_manager.show_banner_ad()
 	game_over_triggered.emit()
 
 func reset_game() -> void:
@@ -185,6 +186,10 @@ func reset_for_new_level() -> void:
 	crystals_collected_this_level = 0
 	score_updated.emit(_score)
 	on_player_life_changed.emit(_player_lives)
+	
+	# Reset player stats to default values to ensure special modes don't carry over between levels
+	if player_manager:
+		player_manager.reset_player_stats()
 
 func complete_level(current_level: int) -> void:
 	level_manager.complete_level(current_level)

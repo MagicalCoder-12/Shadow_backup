@@ -10,12 +10,9 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 # ================================
 # UI NODE REFERENCES
 # ================================
-@onready var crystals_display: Label = $Resources/HBoxContainer/Crystals_display
-@onready var coins_display: Label = $Resources/Money/Coins_display
-@onready var coins_amt: Label = $UI/HBoxContainer/Upgrade_coins/HBoxContainer/Coins_amt
-@onready var crystal_amt: Label = $UI/HBoxContainer/Upgrade_Crystals/HBoxContainer/Crystal_amt
-@onready var acend_amt: Label = $UI/Buy_Ascend/Ascend/Void_Shard
-@onready var void_shards_display: Label = $HBoxContainer/Void_Shards_display
+@onready var Crystals_display: Label = $Resources/Crystal/Crystals_display
+@onready var Coins_display: Label = $Resources/Money/Coins_display
+@onready var void_shards_display: Label = $Resources/VoidCrystal/Void_Shards_display
 @onready var warning: Label = $UI/WarningPanel/Warning_Label
 @onready var warning_panel: Panel = $UI/WarningPanel
 @onready var selected_ship: TextureRect = $SelectedShipDisplay/SelectedShip
@@ -28,6 +25,12 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 @onready var buy_button: Button = $UI/Buy_Ascend/Buy
 @onready var selected: Button = $UI/Buy_Ascend/Selected
 @onready var power_up: AudioStreamPlayer = $"Power-up"
+@onready var msg_panel: Panel = $UI/Msg_panel
+@onready var message: Label = $UI/Msg_panel/Message
+
+@onready var Coins_amt: Label = $UI/HBoxContainer/Upgrade_coins/HBoxContainer/Coins_amt
+@onready var Crystal_amt: Label = $UI/HBoxContainer/Upgrade_Crystals/HBoxContainer/Crystal_amt
+@onready var Void_Shard: Label = $UI/Buy_Ascend/Ascend/Void_Shard
 
 @onready var ship_textures_ui = [
 	$ScrollContainer/GridContainer/Ship1/S01,
@@ -48,6 +51,8 @@ var is_ad_loading: bool = false
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
 var ad_usage_timer: Timer
+var currency_display_updated: bool = false
+var refresh_timer: Timer
 
 # Ship mapping & indexing
 var name_to_index = {
@@ -73,11 +78,22 @@ func _ready() -> void:
 	# Initialize ad usage tracking
 	_initialize_ad_tracking()
 
+	# Initialize refresh timer for currency display
+	_initialize_refresh_timer()
+
 	# Check if ships data is available
 	if GameManager.ships.is_empty():
 		push_warning("No ships data available in GameManager.ships. UI may not initialize correctly.")
 
+	# Initialize UI immediately
 	_initialize_ui()
+	
+	# Add a direct connection as a fallback
+	if not GameManager.currency_updated.is_connected(_on_currency_updated):
+		GameManager.currency_updated.connect(_on_currency_updated)
+
+	# Connect to visibility notifications
+	connect("visibility_changed", _on_visibility_changed)
 
 	# Use the proper method to set reference
 	if GameManager.has_method("set_upgrade_menu_ref"):
@@ -85,12 +101,23 @@ func _ready() -> void:
 
 func _connect_gamemanager_signals() -> void:
 	"""Connect to relevant GameManager signals"""
+	# Connect to ad_reward_granted signal
 	if GameManager.has_signal("ad_reward_granted"):
 		if not GameManager.ad_reward_granted.is_connected(_on_ad_reward_granted):
-			GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
+			var result = GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
+			if result != OK:
+				push_error("Failed to connect ad_reward_granted signal, error code: %d" % result)
+	else:
+		push_error("ad_reward_granted signal not found in GameManager")
+	
+	# Connect to currency_updated signal with error handling
 	if GameManager.has_signal("currency_updated"):
 		if not GameManager.currency_updated.is_connected(_on_currency_updated):
-			GameManager.currency_updated.connect(_on_currency_updated)
+			var result = GameManager.currency_updated.connect(_on_currency_updated)
+			if result != OK:
+				push_error("Failed to connect currency_updated signal, error code: %d" % result)
+	else:
+		push_error("currency_updated signal not found in GameManager")
 	
 	# Also connect to AdManager signals
 	_connect_ad_signals()
@@ -109,6 +136,7 @@ func _on_currency_updated(_currency_type: String, _new_amount: int) -> void:
 
 func _initialize_ui() -> void:
 	_update_currency_display()
+	currency_display_updated = true
 	_update_all_ship_textures()
 
 	# Find selected ship index using GameManager's player manager
@@ -165,16 +193,11 @@ func _record_ad_usage() -> void:
 	_save_ad_usage_data()
 
 func _show_ad_limit_message() -> void:
-	var message = "Ad limit reached! You can watch ads again in %d minutes." % _get_remaining_cooldown_minutes()
-	warning.text = message
-	warning_panel.show()
+	var msg_text = "Ad limit reached! You can watch ads again in %d minutes." % _get_remaining_cooldown_minutes()
+	_show_warning(msg_text)
 	
 	# Update the currency display
 	_update_currency_display()
-	
-	# Hide the message after a delay
-	await get_tree().create_timer(3.0).timeout
-	warning_panel.hide()
 
 func _get_remaining_cooldown_minutes() -> int:
 	var current_time = Time.get_unix_time_from_system() as int
@@ -242,24 +265,38 @@ func _format_number(num: int) -> String:
 	return str(num)
 
 func _update_currency_display() -> void:
-	if not crystals_display or not coins_display or not void_shards_display:
-		push_error("One or more currency labels are null!")
+	# Check if nodes are valid before accessing them
+	if not Crystals_display:
+		push_error("Crystals_display node is null!")
+		return
+		
+	if not Coins_display:
+		push_error("Coins_display node is null!")
+		return
+		
+	if not void_shards_display:
+		push_error("void_shards_display node is null!")
 		return
 
 	var crystals_text := _format_number(GameManager.crystal_count)
 	var coins_text := _format_number(GameManager.coin_count)
 	var void_shards_text := _format_number(GameManager.void_shards_count)
 
-	crystals_display.text = "Crystals: %s" % crystals_text
-	coins_display.text = "Coins: %s" % coins_text
-	void_shards_display.text = "Void Shards: %s" % void_shards_text
+	# Additional safety checks before setting text
+	if Crystals_display:
+		Crystals_display.text = "Crystals: %s" % crystals_text
+	if Coins_display:
+		Coins_display.text = "Coins: %s" % coins_text
+	if void_shards_display:
+		void_shards_display.text = "Void Shards: %s" % void_shards_text
 
 func _can_afford_upgrade(cost: int, currency_type: String) -> bool:
 	return GameManager.can_afford(currency_type, cost)
 
 func _deduct_currency(amount: int, currency_type: String) -> void:
 	GameManager.deduct_currency(currency_type, amount)
-	_update_currency_display()
+	# Ensure the display is updated immediately after deducting currency
+	call_deferred("_update_currency_display")
 
 # ================================
 # SHIP SELECTION SYSTEM
@@ -288,8 +325,8 @@ func update_ship_ui() -> void:
 		buy_button.hide()
 		selected.show()
 		var costs = _get_current_upgrade_costs()
-		coins_amt.text = _format_number(costs["coin_cost"])
-		crystal_amt.text = _format_number(costs["crystal_cost"])
+		Coins_amt.text = _format_number(costs["coin_cost"])
+		Crystal_amt.text = _format_number(costs["crystal_cost"])
 		upgrade_coins_button.show()
 		upgrade_crystals_button.show()
 		selected_ship.modulate = Color.WHITE
@@ -341,7 +378,7 @@ func _update_ascend_button_visibility() -> void:
 		var next_stage = ship["current_evolution_stage"] + 1
 		var next_evolution_name = _get_current_evolution_name(ship_id, next_stage)
 		ascend.text = "Ascend to %s" % next_evolution_name
-		acend_amt.text = _format_number(costs["void_shard_cost"])
+		Void_Shard.text = _format_number(costs["void_shard_cost"])
 	else:
 		ascend.visible = false
 
@@ -363,7 +400,6 @@ func _update_upgrade_buttons_state() -> void:
 func select_ship_by_name(ship_node_name: String) -> void:
 	if name_to_index.has(ship_node_name):
 		selected_ship_index = name_to_index[ship_node_name]
-		print("[DEBUG] Ship selected for viewing in upgrade menu: %s (index: %d)" % [ship_node_name, selected_ship_index])
 		# Only update UI for preview - don't change the actual selected ship yet
 		update_ship_ui()
 	else:
@@ -539,15 +575,12 @@ func _get_ship_by_id(ship_id: String) -> Dictionary:
 	return {}
 
 func _show_evolution_message(ship: Dictionary) -> void:
-	print("Ship %s has evolved!" % ship["display_name"])
+	_show_message("Ship %s has evolved!" % ship["display_name"])
 
 func _show_insufficient_funds_message(shipname: String, currency_type: String) -> void:
 	var currency_name = {"crystals": "Crystals", "coins": "Coins", "void_shards": "Void Shards"}.get(currency_type, "Unknown")
-	var message = "Not enough %s to upgrade %s!" % [currency_name, shipname]
-	warning.text = message
-	warning_panel.show()
-	await get_tree().create_timer(2.0).timeout
-	warning_panel.hide()
+	var msg_text = "Not enough %s to upgrade %s!" % [currency_name, shipname]
+	_show_warning(msg_text)
 
 # ================================
 # OPTIMIZED SIGNAL HANDLERS
@@ -593,10 +626,7 @@ func _on_ascend_pressed() -> void:
 		_show_ascend_failed_feedback()
 
 func _show_upgrade_failed_feedback() -> void:
-	warning.text = "Upgrade failed"
-	warning_panel.show()
-	await get_tree().create_timer(2.0).timeout
-	warning_panel.hide()
+	_show_warning("Upgrade failed")
 
 func _show_ascend_failed_feedback() -> void:
 	pass
@@ -615,6 +645,16 @@ func _on_ad_failed_to_load(_ad_type: String, _error_data: Variant) -> void:
 	# Handle ad failure
 	is_ad_loading = false
 	# UI can show an error message if needed
+	var error_message = "Failed to load ad. Please try again later."
+	if _error_data != null and typeof(_error_data) == TYPE_DICTIONARY:
+		if _error_data.has("message"):
+			error_message = "Ad error: " + str(_error_data["message"])
+	
+	# Display the error message in the warning panel
+	_show_warning(error_message)
+	
+	# Update the currency display
+	_update_currency_display()
 
 func _on_back_pressed() -> void:
 	_save_ship_progress()
@@ -630,13 +670,11 @@ func _change_scene_optimized() -> void:
 func _on_selected_pressed() -> void:
 	var ship = GameManager.ships[selected_ship_index]
 	if ship["unlocked"]:
-	# Use GameManager's player manager to set selected ship
+		# Use GameManager's player manager to set selected ship
 		GameManager.player_manager.selected_ship_id = ship["id"]
-		print("[DEBUG] Confirmed ship selection: %s" % GameManager.player_manager.selected_ship_id)
-		GameManager.save_manager.save_progress()
-		print("Selected ship set to: %s" % GameManager.player_manager.selected_ship_id)
-	else:
-		print("Cannot select %s - ship is locked!" % ship["display_name"])
+		GameManager.save_manager.save_progress()		
+		# Show message in the message panel
+		_show_message("%s selected" % ship["display_name"])
 
 func _on_buy_pressed() -> void:
 	var ship = GameManager.ships[selected_ship_index]
@@ -723,6 +761,9 @@ func _grant_ad_reward(reward_type: String) -> void:
 		_:
 			push_warning("Unknown reward type: %s" % reward_type)
 			_show_ad_reward_message(reward_type)
+	
+	# Ensure the display is updated immediately after granting rewards
+	call_deferred("_update_currency_display")
 
 func _show_ad_reward_message(reward_type: String) -> void:
 	var ad_rewards = {}
@@ -736,28 +777,23 @@ func _show_ad_reward_message(reward_type: String) -> void:
 			"ad_coins_reward": 1000
 		}
 	
-	var message = ""
+	var message_text = ""
 	match reward_type:
 		"crystals":
 			var crystal_reward = ad_rewards.get("ad_crystal_reward", 20)
 			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 15)
-			message = "Rewarded: %d Crystals and %d Void Shards!" % [crystal_reward, void_shard_reward]
+			message_text = "Rewarded: %d Crystals and %d Void Shards!" % [crystal_reward, void_shard_reward]
 		"coins":
 			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
-			message = "Rewarded: %d Coins!" % coins_reward
+			message_text = "Rewarded: %d Coins!" % coins_reward
 		_:
-			message = "Reward granted!"
+			message_text = "Reward granted!"
 	
-	# Display the message to the user
-	warning.text = message
-	warning_panel.show()
+	# Display the message in the message panel instead of warning panel
+	_show_message(message_text)
 	
 	# Update the currency display
 	_update_currency_display()
-	
-	# Hide the message after a delay
-	await get_tree().create_timer(2.0).timeout
-	warning_panel.hide()
 
 # ================================
 # SAVE/LOAD SYSTEM
@@ -858,3 +894,68 @@ func _input(event: InputEvent) -> void:
 # ================================
 func _exit_tree() -> void:
 	_save_ship_progress()
+	if refresh_timer:
+		refresh_timer.stop()
+
+# Add a notification handler to ensure UI is updated when the scene is ready
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_READY:
+		# Update currency display when the node is ready
+		call_deferred("_update_currency_display_when_ready")
+
+# Add a helper function to update currency display with a delay
+func _update_currency_display_when_ready() -> void:
+	# Wait one frame to ensure all systems are initialized
+	await get_tree().process_frame
+	_update_currency_display()
+	currency_display_updated = true
+
+# Add a new function to show messages in the message panel
+func _show_message(text: String) -> void:
+	if message and msg_panel:
+		message.text = text
+		msg_panel.show()
+		# Hide the message after a delay
+		await get_tree().create_timer(0.5).timeout
+		msg_panel.hide()
+
+func _show_warning(text: String) -> void:
+	if warning and warning_panel:
+		warning.text = text
+		warning_panel.show()
+		# Hide the warning after a delay
+		await get_tree().create_timer(0.5).timeout
+		warning_panel.hide()
+
+func _process(_delta: float) -> void:
+	# Only run this check for a short time after initialization
+	if not has_method("_check_currency_display_update"):
+		return
+	
+	# Check if currency display needs updating (fallback mechanism)
+	if not currency_display_updated:
+		_update_currency_display()
+		currency_display_updated = true
+
+func _initialize_refresh_timer() -> void:
+	refresh_timer = Timer.new()
+	add_child(refresh_timer)
+	refresh_timer.wait_time = 5.0  # Check every 5 seconds (reduced frequency)
+	refresh_timer.timeout.connect(_on_refresh_timer_timeout)
+	refresh_timer.start()
+
+func _on_refresh_timer_timeout() -> void:
+	# Periodically refresh the currency display as a fallback
+	# Only update if the display hasn't been updated yet or if there's a discrepancy
+	if not currency_display_updated or (
+		Crystals_display and Crystals_display.text != "Crystals: %s" % _format_number(GameManager.crystal_count) or
+		Coins_display and Coins_display.text != "Coins: %s" % _format_number(GameManager.coin_count) or
+		void_shards_display and void_shards_display.text != "Void Shards: %s" % _format_number(GameManager.void_shards_count)
+	):
+		_update_currency_display()
+		currency_display_updated = true
+
+func _on_visibility_changed() -> void:
+	# Update currency display when the scene becomes visible
+	if visible:
+		call_deferred("_update_currency_display")

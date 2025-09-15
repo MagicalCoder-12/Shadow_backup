@@ -13,6 +13,7 @@ radius = 94.0
 height = 192.0
 
 [node name="Player_Ship8" instance=ExtResource("1_6mp55")]
+scale = Vector2(1, 1)
 ship_id = "Ship8"
 evolution_textures = Array[Texture2D]([ExtResource("2_m3q21"), ExtResource("3_7n0wk"), ExtResource("4_f18cy"), ExtResource("5_5ujtf"), ExtResource("6_6ejja"), ExtResource("7_o17ll")])
 
@@ -20,7 +21,7 @@ evolution_textures = Array[Texture2D]([ExtResource("2_m3q21"), ExtResource("3_7n
 texture = ExtResource("2_m3q21")
 
 [node name="Thruster" parent="Sprite2D" index="0"]
-visible = false
+modulate = Color(1, 0.0392157, 0.0392157, 1)
 position = Vector2(1.19209e-07, 55.3333)
 
 [node name="CollisionShape2D" parent="." index="1"]

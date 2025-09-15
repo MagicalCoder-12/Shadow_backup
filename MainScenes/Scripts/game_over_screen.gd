@@ -55,10 +55,32 @@ func _on_score_updated(value: int) -> void:
 		score_label.text = "Score: %d" % value
 
 func _on_game_over_triggered() -> void:
+	# Award half the collected coins and crystals when player dies
+	_award_half_collected_currency()
+	
 	revive_button.disabled = false
 	visible = true
 	message_label.visible = false
 	_debug_log("Game over triggered, showing screen of doom!")
+
+# Award half the collected coins and crystals when player dies
+func _award_half_collected_currency() -> void:
+	if GameManager:
+		# Calculate half of collected coins and crystals (rounded down)
+		var half_coins = int(GameManager.coins_collected_this_level / 2)
+		var half_crystals = int(GameManager.crystals_collected_this_level / 2)
+		
+		# Award the half amounts to the player's total
+		if half_coins > 0:
+			GameManager.add_currency("coins", half_coins)
+			_debug_log("Awarded %d coins (half of %d collected)" % [half_coins, GameManager.coins_collected_this_level])
+		
+		if half_crystals > 0:
+			GameManager.add_currency("crystals", half_crystals)
+			_debug_log("Awarded %d crystals (half of %d collected)" % [half_crystals, GameManager.crystals_collected_this_level])
+		
+		# Reset the level currencies since we've awarded them
+		GameManager.reset_level_currencies()
 
 func _on_revive_pressed() -> void:
 	if revive_button.disabled or (GameManager and GameManager.is_revive_pending):

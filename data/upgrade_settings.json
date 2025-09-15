@@ -1,7 +1,7 @@
 {
 	"version": 1,
 	"upgrade_crystal_cost": 50,
-	"upgrade_coin_cost": 250,
+	"upgrade_coin_cost": 1000,
 	"upgrade_ascend_cost": 100,
 	
 
@@ -18,29 +18,29 @@
 
 	"boss_level_rewards": {
 		"5": {
-			"coins": 1500,
-			"crystals": 75,
-			"void_shards": 15
-		},
-		"10": {
-			"coins": 3000,
-			"crystals": 150,
-			"void_shards": 30
-		},
-		"15": {
-			"coins": 5000,
-			"crystals": 250,
+			"coins": 1000,
+			"crystals": 60,
 			"void_shards": 50
 		},
+		"10": {
+			"coins": 2000,
+			"crystals": 80,
+			"void_shards": 60
+		},
+		"15": {
+			"coins": 3500,
+			"crystals": 100,
+			"void_shards": 70
+		},
 		"20": {
-			"coins": 8000,
-			"crystals": 400,
+			"coins": 5000,
+			"crystals": 110,
 			"void_shards": 80
 		}
 	},
 	
 	"enemy_drop_rewards": {
-		"coins_per_enemy": 15,
+		"coins_per_enemy": 10,
 		"crystal_drop_chance": 0.2,
 		"crystal_reward_per_drop": 1
 	},
@@ -53,7 +53,7 @@
 		"Ship5": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
 		"Ship6": [4, 8, 12, 16, 20, 24, 28, 32],
 		"Ship7": [4, 8, 12, 16, 20, 24],
-		"Ship8": [4, 8, 12, 16, 20, 24]
+		"Ship8": [4, 8, 12, 16, 20]
 	},
 	
 	"ship_evolution_names": {
@@ -63,7 +63,7 @@
 		"Ship4": ["Phantom Drake", "Spectral Wyrm", "Ethereal Leviathan", "Void Dragon", "Cosmic Serpent"],
 		"Ship5": ["Umbra Wraith", "Shadow Reaper", "Darkness Incarnate", "Void Phantom", "Abyssal Terror", "Nightmare Sovereign", "Obsidian Specter", "Eclipse Revenant", "Nether Shade", "Celestial Wraith","Ethereal Scythe"],
 		"Ship6": ["Void Howler", "Cosmic Screamer", "Stellar Devourer", "Galactic Destroyer", "Nova Reaver", "Quantum Predator","Singularity Hunter", "Infinity Ravager", "Omniverse Annihilator"],
-		"Ship7": ["Tenebris Fang", "Shadow Blade", "Darkness Cutter", "Void Ripper", "Abyssal Slicer", "Nightmare Edge", "Phantom Cleaver", "Spectral Razor"],
-		"Ship8": ["Oblivion Viper", "Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Infinity Wyrm"]
+		"Ship7": ["Tenebris Fang", "Shadow Blade", "Darkness Cutter", "Void Ripper", "Abyssal Slicer", "Nightmare Edge", "Spectral Razor"],
+		"Ship8": ["Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Infinity Wyrm"]
 	}
 }

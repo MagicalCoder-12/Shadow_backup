@@ -284,7 +284,7 @@ func enter_phase(phase: BossPhase) -> void:
 			health_bar.max_value = stage_2_max_health
 			health_bar.value = current_health
 			sprite_2d.texture = stage_2_sprite
-			sprite_2d.scale = Vector2(0.5, 0.5)
+			sprite_2d.scale = Vector2(1.5, 1.5)
 			attack_timer.wait_time = attack_interval * 0.7
 			phase_multiplier = 1.2
 			spawn_phase_transition_effect()
@@ -293,7 +293,7 @@ func enter_phase(phase: BossPhase) -> void:
 		BossPhase.ENRAGED:
 			attack_timer.wait_time = attack_interval * 0.5
 			phase_multiplier = 1.5
-			sprite_2d.scale = Vector2(0.5, 0.5)
+			sprite_2d.scale = Vector2(1.5, 1.5)
 			spawn_phase_transition_effect()
 			# Spawn additional minions for enraged phase
 			_spawn_phase_minions()

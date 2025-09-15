@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var bullet_scene: PackedScene = preload("res://Bullet/Sat_bullet.tscn")
+@export var bullet_scene: PackedScene = preload("res://Bullet/Sat_bullet/Sat_bullet.tscn")
 @export var fire_rate: float = 0.1
 @export var shadow_spread_angle: float = 15.0
 @export var shadow_fire_rate_multiplier: float = 0.7

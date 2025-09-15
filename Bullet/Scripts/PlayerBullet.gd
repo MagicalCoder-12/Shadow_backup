@@ -2,7 +2,7 @@ extends BulletBase
 class_name PlayerBullet
 
 ## Particle effect for the bullet trail.
-const BULLET_EFFECT = preload("res://Bullet/BulletEffect.tscn")
+const BULLET_EFFECT = preload("res://Bullet/PlBullet/BulletEffect.tscn")
 
 ## Sets up the bullet for player-specific behavior.
 func _setup_bullet() -> void:

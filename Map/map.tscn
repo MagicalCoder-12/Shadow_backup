@@ -265,10 +265,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton11" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 681.0
-offset_top = -3573.0
-offset_right = 781.0
-offset_bottom = -3473.0
+offset_left = 816.0
+offset_top = -3714.0
+offset_right = 916.0
+offset_bottom = -3614.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton11"]
 layout_mode = 0
@@ -297,10 +297,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton13" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 467.0
-offset_top = -4584.0
-offset_right = 567.0
-offset_bottom = -4484.0
+offset_left = 622.0
+offset_top = -4544.0
+offset_right = 722.0
+offset_bottom = -4444.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton13"]
 layout_mode = 0
@@ -313,10 +313,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton14" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 666.0
-offset_top = -5163.0
-offset_right = 766.0
-offset_bottom = -5063.0
+offset_left = 977.0
+offset_top = -4983.0
+offset_right = 1077.0
+offset_bottom = -4883.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton14"]
 layout_mode = 0
@@ -329,11 +329,11 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton15" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 663.0
-offset_top = -5919.0
-offset_right = 763.0
-offset_bottom = -5819.0
-scale = Vector2(5.5, 5.5)
+offset_left = 430.0
+offset_top = -5622.0
+offset_right = 530.0
+offset_bottom = -5522.0
+scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
@@ -413,10 +413,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton20" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 322.0
-offset_top = -8750.0
-offset_right = 422.0
-offset_bottom = -8650.0
+offset_left = 340.0
+offset_top = -8593.0
+offset_right = 440.0
+offset_bottom = -8493.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")

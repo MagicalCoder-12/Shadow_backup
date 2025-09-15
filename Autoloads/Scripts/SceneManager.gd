@@ -70,5 +70,6 @@ func handle_node_added(node: Node) -> void:
 			AudioManager.mute_bus("Bullet", false)
 			AudioManager.mute_bus("Explosion", false)
 			
+			# Hide banner ad when entering any non-menu scene (including levels)
 			if gm.ad_manager.is_initialized:
 				gm.ad_manager.hide_banner_ad()

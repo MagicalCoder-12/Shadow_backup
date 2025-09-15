@@ -27,12 +27,8 @@ func load_level(level_num: int) -> void:
 	# Reset score and lives for each level (per-level progression)
 	gm.reset_for_new_level()
 	
-	gm.player_manager.player_stats = {
-		"attack_level": 0,
-		"bullet_damage": gm.player_manager.default_bullet_damage,
-		"base_bullet_damage": gm.player_manager.default_bullet_damage,
-		"is_shadow_mode_active": false
-	}
+	# Reset player stats to default values
+	gm.player_manager.reset_player_stats()
 	
 	# Always set player lives to 3 for each level
 	gm.player_lives = 3
@@ -42,6 +38,10 @@ func load_level(level_num: int) -> void:
 	# Stop background music before loading level scenes to prevent overlap
 	if level_path != gm.scene_manager.START_SCREEN_SCENE and level_path != gm.scene_manager.MAP_SCENE:
 		AudioManager.stop_background_music()
+	
+	# Hide banner ad when loading a level
+	if gm.ad_manager.is_initialized:
+		gm.ad_manager.hide_banner_ad()
 	
 	gm.change_scene(level_path)
 	await gm.get_tree().create_timer(0.5).timeout
@@ -165,6 +165,8 @@ func unlock_next_level(current_level: int) -> void:
 	var next_level: int = current_level + 1
 	var next_level_path: String = "res://Levels/level_%d.tscn" % next_level
 	if ResourceLoader.exists(next_level_path):
+		# Reset player stats before loading next level
+		gm.player_manager.reset_player_stats()
 		gm.change_scene(next_level_path)
 	else:
 		gm.change_scene(gm.scene_manager.MAP_SCENE)
