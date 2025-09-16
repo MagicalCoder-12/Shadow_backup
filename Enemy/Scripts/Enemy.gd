@@ -126,6 +126,10 @@ func _ready():
 	if sprite:
 		original_texture = sprite.texture
 	
+	# Ensure enemy scale is not smaller than 1.0
+	if sprite and sprite.scale.x < 1.0:
+		sprite.scale = Vector2(1.0, 1.0)
+	
 	tree_exiting.connect(_on_tree_exiting)
 	
 	health = max_health
@@ -355,7 +359,7 @@ func _handle_shooting(_delta: float):
 	# In shadow mode, enemies shoot more aggressively
 	if GameManager.level_manager.shadow_mode_enabled:
 		# In shadow mode, increase the chance of using advanced shooting patterns, but not too frequently
-		if randf() < 0.1:  # Reduced from 0.15 to 0.1 (10% chance)
+		if randf() < 0.25:  # Reduced from 0.15 to 0.1 (10% chance)
 			var advanced_pattern = randi() % 2  # Choose between spread shot and burst shot
 			match advanced_pattern:
 				0:
@@ -520,12 +524,21 @@ func _make_shadow_enemy():
 	max_health = int(max_health * shadow_health_multiplier)
 	damage_amount = int(damage_amount * shadow_damage_multiplier)
 	score = int(score * shadow_score_multiplier)
+	
+	# Ensure shadow enemies maintain proper scale
+	if sprite and sprite.scale.x < 1.0:
+		sprite.scale = Vector2(1.0, 1.0)
+	
 	_apply_shadow_visuals()
 	shadow_state_changed.emit(true)
 
 func _apply_shadow_visuals():
 	if not is_shadow_enemy:
 		return
+	
+	# Ensure shadow enemies maintain proper scale
+	if sprite and sprite.scale.x < 1.0:
+		sprite.scale = Vector2(1.0, 1.0)
 	
 	if shadow_texture and sprite:
 		sprite.texture = shadow_texture
@@ -574,15 +587,17 @@ func _on_shadow_mode_activated():
 	elif movement_pattern == MovementPattern.CIRCLE:
 		movement_pattern = MovementPattern.SWARM_PATTERN
 	
-	# Make enemies more aggressive in shadow mode
-	# Increase damage output
-	damage_amount = int(damage_amount * 1.2)  # Reduced from 1.3 to 1.2
+	# DO NOT increase damage in shadow mode - only speed and health should increase
+	# damage_amount = int(damage_amount * 1.2)  # Removed this line
+	
+	# Ensure shadow enemies maintain proper scale
+	if sprite and sprite.scale.x < 1.0:
+		sprite.scale = Vector2(1.0, 1.0)
 	
 	# Add visual enhancements for shadow mode
 	if sprite:
 		sprite.modulate = Color(0.3, 0.3, 1.0, 1.0)  # More intense blue tint
 
-		
 func _on_shadow_mode_deactivated():
 	if debug_mode:
 		print("Shadow mode deactivated for enemy")
@@ -594,8 +609,8 @@ func _on_shadow_mode_deactivated():
 	speed = original_speed
 	vertical_speed = original_vertical_speed
 	
-	# Reset damage
-	damage_amount = int(damage_amount / 1.2)  # Adjusted to match activation
+	# DO NOT reset damage since we didn't increase it
+	# damage_amount = int(damage_amount / 1.2)  # Removed this line
 	
 	# Reset visual enhancements
 	if sprite and is_shadow_enemy:

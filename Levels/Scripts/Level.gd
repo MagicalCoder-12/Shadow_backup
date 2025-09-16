@@ -97,6 +97,10 @@ func _ready():
 	
 	# Fallback player spawning
 	_check_and_spawn_player()
+	
+	# Ensure debug_mode is enabled for testing
+	debug_mode = true
+	print("Level debug mode enabled")
 
 # === WAVE VALIDATION ===
 func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:
@@ -327,13 +331,23 @@ func _on_wave_manager_all_waves_cleared():
 		if wave_manager and wave_manager.current_wave_config and wave_manager.current_wave_config.is_boss_wave():
 			is_boss_wave = true
 		
-		# For level 5, we always want to show the boss clear screen
+		# For level 5 and other boss levels, we want to show the boss clear screen
 		var current_level_num = GameManager.level_manager.get_current_level()
-		if current_level_num == 5:
+		if current_level_num % 5 == 0 and current_level_num > 0:  # All boss levels (5, 10, 15, 20, etc.)
 			is_boss_wave = true
 		
 		if is_boss_wave:
-			print("Level.gd: Boss wave cleared, waiting for boss defeated signal")
+			print("Level.gd: Boss wave cleared, checking if first time completion")
+			# Check if this is the first time completing this boss level
+			var boss_levels_completed = GameManager.save_manager.boss_levels_completed
+			var is_first_time = not boss_levels_completed.has(current_level_num)
+			
+			if is_first_time:
+				print("Level.gd: First time boss completion, showing boss clear UI")
+				_show_boss_clear_ui()
+			else:
+				print("Level.gd: Boss already completed before, showing normal level completed UI")
+				_show_level_completed_ui()
 		else:
 			print("Level.gd: Non-boss wave cleared, completing level through LevelManager")
 			# Call LevelManager.complete_level instead of emitting signal directly
@@ -467,3 +481,12 @@ func _on_level_manager_boss_defeated() -> void:
 	else:
 		# For subsequent completions, show normal level completed screen
 		_show_level_completed_ui()
+
+func _input(event):
+	if debug_mode and event.is_action_pressed("debug_next_level"):
+		_unlock_next_level_debug()
+
+func _unlock_next_level_debug():
+	print("Debug: Unlocking next level")
+	var current_level = GameManager.level_manager.get_current_level()
+	GameManager.level_manager.unlock_next_level(current_level)

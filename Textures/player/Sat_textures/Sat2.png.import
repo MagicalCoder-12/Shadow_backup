@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ci54qil2xa4ko"
-path="res://.godot/imported/Spaceships-03-Purple-03.png-5f83bb07984e569c6e5fa5f25264e271.ctex"
+uid="uid://bsxh7ep1ao0tr"
+path="res://.godot/imported/Sat2.png-cabe0794ed3b48019dd79032a996fe3a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Textures/player/Example_ships/Spaceships-12/Spaceships-03-Purple-03.png"
-dest_files=["res://.godot/imported/Spaceships-03-Purple-03.png-5f83bb07984e569c6e5fa5f25264e271.ctex"]
+source_file="res://Textures/player/Sat_textures/Sat2.png"
+dest_files=["res://.godot/imported/Sat2.png-cabe0794ed3b48019dd79032a996fe3a.ctex"]
 
 [params]
 

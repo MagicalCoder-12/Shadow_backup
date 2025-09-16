@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dct4mwfuj54wm"]
+[gd_scene load_steps=6 format=3 uid="uid://dct4mwfuj54wm"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_gi04w"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_uk1uv"]
@@ -21,60 +21,8 @@ entry_speed = 300.0
 script = ExtResource("2_uk1uv")
 formation_type = 1
 entry_pattern = 1
-difficulty = 3
-enemy_type = "mob2"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_bk6my"]
-script = ExtResource("2_uk1uv")
-formation_type = 2
-entry_pattern = 2
-difficulty = 3
-enemy_type = "mob3"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_doo4b"]
-script = ExtResource("2_uk1uv")
-formation_type = 3
-entry_pattern = 3
-difficulty = 3
-enemy_type = "mob4"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_g5ksx"]
-script = ExtResource("2_uk1uv")
-formation_type = 4
-entry_pattern = 4
-difficulty = 3
-enemy_type = "SlowShooter"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_tblhg"]
-script = ExtResource("2_uk1uv")
-formation_type = 5
-entry_pattern = 5
-difficulty = 3
-enemy_type = "FastEnemy"
+difficulty = 1
+enemy_type = "mob1"
 boss_scene = ExtResource("3_wj00t")
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
@@ -85,6 +33,9 @@ entry_speed = 300.0
 
 [node name="Level_5" instance=ExtResource("1_gi04w")]
 
+[node name="PauseMenu" parent="CanvasLayer" index="4"]
+modulate = Color(1, 1, 1, 0)
+
 [node name="LevelManager" parent="." index="4"]
 level_num = 5
-waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn"), SubResource("Resource_bk6my"), SubResource("Resource_doo4b"), SubResource("Resource_g5ksx"), SubResource("Resource_tblhg")])
+waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn")])

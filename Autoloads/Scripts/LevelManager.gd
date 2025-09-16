@@ -257,7 +257,8 @@ func _on_boss_defeated() -> void:
 	boss_defeated.emit()
 	
 	# For all levels, complete the level properly through the unified flow
-	complete_level(current_level)
+	# But let the Level scene decide which screen to show based on first time completion
+	# complete_level(current_level)  # This will be handled by the Level scene
 
 func _on_unlock_shadow_mode() -> void:
 	unlock_shadow_mode()

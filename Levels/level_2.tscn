@@ -1,15 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://lvlvw3h12fne"]
+[gd_scene load_steps=9 format=3 uid="uid://lvlvw3h12fne"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_ll1bl"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_c2ahe"]
 
 [sub_resource type="Resource" id="Resource_0fp4v"]
 script = ExtResource("2_c2ahe")
-formation_type = 1
-entry_pattern = 7
-difficulty = 0
-enemy_type = "mob1"
-enemy_density = "Sparse"
+formation_type = 3
+entry_pattern = 4
+difficulty = 1
+enemy_type = "FastEnemy"
+enemy_density = "Normal"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
@@ -18,10 +18,10 @@ entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_gyi25"]
 script = ExtResource("2_c2ahe")
-formation_type = 0
-entry_pattern = 2
-difficulty = 0
-enemy_type = "mob2"
+formation_type = 10
+entry_pattern = 10
+difficulty = 1
+enemy_type = "BomberBug"
 enemy_density = "Normal"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
@@ -31,10 +31,10 @@ entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_yfb5e"]
 script = ExtResource("2_c2ahe")
-formation_type = 0
-entry_pattern = 0
-difficulty = 0
-enemy_type = "mob3"
+formation_type = 9
+entry_pattern = 11
+difficulty = 1
+enemy_type = "OblivionTank"
 enemy_density = "Normal"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
@@ -46,7 +46,7 @@ entry_speed = 300.0
 script = ExtResource("2_c2ahe")
 formation_type = 3
 entry_pattern = 0
-difficulty = 0
+difficulty = 1
 enemy_type = "mob4"
 enemy_density = "Normal"
 formation_center = Vector2(640, 300)
@@ -68,12 +68,21 @@ formation_spacing = 100.0
 spawn_delay = 0.3
 entry_speed = 300.0
 
+[sub_resource type="Resource" id="Resource_5efsq"]
+script = ExtResource("2_c2ahe")
+formation_type = 7
+entry_pattern = 12
+difficulty = 1
+enemy_type = "ShadowSentinel"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 300.0
+
 [node name="Level_2" instance=ExtResource("1_ll1bl")]
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 2
-waves = Array[ExtResource("2_c2ahe")]([SubResource("Resource_0fp4v"), SubResource("Resource_gyi25"), SubResource("Resource_yfb5e"), SubResource("Resource_t8ho5"), SubResource("Resource_4ypdn")])
-debug_mode = false
-
-[node name="WaveManager" parent="." index="6"]
-current_level = 2
+waves = Array[ExtResource("2_c2ahe")]([SubResource("Resource_0fp4v"), SubResource("Resource_gyi25"), SubResource("Resource_yfb5e"), SubResource("Resource_t8ho5"), SubResource("Resource_4ypdn"), SubResource("Resource_5efsq")])

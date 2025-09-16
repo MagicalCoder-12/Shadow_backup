@@ -160,7 +160,7 @@ func _apply_boss_rewards() -> void:
 			if is_first_time:
 				total_rewards_label.text = "Total Rewards Applied!"
 			else:
-				total_rewards_label.text = "Level Completed!"
+				total_rewards_label.text = "Boss Already Defeated!"
 			total_rewards_label.show()
 			if debug:
 				print("[BossClear Debug] Showing total rewards applied message")
