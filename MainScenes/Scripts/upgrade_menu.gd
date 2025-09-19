@@ -33,14 +33,14 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 @onready var Void_Shard: Label = $UI/Buy_Ascend/Ascend/Void_Shard
 
 @onready var ship_textures_ui = [
-	$ScrollContainer/GridContainer/Ship1/S01,
-	$ScrollContainer/GridContainer/Ship2/S02,
-	$ScrollContainer/GridContainer/Ship3/S03,
-	$ScrollContainer/GridContainer/Ship4/S04,
-	$ScrollContainer/GridContainer/Ship5/S05,
-	$ScrollContainer/GridContainer/Ship6/S06,
-	$ScrollContainer/GridContainer/Ship7/S07,
-	$ScrollContainer/GridContainer/Ship8/S08
+	$ShipContainer/GridContainer/Ship1/S01,
+	$ShipContainer/GridContainer/Ship2/S02,
+	$ShipContainer/GridContainer/Ship3/S03,
+	$ShipContainer/GridContainer/Ship4/S04,
+	$ShipContainer/GridContainer/Ship5/S05,
+	$ShipContainer/GridContainer/Ship6/S06,
+	$ShipContainer/GridContainer/Ship7/S07,
+	$ShipContainer/GridContainer/Ship8/S08
 ]
 
 # ================================
