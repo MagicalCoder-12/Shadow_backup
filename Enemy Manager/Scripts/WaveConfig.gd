@@ -27,7 +27,7 @@ var enemy_density: String = "Normal"
 @export var formation_radius: float = 150.0
 @export var formation_spacing: float = 100.0
 @export var spawn_delay: float = 0.3
-@export var entry_speed: float = 300.0
+@export var entry_speed: float = 500.0
 
 # Internal properties used by FormationManager (don't export these)
 var spawn_pos: Vector2

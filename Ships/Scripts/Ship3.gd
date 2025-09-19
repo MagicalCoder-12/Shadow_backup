@@ -51,7 +51,8 @@ func _ready():
 	default_evolution_scale = Vector2(1.0, 1.0)
 	
 	super._ready()
-	plBullet = preload("res://Bullet/PlBullet/player_bullet_3.tscn") 
+	plBullet = preload("res://Bullet/PlBullet/player_bullet_3.tscn")
+	plNormalBullet = preload("res://Bullet/PlBullet/player_bullet_3.tscn")  # Store reference to ship's normal bullet
 	# Setup wave-pattern timers for normal mode
 	wave_timer = Timer.new()
 	wave_timer.wait_time = wave_fire_delay

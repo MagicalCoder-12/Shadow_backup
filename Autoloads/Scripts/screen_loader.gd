@@ -45,7 +45,7 @@ func _process(_delta):
 				update_progress(1.0) # Show 100% while waiting
 				
 		ResourceLoader.THREAD_LOAD_FAILED:
-			print("Error loading scene: ", target_scene_path)
+			push_error("Error loading scene: ", target_scene_path)
 			queue_free()
 
 func update_progress(value: float):

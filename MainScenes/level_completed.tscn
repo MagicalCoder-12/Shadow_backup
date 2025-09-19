@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b2dr1w4bni0qf"]
+[gd_scene load_steps=17 format=3 uid="uid://b2dr1w4bni0qf"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dnpcvc0hqf6d0" path="res://Textures/UI/Main_Menu/BTNs/Forward_BTN.png" id="6_hha4d"]
 [ext_resource type="Texture2D" uid="uid://bvp1csfyerbbp" path="res://Textures/UI/Main_Menu/BTNs_Active/Replay_BTN.png" id="6_xrh6e"]
 [ext_resource type="Texture2D" uid="uid://cf2u1w86trya3" path="res://Textures/UI/Main_Menu/BTNs_Active/Forward_BTN.png" id="9_4da8t"]
+[ext_resource type="AudioStream" uid="uid://xxco01ml12px" path="res://Textures/Music/794489__gobbe57__coin-pickup.wav" id="12_8j3bx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_syrab"]
 font = ExtResource("1_vwgn2")
@@ -151,6 +152,9 @@ texture_pressed = ExtResource("9_4da8t")
 texture_hover = ExtResource("9_4da8t")
 
 [node name="CountUpTimer" type="Timer" parent="."]
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("12_8j3bx")
 
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Map" to="." method="_on_map_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Restart" to="." method="_on_restart_pressed"]

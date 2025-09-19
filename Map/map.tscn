@@ -41,10 +41,11 @@ script = ExtResource("3_8svjd")
 [node name="Label" type="Label" parent="."]
 top_level = true
 layout_mode = 0
-offset_left = -359.0
-offset_top = -10256.0
-offset_right = 1542.0
-offset_bottom = -9435.0
+anchor_left = -0.332407
+anchor_top = -4.27333
+anchor_right = 1.42778
+anchor_bottom = -3.93125
+offset_top = 0.000976563
 theme_override_colors/font_color = Color(0.952941, 0.996078, 0.294118, 1)
 theme_override_font_sizes/font_size = 200
 text = "More Levels 

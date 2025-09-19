@@ -3,86 +3,86 @@
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_ll1bl"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_c2ahe"]
 
-[sub_resource type="Resource" id="Resource_0fp4v"]
-script = ExtResource("2_c2ahe")
-formation_type = 3
-entry_pattern = 4
-difficulty = 1
-enemy_type = "FastEnemy"
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_gyi25"]
+[sub_resource type="Resource" id="Resource_mi8mw"]
 script = ExtResource("2_c2ahe")
 formation_type = 10
-entry_pattern = 10
-difficulty = 1
-enemy_type = "BomberBug"
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_yfb5e"]
-script = ExtResource("2_c2ahe")
-formation_type = 9
-entry_pattern = 11
-difficulty = 1
-enemy_type = "OblivionTank"
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_t8ho5"]
-script = ExtResource("2_c2ahe")
-formation_type = 3
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob4"
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_4ypdn"]
-script = ExtResource("2_c2ahe")
-formation_type = 7
-entry_pattern = 0
-difficulty = 1
-enemy_type = "FastEnemy"
-enemy_density = "Sparse"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_5efsq"]
-script = ExtResource("2_c2ahe")
-formation_type = 7
 entry_pattern = 12
 difficulty = 1
-enemy_type = "ShadowSentinel"
+enemy_type = "mob4"
 enemy_density = "Normal"
 formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_xgwr1"]
+script = ExtResource("2_c2ahe")
+formation_type = 1
+entry_pattern = 0
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_7jyhw"]
+script = ExtResource("2_c2ahe")
+formation_type = 6
+entry_pattern = 8
+difficulty = 1
+enemy_type = "FastEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_gvdjf"]
+script = ExtResource("2_c2ahe")
+formation_type = 7
+entry_pattern = 11
+difficulty = 1
+enemy_type = "mob1"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_kyqw6"]
+script = ExtResource("2_c2ahe")
+formation_type = 2
+entry_pattern = 5
+difficulty = 1
+enemy_type = "BomberBug"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_dtqkw"]
+script = ExtResource("2_c2ahe")
+formation_type = 0
+entry_pattern = 7
+difficulty = 1
+enemy_type = "OblivionTank"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
 
 [node name="Level_2" instance=ExtResource("1_ll1bl")]
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 2
-waves = Array[ExtResource("2_c2ahe")]([SubResource("Resource_0fp4v"), SubResource("Resource_gyi25"), SubResource("Resource_yfb5e"), SubResource("Resource_t8ho5"), SubResource("Resource_4ypdn"), SubResource("Resource_5efsq")])
+waves = Array[ExtResource("2_c2ahe")]([SubResource("Resource_mi8mw"), SubResource("Resource_xgwr1"), SubResource("Resource_7jyhw"), SubResource("Resource_gvdjf"), SubResource("Resource_kyqw6"), SubResource("Resource_dtqkw")])

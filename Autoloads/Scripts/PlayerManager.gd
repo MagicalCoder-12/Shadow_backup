@@ -21,9 +21,6 @@ func initialize() -> void:
 	# Only set default ship ID if no ship ID was loaded from save data
 	if selected_ship_id.is_empty():
 		selected_ship_id = default_ship_id
-		print("[DEBUG] PlayerManager: No saved ship ID found, using default: %s" % selected_ship_id)
-	else:
-		print("[DEBUG] PlayerManager: Using loaded ship ID: %s" % selected_ship_id)
 	set_spawn_position()
 
 func _load_settings_from_config() -> void:
@@ -87,11 +84,10 @@ func spawn_player(lives: int) -> void:
 		current_scene.call_deferred("add_child", player_instance)
 		player_instance.call_deferred("set_lives", lives)
 	else:
-		print("[DEBUG] Player scene not found at path: %s" % player_scene_path)
+		push_error("[DEBUG] Player scene not found at path: %s" % player_scene_path)
 
 func revive_player(lives: int = 2) -> void:
 	if not gm.ad_manager.is_revive_pending and gm.ad_manager.revive_type != "manual":
-		print("[DEBUG] Revive conditions not met. is_revive_pending: %s, revive_type: %s" % [str(gm.ad_manager.is_revive_pending), str(gm.ad_manager.revive_type)])
 		gm.revive_completed.emit(false)
 		return
 

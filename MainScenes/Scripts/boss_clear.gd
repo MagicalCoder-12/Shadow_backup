@@ -189,13 +189,29 @@ func show_boss_clear():
 		# Make sure the screen is visible
 		show()
 		screen_shown = true
+		# Automatically unlock the next level after a delay if the player doesn't interact
+		var auto_unlock_timer = Timer.new()
+		auto_unlock_timer.one_shot = true
+		auto_unlock_timer.wait_time = 5.0  # 5 seconds delay
+		auto_unlock_timer.timeout.connect(_on_auto_unlock_timeout)
+		add_child(auto_unlock_timer)
+		auto_unlock_timer.start()
 		
 		if debug:
 			print("[BossClear Debug] Boss clear screen shown and rewards applied")
 
-func _on_next_pressed() -> void:
+		if debug:
+			print("[BossClear Debug] Boss clear screen shown and rewards applied")
+
+func _on_auto_unlock_timeout():
+	# Automatically proceed to the next level if the player hasn't clicked any buttons
+	_on_next_pressed()
 	
+func _on_next_pressed() -> void:
 	if GameManager and GameManager.level_manager:
+		# Complete the level properly before unlocking the next one
+		GameManager.level_manager.complete_level(current_level)
+		# Then unlock the next level
 		GameManager.level_manager.unlock_next_level(current_level)
 
 

@@ -15,7 +15,7 @@ enemy_type = "Bomber"
 movement_pattern = 4
 
 [node name="Sprite2D" parent="." index="0"]
-scale = Vector2(1.83163, 2.25)
+scale = Vector2(2, 2)
 texture = ExtResource("3_wp6rj")
 
 [node name="CollisionShape2D" parent="." index="1"]

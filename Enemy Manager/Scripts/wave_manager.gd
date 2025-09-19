@@ -12,6 +12,7 @@ signal enemy_killed(enemy: Node2D)
 @export var wave_delay: float = 1.5
 @export var formation_manager_scene: PackedScene
 @export var debug_mode: bool = false
+@onready var boss_music: AudioStreamPlayer = $BossMusic
 
 # Core wave management variables
 var waves: Array[WaveConfig] = []
@@ -308,6 +309,9 @@ func _spawn_boss_wave() -> void:
 		_complete_wave()
 		return
 	
+	# Play boss music when boss wave starts
+	_play_boss_music()
+	
 	# Get the target parent - prefer current_scene, fall back to our parent
 	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
 	if not target_parent:
@@ -345,6 +349,18 @@ func _spawn_boss_wave() -> void:
 	if debug_mode:
 		print("WaveManager: Boss spawned off-screen at %s (will descend to y=400, Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
 
+func _play_boss_music() -> void:
+	# Play boss music using the existing boss_music AudioStreamPlayer
+	var boss_music_stream = preload("res://Textures/Music/Boss_music.mp3")
+	boss_music.play()
+		
+		# Reduce volume of other buses except Boss bus
+	if AudioManager:
+		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -10.0)
+		print("Boss music started by WaveManager")
+	else:
+		print("Error: Boss music player or file not found")
+
 func _connect_boss_signals(boss: Node2D) -> void:
 	if not is_instance_valid(boss):
 		return
@@ -355,6 +371,10 @@ func _connect_boss_signals(boss: Node2D) -> void:
 	elif boss.has_signal("boss_defeated"):
 		boss.boss_defeated.connect(_on_enemy_killed.bind(boss))
 	
+	# Connect phase change signal for invincibility
+	if boss.has_signal("phase_changed"):
+		boss.phase_changed.connect(_on_boss_phase_changed.bind(boss))
+	
 	# New: Connect descent completed to start full tracking
 	if boss.has_signal("descent_completed"):
 		boss.descent_completed.connect(func(): 
@@ -362,6 +382,24 @@ func _connect_boss_signals(boss: Node2D) -> void:
 			if debug_mode:
 				print("WaveManager: Boss descent complete - now tracking as alive enemy")
 		)
+
+func _on_boss_phase_changed(phase, boss: Node2D) -> void:
+	if debug_mode:
+		print("WaveManager: Boss phase changed to %s" % phase)
+	
+	# Make boss invincible for 5 seconds after phase change
+	if boss.has_method("set_invincible"):
+		boss.set_invincible(true)
+		if debug_mode:
+			print("WaveManager: Boss made invincible after phase change")
+		
+		# Wait 5 seconds then make boss vulnerable again
+		await get_tree().create_timer(5.0).timeout
+		
+		if is_instance_valid(boss) and boss.has_method("set_invincible"):
+			boss.set_invincible(false)
+			if debug_mode:
+				print("WaveManager: Boss invincibility ended")
 
 func _on_enemy_spawned(enemy: Node2D) -> void:
 	if not is_instance_valid(enemy):
@@ -426,6 +464,10 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 		# Remove from connected enemies list
 		if enemy in _connected_enemies:
 			_connected_enemies.erase(enemy)
+			
+		# If this was the boss, restore audio volumes
+		if enemy == current_boss:
+			_on_boss_defeated()
 	else:
 		if debug_mode:
 			print("WaveManager: Attempted to process killed enemy that is invalid or not in active_enemies")
@@ -442,6 +484,10 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 			print("WaveManager: Conditions met for wave completion - calling _complete_wave()")
 		print("WaveManager: Calling _complete_wave from _on_enemy_killed")
 		_complete_wave()
+
+func _on_boss_defeated() -> void:
+	if debug_mode:
+		print("WaveManager: Boss defeated, boss music stopped, audio volumes restored")
 
 func _complete_wave():
 	if debug_mode:
@@ -522,3 +568,8 @@ func _on_shadow_mode_activated():
 func _on_shadow_mode_deactivated():
 	if debug_mode:
 		print("WaveManager: Shadow mode deactivated")
+
+
+func _on_boss_music_finished() -> void:
+	if AudioManager:
+		AudioManager.restore_bus_volumes()

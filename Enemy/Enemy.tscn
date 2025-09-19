@@ -137,6 +137,7 @@ animations = [{
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_bjyvl")
+speed = 500.0
 shadow_texture = ExtResource("2_7jp3o")
 ambush_probability = 0.5
 

@@ -107,7 +107,7 @@ var circle_radius: float = 80.0
 var circle_angle: float = 0.0
 var viewport_size: Vector2
 var time_since_spawn: float = 0.0
-var shield_damage_reduction: float = 0.5
+var shield_damage_reduction: float = 0.7
 
 # --- New Variables for Enhanced Movement Patterns ---
 var should_dive_bomb: bool = false
@@ -165,6 +165,11 @@ func _on_tree_exiting():
 	if debug_mode:
 		print("Enemy: Tree exiting - cleaning up")
 	_disconnect_all_signals()
+	
+	# Kill shadow tween if it exists
+	if shadow_tween:
+		shadow_tween.kill()
+		shadow_tween = null
 
 func _setup_fire_timer():
 	if fire_timer:
@@ -197,6 +202,9 @@ func _disconnect_all_signals():
 		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
 	if GameManager and GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
 		GameManager.shadow_mode_deactivated.disconnect(_on_shadow_mode_deactivated)
+	if shadow_tween:
+		shadow_tween.kill()
+		shadow_tween = null
 
 func _physics_process(delta: float) -> void:
 	if not is_alive or not is_instance_valid(self):
@@ -555,9 +563,15 @@ func _start_shadow_pulse():
 		shadow_tween.kill()
 	
 	shadow_tween = create_tween()
-	shadow_tween.set_loops()
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_max, shadow_alpha_min, shadow_pulse_speed / 2.0)
 	shadow_tween.tween_method(_set_shadow_alpha, shadow_alpha_min, shadow_alpha_max, shadow_pulse_speed / 2.0)
+	# Connect to tween finished signal to restart the pulse
+	shadow_tween.finished.connect(_on_shadow_pulse_finished)
+
+func _on_shadow_pulse_finished():
+	# Restart the shadow pulse animation if the enemy is still a shadow enemy
+	if is_shadow_enemy and not shadow_texture and is_inside_tree():
+		_start_shadow_pulse()
 
 func _set_shadow_alpha(alpha: float):
 	if is_shadow_enemy and not shadow_texture:
@@ -649,7 +663,7 @@ func die():
 		return
 	
 	is_alive = false
-	
+	healthbar.visible = false
 	var final_score = score
 	if is_shadow_enemy:
 		final_score = int(score * shadow_score_multiplier)
@@ -677,6 +691,7 @@ func _drop_resources():
 	
 	# Default values if config not found
 	var coins_per_enemy = reward_config.get("coins_per_enemy", 15)
+	var coin_drop_chance = reward_config.get("coin_drop_chance", 0.7)
 	var crystal_drop_chance = reward_config.get("crystal_drop_chance", 0.2)
 	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
 	
@@ -685,18 +700,24 @@ func _drop_resources():
 	var scaled_coins = int(coins_per_enemy * level_multiplier)
 	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
 	
-	# Drop coins - 1-2 coins per enemy with level scaling
-	var coin_count = randi_range(1, 2)
-	for i in range(coin_count):
-		var coin = COINS.instantiate()
-		coin.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-		# Set the coin value based on the scaled reward
-		if coin.has_method("set_value"):
-			coin.set_value(scaled_coins)
-		get_tree().current_scene.call_deferred("add_child", coin)
+	# Determine what to drop - either coins OR crystals, not both
+	var drop_crystal = randf() < crystal_drop_chance
+	var drop_coins = !drop_crystal && (randf() < coin_drop_chance)
 	
-	# Drop crystal occasionally with scaled reward
-	if randf() < crystal_drop_chance:
+	# Drop coins if selected
+	if drop_coins:
+		# Drop coins - 1-2 coins per enemy with level scaling
+		var coin_count = randi_range(1, 2)
+		for i in range(coin_count):
+			var coin = COINS.instantiate()
+			coin.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+			# Set the coin value based on the scaled reward
+			if coin.has_method("set_value"):
+				coin.set_value(scaled_coins)
+			get_tree().current_scene.call_deferred("add_child", coin)
+	
+	# Drop crystal if selected (instead of coins)
+	elif drop_crystal:
 		var crystal = CRYSTAL.instantiate()
 		crystal.global_position = global_position
 		# Set the crystal value based on the scaled reward
@@ -724,6 +745,10 @@ func _play_death_animation():
 	
 	if sprite:
 		sprite.visible = false
+	
+	# Hide the shadow core shield as well
+	if shadow_core_shield:
+		shadow_core_shield.visible = false
 	
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)

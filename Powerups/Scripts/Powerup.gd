@@ -22,7 +22,13 @@ func applyPowerup(player: Player):
 		PowerupType.ATTACK_BOOST:
 			player.increase_bullet_damage(damage_increase_amount)
 		PowerupType.SUPER_MODE:
-			player.activate_super_mode(super_mode_multiplier, super_mode_duration)
+			# Check if shadow mode is already active to apply combined mode
+			if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+				# Activate combined mode
+				player.activate_super_mode(super_mode_multiplier, super_mode_duration)
+			else:
+				# Activate normal super mode
+				player.activate_super_mode(super_mode_multiplier, super_mode_duration)
 		PowerupType.LIFE:
 			player.increase_life(life_increase_amount)
 	queue_free()

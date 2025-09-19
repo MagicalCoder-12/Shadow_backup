@@ -78,7 +78,7 @@ func complete_level(current_level: int) -> void:
 	if current_level == 5 and not shadow_mode_tutorial_shown:
 		_show_shadow_mode_tutorial()
 		should_transition_to_next_level = false
-		is_level_just_completed = false
+		#Don't set is_level_just_completed = false here, it interferes with level unlocking
 	elif current_level == 20 and not is_video_playing:
 		_play_ending_video()
 		should_transition_to_next_level = false
@@ -92,10 +92,6 @@ func complete_level(current_level: int) -> void:
 	
 	# For boss levels, emit the level_completed signal to show boss clear screen
 	# For non-boss levels, also emit the level_completed signal
-	if gm:
-		for connection in gm.level_completed.get_connections():
-			print("LevelManager: Connected to: %s" % connection.callable.get_object())
-	print("LevelManager: Emitting level_completed signal for level %d" % current_level)
 	gm.level_completed.emit(current_level)
 	
 	# Unlock next level (but only if it's the next sequential level)
@@ -126,6 +122,9 @@ func _show_shadow_mode_tutorial() -> void:
 		shadow_mode_tutorial_shown = true
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
+		
+		# Properly reset the level completion flag after showing tutorial
+		is_level_just_completed = false
 	else:
 		push_error("LevelManager: Cannot add tutorial: No current scene available")
 
@@ -164,6 +163,11 @@ func unlock_next_level(current_level: int) -> void:
 	if ResourceLoader.exists(next_level_path):
 		# Reset player stats before loading next level
 		gm.player_manager.reset_player_stats()
+		# Unlock the next level in the save data
+		if next_level > unlocked_levels:
+			unlocked_levels = next_level
+			if gm.save_manager.autosave_progress:
+				gm.save_manager.save_progress()
 		gm.change_scene(next_level_path)
 	else:
 		gm.change_scene(gm.scene_manager.MAP_SCENE)

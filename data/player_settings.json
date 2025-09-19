@@ -5,7 +5,7 @@
 	"smoothness": 0.3,
 	"normal_fire_delay": 0.3,
 	"boundary_padding": 10.0,
-	"max_life": 4,
+	"max_life": 3,
 	"shadow_speed_multiplier": 1.2,
 	"shadow_fire_delay_multiplier": 0.1,
 	"spread_angle_increment": 10.0,

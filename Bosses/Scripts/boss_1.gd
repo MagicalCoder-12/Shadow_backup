@@ -1,6 +1,7 @@
 extends Area2D
 
 signal boss_defeated
+signal phase_changed  # Add this line to emit signal when phase changes
 
 enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 
@@ -42,6 +43,8 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @onready var boss_death_particles: CPUParticles2D = $BossDeathParticles
 @onready var health_bar: TextureProgressBar = $HealthBar
 @onready var sprite_2d: Sprite2D = $Boss
+# Add boss music player as a variable since it's created dynamically
+var boss_music: AudioStreamPlayer
 
 # State variables
 var current_health: int
@@ -62,6 +65,12 @@ var minions_spawned_this_phase: int = 0
 func _ready() -> void:
 	# Add boss to group
 	add_to_group("Boss")
+	
+	# Create boss music player dynamically
+	boss_music = AudioStreamPlayer.new()
+	boss_music.name = "BossMusic"
+	boss_music.bus = "Boss"  # Use the Boss audio bus
+	add_child(boss_music)
 	
 	# Validate properties
 	if max_health <= 0:
@@ -102,6 +111,8 @@ func _ready() -> void:
 		boss_death.process_mode = PROCESS_MODE_ALWAYS
 	if phase_change:
 		phase_change.process_mode = PROCESS_MODE_ALWAYS
+	if boss_music:
+		boss_music.process_mode = PROCESS_MODE_ALWAYS
 
 	# Initialize boss stats
 	current_health = max_health
@@ -123,6 +134,9 @@ func _ready() -> void:
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 
 	start_movement()
+	# Play boss music when boss is ready
+	_play_boss_music()
+	
 	# Tween for INTRO animation (scale from 0 to 1)
 	sprite_2d.scale = Vector2(0.0, 0.0)
 	var tween = create_tween()
@@ -240,6 +254,11 @@ func take_damage(amount: int) -> void:
 		boss_death.play()
 		print("Playing boss death effects")
 		
+		# Stop boss music when boss is defeated
+		if boss_music and boss_music.playing:
+			boss_music.stop()
+			print("Boss music stopped")
+		
 		# Destroy all minions
 		_destroy_all_minions()
 		
@@ -251,8 +270,20 @@ func take_damage(amount: int) -> void:
 		boss_defeated.emit()
 		queue_free()
 
+func _play_boss_music() -> void:
+	# Play boss music
+	var boss_music_stream = preload("res://Textures/Music/Boss_music.mp3")
+	if boss_music_stream:
+		boss_music.stream = boss_music_stream
+		boss_music.play()
+		print("Boss music started")
+	else:
+		print("Error: Boss music file not found")
+
 func enter_phase(phase: BossPhase) -> void:
 	current_phase = phase
+	phase_changed.emit(phase)  # Emit the phase changed signal
+	
 	var phase_multiplier = 1.0
 	match phase:
 		BossPhase.PHASE1:
@@ -280,6 +311,13 @@ func enter_phase(phase: BossPhase) -> void:
 			spawn_phase_transition_effect()
 			# Spawn additional minions for enraged phase
 			_spawn_phase_minions()
+	
+	# Make boss invincible for 5 seconds after phase change
+	is_invincible = true
+	print("Boss is now invincible for 5 seconds after phase change")
+	await get_tree().create_timer(5.0).timeout
+	is_invincible = false
+	print("Boss invincibility ended")
 	
 	# Adjust minion spawn rate based on phase
 	_adjust_minion_spawn_rate()
@@ -538,7 +576,8 @@ func fire_homing_missiles() -> void:
 	# Reduced missile count
 	var bullet_count = 4 if current_phase == BossPhase.ENRAGED else 3 if current_phase == BossPhase.PHASE2 else 2
 	var player = get_tree().get_first_node_in_group("Player")
-	var target_pos = player.global_position if player else global_position + Vector2(0, 1000)
+	# Check if player exists and is alive
+	var target_pos = player.global_position if (player and player.is_alive) else global_position + Vector2(0, 1000)
 	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0 # Reduced from 1.5/1.2
 	
 	for marker in [left, right]:
@@ -747,3 +786,7 @@ func get_minion_status() -> Array:
 func force_spawn_minion() -> void:
 	if active_minions.size() < get_max_minions():
 		_spawn_minion()
+
+func set_invincible(invincible: bool) -> void:
+	is_invincible = invincible
+	print("Boss invincibility set to: %s" % invincible)

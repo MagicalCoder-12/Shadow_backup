@@ -10,3 +10,6 @@ func _ready():
 	default_evolution_scale = Vector2(1.0, 1.0)
 	
 	super._ready()
+	
+	# Set reference to Ship1's normal bullet
+	plNormalBullet = preload("res://Bullet/PlBullet/Bullet.tscn")

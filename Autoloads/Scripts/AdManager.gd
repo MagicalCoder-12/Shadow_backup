@@ -13,7 +13,7 @@ var revive_type: String = "none"
 var is_revive_pending: bool = false
 var revive_timeout_timer: Timer
 var is_banner_showing: bool = false
-@export var enable_debug_logging: bool = false  # Toggle for debug messages
+var enable_debug_logging: bool = false  # Toggle for debug messages
 
 # Signals
 @warning_ignore("unused_signal")

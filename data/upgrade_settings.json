@@ -6,7 +6,7 @@
 	
 
 	"crystal_scaling_factor": 1.10,
-	"coin_scaling_factor": 1.25,
+	"coin_scaling_factor": 1.15,
 	"ascend_scaling_factor": 1.05,
 	
 	"ad_crystal_reward": 20,
@@ -40,7 +40,8 @@
 	},
 	
 	"enemy_drop_rewards": {
-		"coins_per_enemy": 10,
+		"coins_per_enemy": 15,
+		"coin_drop_chance": 0.7,
 		"crystal_drop_chance": 0.2,
 		"crystal_reward_per_drop": 1
 	},

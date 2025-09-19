@@ -129,3 +129,11 @@ func mute_bus(bus_name: String, mute: bool) -> void:
 		return
 	AudioServer.set_bus_mute(bus_idx, mute)
 	print("Bus %s %s" % [bus_name, "muted" if mute else "unmuted"])
+
+func reduce_background_music_volume(volume_db: float = -10.0) -> void:
+	# Store original background music volume and reduce it
+	if background_bus_idx >= 0:
+		var background_bus_name = AudioServer.get_bus_name(background_bus_idx)
+		_original_bus_volumes[background_bus_name] = AudioServer.get_bus_volume_db(background_bus_idx)
+		AudioServer.set_bus_volume_db(background_bus_idx, volume_db)
+		print("Background music volume reduced to %s dB" % volume_db)

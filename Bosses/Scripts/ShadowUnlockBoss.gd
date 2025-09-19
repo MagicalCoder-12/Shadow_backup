@@ -3,7 +3,7 @@ class_name ShadowUnlockBoss
 
 ## Simplified AI Boss with two-phase system + initial descent
 ## Phase 1: Simple spiral pattern
-## Phase 2: Converging storm pattern
+## Phase 2: Converging storm pattern with HellPatternBullet
 
 # Boss Phases (added DESCENT)
 enum BossPhase {
@@ -52,6 +52,7 @@ signal descent_completed  # New: Fired when boss reaches descent_target_y
 var current_phase: BossPhase = BossPhase.DESCENT  # Start in descent
 var current_health: int
 var has_completed_descent: bool = false
+var is_invincible: bool = false
 
 func _ready() -> void:
 	_initialize_boss()
@@ -99,8 +100,8 @@ func _complete_descent() -> void:
 	has_completed_descent = true
 	attack_timer.start()  # Now start attacks
 	emit_signal("descent_completed")
+	phase_changed.emit(current_phase)  # Emit the phase changed signal
 	
-
 
 func _handle_normal_movement(delta: float) -> void:
 	# Updated center to match descent target
@@ -129,6 +130,7 @@ func _check_phase_transition() -> void:
 func _trigger_phase_transition() -> void:
 	print("PHASE TRANSITION: Entering Shadow Phase!")
 	current_phase = BossPhase.TRANSITION
+	phase_changed.emit(current_phase)  # Emit the phase changed signal
 	
 	attack_timer.stop()
 	
@@ -171,7 +173,7 @@ func _show_muzzle_flash() -> void:
 		get_tree().current_scene.add_child(flash)
 
 func _pattern_p1_spiral_wave() -> void:
-	var bullet_count = 8
+	var bullet_count = 3
 	var spiral_arms = 2
 	
 	for arm in range(spiral_arms):
@@ -182,27 +184,85 @@ func _pattern_p1_spiral_wave() -> void:
 				var angle = (Time.get_ticks_msec() * 0.001 * 1.5) + (arm * PI) + (i * 0.4)
 				bullet.global_position = nozzel.global_position
 				bullet.global_rotation = angle
-				bullet.speed = 600 + (i * 8)
+				# Use HomingBullet methods instead of direct property access
+				if bullet.has_method("set_speed"):
+					bullet.set_speed(600 + (i * 8))
+				else:
+					# Fallback for other bullet types
+					bullet.speed = 600 + (i * 8)
+				# Add check for player being alive, if not go straight down
+				var player = get_tree().get_first_node_in_group("Player")
+				# Check if player exists and is alive
+				if player and player.is_alive:
+					# Player is alive, set target for homing
+					if bullet.has_method("set_target"):
+						bullet.set_target(player.global_position)
+				else:
+					# Player is dead or doesn't exist, set direction straight down
+					if bullet.has_method("set_direction"):
+						bullet.set_direction(Vector2.DOWN)
 				_add_bullet_to_scene(bullet)
 
 func _pattern_p2_converging_storm() -> void:
-	var player = get_tree().get_first_node_in_group("Player")
-	if not player:
-		return  # Added null check for safety
+	# Load the hell pattern scene directly for Phase 2
+	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
+	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
+		# Fallback to regular bullet pattern if hell pattern not available
+		_fallback_p2_pattern()
+		return
 	
-	var beam_count = 16
-	var target_pos = player.global_position
+	# Use HellPatternBullet for Phase 2 (360-degree pattern, no homing)
+	var bullet_count = 16  # Number of bullets in the 360-degree pattern
+	var speed_variation = 600.0  # Base speed for HellPatternBullet
 	
-	for i in range(beam_count):
-		var bullet = _create_bullet()
+	for i in range(bullet_count):
+		var bullet = hell_pattern_scene.instantiate()
 		if bullet:
-			var start_angle = (i * 2.0 * PI / beam_count) + Time.get_ticks_msec() * 0.001 * 0.5
-			var start_pos = nozzel.global_position + Vector2(cos(start_angle), sin(start_angle)) * 120
-			var direction = (target_pos - start_pos).normalized()
+			# Spawn all bullets from the nozzle position
+			var start_pos = nozzel.global_position
 			
+			# Set direction to go outward in 360 degrees (no homing)
+			var angle = (i * 2.0 * PI / bullet_count)
+			var direction = Vector2(cos(angle), sin(angle))
+			
+			# Configure HellPatternBullet
 			bullet.global_position = start_pos
 			bullet.global_rotation = direction.angle()
-			bullet.speed = 1200
+			if bullet.has_method("set_direction"):
+				bullet.set_direction(direction)
+			if bullet.has_method("set_speed"):
+				bullet.set_speed(speed_variation + randf_range(-50, 50))  # Slight speed variation
+			if bullet.has_method("set_lifetime"):
+				bullet.set_lifetime(5.0)
+			if bullet.has_method("set_damage"):
+				bullet.set_damage(2)  # Set damage for phase 2
+			_add_bullet_to_scene(bullet)
+
+# Fallback pattern for Phase 2 when HellPatternBullet is not available
+func _fallback_p2_pattern() -> void:
+	var bullet_count = 12
+	var speed_variation = 600.0
+	
+	for i in range(bullet_count):
+		var bullet = _create_bullet()
+		if bullet:
+			# Spawn all bullets from the nozzle position
+			var start_pos = nozzel.global_position
+			
+			# Set direction to go outward in 360 degrees (no homing)
+			var angle = (i * 2.0 * PI / bullet_count)
+			var direction = Vector2(cos(angle), sin(angle))
+			
+			# Configure bullet
+			bullet.global_position = start_pos
+			bullet.global_rotation = direction.angle()
+			if bullet.has_method("set_direction"):
+				bullet.set_direction(direction)
+			else:
+				# Fallback for other bullet types
+				bullet.direction = direction
+			if bullet.has_method("set_speed"):
+				bullet.set_speed(speed_variation + randf_range(-50, 50))
 			_add_bullet_to_scene(bullet)
 
 func _add_bullet_to_scene(bullet: Node) -> void:
@@ -221,7 +281,9 @@ func _add_bullet_to_scene(bullet: Node) -> void:
 	bullet.add_to_group("bullets")
 
 func take_damage(damage_amount: int) -> void:
-	if current_health <= 0:
+	if current_health <= 0 or is_invincible:
+		if is_invincible:
+			print("Boss is invincible, ignoring damage: %d" % damage_amount)
 		return
 	
 	current_health -= damage_amount
@@ -276,3 +338,7 @@ func _on_area_entered(area: Area2D) -> void:
 		
 		take_damage(damage)
 		area.queue_free()
+
+func set_invincible(invincible: bool) -> void:
+	is_invincible = invincible
+	print("Boss invincibility set to: %s" % invincible)

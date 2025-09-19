@@ -423,7 +423,17 @@ func _show_level_completed_ui():
 	var is_first_time = not boss_levels_completed.has(current_level_num)
 	
 	if is_boss_level and not is_first_time:
-		# For subsequent boss level completions, apply the regular level completion rewards
+		# For subsequent boss level completions, we still want to give the player some rewards
+		# Calculate level completion rewards
+		var level_completion_rewards = _calculate_level_completion_rewards(current_level_num)
+		var collected_coins = level_completion_rewards.coins
+		var collected_crystals = level_completion_rewards.crystals
+		
+		# Add the rewards to the player's currency
+		GameManager.add_currency("coins", collected_coins)
+		GameManager.add_currency("crystals", collected_crystals)
+		
+		# Save progress
 		if GameManager.save_manager.autosave_progress:
 			GameManager.save_manager.save_progress()
 		
@@ -438,6 +448,26 @@ func _show_level_completed_ui():
 		if tween:
 			tween.tween_property(level_completed, "modulate:a", 1.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	GameManager.save_manager.save_progress()
+
+# Add this new function to calculate level completion rewards
+func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
+	# Get reward configuration
+	var reward_config = {}
+	if ConfigLoader and ConfigLoader.upgrade_settings:
+		reward_config = ConfigLoader.upgrade_settings
+	
+	# Default values if config not found
+	var base_coins = reward_config.get("level_completion_base_coins", 200)
+	var base_crystals = reward_config.get("level_completion_base_crystals", 10)
+	
+	# Calculate rewards based on level number with diminishing returns
+	# Using square root to provide growth that slows over time
+	var level_multiplier = pow(float(level_num), 0.75)
+	
+	return {
+		"coins": int(base_coins * level_multiplier),
+		"crystals": int(base_crystals * level_multiplier)
+	}
 
 # === SHADOW MODE ===
 func _on_shadow_mode_activated():

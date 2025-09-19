@@ -688,10 +688,13 @@ func _show_spawn_indicators(enemy_count: int) -> void:
 	for i in range(min(enemy_count, spawn_positions.size())):
 		var spawn_pos = spawn_positions[i]
 		
+		# For off-screen positions (random edge and multi-side entry), show indicators at screen edges
+		var visible_pos = _get_visible_indicator_position(spawn_pos)
+		
 		# Create a visual indicator using a simple colored circle
 		var indicator = Node2D.new()
 		indicator.name = "SpawnIndicator_%d" % i
-		indicator.position = spawn_pos
+		indicator.position = visible_pos
 		
 		# Create a colored circle
 		var circle = ColorRect.new()
@@ -704,16 +707,17 @@ func _show_spawn_indicators(enemy_count: int) -> void:
 		add_child(indicator)
 		indicator_nodes.append(indicator)
 		
-		# Create tween for blinking effect
+		# Create tween for blinking effect without infinite loops
 		if is_instance_valid(indicator) and indicator.has_method("create_tween"):
 			var tween = indicator.create_tween()
-			tween.set_loops(spawn_indicator_blink_count)
-			
-			# Blink animation: scale and fade
-			tween.tween_property(circle, "scale", Vector2(2.0, 2.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
-			tween.tween_property(indicator, "modulate:a", 0.2, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
-			tween.tween_property(circle, "scale", Vector2(1.0, 1.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
-			tween.tween_property(indicator, "modulate:a", 0.8, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+			# Remove set_loops() to prevent infinite loops
+			# Instead, we'll manually restart the tween when it finishes if needed
+			# Limit the number of blinks to the spawn_indicator_blink_count
+			for blink in range(spawn_indicator_blink_count):
+				tween.tween_property(circle, "scale", Vector2(2.0, 2.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(indicator, "modulate:a", 0.2, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(circle, "scale", Vector2(1.0, 1.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(indicator, "modulate:a", 0.8, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
 	
 	# Wait for the indicator duration
 	if get_tree():
@@ -723,3 +727,27 @@ func _show_spawn_indicators(enemy_count: int) -> void:
 	for indicator in indicator_nodes:
 		if is_instance_valid(indicator):
 			indicator.queue_free()
+
+# Helper function to get visible position for spawn indicators
+func _get_visible_indicator_position(spawn_pos: Vector2) -> Vector2:
+	# Check if position is off-screen and adjust to visible edge position
+	var visible_pos = spawn_pos
+	
+	# If spawn position is off the top edge
+	if spawn_pos.y < 0:
+		visible_pos.y = 50  # Show at top of screen
+	# If spawn position is off the bottom edge
+	elif spawn_pos.y > screen_height:
+		visible_pos.y = screen_height - 50  # Show at bottom of screen
+	# If spawn position is off the left edge
+	if spawn_pos.x < 0:
+		visible_pos.x = 50  # Show at left of screen
+	# If spawn position is off the right edge
+	elif spawn_pos.x > screen_width:
+		visible_pos.x = screen_width - 50  # Show at right of screen
+		
+	# Ensure position is within screen bounds
+	visible_pos.x = clamp(visible_pos.x, 50, screen_width - 50)
+	visible_pos.y = clamp(visible_pos.y, 50, screen_height - 50)
+	
+	return visible_pos

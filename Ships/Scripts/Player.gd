@@ -8,6 +8,7 @@ signal victory_pose_done()
 var plBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")
 var plSuperBullet: PackedScene = preload("res://Bullet/PlBullet/super_bullet.tscn")
 var plShadowBullet: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
+var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  # Store reference to ship's normal bullet
 # Node references
 @onready var sprite_2d: Sprite2D = $Sprite2D
 @onready var firing_positions: Node2D = $Sprite2D/FiringPositions
@@ -246,9 +247,28 @@ func revert_shadow_mode_effects() -> void:
 			sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
 		else:
 			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
-	speed = original_speed
-	fire_delay_timer.wait_time = normal_fire_delay
-	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
+	
+	# Restore speed based on whether super mode is still active
+	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
+		speed = original_speed * super_mode_speed_multiplier
+	else:
+		speed = original_speed
+	
+	# Restore fire delay based on whether super mode is still active
+	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
+		fire_delay_timer.wait_time = super_mode_fire_delay
+	else:
+		fire_delay_timer.wait_time = normal_fire_delay
+	
+	# Restore bullet damage based on whether super mode is still active
+	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
+		# Keep super mode damage
+		pass
+	else:
+		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
+	
+	# Reset bullet scene to ship's normal bullet
+	plBullet = plNormalBullet
 
 func shoot() -> void:
 	fire_delay_timer.start(fire_delay_timer.wait_time)
@@ -530,18 +550,13 @@ func _setup_firing_positions() -> void:
 		add_firing_position(i)
 
 func _apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool = false) -> void:
-	# Deactivate any active modes first
-	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		_on_super_mode_timeout()
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		_on_shadow_mode_deactivated()
-	
-	# Apply the requested modes
-	if super_mode_active:
-		# Reactivate super mode
+	# Preserve existing modes instead of deactivating them
+	if super_mode_active and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
+		# Activate super mode without deactivating shadow mode
 		GameManager.player_manager.player_stats["is_super_mode_active"] = true
 		apply_super_mode_effects(2.0, 10.0)  # Use default values
-	elif shadow_mode_active:
+	elif shadow_mode_active and not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+		# Activate shadow mode without deactivating super mode
 		_on_shadow_mode_activated()
 
 func increase_bullet_damage(amount: int) -> void:
@@ -588,16 +603,38 @@ func activate_super_mode(multiplier_div: float, duration: float) -> void:
 	apply_super_mode_effects(multiplier_div, duration)
 
 func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
-	GameManager.player_manager.player_stats["bullet_damage"] = int(GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * multiplier_div) + super_mode_damage_boost
+	# Calculate combined effects based on whether shadow mode is also active
+	var base_damage = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
+	var current_damage = GameManager.player_manager.player_stats.get("bullet_damage", base_damage)
+	
+	# If shadow mode is active, apply combined effects
+	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+		# Combined damage: (base damage * 2) + super_mode_damage_boost
+		GameManager.player_manager.player_stats["bullet_damage"] = (base_damage * 2) + super_mode_damage_boost
+	else:
+		# Normal super mode damage calculation
+		GameManager.player_manager.player_stats["bullet_damage"] = int(current_damage * multiplier_div) + super_mode_damage_boost
+	
 	fire_delay_timer.wait_time = super_mode_fire_delay
 	add_super_mode_spawn_points()
 	super_mode_timer.start(duration)
 	
 	# Apply visual effects for super mode
 	if sprite_2d:
-		sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
-		# Add a glow effect or other visual enhancements here
-	speed = original_speed * super_mode_speed_multiplier
+		if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+			# Combined mode: blue tint with bright white glow
+			sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
+		else:
+			# Normal super mode: blue tint
+			sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
+	
+	# Apply speed multiplier
+	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+		# Combined speed: original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
+		speed = original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
+	else:
+		# Normal super mode speed
+		speed = original_speed * super_mode_speed_multiplier
 
 func add_super_mode_spawn_points() -> void:
 	super_mode_spawn_points.clear()
@@ -621,20 +658,27 @@ func _on_super_mode_timeout() -> void:
 	_restore_normal_fire_delay()
 	_cleanup_super_mode_spawn_points()
 	
+	# Reset bullet scene to ship's normal bullet
+	plBullet = plNormalBullet
+	
 	# Revert visual effects for super mode
 	if sprite_2d:
 		if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
 			# If shadow mode is still active, apply shadow mode visuals
 			sprite_2d.modulate = Color(1.2, 1.2, 1.2)
+			# Also restore shadow mode speed
+			speed = original_speed * shadow_speed_multiplier
 		else:
 			# Otherwise, revert to normal visuals
 			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
-	speed = original_speed
+			speed = original_speed
 
 func _restore_normal_damage() -> void:
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+		# If shadow mode is active, restore shadow mode damage (base damage * 2)
 		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
 	else:
+		# Otherwise, restore normal damage
 		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
 
 func _restore_normal_fire_delay() -> void:

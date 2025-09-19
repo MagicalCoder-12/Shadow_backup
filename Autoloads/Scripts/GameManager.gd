@@ -290,21 +290,21 @@ func pause_for_ad_revive() -> void:
 	if not game_over or level_manager.is_level_just_completed:
 		return
 	is_paused = true  # Pauses the game tree
-	print("Game paused for ad revive")
+
 
 # New function to resume the game after ad revive
 func resume_after_ad_revive() -> void:
 	if is_paused and not game_over and not level_manager.is_level_just_completed:
 		is_paused = false  # Resumes the game tree
-		print("Game resumed after ad revive")
+
 
 # Handle revive completion signal
 func _on_revive_completed(success: bool) -> void:
 	resume_after_ad_revive()
 	if success:
-		print("Revive completed successfully")
+		print("[GameManager]: Revive completed successfully")
 	else:
-		print("Revive failed or was cancelled")
+		print("[GameManager]: Revive failed or was cancelled")
 
 # Notify when ship stats are updated
 func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:

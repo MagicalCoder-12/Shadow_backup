@@ -41,6 +41,7 @@ func _ready() -> void:
 
 	super._ready()  # Call BaseShip's _ready for evolution scaling
 	plBullet = preload("res://Bullet/PlBullet/player_bullet_2.tscn")  # Default bullet for normal mode
+	plNormalBullet = preload("res://Bullet/PlBullet/player_bullet_2.tscn")  # Store reference to ship's normal bullet
 	
 	# Setup burst-fire timers for normal mode
 	burst_timer = Timer.new()
@@ -188,8 +189,9 @@ func _fire_super_burst_shot() -> void:
 			super_burst_timer.stop()
 		return
 	
-	# Fire super bullets with spread pattern
-	var bullet_scene: PackedScene = plSuperBullet
+	# Fire super bullets with spread pattern for super mode
+	# Use Ship2-specific bullet instead of the generic plSuperBullet
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/super2.tscn")
 	var bullet_speed: float = super_mode_bullet_speed
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	
@@ -266,7 +268,7 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	
 	# Apply Ship2-specific super mode visual effects
 	if sprite_2d:
-		sprite_2d.modulate = Color(0.3, 0.3, 1.8)  # Bright blue tint for Ship2 super mode
+		sprite_2d.modulate = Color(1, 0.706, 0.385)  
 		# Could add particle effects or other visual enhancements here
 	_setup_super_mode_bullets()
 	_debug_log("Ship2 super mode activated with PlayerBullet2, damage boosted to %d" % GameManager.player_manager.player_stats["bullet_damage"])
@@ -295,3 +297,23 @@ func _apply_ship_specific_stats() -> void:
 	super_burst_spread = 60.0
 	
 	_debug_log("Applied Ship2-specific stats")
+
+func _on_super_mode_timeout() -> void:
+	# Call parent implementation
+	super._on_super_mode_timeout()
+	
+	# Ship2-specific cleanup
+	is_super_bursting = false
+	if super_burst_timer:
+		super_burst_timer.stop()
+
+func revert_shadow_mode_effects() -> void:
+	# Call parent implementation
+	super.revert_shadow_mode_effects()
+	
+	# Ship2-specific shadow mode cleanup
+	is_shadow_bursting = false
+	if shadow_burst_timer:
+		shadow_burst_timer.stop()
+	if shadow_sequence_timer:
+		shadow_sequence_timer.stop()

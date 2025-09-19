@@ -3,6 +3,7 @@ extends Control
 @onready var scoreLabel := $Panel/VBoxContainer/Score
 @onready var crystalsLabel := $Panel/VBoxContainer/Crystal_texture/Crystals
 @onready var coins_label: Label = $Panel/VBoxContainer/Coin_texture/Coins
+@onready var completed_sound: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 const Map = "res://Map/map.tscn"
 var current_level: int
@@ -135,8 +136,7 @@ func _on_level_completed(_level_num: int) -> void:
 			print("[LevelCompleted Debug] ERROR: scoreLabel is null!")
 	
 	# Play sound effect when level completed screen is shown
-	_play_sound_effect("level_completed")
-	
+	completed_sound.play()
 	# Make sure the screen is visible
 	show()
 	if debug:
@@ -165,28 +165,14 @@ func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
 		"crystals": int(base_crystals * level_multiplier)
 	}
 
-func _play_sound_effect(sound_type: String) -> void:
-	if AudioManager:
-		var sound_stream: AudioStream
-		if sound_type == "level_completed":
-			# Use a different sound for level completion
-			sound_stream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
-		else:
-			sound_stream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
-			
-		if sound_stream:
-			AudioManager.play_sound_effect(sound_stream, "Master")  # Use Master bus
-		else:
-			if debug:
-				print("[LevelCompleted Debug] Warning: Sound stream for %s not found" % sound_type)
-	else:
-		if debug:
-			print("[LevelCompleted Debug] Warning: AudioManager not found, cannot play sound effect")
-
 func _on_next_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_next_pressed called")
 	if GameManager and GameManager.level_manager:
+		# Complete the level properly before unlocking the next one
+		var current_level = GameManager.level_manager.get_current_level()
+		GameManager.level_manager.complete_level(current_level)
+		# Then unlock the next level
 		GameManager.level_manager.unlock_next_level(current_level)
 		GameManager.score=0
 		if debug:

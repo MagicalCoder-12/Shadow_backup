@@ -4,21 +4,23 @@
 [ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/hell_pattern.gd" id="1_s6ruc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ypd1e"]
-size = Vector2(13, 22)
+size = Vector2(27, 10)
 
 [node name="HellPattern" type="Area2D"]
 collision_layer = 128
 script = ExtResource("1_s6ruc")
+speed = 1200.0
+lifetime = 6.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_1grdc")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0.5, -2)
+position = Vector2(-2.5, 0)
 shape = SubResource("RectangleShape2D_ypd1e")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
-position = Vector2(1.5, -2)
-scale = Vector2(0.85, 1.2)
+position = Vector2(-2.5, 0.5)
+scale = Vector2(1.25, 0.75)
 
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

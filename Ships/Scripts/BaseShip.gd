@@ -28,6 +28,7 @@ func _handle_evolution_scaling():
 		if texture_index >= 0:
 			_apply_texture_scale(texture_index)
 
+
 func _apply_texture_scale(texture_index: int):
 	"""Apply appropriate scale based on texture index"""
 	if texture_index == 0:
@@ -37,9 +38,15 @@ func _apply_texture_scale(texture_index: int):
 	elif texture_index < evolution_texture_scales.size():
 		# Use specific scale from evolution_texture_scales array
 		sprite_2d.scale = evolution_texture_scales[texture_index - 1]
+		
+		# Scale satellites to 0.7 when ascending from base to first evolution texture
+		if texture_index == 1 and satellite and satellite_2:
+			satellite.scale = Vector2(0.7, 0.7)
+			satellite_2.scale = Vector2(0.7, 0.7)
 	else:
 		# Use default evolution scale for textures beyond configured scales
 		sprite_2d.scale = default_evolution_scale
+
 
 func _set_base_texture_scale():
 	"""Set the scale for base texture - can be overridden by child classes"""

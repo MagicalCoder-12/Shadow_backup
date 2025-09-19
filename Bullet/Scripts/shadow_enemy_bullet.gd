@@ -98,11 +98,19 @@ func _on_shadow_mode_activated():
 	# Add visual enhancement when shadow mode is active
 	if sprite:
 		sprite.modulate = Color(0.3, 0.3, 1.0, 1.0)  # More intense blue
-		# Add a pulsing effect
+		# Add a pulsing effect without infinite loops
 		var tween = create_tween()
-		tween.set_loops()
+		# Remove set_loops() to prevent infinite loops
+		# Instead, we'll manually restart the tween when it finishes if needed
 		tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.5)
 		tween.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.5)
+		# Connect to finished signal to restart if needed
+		tween.finished.connect(_on_shadow_pulse_finished)
+
+func _on_shadow_pulse_finished():
+	# Restart the shadow pulse animation if shadow mode is still active
+	if GameManager.level_manager.shadow_mode_enabled and is_alive and sprite and is_inside_tree():
+		_on_shadow_mode_activated()
 
 # Handle shadow mode deactivation
 func _on_shadow_mode_deactivated():

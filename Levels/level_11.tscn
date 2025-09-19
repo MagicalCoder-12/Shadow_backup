@@ -7,14 +7,14 @@
 script = ExtResource("2_5wub7")
 formation_type = 10
 entry_pattern = 0
-difficulty = 1
+difficulty = 3
 enemy_type = "BomberBug"
-enemy_density = "Normal"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_f12pv"]
 script = ExtResource("2_5wub7")
@@ -27,7 +27,7 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_vfios"]
 script = ExtResource("2_5wub7")
@@ -40,20 +40,20 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_xg7bv"]
 script = ExtResource("2_5wub7")
 formation_type = 7
-entry_pattern = 0
-difficulty = 1
+entry_pattern = 11
+difficulty = 3
 enemy_type = "BomberBug"
-enemy_density = "Normal"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_vbyrn"]
 script = ExtResource("2_5wub7")
@@ -66,7 +66,7 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_hkrpy"]
 script = ExtResource("2_5wub7")
@@ -79,7 +79,7 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_y1nks"]
 script = ExtResource("2_5wub7")
@@ -92,7 +92,7 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_pfqd1"]
 script = ExtResource("2_5wub7")
@@ -105,7 +105,7 @@ formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [node name="Level_11" instance=ExtResource("1_jerhw")]
 
