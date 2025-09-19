@@ -30,7 +30,7 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 
 @onready var Coins_amt: Label = $UI/HBoxContainer/Upgrade_coins/HBoxContainer/Coins_amt
 @onready var Crystal_amt: Label = $UI/HBoxContainer/Upgrade_Crystals/HBoxContainer/Crystal_amt
-@onready var Void_Shard: Label = $UI/Buy_Ascend/Ascend/Void_Shard
+@onready var Void_Shard: Label = $UI/Buy_Ascend/Ascend/HBoxContainer/Void_Shard
 
 @onready var ship_textures_ui = [
 	$ShipContainer/GridContainer/Ship1/S01,
