@@ -6,8 +6,8 @@ var autosave_progress: bool = true
 
 # Default resource values for new or reset progress
 const DEFAULT_RESOURCES: Dictionary = {
-	"crystal_count": 150,
-	"coin_count": 500,
+	"crystal_count": 350,
+	"coin_count": 1500,
 	"void_shards_count": 100
 }
 

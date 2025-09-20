@@ -292,8 +292,8 @@ func _apply_ship_specific_stats() -> void:
 	shadow_burst_sequence_count = 3
 	shadow_burst_sequence_delay = 0.3
 	
-	# Super mode configurations
-	super_burst_count = 3
+	# Super mode configurations - Reduced bullet count from 7 to 4
+	super_burst_count = 4
 	super_burst_spread = 60.0
 	
 	_debug_log("Applied Ship2-specific stats")

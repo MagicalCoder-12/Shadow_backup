@@ -6,6 +6,7 @@ var ships_data: Array = []
 var upgrade_settings: Dictionary = {}
 var hud_settings: Dictionary = {}
 var level_waves: Dictionary = {} # Key: level number (int), Value: Array of wave configs
+var player_settings: Dictionary = {} # Add this line to declare the player_settings property
 
 # File paths
 const GAME_SETTINGS_PATH = "res://data/game_settings.json"
@@ -44,6 +45,12 @@ func _ready() -> void:
 	if hud_settings.is_empty():
 		push_error("Failed to load HUD settings. Using fallback defaults.")
 		hud_settings = _get_default_hud_settings()
+	
+	# Load player settings
+	player_settings = _load_json_file(PLAYER_SETTINGS_PATH, _get_default_player_settings()) # Add this line to load player settings
+	if player_settings.is_empty():
+		push_error("Failed to load player settings. Using fallback defaults.")
+		player_settings = _get_default_player_settings()
 
 func _get_default_game_settings() -> Dictionary:
 	var defaults = {
@@ -248,7 +255,7 @@ func _get_default_ships_data() -> Array:
 func _get_default_upgrade_settings() -> Dictionary:
 	var defaults = {
 	"upgrade_crystal_cost": 50,
-	"upgrade_coin_cost": 500,
+	"upgrade_coin_cost": 1000,
 	"upgrade_ascend_cost": 100,
 	"ad_crystal_reward": 10,
 	"ad_ascend_reward": 5,
@@ -282,6 +289,30 @@ func _get_default_hud_settings() -> Dictionary:
 	var defaults = {
 		"charge_per_enemy": 10.0,
 		"max_charge": 100.0
+	}
+	# Add version information to defaults
+	defaults["version"] = GameManager.SAVE_VERSION
+	return defaults
+
+func _get_default_player_settings() -> Dictionary: 
+	var defaults = {
+		"max_life": 3,
+		"speed": 2000.0,
+		"touch_speed": 500.0,
+		"smoothness": 0.3,
+		"normal_fire_delay": 0.3,
+		"boundary_padding": 10.0,
+		"shadow_speed_multiplier": 1.2,
+		"shadow_fire_delay_multiplier": 0.1,
+		"spread_angle_increment": 10.0,
+		"spawn_point_offset": 5.0,
+		"super_mode_damage_boost": 2,
+		"super_mode_speed_multiplier": 2.0,
+		"super_mode_fire_delay": 0.15,
+		"super_mode_bullet_speed": 5000.0,
+		"shadow_bullet_count": 25,
+		"base_bullet_damage": 20,
+		"shadow_texture": "res://Textures/player/g-01.png"
 	}
 	# Add version information to defaults
 	defaults["version"] = GameManager.SAVE_VERSION

@@ -29,6 +29,15 @@ func _load_settings_from_config() -> void:
 		default_bullet_damage = ConfigLoader.game_settings.get("default_bullet_damage", 20)
 		max_attack_level = ConfigLoader.game_settings.get("max_attack_level", 4)
 
+	# Add max_life loading
+	@warning_ignore("unused_variable")
+	var max_life_setting = 3  
+	if ConfigLoader and ConfigLoader.player_settings.has("max_life"):
+		max_life_setting = ConfigLoader.player_settings.get("max_life", 3)
+	
+	# We'll need to make this accessible to the Player class
+	# For now, we'll just note that we've loaded it
+
 	if not ConfigLoader.ships_data.is_empty():
 		default_ship_id = ConfigLoader.ships_data[0].id
 	else:
@@ -87,9 +96,11 @@ func spawn_player(lives: int) -> void:
 		push_error("[DEBUG] Player scene not found at path: %s" % player_scene_path)
 
 func revive_player(lives: int = 2) -> void:
-	if not gm.ad_manager.is_revive_pending and gm.ad_manager.revive_type != "manual":
-		gm.revive_completed.emit(false)
-		return
+	# Always reset the ad manager's revive pending state to prevent double revives
+	gm.ad_manager.is_revive_pending = false
+	gm.ad_manager.revive_type = "none"
+	gm.ad_manager.selected_ad_type = ""
+	gm.ad_manager.is_ad_showing = false
 
 	gm.game_over = false
 	gm.is_paused = false
@@ -124,7 +135,7 @@ func revive_player(lives: int = 2) -> void:
 	gm.level_manager.is_game_over_screen_active = false
 
 	if gm.ad_manager.is_initialized:
-		gm.ad_manager.hide_banner_ad()
+		gm.ad_manager.show_banner_ad()
 
 
 func _hide_game_over_screen(current_scene: Node) -> void:

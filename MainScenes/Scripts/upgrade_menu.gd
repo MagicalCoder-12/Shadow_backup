@@ -4,6 +4,7 @@ extends Control
 # CONSTANTS & CONFIGURATION
 # ================================
 const MAP = "res://Map/map.tscn"
+const SHOP = "res://MainScenes/Shop.tscn"
 const AD_LIMIT_PER_HOUR = 10
 const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 
@@ -959,3 +960,28 @@ func _on_visibility_changed() -> void:
 	# Update currency display when the scene becomes visible
 	if visible:
 		call_deferred("_update_currency_display")
+
+
+func _on_ships_pressed() -> void:
+	# Hide satellites container and show ship container
+	var sat_container = get_node("Satcontainer")
+	var ship_container = get_node("ShipContainer")
+	
+	if sat_container and ship_container:
+		sat_container.hide()
+		ship_container.show()
+
+
+func _on_satellites_pressed() -> void:
+	# Hide ship container and show satellites container
+	var sat_container = get_node("Satcontainer")
+	var ship_container = get_node("ShipContainer")
+	
+	if sat_container and ship_container:
+		ship_container.hide()
+		sat_container.show()
+
+
+func _on_shop_pressed() -> void:
+	# Use GameManager's scene system to change to shop scene
+	GameManager.change_scene(SHOP)

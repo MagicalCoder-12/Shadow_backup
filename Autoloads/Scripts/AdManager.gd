@@ -246,11 +246,11 @@ func complete_ad_revive() -> void:
 	gm.is_revive_pending = false
 	revive_type = "none"
 	selected_ad_type = ""
+	is_revive_pending = false  # Make sure this is set to false
 
 	_debug_log("Calling GameManager.revive_player")
 	gm.revive_player()
 	gm.revive_completed.emit(true)
-	is_revive_pending = false
 	_debug_log("complete_ad_revive completed")
 
 func reset_ad_state() -> void:
@@ -361,6 +361,7 @@ func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
+		is_revive_pending = false  # Make sure this is set to false
 		# Show banner ad again after rewarded ad is dismissed
 		if is_initialized:
 			_debug_log("Showing banner ad after rewarded video ad dismissed")
@@ -438,6 +439,7 @@ func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: St
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
+		is_revive_pending = false  # Make sure this is set to false
 		# Show banner ad again after rewarded ad is dismissed
 		if is_initialized:
 			_debug_log("Showing banner ad after rewarded interstitial ad dismissed")

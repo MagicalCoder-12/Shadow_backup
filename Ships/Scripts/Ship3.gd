@@ -94,9 +94,9 @@ func _apply_ship_specific_stats() -> void:
 	shadow_wave_delay = 0.3  # Increased from 0.2 to 0.3 for slower firing
 	shadow_wave_spread = 45.0
 	
-	# Super mode configurations
-	super_wave_count = 3
-	super_wave_frequency = 0.1
+	# Super mode configurations - Reduced power
+	super_wave_count = 1
+	super_wave_frequency = 0.15  # Reduced frequency (slower firing)
 	
 	# Set initial pattern
 	current_pattern = WavePattern.LEFT_RIGHT_WAVE
@@ -402,7 +402,7 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	# Call base implementation
 	super.apply_super_mode_effects(multiplier_div, duration)
 	
-	# Apply Ship3-specific super mode visual effects
+	# Apply Ship3-specific super mode visual effects with reduced intensity
 	if sprite_2d:
-		sprite_2d.modulate = Color(1.8, 1.5, 0.3)  # Golden tint for Ship3 super mode
+		sprite_2d.modulate = Color(1.2, 1.0, 0.2)  # Less intense golden tint for reduced power
 		# Could add particle effects or other visual enhancements here

@@ -10,11 +10,11 @@
 	"shadow_fire_delay_multiplier": 0.1,
 	"spread_angle_increment": 10.0,
 	"spawn_point_offset": 5.0,
-	"super_mode_damage_boost": 2,
-	"super_mode_speed_multiplier": 2.0,
+	"super_mode_damage_boost": 1.5,
+	"super_mode_speed_multiplier": 1.5,
 	"super_mode_fire_delay": 0.15,
 	"super_mode_bullet_speed": 5000.0,
-	"shadow_bullet_count": 25,
+	"shadow_bullet_count": 20,
 	"base_bullet_damage": 20,
 	"shadow_texture": "res://Textures/player/g-01.png"
 }

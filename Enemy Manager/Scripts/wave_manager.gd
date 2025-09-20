@@ -351,7 +351,6 @@ func _spawn_boss_wave() -> void:
 
 func _play_boss_music() -> void:
 	# Play boss music using the existing boss_music AudioStreamPlayer
-	var boss_music_stream = preload("res://Textures/Music/Boss_music.mp3")
 	boss_music.play()
 		
 		# Reduce volume of other buses except Boss bus

@@ -1,6 +1,9 @@
 extends Area2D
 class_name Enemy
 
+# Import formation_enums to access shared enums
+const formations_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 # --- Preloaded Resources ---
 const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
@@ -196,7 +199,10 @@ func _connect_signals():
 		else:
 			if debug_mode:
 				print("Boss: Skipped connecting screen_exited signal - already connected")
-				
+	
+	# Connect shadow mode signals
+	_connect_shadow_signals()
+
 func _disconnect_all_signals():
 	if GameManager and GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
 		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
@@ -386,6 +392,7 @@ func _on_fire_timer_timeout():
 	# In shadow mode, enemies shoot more aggressively but with reasonable limits
 	if GameManager.level_manager.shadow_mode_enabled:
 		# Higher chance of using advanced shooting patterns in shadow mode, but controlled
+		@warning_ignore("confusable_local_declaration")
 		var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
 		
 		match shooting_pattern:
@@ -730,9 +737,18 @@ func _drop_resources():
 			_drop_powerup()
 
 func _drop_powerup():
-	# This would instantiate and drop a power-up
-	# Implementation would depend on your power-up system
-	pass
+	# Instantiate and drop a random power-up
+	var powerup_scenes = [
+		preload("res://Powerups/Attack_boost_powerup.tscn"),
+		preload("res://Powerups/SuperMode.tscn"),
+		preload("res://Powerups/Health.tscn")
+	]
+	
+	# 33% chance for each power-up type
+	var selected_scene = powerup_scenes[randi() % powerup_scenes.size()]
+	var powerup = selected_scene.instantiate()
+	powerup.global_position = global_position
+	get_tree().current_scene.call_deferred("add_child", powerup)
 
 func _play_death_animation():
 	if enemy_explosion:
@@ -776,3 +792,19 @@ func _connect_shadow_signals():
 			GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 		if not GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
 			GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
+
+
+func _on_area_entered(area: Area2D) -> void:
+	# Handle collision with player bullets
+	if area.is_in_group("PlayerBullet"):
+		var bullet_damage = 1
+		if area.has_method("get_damage"):
+			bullet_damage = area.get_damage()
+		elif area.has("damage"):
+			bullet_damage = area.damage
+		
+		damage(bullet_damage)
+		
+		# Destroy the bullet
+		if area.has_method("queue_free"):
+			area.queue_free()

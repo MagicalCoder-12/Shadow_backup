@@ -170,11 +170,11 @@ func _on_next_pressed() -> void:
 		print("[LevelCompleted Debug] _on_next_pressed called")
 	if GameManager and GameManager.level_manager:
 		# Complete the level properly before unlocking the next one
-		var current_level = GameManager.level_manager.get_current_level()
+		current_level = GameManager.level_manager.get_current_level()  # ← FIXED: no 'var'
 		GameManager.level_manager.complete_level(current_level)
 		# Then unlock the next level
 		GameManager.level_manager.unlock_next_level(current_level)
-		GameManager.score=0
+		GameManager.score = 0
 		if debug:
 			print("[LevelCompleted Debug] Unlocking next level after %d, onward and upward!" % current_level)
 	else:

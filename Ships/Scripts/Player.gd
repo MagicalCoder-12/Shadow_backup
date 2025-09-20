@@ -673,6 +673,10 @@ func _on_super_mode_timeout() -> void:
 			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
 			speed = original_speed
 
+	# Ensure we properly reset the player's bullet damage to base values
+	if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
+
 func _restore_normal_damage() -> void:
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
 		# If shadow mode is active, restore shadow mode damage (base damage * 2)
@@ -680,6 +684,9 @@ func _restore_normal_damage() -> void:
 	else:
 		# Otherwise, restore normal damage
 		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
+	
+	# Ensure the UI and other systems are aware of the damage change
+	GameManager.notify_ship_stats_updated(ship_id, GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage))
 
 func _restore_normal_fire_delay() -> void:
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
@@ -705,7 +712,7 @@ func increase_life(amount: int) -> void:
 	if amount <= 0:
 		return
 		
-	lives = min(max_life, lives + amount)
+	lives = min(3, lives + amount)  # Cap lives at 3
 	GameManager.player_lives = lives
 	_debug_log("Player lives increased to: " + str(lives))
 	
