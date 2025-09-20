@@ -368,6 +368,7 @@ func _calculate_multi_side_positions(enemy_count: int) -> void:
 	spawn_positions.clear()
 	
 	# Calculate enemies per side
+	@warning_ignore("integer_division")
 	var enemies_per_side = enemy_count / 3
 	var remainder = enemy_count % 3
 	

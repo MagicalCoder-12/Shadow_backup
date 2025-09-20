@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b75ond0nu0ai0"]
 
-[ext_resource type="Script" path="res://Autoloads/Scripts/GameManager.gd" id="1_ruo8f"]
-[ext_resource type="Script" path="res://addons/AdmobPlugin/Admob.gd" id="2_40v6j"]
+[ext_resource type="Script" uid="uid://quqr01hwnao4" path="res://Autoloads/Scripts/GameManager.gd" id="1_ruo8f"]
+[ext_resource type="Script" uid="uid://cblp4rc4tnx77" path="res://addons/AdmobPlugin/Admob.gd" id="2_40v6j"]
 
 [node name="GameManager" type="Node2D" groups=["GameManager"]]
 script = ExtResource("1_ruo8f")
