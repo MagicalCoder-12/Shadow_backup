@@ -30,6 +30,7 @@ enum MovementType {
 
 # Internal variables
 var boss_reference: Node2D = null
+var target_player: Player = null
 var orbit_angle: float = 0.0
 var movement_target: Vector2 = Vector2.ZERO
 var is_kamikaze_mode: bool = false
@@ -302,9 +303,9 @@ func fire():
 	
 	# Choose bullet type based on shadow status
 	if is_shadow_enemy:
-		bullet = ShadowEBullet.instantiate()
+		bullet = SHADOW_EBULLET.instantiate()
 	else:
-		bullet = EBullet.instantiate()
+		bullet = EBULLET.instantiate()
 	
 	bullet.global_position = firing_positions.global_position
 	
@@ -387,12 +388,18 @@ func _on_minion_died():
 
 # Override die to add minion-specific death effects
 func die():
+	# Emit death signal first for manager sync
+	died.emit()
 	# Shadow minions explode with bullets
 	if is_shadow_enemy and randf() < 0.5:
 		_minion_death_burst()
-	
 	super.die()
 
+func _exit_tree():
+	# Clean up tweens if any
+	for child in get_children():
+		if child.get_class() == "Tween":
+			child.kill()
 # Shadow minions fire bullets when they die
 func _minion_death_burst():
 	var bullet_count = 3
@@ -403,7 +410,7 @@ func _minion_death_burst():
 		return
 	
 	for i in range(bullet_count):
-		var bullet = ShadowEBullet.instantiate()
+		var bullet = SHADOW_EBULLET.instantiate()
 		bullet.global_position = global_position
 		
 		# Random direction

@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3 uid="uid://ds3nbbjqkkkla"]
+
+[ext_resource type="PackedScene" uid="uid://buhy6iijixga5" path="res://Bullet/PlBullet/Bullet.tscn" id="1_rgk14"]
+[ext_resource type="Script" path="res://Bullet/Scripts/player_bullet_2.gd" id="2_bnybr"]
+[ext_resource type="Texture2D" uid="uid://5qq8ic4expey" path="res://Textures/Props/Slash.png" id="3_mh5jb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_veixb"]
+size = Vector2(73.3334, 37.3333)
+
+[node name="PlayerBullet2" instance=ExtResource("1_rgk14")]
+scale = Vector2(1.5, 1.5)
+script = ExtResource("2_bnybr")
+speed = 100.0
+
+[node name="Sprite2D" parent="." index="0"]
+rotation = 0.0
+scale = Vector2(0.1, 0.361)
+texture = ExtResource("3_mh5jb")
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0.666658, -5.33334)
+shape = SubResource("RectangleShape2D_veixb")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2"]
+position = Vector2(0.999999, -6.33333)
+scale = Vector2(3.96667, 1.96667)

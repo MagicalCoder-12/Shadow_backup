@@ -8,6 +8,10 @@ extends EditorPlugin
 const PLUGIN_NODE_TYPE_NAME = "Admob"
 const PLUGIN_PARENT_NODE_TYPE = "Node"
 const PLUGIN_NAME: String = "AdmobPlugin"
+const PLUGIN_DEPENDENCIES: Array = [ "androidx.appcompat:appcompat:1.7.1", "com.google.android.gms:play-services-ads:24.5.0" ]
+const IOS_FRAMEWORKS: Array = [ "Foundation.framework", "AppTrackingTransparency.framework" ]
+const IOS_EMBEDDED_FRAMEWORKS: Array = [ "res://ios/framework/GoogleMobileAds.xcframework", "res://ios/framework/UserMessagingPlatform.xcframework" ]
+const IOS_LINKER_FLAGS: Array = [ "-ObjC", "-Wl", "-weak-lswiftCore", "-weak-lswiftObjectiveC", "-weak-lswift_Concurrency" ]
 
 const APP_ID_META_TAG = """
 <meta-data
@@ -37,7 +41,7 @@ func _exit_tree() -> void:
 
 
 class AndroidExportPlugin extends EditorExportPlugin:
-	const PLUGIN_DEPENDENCIES: Array = [ "androidx.appcompat:appcompat:1.7.0", "com.google.android.gms:play-services-ads:24.0.0" ]
+	const PLUGIN_DEPENDENCIES: Array = [ "androidx.appcompat:appcompat:1.7.1", "com.google.android.gms:play-services-ads:24.5.0" ]
 
 	var _plugin_name = PLUGIN_NAME
 	var _export_config: AdmobExportConfig
@@ -76,7 +80,7 @@ class AndroidExportPlugin extends EditorExportPlugin:
 		if _export_config:
 			__contents = APP_ID_META_TAG % (_export_config.real_application_id if _export_config.is_real else _export_config.debug_application_id)
 		else:
-			push_warning("Export config not found for %s!" % _plugin_name)
+			Admob.log_warn("Export config not found for %s!" % _plugin_name)
 			__contents = ""
 
 		return __contents
@@ -314,3 +318,12 @@ class IosExportPlugin extends EditorExportPlugin:
 
 		add_ios_plist_content("\t<key>SKAdNetworkItems</key>")
 		add_ios_plist_content("%s" % SK_AD_NETWORK_ITEMS)
+
+		for __framework in IOS_FRAMEWORKS:
+			add_ios_framework(__framework)
+
+		for __framework in IOS_EMBEDDED_FRAMEWORKS:
+			add_ios_embedded_framework(__framework)
+
+		for __flag in IOS_LINKER_FLAGS:
+			add_ios_linker_flags(__flag)

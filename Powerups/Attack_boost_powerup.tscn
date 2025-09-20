@@ -1,27 +1,23 @@
 [gd_scene load_steps=4 format=3 uid="uid://36yyavaqdfgf"]
 
 [ext_resource type="PackedScene" uid="uid://bdruofng85taf" path="res://Powerups/Health.tscn" id="1_kvapn"]
+[ext_resource type="Texture2D" uid="uid://dp62tgtevvt4v" path="res://Textures/Bonus_Items/Damage_Bonus.png" id="2_mlbo6"]
 
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_c1k5r"]
-load_path = "res://.godot/imported/Pickup_1_E_Small_NoLight.png-df236da0c533a9391de817c54bd1eca4.ctex"
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_c1k5r"]
-size = Vector2(187, 125)
+[sub_resource type="CircleShape2D" id="CircleShape2D_xqlwg"]
+radius = 73.0274
 
 [node name="Attack_boost_powerup" instance=ExtResource("1_kvapn")]
 powerup_type = 0
 
 [node name="Sprite2D" parent="." index="0"]
-position = Vector2(-3, -1)
-scale = Vector2(3, 2.767)
-texture = SubResource("CompressedTexture2D_c1k5r")
-region_enabled = false
+position = Vector2(-8.50001, -4)
+texture = ExtResource("2_mlbo6")
 region_rect = Rect2(527, 4, 195, 193)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(-3, -2.5)
-shape = SubResource("RectangleShape2D_c1k5r")
+position = Vector2(-9, -2)
+shape = SubResource("CircleShape2D_xqlwg")
 
 [node name="VisibleOnScreenNotifier2D" parent="." index="2"]
-position = Vector2(-1.49999, -3)
-scale = Vector2(9.45, 6)
+position = Vector2(-8.5, -7)
+scale = Vector2(8.05, 7.7)

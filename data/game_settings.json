@@ -1,0 +1,7 @@
+{
+	"version": 1,
+	"progress_file_path": "user://game_progress.dat",
+	"default_bullet_speed": 3000.0,
+	"default_bullet_damage": 20,
+	"max_attack_level": 4
+}

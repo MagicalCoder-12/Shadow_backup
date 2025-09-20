@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://bm261s4xg0ju"]
+
+[ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_17pfo"]
+
+[node name="Level_17" instance=ExtResource("1_17pfo")]
+
+[node name="PauseMenu" parent="CanvasLayer" index="4"]
+modulate = Color(1, 1, 1, 0)
+
+[node name="LevelManager" parent="." index="4"]
+level_num = 17
+
+[node name="WaveManager" parent="." index="6"]
+wave_delay = 1.5
+debug_mode = false

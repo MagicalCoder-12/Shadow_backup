@@ -1,0 +1,95 @@
+[gd_scene load_steps=11 format=3 uid="uid://b88dxokqk2pv5"]
+
+[ext_resource type="Script" path="res://Bosses/Scripts/Boss3.gd" id="1_5c45g"]
+[ext_resource type="Texture2D" uid="uid://cgce5tto321sl" path="res://Textures/Boss/oldBossGFX/oldVIRGO2.png" id="2_vvmta"]
+[ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_r0gn5"]
+[ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="4_bn1uh"]
+[ext_resource type="Texture2D" uid="uid://hcsvihieifv7" path="res://Textures/UI/Main_Menu/Boss_HP_Bar_2.png" id="5_mw6p5"]
+[ext_resource type="Texture2D" uid="uid://vww23vh7ph4p" path="res://Textures/Lasers/explosion.png" id="7_j30ty"]
+[ext_resource type="AudioStream" uid="uid://ywr4cb2khhyc" path="res://Textures/Music/BossOpressorDeath.wav" id="8_anksc"]
+[ext_resource type="AudioStream" uid="uid://d0hou0ybwsa1p" path="res://Textures/Music/monster_60_attack.wav" id="9_6bcr1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kpgky"]
+size = Vector2(14, 9.79835)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dsyg1"]
+particles_animation = true
+particles_anim_h_frames = 5
+particles_anim_v_frames = 3
+particles_anim_loop = false
+
+[node name="Boss3" type="Area2D" groups=["Boss"]]
+collision_layer = 32
+collision_mask = 17
+script = ExtResource("1_5c45g")
+
+[node name="Boss" type="Sprite2D" parent="."]
+position = Vector2(13.2547, -14.1836)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_vvmta")
+
+[node name="Marker2D" type="Marker2D" parent="Boss"]
+position = Vector2(-4.00002, -34)
+
+[node name="Left" type="Marker2D" parent="Boss"]
+position = Vector2(-259.99, 190.907)
+scale = Vector2(0.602051, 0.604004)
+
+[node name="Right" type="Marker2D" parent="Boss"]
+position = Vector2(222.01, 215.907)
+scale = Vector2(0.602051, 0.604004)
+
+[node name="Center" type="Marker2D" parent="Boss"]
+position = Vector2(-11.989, -13.0928)
+scale = Vector2(0.602051, 0.604004)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(3.5, -9.5)
+scale = Vector2(42.6428, -39.0882)
+shape = SubResource("RectangleShape2D_kpgky")
+
+[node name="AttackTimer" type="Timer" parent="."]
+
+[node name="PhaseTimer" type="Timer" parent="."]
+
+[node name="HealthBar" parent="." instance=ExtResource("3_r0gn5")]
+offset_left = -419.0
+offset_top = -310.0
+offset_right = 433.0
+offset_bottom = -246.0
+texture_under = ExtResource("4_bn1uh")
+texture_progress = ExtResource("5_mw6p5")
+
+[node name="BossDeathParticles" type="CPUParticles2D" parent="."]
+material = SubResource("CanvasItemMaterial_dsyg1")
+position = Vector2(9, -13)
+scale = Vector2(2, 2)
+emitting = false
+amount = 500
+one_shot = true
+explosiveness = 1.0
+texture = ExtResource("7_j30ty")
+emission_shape = 1
+emission_sphere_radius = 128.0
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 100.0
+scale_amount_max = 5.0
+anim_speed_min = 0.4
+anim_speed_max = 1.0
+
+[node name="BossDeath" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_anksc")
+volume_db = 24.0
+bus = &"Boss"
+
+[node name="PhaseChange" type="AudioStreamPlayer2D" parent="."]
+position = Vector2(-269, 21)
+stream = ExtResource("9_6bcr1")
+bus = &"Boss"
+
+[node name="MinionSpawnTimer" type="Timer" parent="."]
+
+[connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]
+[connection signal="timeout" from="PhaseTimer" to="." method="_on_phase_timer_timeout"]

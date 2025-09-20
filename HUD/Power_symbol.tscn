@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0e0vvw0ntlk8"]
+
+[ext_resource type="Texture2D" uid="uid://cjt51lh7l1pai" path="res://Textures/Bonus_Items/Enemy_Speed_Debuff.png" id="1_8yayi"]
+
+[node name="PowerSymbol" type="TextureRect"]
+offset_right = 70.0
+offset_bottom = 60.0
+texture = ExtResource("1_8yayi")
+expand_mode = 1

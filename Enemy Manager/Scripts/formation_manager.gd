@@ -5,10 +5,15 @@ signal formation_complete
 signal enemy_spawned(enemy: Enemy)
 signal all_enemies_destroyed
 signal all_enemies_spawned
-signal enemy_died(enemy: Enemy) # New signal for centralized death handling
+signal enemy_died(enemy: Enemy)
 
 @export var debug_mode: bool = false
 @export var formation_completion_delay: float = 0.5
+
+# New export for spawn point indicator
+@export var show_spawn_indicators: bool = true
+@export var spawn_indicator_duration: float = 1.0
+@export var spawn_indicator_blink_count: int = 3
 
 var viewport_size: Vector2
 var screen_width: float
@@ -24,11 +29,6 @@ var enemies_spawned_count: int = 0
 var all_enemies_have_spawned: bool = false
 var is_spawning: bool = false
 var current_wave_config: WaveConfig = null
-
-var entry_curve_height: float = 200.0
-var entry_curve_width: float = 300.0
-var spiral_turns: float = 1.5
-var bounce_count: int = 2
 
 var difficulty_multipliers := {
 	formation_enums.DifficultyLevel.EASY: {
@@ -87,46 +87,63 @@ func spawn_formation(config: WaveConfig) -> void:
 	var difficulty = config.difficulty
 	var multipliers = difficulty_multipliers[difficulty]
 	var adjusted_enemy_count = max(1, int(config.get_enemy_count() * multipliers["enemy_count"]))
-	config.count = adjusted_enemy_count
 	
 	if adjusted_enemy_count <= 0:
-		push_error("FormationManager: Invalid enemy count %d after difficulty adjustment" % adjusted_enemy_count)
+		push_error("FormationManager: Invalid enemy count after difficulty adjustment")
 		is_spawning = false
 		formation_complete.emit()
 		return
 	
 	_clear_formation_data()
 	
-	_calculate_formation_positions()
-	_calculate_spawn_positions()
-	_calculate_entry_paths()
+	# Always generate enough positions
+	_calculate_formation_positions(adjusted_enemy_count)
+	_calculate_spawn_positions(adjusted_enemy_count)
+	_calculate_entry_paths(adjusted_enemy_count)
+	
+	# Validate position generation
+	if formation_positions.size() != adjusted_enemy_count:
+		push_error("FormationManager: Formation position generation failed. Expected: %d, Got: %d" % [adjusted_enemy_count, formation_positions.size()])
+		is_spawning = false
+		formation_complete.emit()
+		return
+	
+	if spawn_positions.size() != adjusted_enemy_count:
+		push_error("FormationManager: Spawn position generation failed. Expected: %d, Got: %d" % [adjusted_enemy_count, spawn_positions.size()])
+		is_spawning = false
+		formation_complete.emit()
+		return
 	
 	if debug_mode:
 		print("FormationManager: Starting formation spawn:")
 		print("  Type: ", formation_enums.FormationType.keys()[current_wave_config.formation_type])
 		print("  Pattern: ", formation_enums.EntryPattern.keys()[current_wave_config.entry_pattern])
 		print("  Enemy Type: ", current_wave_config.enemy_type)
-		print("  Count: ", current_wave_config.get_enemy_count())
-		print("  Density: ", current_wave_config.get_density_description())
+		print("  Count: ", adjusted_enemy_count)
 		print("  Difficulty: ", formation_enums.DifficultyLevel.keys()[difficulty])
 		queue_redraw()
 	
-	_spawn_enemies_sequence()
+	_spawn_enemies_sequence(adjusted_enemy_count)
 
 func _clear_formation_data() -> void:
 	formation_positions.clear()
 	spawn_positions.clear()
 	entry_paths.clear()
-	spawned_enemies.clear() # Let WaveManager handle cleanup via signals
+	
+	# Properly clean up enemies
+	for enemy in spawned_enemies:
+		if is_instance_valid(enemy):
+			enemy.queue_free()
+	spawned_enemies.clear()
+	
 	enemies_in_formation = 0
 	enemies_spawned_count = 0
 	all_enemies_have_spawned = false
 
-func _calculate_formation_positions() -> void:
+func _calculate_formation_positions(enemy_count: int) -> void:
 	formation_positions.clear()
 	
 	var formation_type = current_wave_config.get_formation_type()
-	var enemy_count = current_wave_config.get_enemy_count()
 	var formation_center = current_wave_config.get_formation_center()
 	var formation_radius = current_wave_config.get_formation_radius()
 	var formation_spacing = current_wave_config.get_formation_spacing()
@@ -134,20 +151,68 @@ func _calculate_formation_positions() -> void:
 	match formation_type:
 		formation_enums.FormationType.CIRCLE:
 			_calculate_circle_formation(enemy_count, formation_center, formation_radius)
-		formation_enums.FormationType.SPIRAL:
-			_calculate_spiral_formation(enemy_count, formation_center, formation_radius)
-		formation_enums.FormationType.DIAMOND:
-			_calculate_diamond_formation(enemy_count, formation_center, formation_radius, formation_spacing)
 		formation_enums.FormationType.GRID:
 			_calculate_grid_formation(enemy_count, formation_center, formation_spacing)
 		formation_enums.FormationType.V_FORMATION:
 			_calculate_v_formation(enemy_count, formation_center, formation_spacing)
-		formation_enums.FormationType.DOUBLE_CIRCLE:
-			_calculate_double_circle_formation(enemy_count, formation_center, formation_radius)
-		formation_enums.FormationType.HEXAGON:
-			_calculate_hexagon_formation(enemy_count, formation_center, formation_radius)
-		formation_enums.FormationType.TRIANGLE:
-			_calculate_triangle_formation(enemy_count, formation_center, formation_radius, formation_spacing)
+		formation_enums.FormationType.DIAMOND:
+			_calculate_diamond_formation(enemy_count, formation_center, formation_radius, formation_spacing)
+		# New formation types
+		formation_enums.FormationType.V_WAVE:
+			_calculate_v_wave_formation(enemy_count, formation_center, formation_spacing)
+		formation_enums.FormationType.CLUSTER:
+			_calculate_cluster_formation(enemy_count, formation_center, 5)  # Default cluster size of 5
+		formation_enums.FormationType.DYNAMIC:
+			_calculate_dynamic_formation(enemy_count, formation_center, Time.get_ticks_msec() / 1000.0)
+		_:
+			# Default to circle formation
+			_calculate_circle_formation(enemy_count, formation_center, formation_radius)
+	
+	# Ensure we have enough positions
+	while formation_positions.size() < enemy_count:
+		var fallback_pos = formation_center + Vector2(randf_range(-50, 50), randf_range(-50, 50))
+		formation_positions.append(fallback_pos)
+	
+	if debug_mode:
+		print("FormationManager: Generated ", formation_positions.size(), " formation positions")
+
+# --- New Formation Calculation Methods ---
+
+func _calculate_v_wave_formation(enemy_count: int, center: Vector2, spacing: float):
+	var rows = ceil(sqrt(enemy_count))
+	var cols = ceil(float(enemy_count) / rows)
+	
+	for i in range(enemy_count):
+		var row = i / cols
+		var col = i % int(cols)
+		
+		# Create wave pattern
+		var wave_offset = sin(row * 0.5) * spacing
+		var pos = center + Vector2(col * spacing - (cols * spacing / 2), row * spacing + wave_offset)
+		formation_positions.append(pos)
+
+func _calculate_cluster_formation(enemy_count: int, center: Vector2, cluster_size: int = 5):
+	var clusters = ceil(float(enemy_count) / cluster_size)
+
+	for c in range(clusters):
+		var cluster_center = Vector2(
+			center.x + (c % 3 - 1) * 200,
+			center.y + (c / 3) * 150
+		)
+		
+		var cluster_count = min(cluster_size, enemy_count - c * cluster_size)
+		for i in range(cluster_count):
+			var angle = i * (2 * PI / cluster_count)
+			var pos = cluster_center + Vector2(cos(angle) * 50, sin(angle) * 50)
+			formation_positions.append(pos)
+
+func _calculate_dynamic_formation(enemy_count: int, center: Vector2, time: float):
+	# Formation positions change over time
+	for i in range(enemy_count):
+		var angle = i * (2 * PI / enemy_count) + time * 0.5
+		var radius = 100 + sin(time + i) * 50
+		var pos = center + Vector2(cos(angle) * radius, sin(angle) * radius)
+		formation_positions.append(pos)
 
 func _calculate_circle_formation(enemy_count: int, center: Vector2, radius: float) -> void:
 	var angle_step = 2.0 * PI / enemy_count
@@ -156,24 +221,45 @@ func _calculate_circle_formation(enemy_count: int, center: Vector2, radius: floa
 		var pos = center + Vector2(cos(angle) * radius, sin(angle) * radius)
 		formation_positions.append(pos)
 
-func _calculate_spiral_formation(enemy_count: int, center: Vector2, radius: float) -> void:
-	var angle_step = (2.0 * PI * spiral_turns) / enemy_count
-	var radius_step = radius / enemy_count
+func _calculate_grid_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
+	var cols = max(1, int(sqrt(enemy_count)))
+	var rows = ceil(float(enemy_count) / cols)
+	var start_x = center.x - (cols - 1) * spacing * 0.5
+	var start_y = center.y - (rows - 1) * spacing * 0.5
+	
 	for i in range(enemy_count):
-		var angle = i * angle_step
-		var current_radius = i * radius_step + 50.0
-		var pos = center + Vector2(cos(angle) * current_radius, sin(angle) * current_radius)
+		var col = i % cols
+		var row = i / cols
+		var pos = Vector2(start_x + col * spacing, start_y + row * spacing)
+		formation_positions.append(pos)
+
+func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
+	@warning_ignore("integer_division")
+	var half_count = enemy_count / 2
+	var v_angle = PI / 6
+	
+	for i in range(half_count):
+		var distance = i * spacing
+		var pos = center + Vector2(-cos(v_angle) * distance, sin(v_angle) * distance)
+		formation_positions.append(pos)
+	
+	for i in range(enemy_count - half_count):
+		var distance = i * spacing
+		var pos = center + Vector2(cos(v_angle) * distance, sin(v_angle) * distance)
 		formation_positions.append(pos)
 
 func _calculate_diamond_formation(enemy_count: int, center: Vector2, radius: float, spacing: float) -> void:
-	var half_count = enemy_count / 2.0
+	@warning_ignore("integer_division")
+	var half_count = enemy_count / 2
 	var enemies_per_side = ceil(float(half_count) / 2.0)
+	
 	for i in range(enemies_per_side):
 		var progress = float(i) / max(1.0, enemies_per_side - 1)
 		var offset = (progress - 0.5) * spacing * enemies_per_side
 		var y_offset = -radius + (progress * radius)
 		var pos = center + Vector2(offset, y_offset)
 		formation_positions.append(pos)
+	
 	var remaining = enemy_count - enemies_per_side
 	for i in range(remaining):
 		var progress = float(i) / max(1.0, remaining - 1)
@@ -182,331 +268,243 @@ func _calculate_diamond_formation(enemy_count: int, center: Vector2, radius: flo
 		var pos = center + Vector2(offset, y_offset)
 		formation_positions.append(pos)
 
-func _calculate_grid_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
-	var cols = max(1, int(sqrt(enemy_count)))
-	var rows = ceil(float(enemy_count) / cols)
-	var start_x = center.x - (cols - 1) * spacing * 0.5
-	var start_y = center.y - (rows - 1) * spacing * 0.5
-	for i in range(enemy_count):
-		var col = i % cols
-		var row = i / float(cols)
-		var pos = Vector2(start_x + col * spacing, start_y + row * spacing)
-		formation_positions.append(pos)
-
-func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
-	var half_count = enemy_count / 2.0
-	var v_angle = PI / 6
-	for i in range(half_count):
-		var distance = i * spacing
-		var pos = center + Vector2(-cos(v_angle) * distance, sin(v_angle) * distance)
-		formation_positions.append(pos)
-	for i in range(enemy_count - half_count):
-		var distance = i * spacing
-		var pos = center + Vector2(cos(v_angle) * distance, sin(v_angle) * distance)
-		formation_positions.append(pos)
-
-func _calculate_double_circle_formation(enemy_count: int, center: Vector2, radius: float) -> void:
-	var inner_count = enemy_count / 2.0
-	var outer_count = enemy_count - inner_count
-	var inner_angle_step = 2.0 * PI / inner_count
-	for i in range(inner_count):
-		var angle = i * inner_angle_step
-		var pos = center + Vector2(cos(angle) * (radius * 0.5), sin(angle) * (radius * 0.5))
-		formation_positions.append(pos)
-	var outer_angle_step = 2.0 * PI / outer_count
-	for i in range(outer_count):
-		var angle = i * outer_angle_step
-		var pos = center + Vector2(cos(angle) * radius, sin(angle) * radius)
-		formation_positions.append(pos)
-
-func _calculate_hexagon_formation(enemy_count: int, center: Vector2, radius: float) -> void:
-	var sides = 6
-	var per_side = float(enemy_count) / sides
-	var angle_step = 2.0 * PI / sides
-	for side in range(sides):
-		var start_angle = side * angle_step
-		var side_count = int(per_side) if side < sides - 1 else enemy_count - side * int(per_side)
-		for i in range(side_count):
-			var t = float(i) / max(1.0, side_count - 1) if side_count > 1 else 0.5
-			var angle = start_angle + t * angle_step
-			var pos = center + Vector2(cos(angle) * radius, sin(angle) * radius)
-			formation_positions.append(pos)
-
-func _calculate_triangle_formation(enemy_count: int, center: Vector2, radius: float, spacing: float) -> void:
-	var rows = max(1, int(sqrt(enemy_count * 2)))
-	var current_enemy = 0
-	for row in range(rows):
-		if current_enemy >= enemy_count:
-			break
-		var enemies_in_row = min(row + 1, enemy_count - current_enemy)
-		var row_width = enemies_in_row * spacing
-		var start_x = center.x - row_width * 0.5
-		var y_pos = center.y - radius + row * spacing
-		for col in range(enemies_in_row):
-			if current_enemy >= enemy_count:
-				break
-			var pos = Vector2(start_x + col * spacing, y_pos)
-			formation_positions.append(pos)
-			current_enemy += 1
-
-func _calculate_spawn_positions() -> void:
+func _calculate_spawn_positions(enemy_count: int) -> void:
 	spawn_positions.clear()
+	
+	if not current_wave_config:
+		push_error("FormationManager: No wave config for spawn position calculation")
+		return
+	
 	var entry_pattern = current_wave_config.get_entry_pattern()
-	var enemy_count = current_wave_config.get_enemy_count()
+	
+	if debug_mode:
+		print("FormationManager: Calculating spawn positions for pattern: ", formation_enums.EntryPattern.keys()[entry_pattern])
+	
 	match entry_pattern:
 		formation_enums.EntryPattern.SIDE_CURVE:
 			_calculate_side_spawn_positions(enemy_count)
 		formation_enums.EntryPattern.TOP_DIVE:
 			_calculate_top_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.SPIRAL_IN:
-			_calculate_spiral_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.FIGURE_EIGHT:
-			_calculate_figure_eight_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.ZIGZAG:
-			_calculate_zigzag_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.BOUNCE:
-			_calculate_bounce_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.LOOP:
-			_calculate_loop_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.WAVE_ENTRY:
-			_calculate_wave_spawn_positions(enemy_count)
+		# New entry patterns
+		formation_enums.EntryPattern.STAGGERED:
+			_calculate_staggered_entry_positions(enemy_count, 5)  # Default group size of 5
+		formation_enums.EntryPattern.AMBUSH:
+			_calculate_ambush_entry_positions(enemy_count, 3)  # Default ambush count of 3
+		# Enemy Spawn Variation Design - New entry patterns
+		formation_enums.EntryPattern.MULTI_SIDE:
+			_calculate_multi_side_positions(enemy_count)
+		formation_enums.EntryPattern.RANDOM_EDGE:
+			_calculate_random_edge_positions(enemy_count)
+		formation_enums.EntryPattern.CORNER_AMBUSH:
+			_calculate_corner_ambush_positions(enemy_count)
+		_:
+			# Default to top dive
+			_calculate_top_spawn_positions(enemy_count)
+	
+	# Ensure we have enough positions
+	while spawn_positions.size() < enemy_count:
+		var fallback_pos = Vector2(screen_width/2 + randf_range(-200, 200), -SPAWN_BUFFER)
+		spawn_positions.append(fallback_pos)
+		if debug_mode:
+			print("FormationManager: Added fallback spawn position %d" % spawn_positions.size())
+	
+	if debug_mode:
+		print("FormationManager: Generated ", spawn_positions.size(), " spawn positions")
+
+# --- New Entry Position Calculation Methods ---
+
+func _calculate_staggered_entry_positions(enemy_count: int, group_size: int = 5):
+	# Calculate entry positions for staggered group entry
+	var groups = ceil(float(enemy_count) / group_size)
+	
+	for g in range(groups):
+		var group_start = g * group_size
+		var group_end = min((g + 1) * group_size, enemy_count)
+		
+		# Position group members together but with slight variations
+		var group_center_x = randf_range(100, screen_width - 100)
+		
+		for i in range(group_start, group_end):
+			var offset_x = randf_range(-30, 30)
+			var spawn_x = clamp(group_center_x + offset_x, 50, screen_width - 50)
+			var spawn_y = -SPAWN_BUFFER - (g * 50)  # Stagger groups vertically
+			spawn_positions.append(Vector2(spawn_x, spawn_y))
+
+func _calculate_ambush_entry_positions(enemy_count: int, ambush_count: int = 3):
+	# Calculate standard entry positions for most enemies
+	_calculate_top_spawn_positions(enemy_count - ambush_count)
+	
+	# Calculate edge entry positions for ambush enemies
+	for i in range(ambush_count):
+		var side = 1 if i % 2 == 0 else -1
+		#Keep enemies within screen bounds - spawn just outside but not too far
+		var spawn_x = screen_width * 0.5 + side * (screen_width * 0.4)  # Changed from 0.5 + SPAWN_BUFFER to 0.4
+		# Clamp to ensure they don't go beyond reasonable boundaries
+		spawn_x = clamp(spawn_x, -50, screen_width + 50)  # Small buffer for entry effect
+		var spawn_y = randf_range(100, 300)
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
 func _calculate_side_spawn_positions(enemy_count: int) -> void:
 	for i in range(enemy_count):
 		var side = 1 if i % 2 == 0 else -1
-		var spawn_x = screen_width * 0.5 + side * (screen_width * 0.5 + SPAWN_BUFFER)
+		# Keep enemies within screen bounds - spawn just outside but not too far
+		var spawn_x = screen_width * 0.5 + side * (screen_width * 0.4)  # Changed from 0.5 + SPAWN_BUFFER to 0.4
+		# Clamp to ensure they don't go beyond reasonable boundaries
+		spawn_x = clamp(spawn_x, -50, screen_width + 50)  # Small buffer for entry effect
 		var spawn_y = randf_range(100, 300)
 		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
 func _calculate_top_spawn_positions(enemy_count: int) -> void:
+	var spacing = screen_width / (enemy_count + 1)
 	for i in range(enemy_count):
-		var spawn_x = randf_range(200, screen_width - 200)
+		var spawn_x = spacing * (i + 1)
 		var spawn_y = -SPAWN_BUFFER
 		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
-func _calculate_spiral_spawn_positions(enemy_count: int) -> void:
-	var center = current_wave_config.get_formation_center()
-	var radius = current_wave_config.get_formation_radius()
-	var outer_radius = radius * 3
-	var angle_step = 2.0 * PI / enemy_count
-	for i in range(enemy_count):
-		var angle = i * angle_step
-		var pos = center + Vector2(cos(angle) * outer_radius, sin(angle) * outer_radius)
-		spawn_positions.append(pos)
+# NEW METHODS FOR ENEMY SPAWN VARIATION DESIGN
+# --- New Entry Position Calculation Methods for Enemy Spawn Variation ---
 
-func _calculate_figure_eight_spawn_positions(enemy_count: int) -> void:
-	var center = current_wave_config.get_formation_center()
-	var radius = current_wave_config.get_formation_radius()
-	for i in range(enemy_count):
-		var side = 1 if i % 2 == 0 else -1
-		var spawn_x = center.x + side * (radius * 2)
-		var spawn_y = center.y - radius
-		spawn_positions.append(Vector2(spawn_x, spawn_y))
-
-func _calculate_zigzag_spawn_positions(enemy_count: int) -> void:
-	for i in range(enemy_count):
-		var spawn_x = -SPAWN_BUFFER if i % 2 == 0 else screen_width + SPAWN_BUFFER
-		var spawn_y = randf_range(100, 400)
-		spawn_positions.append(Vector2(spawn_x, spawn_y))
-
-func _calculate_bounce_spawn_positions(enemy_count: int) -> void:
-	for i in range(enemy_count):
-		var spawn_x = randf_range(-SPAWN_BUFFER, screen_width + SPAWN_BUFFER)
+func _calculate_multi_side_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
+	# Calculate enemies per side
+	var enemies_per_side = enemy_count / 3
+	var remainder = enemy_count % 3
+	
+	# Top side enemies
+	var top_count = enemies_per_side + (1 if remainder > 0 else 0)
+	var top_spacing = screen_width / (top_count + 1)
+	
+	for i in range(top_count):
+		var spawn_x = top_spacing * (i + 1)
 		var spawn_y = -SPAWN_BUFFER
 		spawn_positions.append(Vector2(spawn_x, spawn_y))
-
-func _calculate_loop_spawn_positions(enemy_count: int) -> void:
-	var center = current_wave_config.get_formation_center()
-	for i in range(enemy_count):
-		var side = 1 if i % 2 == 0 else -1
-		var spawn_x = center.x + side * (screen_width * 0.4)
-		var spawn_y = -SPAWN_BUFFER
-		spawn_positions.append(Vector2(spawn_x, spawn_y))
-
-func _calculate_wave_spawn_positions(enemy_count: int) -> void:
-	for i in range(enemy_count):
+	
+	# Left side enemies
+	var left_count = enemies_per_side + (1 if remainder > 1 else 0)
+	var left_spacing = (screen_height - 200) / (left_count + 1)
+	
+	for i in range(left_count):
 		var spawn_x = -SPAWN_BUFFER
-		var spawn_y = randf_range(100, 500)
+		var spawn_y = 100 + left_spacing * (i + 1)
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
+	
+	# Right side enemies
+	var right_count = enemies_per_side
+	var right_spacing = (screen_height - 200) / (right_count + 1)
+	
+	for i in range(right_count):
+		var spawn_x = screen_width + SPAWN_BUFFER
+		var spawn_y = 100 + right_spacing * (i + 1)
 		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
-func _calculate_entry_paths() -> void:
-	entry_paths.clear()
-	var enemy_count = current_wave_config.get_enemy_count()
+func _calculate_random_edge_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
 	for i in range(enemy_count):
-		var path = _create_entry_path(i, spawn_positions[i], formation_positions[i])
-		entry_paths.append(path)
+		# Randomly select an edge (0: top, 1: bottom, 2: left, 3: right)
+		var edge = randi() % 4
+		var spawn_x: float
+		var spawn_y: float
+		
+		match edge:
+			0:  # Top edge
+				spawn_x = randf_range(50, screen_width - 50)
+				spawn_y = -SPAWN_BUFFER
+			1:  # Bottom edge
+				spawn_x = randf_range(50, screen_width - 50)
+				spawn_y = screen_height + SPAWN_BUFFER
+			2:  # Left edge
+				spawn_x = -SPAWN_BUFFER
+				spawn_y = randf_range(100, screen_height - 100)
+			3:  # Right edge
+				spawn_x = screen_width + SPAWN_BUFFER
+				spawn_y = randf_range(100, screen_height - 100)
+		
+		spawn_positions.append(Vector2(spawn_x, spawn_y))
 
-func _create_entry_path(index: int, spawn_pos: Vector2, target_pos: Vector2) -> Array:
-	var path: Array[Vector2] = []
-	var steps = 12
-	var entry_pattern = current_wave_config.get_entry_pattern()
-	match entry_pattern:
-		formation_enums.EntryPattern.SIDE_CURVE:
-			path = _create_side_curve_path(spawn_pos, target_pos, steps)
-		formation_enums.EntryPattern.TOP_DIVE:
-			path = _create_top_dive_path(spawn_pos, target_pos, steps)
-		formation_enums.EntryPattern.SPIRAL_IN:
-			path = _create_spiral_in_path(spawn_pos, target_pos, steps)
-		formation_enums.EntryPattern.FIGURE_EIGHT:
-			path = _create_figure_eight_path(spawn_pos, target_pos, steps, index)
-		formation_enums.EntryPattern.ZIGZAG:
-			path = _create_zigzag_path(spawn_pos, target_pos, steps)
-		formation_enums.EntryPattern.BOUNCE:
-			path = _create_bounce_path(spawn_pos, target_pos, steps)
-		formation_enums.EntryPattern.LOOP:
-			path = _create_loop_path(spawn_pos, target_pos, steps, index)
-		formation_enums.EntryPattern.WAVE_ENTRY:
-			path = _create_wave_path(spawn_pos, target_pos, steps)
-	return path
+func _calculate_corner_ambush_positions(enemy_count: int) -> void:
+	spawn_positions.clear()
+	
+	# Define corner positions
+	var corners = [
+		Vector2(-SPAWN_BUFFER, -SPAWN_BUFFER),           # Top-left
+		Vector2(screen_width + SPAWN_BUFFER, -SPAWN_BUFFER),  # Top-right
+		Vector2(-SPAWN_BUFFER, screen_height + SPAWN_BUFFER), # Bottom-left
+		Vector2(screen_width + SPAWN_BUFFER, screen_height + SPAWN_BUFFER)  # Bottom-right
+	]
+	
+	# Assign enemies to corners in round-robin fashion
+	for i in range(enemy_count):
+		var corner_index = i % 4
+		spawn_positions.append(corners[corner_index])
 
-func _create_side_curve_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
-	var path: Array[Vector2] = []
-	var control_height = spawn_pos.y - entry_curve_height
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var control_point = Vector2(spawn_pos.x + (target_pos.x - spawn_pos.x) * 0.3, control_height)
-		var point = _quadratic_bezier(spawn_pos, control_point, target_pos, t)
-		path.append(point)
-	return path
-
-func _create_top_dive_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
-	var path: Array[Vector2] = []
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var mid_point = Vector2(spawn_pos.x + (target_pos.x - spawn_pos.x) * 0.5, spawn_pos.y + 200)
-		var point = _quadratic_bezier(spawn_pos, mid_point, target_pos, t)
-		path.append(point)
-	return path
-
-func _create_spiral_in_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
-	var path: Array[Vector2] = []
-	var center = current_wave_config.get_formation_center()
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var angle = atan2(spawn_pos.y - center.y, spawn_pos.x - center.x) + t * PI * 2
-		var radius = lerp(spawn_pos.distance_to(center), target_pos.distance_to(center), t)
-		var point = center + Vector2(cos(angle) * radius, sin(angle) * radius)
-		path.append(point)
-	return path
-
-func _create_figure_eight_path(spawn_pos: Vector2, target_pos: Vector2, steps: int, _index: int) -> Array:
-	var path: Array[Vector2] = []
-	var center = current_wave_config.get_formation_center()
-	var radius = current_wave_config.get_formation_radius()
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var angle = t * PI * 2
-		var x = center.x + radius * sin(angle)
-		var y = center.y + radius * sin(angle) * cos(angle)
-		var fig8_point = Vector2(x, y)
-		var blend_t = smoothstep(0.0, 0.3, t) * smoothstep(1.0, 0.7, t)
-		var point = spawn_pos.lerp(fig8_point, blend_t).lerp(target_pos, smoothstep(0.7, 1.0, t))
-		path.append(point)
-	return path
-
-func _create_zigzag_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
-	var path: Array[Vector2] = []
-	var zigzag_amplitude = 150.0
-	var zigzag_frequency = 3.0
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var base_point = spawn_pos.lerp(target_pos, t)
-		var zigzag_offset = sin(t * zigzag_frequency * PI * 2) * zigzag_amplitude * (1.0 - t)
-		var point = base_point + Vector2(0, zigzag_offset)
-		path.append(point)
-	return path
-
-func _create_bounce_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
-	var path: Array[Vector2] = []
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		var base_point = spawn_pos.lerp(target_pos, t)
-		var bounce_height = abs(sin(t * bounce_count * PI)) * 100.0
-		var point = base_point + Vector2(0, -bounce_height)
-		path.append(point)
-	return path
-
-func _create_loop_path(spawn_pos: Vector2, target_pos: Vector2, steps: int, _index: int) -> Array:
-	var path: Array[Vector2] = []
-	var loop_radius = 80.0
-	var loop_center = Vector2(spawn_pos.x + (target_pos.x - spawn_pos.x) * 0.5, spawn_pos.y + 150)
-	for i in range(steps + 1):
-		var t = float(i) / steps
-		if t < 0.3:
-			var point = spawn_pos.lerp(loop_center + Vector2(0, -loop_radius), t / 0.3)
-			path.append(point)
-		elif t < 0.7:
-			var loop_t = (t - 0.3) / 0.4
-			var angle = loop_t * PI * 2
-			var point = loop_center + Vector2(sin(angle) * loop_radius, -cos(angle) * loop_radius)
-			path.append(point)
+func _calculate_entry_paths(enemy_count: int) -> void:
+	entry_paths.clear()
+	
+	for i in range(enemy_count):
+		if i < spawn_positions.size() and i < formation_positions.size():
+			var path = _create_entry_path(spawn_positions[i], formation_positions[i])
+			entry_paths.append(path)
 		else:
-			var exit_t = (t - 0.7) / 0.3
-			var loop_exit = loop_center + Vector2(0, -loop_radius)
-			var point = loop_exit.lerp(target_pos, exit_t)
-			path.append(point)
-	return path
+			# Fallback path
+			var simple_path = [Vector2(screen_width/2, -SPAWN_BUFFER), Vector2(screen_width/2, 200)]
+			entry_paths.append(simple_path)
+	
+	# Ensure we have enough paths
+	while entry_paths.size() < enemy_count:
+		var simple_path = [Vector2(screen_width/2, -SPAWN_BUFFER), Vector2(screen_width/2, 200)]
+		entry_paths.append(simple_path)
+	
+	if debug_mode:
+		print("FormationManager: Generated ", entry_paths.size(), " entry paths")
 
-func _create_wave_path(spawn_pos: Vector2, target_pos: Vector2, steps: int) -> Array:
+func _create_entry_path(spawn_pos: Vector2, target_pos: Vector2) -> Array[Vector2]:
 	var path: Array[Vector2] = []
-	var wave_amplitude = 100.0
-	var wave_frequency = 2.0
+	var steps = 8
+	
+	# Simple linear interpolation path
 	for i in range(steps + 1):
 		var t = float(i) / steps
-		var base_point = spawn_pos.lerp(target_pos, t)
-		var wave_offset = sin(t * wave_frequency * PI * 2) * wave_amplitude * (1.0 - t * 0.5)
-		var point = base_point + Vector2(0, wave_offset)
+		var point = spawn_pos.lerp(target_pos, t)
 		path.append(point)
+	
 	return path
 
-func _quadratic_bezier(p0: Vector2, p1: Vector2, p2: Vector2, t: float) -> Vector2:
-	var u = 1.0 - t
-	return u * u * p0 + 2.0 * u * t * p1 + t * t * p2
-
-func _spawn_enemies_sequence() -> void:
-	var enemy_count = current_wave_config.get_enemy_count()
+func _spawn_enemies_sequence(enemy_count: int) -> void:
 	var spawn_delay = current_wave_config.get_spawn_delay()
 	var difficulty = current_wave_config.difficulty
 	var multipliers = difficulty_multipliers[difficulty]
 	var adjusted_spawn_delay = spawn_delay * multipliers["spawn_delay"]
 	
+	if debug_mode:
+		print("FormationManager: Starting to spawn ", enemy_count, " enemies")
+	
+	# Show spawn indicators before spawning enemies
+	if show_spawn_indicators and enemy_count > 0:
+		await _show_spawn_indicators(enemy_count)
+	
+	# Spawn enemies one by one
 	for i in range(enemy_count):
 		_spawn_single_enemy(i)
 		enemies_spawned_count += 1
 		
 		if debug_mode:
-			print("FormationManager: Spawned %d/%d enemies" % [enemies_spawned_count, enemy_count])
+			print("FormationManager: Spawned enemy ", i+1, "/", enemy_count)
 		
-		if adjusted_spawn_delay > 0:
-			await get_tree().create_timer(adjusted_spawn_delay).timeout
+		if adjusted_spawn_delay > 0 and i < enemy_count - 1:
+			if get_tree():
+				await get_tree().create_timer(adjusted_spawn_delay).timeout
+			else:
+				push_warning("FormationManager: Cannot create spawn delay timer, not in scene tree")
 	
 	# Mark all enemies as spawned
 	all_enemies_have_spawned = true
 	all_enemies_spawned.emit()
 	
 	if debug_mode:
-		print("FormationManager: All %d enemies spawned, waiting for formation completion" % enemy_count)
+		print("FormationManager: All enemies spawned")
 
-func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
-	if enemy.has_method("setup_formation_entry"):
-		var config = _create_enemy_config(index)
-		var formation_pos = formation_positions[index]
-		enemy.setup_formation_entry(config, index, formation_pos, 0.0)
-		
-		if enemy.has_method("set_entry_path"):
-			var entry_path = entry_paths[index]
-			enemy.set_entry_path(entry_path)
-
-func _create_enemy_config(index: int) -> WaveConfig:
-	var config = current_wave_config.duplicate()
-	
-	if index < spawn_positions.size():
-		config.spawn_pos = spawn_positions[index]
-	
-	config.center = current_wave_config.get_formation_center()
-	
-	return config
-	
 func _spawn_single_enemy(index: int) -> void:
 	var enemy_scene = current_wave_config.get_enemy_scene()
 	
@@ -519,75 +517,103 @@ func _spawn_single_enemy(index: int) -> void:
 		push_error("FormationManager: Enemy scene does not contain Enemy class at index %d" % index)
 		return
 	
+	# Ensure we have valid positions
 	if index >= spawn_positions.size():
-		push_error("FormationManager: No spawn position for enemy index %d" % index)
+		push_error("FormationManager: No spawn position for enemy index %d (only have %d positions)" % [index, spawn_positions.size()])
 		enemy.queue_free()
 		return
 	
+	if index >= formation_positions.size():
+		push_error("FormationManager: No formation position for enemy index %d (only have %d positions)" % [index, formation_positions.size()])
+		enemy.queue_free()
+		return
+	
+	# Set enemy position
 	enemy.global_position = spawn_positions[index]
 	
 	# Add to scene tree
-	get_tree().current_scene.call_deferred("add_child", enemy)
-	
-	# Only add to spawned_enemies if still valid after deferred add
-	if is_instance_valid(enemy):
-		spawned_enemies.append(enemy)
-	else:
-		if debug_mode:
-			print("FormationManager: Enemy at index %d was freed before adding to spawned_enemies" % index)
+	# Ensure we're in the scene tree before trying to access current_scene
+	if not get_tree():
+		push_error("FormationManager: Not in scene tree, cannot spawn enemy")
+		enemy.queue_free()
 		return
+	
+	# Get the target parent - prefer current_scene, fall back to our parent
+	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	if not target_parent:
+		push_error("FormationManager: No valid parent found for enemy")
+		enemy.queue_free()
+		return
+	
+	target_parent.call_deferred("add_child", enemy)
+	spawned_enemies.append(enemy)
 	
 	# Connect signals safely
 	if enemy.has_signal("formation_reached"):
-		if not enemy.formation_reached.is_connected(_on_enemy_formation_reached.bind(enemy)):
-			enemy.formation_reached.connect(_on_enemy_formation_reached.bind(enemy))
+		enemy.formation_reached.connect(_on_enemy_formation_reached.bind(enemy))
 	if enemy.has_signal("died"):
-		if not enemy.died.is_connected(_on_enemy_died.bind(enemy)):
-			enemy.died.connect(_on_enemy_died.bind(enemy))
+		enemy.died.connect(_on_enemy_died.bind(enemy))
 	
+	# Setup enemy formation data
 	_setup_enemy_formation_data(enemy, index)
 	
 	enemy_spawned.emit(enemy)
 	
 	if debug_mode:
-		print("FormationManager: Spawned enemy %d (%s) at %s" % [index, current_wave_config.enemy_type, enemy.global_position])
+		print("FormationManager: Spawned enemy %d at %s" % [index, enemy.global_position])
+
+func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
+	if enemy.has_method("setup_formation_entry"):
+		var config = _create_enemy_config(index)
+		var formation_pos = formation_positions[index]
+		enemy.setup_formation_entry(config, index, formation_pos, 0.0)
 		
+		if enemy.has_method("set_entry_path") and index < entry_paths.size():
+			var entry_path = entry_paths[index]
+			enemy.set_entry_path(entry_path)
+
+func _create_enemy_config(index: int) -> WaveConfig:
+	var config = current_wave_config.duplicate()
+	
+	if index < spawn_positions.size():
+		config.spawn_pos = spawn_positions[index]
+	
+	config.center = current_wave_config.get_formation_center()
+	
+	return config
+
 func _on_tree_exiting() -> void:
 	destroy_all_enemies()
 	_clear_formation_data()
-
-func stop_all_animations() -> void:
-	if debug_mode:
-		print("FormationManager: All animations stopped")
-
-func _on_enemy_reached(enemy: Enemy) -> void:
-	if is_instance_valid(enemy) and enemy.has_method("on_reach_formation"):
-		enemy.on_reach_formation()
 
 func _on_enemy_formation_reached(enemy: Enemy) -> void:
 	if not is_instance_valid(enemy):
 		if debug_mode:
 			print("FormationManager: Formation reached signal for invalid enemy")
 		return
+	
 	enemies_in_formation += 1
 	if debug_mode:
-		print("FormationManager: Enemy reached formation. Total: %d/%d" % [enemies_in_formation, current_wave_config.get_enemy_count()])
-	if enemies_in_formation >= current_wave_config.get_enemy_count() and is_spawning:
+		print("FormationManager: Enemy reached formation. Total: %d" % enemies_in_formation)
+	
+	if enemies_in_formation >= spawned_enemies.size() and is_spawning:
 		_check_formation_complete()
-		
+
 func _check_formation_complete() -> void:
 	if not is_spawning:
 		return
-	@warning_ignore("unused_variable")
-	var enemy_count = current_wave_config.get_enemy_count()
-	# Validate alive enemies to ensure we don't count freed ones
+	
+	# Validate alive enemies
 	var alive_enemies = get_alive_enemy_count()
 	if enemies_in_formation >= alive_enemies:
 		is_spawning = false
-		await get_tree().create_timer(formation_completion_delay).timeout
+		if get_tree():
+			await get_tree().create_timer(formation_completion_delay).timeout
+		else:
+			push_warning("FormationManager: Cannot create completion delay timer, not in scene tree")
 		formation_complete.emit()
 		if debug_mode:
-			print("FormationManager: Formation complete with %d enemies (alive: %d)" % [enemies_in_formation, alive_enemies])
+			print("FormationManager: Formation complete")
 
 func _on_enemy_died(enemy: Enemy) -> void:
 	if not is_instance_valid(enemy):
@@ -599,65 +625,23 @@ func _on_enemy_died(enemy: Enemy) -> void:
 		enemies_in_formation = max(0, enemies_in_formation - 1)
 		if debug_mode:
 			print("FormationManager: Enemy died (was in formation). Formation count: %d" % enemies_in_formation)
-	else:
-		if debug_mode:
-			print("FormationManager: Enemy died (was not in formation yet)")
 	
 	# Remove from spawned_enemies
 	spawned_enemies.erase(enemy)
-	enemy_died.emit(enemy) # Forward to WaveManager
+	enemy_died.emit(enemy)
 	
-	# Update alive enemies count
+	# Check if all enemies are destroyed
 	var alive_enemies = get_alive_enemy_count()
-	
 	if alive_enemies == 0 and all_enemies_have_spawned:
 		all_enemies_destroyed.emit()
 		is_spawning = false
 		if debug_mode:
-			print("FormationManager: All enemies destroyed, is_spawning set to false")
-
-func get_formation_progress() -> float:
-	var enemy_count = current_wave_config.get_enemy_count() if current_wave_config else 0
-	if enemy_count == 0:
-		return 0.0
-	return float(enemies_in_formation) / float(enemy_count)
-
-func get_spawn_progress() -> float:
-	var enemy_count = current_wave_config.get_enemy_count() if current_wave_config else 0
-	if enemy_count == 0:
-		return 0.0
-	return float(enemies_spawned_count) / float(enemy_count)
-
-func get_enemies_in_formation() -> int:
-	return enemies_in_formation
-
-func get_total_enemies() -> int:
-	return current_wave_config.get_enemy_count() if current_wave_config else 0
-
-func get_alive_enemies() -> Array[Enemy]:
-	var alive_enemies: Array[Enemy] = []
-	for enemy in spawned_enemies:
-		if is_instance_valid(enemy):
-			alive_enemies.append(enemy)
-	return alive_enemies
+			print("FormationManager: All enemies destroyed")
 
 func get_alive_enemy_count() -> int:
-	var count = 0
-	# Clean up invalid instances
+	#var count = 0
 	spawned_enemies = spawned_enemies.filter(func(e): return is_instance_valid(e))
-	for enemy in spawned_enemies:
-		if is_instance_valid(enemy):
-			count += 1
-	return count
-
-func is_formation_complete() -> bool:
-	return not is_spawning and enemies_in_formation > 0
-
-func stop_spawning() -> void:
-	if is_spawning:
-		is_spawning = false
-		if debug_mode:
-			print("FormationManager: Spawning stopped")
+	return spawned_enemies.size()
 
 func destroy_all_enemies() -> void:
 	for enemy in spawned_enemies:
@@ -671,17 +655,21 @@ func _draw() -> void:
 	if not debug_mode:
 		return
 	
+	# Draw formation positions
 	for pos in formation_positions:
 		draw_circle(pos, 8, DEBUG_FORMATION_COLOR)
 	
+	# Draw spawn positions
 	for pos in spawn_positions:
 		draw_circle(pos, 6, DEBUG_SPAWN_COLOR)
 	
+	# Draw entry paths
 	for path in entry_paths:
 		if path.size() > 1:
 			for i in range(path.size() - 1):
 				draw_line(path[i], path[i + 1], DEBUG_PATH_COLOR, 2.0)
 	
+	# Draw formation center
 	if current_wave_config:
 		var center = current_wave_config.get_formation_center()
 		draw_circle(center, 12, DEBUG_CENTER_COLOR)
@@ -689,82 +677,77 @@ func _draw() -> void:
 		var radius = current_wave_config.get_formation_radius()
 		draw_arc(center, radius, 0, 2 * PI, 32, DEBUG_CENTER_COLOR, 2.0)
 
-func _create_custom_formation_positions(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:
-	var positions: Array[Vector2] = []
+# New method to show spawn point indicators
+func _show_spawn_indicators(enemy_count: int) -> void:
+	if not show_spawn_indicators:
+		return
 	
-	var formation_name = params.get("name", "custom")
-	match formation_name:
-		"star":
-			positions = _create_star_formation(enemy_count, center, params)
-		"cross":
-			positions = _create_cross_formation(enemy_count, center, params)
-		"heart":
-			positions = _create_heart_formation(enemy_count, center, params)
-		_:
-			_calculate_circle_formation(enemy_count, center, params.get("radius", 150.0))
-			positions = formation_positions.duplicate()
+	var indicator_nodes: Array[Node2D] = []
 	
-	return positions
+	# Create visual indicators at each spawn position
+	for i in range(min(enemy_count, spawn_positions.size())):
+		var spawn_pos = spawn_positions[i]
+		
+		# For off-screen positions (random edge and multi-side entry), show indicators at screen edges
+		var visible_pos = _get_visible_indicator_position(spawn_pos)
+		
+		# Create a visual indicator using a simple colored circle
+		var indicator = Node2D.new()
+		indicator.name = "SpawnIndicator_%d" % i
+		indicator.position = visible_pos
+		
+		# Create a colored circle
+		var circle = ColorRect.new()
+		circle.name = "IndicatorCircle"
+		circle.size = Vector2(32, 32)
+		circle.position = Vector2(-16, -16)  # Center the circle
+		circle.color = Color(1.0, 0.2, 0.2, 0.8)  # Red color with transparency
+		
+		indicator.add_child(circle)
+		add_child(indicator)
+		indicator_nodes.append(indicator)
+		
+		# Create tween for blinking effect without infinite loops
+		if is_instance_valid(indicator) and indicator.has_method("create_tween"):
+			var tween = indicator.create_tween()
+			# Remove set_loops() to prevent infinite loops
+			# Instead, we'll manually restart the tween when it finishes if needed
+			# Limit the number of blinks to the spawn_indicator_blink_count
+			for blink in range(spawn_indicator_blink_count):
+				tween.tween_property(circle, "scale", Vector2(2.0, 2.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(indicator, "modulate:a", 0.2, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(circle, "scale", Vector2(1.0, 1.0), spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+				tween.tween_property(indicator, "modulate:a", 0.8, spawn_indicator_duration / (spawn_indicator_blink_count * 2))
+	
+	# Wait for the indicator duration
+	if get_tree():
+		await get_tree().create_timer(spawn_indicator_duration).timeout
+	
+	# Clean up indicator nodes
+	for indicator in indicator_nodes:
+		if is_instance_valid(indicator):
+			indicator.queue_free()
 
-func _create_star_formation(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:
-	var positions: Array[Vector2] = []
-	var radius = params.get("radius", 150.0)
-	var points = params.get("points", 5)
-	var inner_radius = radius * 0.5
+# Helper function to get visible position for spawn indicators
+func _get_visible_indicator_position(spawn_pos: Vector2) -> Vector2:
+	# Check if position is off-screen and adjust to visible edge position
+	var visible_pos = spawn_pos
 	
-	for i in range(enemy_count):
-		var angle = (float(i) / enemy_count) * 2.0 * PI
-		var point_index = i % (points * 2)
-		var current_radius = radius if point_index % 2 == 0 else inner_radius
-		var pos = center + Vector2(cos(angle) * current_radius, sin(angle) * current_radius)
-		positions.append(pos)
+	# If spawn position is off the top edge
+	if spawn_pos.y < 0:
+		visible_pos.y = 50  # Show at top of screen
+	# If spawn position is off the bottom edge
+	elif spawn_pos.y > screen_height:
+		visible_pos.y = screen_height - 50  # Show at bottom of screen
+	# If spawn position is off the left edge
+	if spawn_pos.x < 0:
+		visible_pos.x = 50  # Show at left of screen
+	# If spawn position is off the right edge
+	elif spawn_pos.x > screen_width:
+		visible_pos.x = screen_width - 50  # Show at right of screen
+		
+	# Ensure position is within screen bounds
+	visible_pos.x = clamp(visible_pos.x, 50, screen_width - 50)
+	visible_pos.y = clamp(visible_pos.y, 50, screen_height - 50)
 	
-	return positions
-
-func _create_cross_formation(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:
-	var positions: Array[Vector2] = []
-	var _arm_length = params.get("arm_length", 150.0)
-	var spacing = params.get("spacing", 30.0)
-	
-	@warning_ignore("integer_division")
-	var enemies_per_arm = enemy_count / 4
-	var remaining = enemy_count % 4
-	
-	for i in range(enemies_per_arm):
-		var offset = (i + 1) * spacing
-		positions.append(center + Vector2(offset, 0))  # Right
-		positions.append(center + Vector2(-offset, 0)) # Left
-	
-	for i in range(enemies_per_arm):
-		var offset = (i + 1) * spacing
-		positions.append(center + Vector2(0, offset))  # Down
-		positions.append(center + Vector2(0, -offset)) # Up
-	
-	for i in range(remaining):
-		positions.append(center)
-	
-	return positions
-
-func _create_heart_formation(enemy_count: int, center: Vector2, params: Dictionary) -> Array[Vector2]:
-	var positions: Array[Vector2] = []
-	var scaled = params.get("scale", 1.0)
-	
-	for i in range(enemy_count):
-		var t = float(i) / enemy_count * 2.0 * PI
-		var x = 16 * pow(sin(t), 3)
-		var y = -(13 * cos(t) - 5 * cos(2*t) - 2 * cos(3*t) - cos(4*t))
-		var pos = center + Vector2(x * scaled * 3, y * scaled * 3)
-		positions.append(pos)
-	
-	return positions
-
-func get_performance_stats() -> Dictionary:
-	return {
-		"enemies_spawned": enemies_spawned_count,
-		"enemies_in_formation": enemies_in_formation,
-		"alive_enemies": get_alive_enemy_count(),
-		"is_spawning": is_spawning,
-		"formation_complete": is_formation_complete(),
-		"spawn_progress": get_spawn_progress(),
-		"formation_progress": get_formation_progress()
-	}
+	return visible_pos

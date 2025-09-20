@@ -1,0 +1,92 @@
+[gd_scene load_steps=9 format=3 uid="uid://dula0etnafhc4"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/shop.gd" id="1_q5gon"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vc4pe"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="2_xiv02"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="3_2la7e"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="4_b3jih"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t3pkw"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_sxll5"]
+font = ExtResource("1_vc4pe")
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_3dk1m"]
+font = ExtResource("2_xiv02")
+font_size = 100
+font_color = Color(1, 0.27451, 0, 1)
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_q5gon")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+offset_left = 153.0
+offset_top = 545.0
+offset_right = 953.0
+offset_bottom = 1577.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_t3pkw")
+
+[node name="Panel" type="Panel" parent="PanelContainer"]
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Shop" type="Label" parent="PanelContainer/Panel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -273.5
+offset_top = 9.0
+offset_right = 101.5
+offset_bottom = 71.0
+grow_horizontal = 2
+scale = Vector2(1.5, 1.5)
+text = "Shop"
+label_settings = SubResource("LabelSettings_sxll5")
+horizontal_alignment = 1
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/Panel"]
+layout_mode = 0
+offset_left = 71.0
+offset_top = 246.0
+offset_right = 728.0
+offset_bottom = 549.0
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/VBoxContainer2"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+text = "Shop Coming soon"
+label_settings = SubResource("LabelSettings_3dk1m")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="Back" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 393.0
+offset_top = 1253.0
+offset_right = 688.0
+offset_bottom = 1516.0
+texture_normal = ExtResource("3_2la7e")
+texture_pressed = ExtResource("4_b3jih")
+texture_hover = ExtResource("4_b3jih")
+stretch_mode = 0
+
+[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

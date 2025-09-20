@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://q8xvk7xqckbr"]
+[gd_scene load_steps=7 format=3 uid="uid://q8xvk7xqckbr"]
 
 [ext_resource type="Texture2D" uid="uid://cjggmdx0i4s8s" path="res://Textures/guibuttons/GreenButton-Active.png" id="1_efsdx"]
 [ext_resource type="Texture2D" uid="uid://c7j4ae5rosmfq" path="res://Textures/guibuttons/GreenButton-Hover.png" id="2_qayn0"]
 [ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="3_85rsd"]
 [ext_resource type="Script" path="res://Levels/Scripts/level_button.gd" id="4_85rsd"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="4_kx6qo"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7imot"]
+font = ExtResource("4_kx6qo")
+font_size = 30
 
 [node name="LevelButton" type="TextureButton"]
 custom_minimum_size = Vector2(100, 100)
@@ -32,7 +36,9 @@ theme_override_constants/shadow_offset_x = 30
 theme_override_fonts/font = ExtResource("4_kx6qo")
 theme_override_font_sizes/font_size = 55
 text = "1"
+label_settings = SubResource("LabelSettings_7imot")
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 3
 
 [connection signal="pressed" from="." to="." method="_on_pressed"]

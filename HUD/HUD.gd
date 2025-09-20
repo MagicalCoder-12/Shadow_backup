@@ -5,19 +5,37 @@ var pLifeIcon := preload("uid://ceg6sboym3t71")
 @onready var lifeContainer := $LifeContainer
 @onready var scoreLabel := $Score
 @onready var timer_label: Label = $TextureRect/Timer  
-@onready var shadow_mode_button: TextureButton = $ShadowModeButton
-@onready var shadow_mode_charge: TextureProgressBar = $ShadowModeButton/ShadowModeCharge
-@onready var shadow_mode_label: Label = $ShadowModeButton/ShadowModeCharge/ShadowModeLabel
+@onready var shadow_mode_button: ShadowModeButton = $ShadowModeButton
+@onready var h_box_container: HBoxContainer = $HBoxContainer
+@onready var power_symbol: TextureRect = $HBoxContainer/PowerSymbol
+@onready var power_symbol_2: TextureRect = $HBoxContainer/PowerSymbol2
+@onready var power_symbol_3: TextureRect = $HBoxContainer/PowerSymbol3
+@onready var power_symbol_4: TextureRect = $HBoxContainer/PowerSymbol4
+
 @export var charge_per_enemy: float = 10.0
 @export var max_charge: float = 100.0
-var current_charge: float = 0.0
-var level_start_time: float = 0.0
-var timer_running: bool = false
+var elapsed_time: float = 0.0
+
+# Track the number of attack boost powerups collected
+var attack_boost_count: int = 0
 
 func _ready():
 	if not pLifeIcon or not pLifeIcon.can_instantiate():
 		push_error("Invalid pLifeIcon preload")
 	clear_lives()
+	
+	# Initialize attack_boost_count from PlayerManager
+	if GameManager.player_manager:
+		attack_boost_count = GameManager.player_manager.player_stats.get("attack_level", 0)
+	
+	# Hide all power symbols initially
+	hide_all_power_symbols()
+	# Show power symbols based on initial attack level
+	update_power_symbols()
+	
+	# Load HUD settings from ConfigLoader
+	_load_hud_settings()
+	
 	# Connect signals
 	GameManager.score_updated.connect(_on_score_updated)
 	GameManager.on_player_life_changed.connect(_on_player_life_changed)
@@ -26,38 +44,108 @@ func _ready():
 	GameManager.game_paused.connect(_on_game_paused)
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
+	GameManager.enemy_killed.connect(_on_enemy_killed)
+	# Connect to player manager for attack boost notifications
+	GameManager.ship_stats_updated.connect(_on_ship_stats_updated)
+	# Connect to level manager for level loaded notifications
+	if GameManager.level_manager:
+		GameManager.level_manager.level_loaded.connect(_on_level_loaded)
 	if shadow_mode_button:
-		shadow_mode_button.disabled = true
-		shadow_mode_button.visible = false
+		shadow_mode_button.set_enabled(false)
+		# Connect shadow mode button signal (if not already connected in .tscn)
+		if not shadow_mode_button.shadow_mode_requested.is_connected(_on_shadow_mode_requested):
+			shadow_mode_button.shadow_mode_requested.connect(_on_shadow_mode_requested)
 	# Initialize displays
 	_on_score_updated(GameManager.score)
 	_on_player_life_changed(GameManager.player_lives)
-	update_charge_display()
 	update_button_visibility()
 	start_timer()
 
-func _process(_delta):
-	if timer_running:
-		update_timer_display()
 
-func start_timer():
-	level_start_time = Time.get_ticks_msec()
-	timer_running = true
+func _on_level_loaded(_level_num: int):
+	"""Called when a new level is loaded"""
+	reset_hud_state()
+
+# Hide all power symbols initially
+func hide_all_power_symbols():
+	if power_symbol:
+		power_symbol.hide()
+	if power_symbol_2:
+		power_symbol_2.hide()
+	if power_symbol_3:
+		power_symbol_3.hide()
+	if power_symbol_4:
+		power_symbol_4.hide()
+
+# Show power symbols based on attack boost count
+func update_power_symbols():
+	# Hide all symbols first
+	hide_all_power_symbols()
+	
+	# Show symbols based on attack boost count
+	match attack_boost_count:
+		1:
+			if power_symbol:
+				power_symbol.show()
+		2:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+		3:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+			if power_symbol_3:
+				power_symbol_3.show()
+		4:
+			if power_symbol:
+				power_symbol.show()
+			if power_symbol_2:
+				power_symbol_2.show()
+			if power_symbol_3:
+				power_symbol_3.show()
+			if power_symbol_4:
+				power_symbol_4.show()
+
+func _load_hud_settings() -> void:
+	"""Load HUD settings from ConfigLoader"""
+	if is_instance_valid(ConfigLoader) and ConfigLoader.hud_settings:
+		charge_per_enemy = ConfigLoader.hud_settings.get("charge_per_enemy", 10.0)
+		max_charge = ConfigLoader.hud_settings.get("max_charge", 100.0)
+	else:
+		# Use default values if ConfigLoader is not available
+		charge_per_enemy = 10.0
+		max_charge = 100.0
+	
+	# Update shadow mode button settings
+	if shadow_mode_button:
+		shadow_mode_button.max_charge = max_charge
+		shadow_mode_button.charge_per_enemy = charge_per_enemy
+
+func _on_enemy_killed(_enemy: Node) -> void:
+	"""Called when an enemy is killed to charge shadow mode"""
+	add_enemy_kill_charge()
+
+func _process(delta: float):
+	elapsed_time += delta
 	update_timer_display()
 
+func start_timer():
+	elapsed_time = 0.0
+
 func stop_timer():
-	timer_running = false
+	pass  # No longer needed with accumulated delta
 
 func reset_timer():
-	level_start_time = Time.get_ticks_msec()
-	timer_running = true
+	elapsed_time = 0.0
 
 func update_timer_display():
 	if not timer_label:
 		return
 	
-	var current_time = Time.get_ticks_msec() - level_start_time
-	var seconds = current_time / 1000.0
+	var seconds = elapsed_time
 	var minutes = seconds / 60.0
 	seconds = fmod(seconds, 60.0)
 	
@@ -94,83 +182,79 @@ func _on_wave_started(_current_wave: int, _total_waves: int):
 
 # Called when all waves are cleared
 func _on_all_waves_cleared():
-	if timer_label:
-		stop_timer()
-		var current_time = Time.get_ticks_msec() - level_start_time
-		var seconds = current_time / 1000.0
-		var minutes = seconds / 60.0
-		seconds = fmod(seconds, 60.0)
-		timer_label.text = "%02d:%05.2f" % [minutes, seconds]
+	var seconds = elapsed_time
+	var minutes = seconds / 60.0
+	seconds = fmod(seconds, 60.0)
+	timer_label.text = "%02d:%05.2f" % [minutes, seconds]
 
 # Updates the display when the game is paused or resumed
 func _on_game_paused(paused: bool):
 	if timer_label:
 		if paused:
-			timer_running = false
 			timer_label.text = "Paused"
 		else:
-			timer_running = true
+			update_timer_display()
 
 # Called when an enemy is killed to increase charge
 func add_enemy_kill_charge(amount: float = charge_per_enemy):
 	var current_level = GameManager.get_current_level()
-	if current_level < 5 or not GameManager.shadow_mode_unlocked:
+	if current_level < 5 or not GameManager.level_manager.shadow_mode_unlocked:
 		return
-	if GameManager.shadow_mode_enabled:
+	if GameManager.level_manager.shadow_mode_enabled:
 		return
-	current_charge = clamp(current_charge + amount, 0.0, max_charge)
-	update_charge_display()
-	if current_charge >= max_charge and shadow_mode_button and shadow_mode_label:
-		shadow_mode_button.disabled = false
-		shadow_mode_label.text = "Ready!"
-
-# Updates the charge display
-func update_charge_display():
-	if shadow_mode_charge:
-		shadow_mode_charge.value = current_charge
-	if shadow_mode_label:
-		if current_charge < max_charge:
-			shadow_mode_label.text = "Charge: %d%%" % (current_charge / max_charge * 100)
-		else:
-			shadow_mode_label.text = "Ready!"
+	if shadow_mode_button:
+		shadow_mode_button.add_charge(amount)
 
 # Called when the shadow mode button is pressed
-func _on_shadow_mode_button_pressed():
+func _on_shadow_mode_requested():
 	var current_level = GameManager.get_current_level()
-	if current_level < 5 or not GameManager.shadow_mode_unlocked:
+	if current_level < 5 or not GameManager.level_manager.shadow_mode_unlocked:
 		return
-	if current_charge >= max_charge and not GameManager.shadow_mode_enabled:
+	if shadow_mode_button and shadow_mode_button.is_ready and not GameManager.level_manager.shadow_mode_enabled:
 		GameManager.activate_shadow_mode(5.0)
-		current_charge = 0.0
-		if shadow_mode_button:
-			shadow_mode_button.disabled = true
-		update_charge_display()
 
 # Updates button visibility
 func update_button_visibility():
 	var current_level = GameManager.get_current_level()
-	var should_be_visible = current_level >= 5 and GameManager.shadow_mode_unlocked
+	var should_be_visible: bool = current_level >= 5 and GameManager.level_manager.shadow_mode_unlocked
 	if shadow_mode_button:
-		shadow_mode_button.visible = should_be_visible
-		if not should_be_visible:
-			shadow_mode_button.disabled = true
-			current_charge = 0.0
-			update_charge_display()
+		shadow_mode_button.set_enabled(should_be_visible)
+
+# Reset HUD state for new level
+func reset_hud_state():
+	attack_boost_count = 0
+	hide_all_power_symbols()
+	reset_charge()
+	update_button_visibility()
+	start_timer()
+	_on_player_life_changed(GameManager.player_lives)
+	_on_score_updated(GameManager.score)
 
 # Resets shadow mode charge
 func reset_charge():
-	current_charge = 0.0
 	if shadow_mode_button:
-		shadow_mode_button.disabled = true
-	update_charge_display()
+		shadow_mode_button.reset_charge()
 
 # Handle shadow mode activation
 func _on_shadow_mode_activated():
 	if shadow_mode_button:
-		shadow_mode_button.disabled = true
+		shadow_mode_button.reset_charge()
 
 # Handle shadow mode deactivation
 func _on_shadow_mode_deactivated():
-	var current_level = GameManager.get_current_level()
-	if current_charge >= max_charge and GameManager.shadow_mode_unlocked and current_level >= 5 and shadow_mode_button:
-		shadow_mode_button.disabled = false
+	update_button_visibility()
+
+# Update power symbols when ship stats change
+@warning_ignore("unused_parameter")
+func _on_ship_stats_updated(ship_id: String, new_damage: int):
+	"""Called when ship stats are updated, which happens when collecting attack boost powerups"""
+	# Get the current attack level from PlayerManager
+	var current_attack_level = GameManager.player_manager.player_stats.get("attack_level", 0)
+	
+	# Update attack boost count if it has changed
+	if current_attack_level != attack_boost_count:
+		attack_boost_count = current_attack_level
+		update_power_symbols()
+		
+		# Ensure count doesn't exceed the number of power symbols we have
+		attack_boost_count = min(attack_boost_count, 4)

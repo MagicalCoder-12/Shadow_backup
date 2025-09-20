@@ -1,18 +1,16 @@
-[gd_scene load_steps=45 format=3 uid="uid://dgv64lgc6rm83"]
+[gd_scene load_steps=46 format=3 uid="uid://dgv64lgc6rm83"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
 [ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
-[ext_resource type="Texture2D" uid="uid://cyh4wk5wujkxe" path="res://Textures/player/Spaceships-13/spaceships/Splayer.png" id="3_3nkws"]
+[ext_resource type="Texture2D" uid="uid://cyh4wk5wujkxe" path="res://Textures/player/Splayer.png" id="3_3nkws"]
 [ext_resource type="Texture2D" uid="uid://bs84m6qvou1ht" path="res://Textures/Sprites/Missile/Missile_3_Flying_000.png" id="4_2r68k"]
 [ext_resource type="Texture2D" uid="uid://l4eg82jl4ujt" path="res://Textures/Sprites/Missile/Missile_3_Flying_001.png" id="5_xaceq"]
 [ext_resource type="Texture2D" uid="uid://c8xup4hhg251" path="res://Textures/Sprites/Missile/Missile_3_Flying_002.png" id="6_j312s"]
-[ext_resource type="Texture2D" uid="uid://b6d26kgx28qf0" path="res://Textures/player/Spaceships-13/spaceships/g-01.png" id="7_2d1vo"]
 [ext_resource type="Texture2D" uid="uid://bciy4i6wrhcsv" path="res://Textures/Sprites/Missile/Missile_3_Flying_003.png" id="7_vsuus"]
 [ext_resource type="Texture2D" uid="uid://dhdkifs01ryks" path="res://Textures/Sprites/Missile/Missile_3_Flying_004.png" id="8_2u2gu"]
 [ext_resource type="Texture2D" uid="uid://bkp5rxg23mw17" path="res://Textures/UI/Main_Menu/Start_BTN.png" id="8_5c6u1"]
 [ext_resource type="Texture2D" uid="uid://dvqwl425pdqoa" path="res://Textures/Lasers/Laser Sprites/56.png" id="8_a8j06"]
 [ext_resource type="Texture2D" uid="uid://cawe8b3bfbwmk" path="res://Textures/Boss/Final_boss.png" id="8_mccjh"]
-[ext_resource type="Texture2D" uid="uid://cac0ahqmrkyas" path="res://Textures/player/Spaceships-13/spaceships/i-01.png" id="8_smjrk"]
 [ext_resource type="Texture2D" uid="uid://b86rq8vtx31b8" path="res://Textures/Sprites/Missile/Missile_3_Flying_005.png" id="9_p6q8r"]
 [ext_resource type="Texture2D" uid="uid://cne08d5s0v5k0" path="res://Textures/Lasers/Laser Sprites/57.png" id="10_3pl5x"]
 [ext_resource type="Texture2D" uid="uid://cqtvil7hm3q2n" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__01.png" id="10_mccjh"]
@@ -24,12 +22,14 @@
 [ext_resource type="Texture2D" uid="uid://dlibnfs7g8mw8" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__04.png" id="13_jmosg"]
 [ext_resource type="Texture2D" uid="uid://bydsbdsb5cija" path="res://Textures/Sprites/Missile/Missile_3_Flying_009.png" id="13_mlgbj"]
 [ext_resource type="Texture2D" uid="uid://cqolcxyapenoh" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__05.png" id="14_cunrb"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="14_n5c6h"]
+[ext_resource type="Texture2D" uid="uid://duq2cp68uwhdc" path="res://Textures/player/g-01.png" id="15_y3j5q"]
 [ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="18_mccjh"]
-[ext_resource type="Texture2D" uid="uid://ctbex77cx303u" path="res://Textures/UI/Main_Menu/Exit_BTN.png" id="26_y6ojh"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="27_uvmca"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="28_5h8pl"]
 [ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="28_7q3m5"]
 [ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Textures/UI/Window.png" id="28_8ki65"]
+[ext_resource type="Texture2D" uid="uid://bffmdnkpcl45" path="res://Textures/UI/Exit_BTN.png" id="28_a5br4"]
 [ext_resource type="Texture2D" uid="uid://1gjtssyuvrgq" path="res://Textures/UI/Main_Menu/Table_01.png" id="28_x6b8c"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="29_gmpi2"]
 [ext_resource type="Texture2D" uid="uid://pscex7mn1uda" path="res://Textures/UI/Main_Menu/BTNs/Ok_BTN.png" id="30_a8tdm"]
@@ -102,6 +102,8 @@ animations = [{
 font = ExtResource("27_uvmca")
 font_size = 70
 
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_75pxm"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xu6k0"]
 texture = ExtResource("28_x6b8c")
 
@@ -162,22 +164,22 @@ autoplay = "default"
 frame_progress = 0.385642
 
 [node name="Left" type="Sprite2D" parent="CanvasLayer/Splayer"]
-position = Vector2(-144.776, -284.382)
-rotation = 0.888373
-scale = Vector2(1.01355, 0.896285)
-texture = ExtResource("8_smjrk")
+position = Vector2(-154.09, -297.429)
+rotation = 0.923279
+scale = Vector2(1.62501, 1.36071)
+texture = ExtResource("14_n5c6h")
 
 [node name="56" type="Sprite2D" parent="CanvasLayer/Splayer/Left"]
-position = Vector2(-2.95994, -128.621)
-rotation = -1.5708
-scale = Vector2(0.614031, 0.618771)
-skew = -0.0336717
+position = Vector2(-2.39847, -125.993)
+rotation = -1.57778
+scale = Vector2(0.622351, 0.554683)
+skew = -0.0380731
 texture = ExtResource("8_a8j06")
 
 [node name="Right" type="Sprite2D" parent="CanvasLayer/Splayer/Left"]
-position = Vector2(580.207, -14.8853)
-scale = Vector2(0.992584, 1.06669)
-texture = ExtResource("7_2d1vo")
+position = Vector2(408.736, -5.93488)
+rotation = -0.0349061
+texture = ExtResource("15_y3j5q")
 
 [node name="57" type="Sprite2D" parent="CanvasLayer/Splayer/Left/Right"]
 position = Vector2(-1.06235, -112.509)
@@ -244,9 +246,9 @@ texture_hover = ExtResource("8_5c6u1")
 
 [node name="Exit" type="TextureButton" parent="Panel/VBoxContainer"]
 layout_mode = 2
-texture_normal = ExtResource("26_y6ojh")
+texture_normal = ExtResource("28_a5br4")
 texture_pressed = ExtResource("28_7q3m5")
-texture_hover = ExtResource("26_y6ojh")
+texture_hover = SubResource("CompressedTexture2D_75pxm")
 
 [node name="Info" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -306,6 +308,7 @@ anchor_right = 0.913679
 anchor_bottom = 0.785933
 texture_normal = ExtResource("32_pni68")
 texture_pressed = ExtResource("33_rf5d1")
+texture_hover = ExtResource("33_rf5d1")
 metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="Panel/VBoxContainer/Start_button" to="." method="_on_start_button_pressed"]

@@ -29,6 +29,10 @@ func _ready():
 	# Connect to shadow mode signals
 	_connect_shadow_signals()
 	
+	# Add visual effects for shadow bullets
+	if sprite:
+		sprite.modulate = Color(0.5, 0.5, 1.0, 1.0)  # Blue tint for shadow bullets
+	
 	if debug_mode:
 		print("Shadow bullet spawned. Shadow: ", is_shadow_bullet)
 
@@ -50,6 +54,11 @@ func make_shadow_bullet():
 	damage = int(original_damage * shadow_damage_multiplier)
 	speed = float(original_speed * shadow_speed_multiplier)
 	
+	# Add visual enhancements
+	if sprite:
+		sprite.modulate = Color(0.4, 0.4, 1.0, 1.0)  # Blue tint
+		sprite.scale = Vector2(1.3, 1.3)  # Slightly larger
+	
 	if debug_mode:
 		print("Bullet converted to shadow: Damage=", damage, " Speed=", speed)
 
@@ -59,8 +68,7 @@ func _physics_process(delta):
 	
 	# Move bullet downward
 	position.y += speed * delta
-	destroy()
-
+	
 # Handle collision with player
 func _on_area_entered(area):
 	if area is Player and player_in_area == null:
@@ -86,6 +94,23 @@ func _on_shadow_mode_activated():
 	# Convert to shadow bullet if not already
 	if not is_shadow_bullet:
 		make_shadow_bullet()
+	
+	# Add visual enhancement when shadow mode is active
+	if sprite:
+		sprite.modulate = Color(0.3, 0.3, 1.0, 1.0)  # More intense blue
+		# Add a pulsing effect without infinite loops
+		var tween = create_tween()
+		# Remove set_loops() to prevent infinite loops
+		# Instead, we'll manually restart the tween when it finishes if needed
+		tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.5)
+		tween.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.5)
+		# Connect to finished signal to restart if needed
+		tween.finished.connect(_on_shadow_pulse_finished)
+
+func _on_shadow_pulse_finished():
+	# Restart the shadow pulse animation if shadow mode is still active
+	if GameManager.level_manager.shadow_mode_enabled and is_alive and sprite and is_inside_tree():
+		_on_shadow_mode_activated()
 
 # Handle shadow mode deactivation
 func _on_shadow_mode_deactivated():
@@ -94,7 +119,7 @@ func _on_shadow_mode_deactivated():
 
 # Enhanced damage for shadow bullets during shadow mode
 func get_effective_damage() -> int:
-	if is_shadow_bullet and GameManager.shadow_mode_enabled:
+	if is_shadow_bullet and GameManager.level_manager.shadow_mode_enabled:
 		return int(damage * 1.25)  # 25% bonus damage during active shadow mode
 	return damage
 

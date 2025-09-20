@@ -25,7 +25,6 @@ var charge_shot_timer: float = 0.0
 var is_defensive_mode: bool = false
 var defensive_mode_timer: float = 0.0
 var original_fire_rate: float
-var player_reference: Player = null
 var last_player_position: Vector2
 var player_check_timer: float = 0.0  # Timer to periodically check player reference
 
@@ -142,75 +141,19 @@ func _apply_shadow_slow_visual_effects():
 	aura.z_index = -1
 	add_child(aura)
 	
-	# Pulse the aura
+	# Pulse the aura without infinite loops
 	var aura_tween = create_tween()
-	aura_tween.set_loops()
+	# Remove set_loops() to prevent infinite loops
+	# Instead, we'll manually restart the tween when it finishes
 	aura_tween.tween_property(aura, "modulate:a", 0.1, 1.0)
 	aura_tween.tween_property(aura, "modulate:a", 0.3, 1.0)
+	# Connect to finished signal to restart if needed
+	aura_tween.finished.connect(_on_aura_pulse_finished)
 
-func _process(delta):
-	# Periodically check player reference (every 0.5 seconds)
-	player_check_timer -= delta
-	if player_check_timer <= 0:
-		if not is_instance_valid(player_reference):
-			_find_player_reference()
-		player_check_timer = 0.5
-	
-	# Handle charge shot timing
-	if is_charging_shot:
-		charge_shot_timer -= delta
-		if charge_shot_timer <= 0:
-			_execute_charge_shot()
-			return
-	
-	# Handle defensive mode timing
-	if is_defensive_mode:
-		defensive_mode_timer -= delta
-		if defensive_mode_timer <= 0:
-			_end_defensive_mode()
-	
-	# Original firing logic with enhancements
-	if fire_timer.is_stopped() and not is_charging_shot:
-		_decide_attack_type()
-		fire_timer.start(randf_range(fire_rate * 0.8, fire_rate * 1.2))
-
-# Decide what type of attack to perform
-func _decide_attack_type():
-	if not is_alive or not arrived_at_formation:
-		return
-	
-	# Check for defensive mode first
-	var defensive_chance = defensive_mode_chance
-	if is_shadow_enemy:
-		defensive_chance = shadow_defensive_chance
-	
-	if not is_defensive_mode and randf() < defensive_chance:
-		_start_defensive_mode()
-		return
-	
-	# Check for charge shot
-	var charge_chance = charge_shot_chance
-	if is_shadow_enemy:
-		charge_chance = shadow_charge_chance
-	
-	if randf() < charge_chance:
-		_start_charge_shot()
-	else:
-		_perform_aimed_shot()
-
-# Start charging a powerful shot
-func _start_charge_shot():
-	if is_charging_shot:
-		return
-	
-	is_charging_shot = true
-	charge_shot_timer = charge_shot_duration
-	
-	# Create charging visual effects
-	_create_charge_effects()
-	
-	if debug_mode:
-		print("SlowShooter starting charge shot")
+func _on_aura_pulse_finished():
+	# Restart the aura pulse animation if the enemy is still alive and is a shadow enemy
+	if is_shadow_enemy and is_alive and is_inside_tree():
+		_apply_shadow_slow_visual_effects()
 
 # Create visual effects for charging
 func _create_charge_effects():
@@ -224,14 +167,19 @@ func _create_charge_effects():
 	charge_glow.position = Vector2(-30, -30)
 	add_child(charge_glow)
 	
-	# Animate the glow
+	# Animate the glow without infinite loops
 	charge_tween = create_tween()
-	charge_tween.set_loops()
+	# Remove set_loops() to prevent infinite loops
+	# Instead, we'll manually restart the tween when it finishes if needed
 	charge_tween.tween_property(charge_glow, "scale", Vector2(1.2, 1.2), 0.3)
 	charge_tween.tween_property(charge_glow, "scale", Vector2(0.8, 0.8), 0.3)
-	
-	# Create particle effects
-	_create_charge_particles()
+	# Connect to finished signal to restart if needed
+	charge_tween.finished.connect(_on_charge_glow_finished)
+
+func _on_charge_glow_finished():
+	# Restart the charge glow animation if the enemy is still charging
+	if is_charging_shot and is_alive and is_inside_tree():
+		_create_charge_effects()
 
 # Create particle effects for charging
 func _create_charge_particles():
@@ -250,11 +198,33 @@ func _create_charge_particles():
 		add_child(particle)
 		charge_particles.append(particle)
 		
-		# Animate particles moving inward
+		# Animate particles moving inward without infinite loops
 		var particle_tween = create_tween()
-		particle_tween.set_loops()
 		particle_tween.tween_property(particle, "position", Vector2.ZERO, charge_shot_duration)
 		particle_tween.tween_property(particle, "position", particle.position, 0.1)
+		# Connect to finished signal to restart if needed
+		particle_tween.finished.connect(_on_particle_tween_finished.bind(particle, charge_shot_duration))
+
+func _on_particle_tween_finished(particle, duration):
+	# Restart the particle animation if the enemy is still charging
+	if is_charging_shot and is_alive and is_inside_tree() and particle and is_instance_valid(particle):
+		var particle_tween = create_tween()
+		particle_tween.tween_property(particle, "position", Vector2.ZERO, duration)
+		particle_tween.tween_property(particle, "position", particle.position, 0.1)
+
+# Start charging a powerful shot
+func _start_charge_shot():
+	if is_charging_shot:
+		return
+	
+	is_charging_shot = true
+	charge_shot_timer = charge_shot_duration
+	
+	# Create charging visual effects
+	_create_charge_effects()
+	
+	if debug_mode:
+		print("SlowShooter starting charge shot")
 
 # Execute the charged shot
 func _execute_charge_shot():
@@ -284,9 +254,9 @@ func _fire_charge_shot():
 	for child in firing_positions.get_children():
 		var bullet
 		if is_shadow_enemy:
-			bullet = ShadowEBullet.instantiate()
+			bullet = SHADOW_EBULLET.instantiate()
 		else:
-			bullet = EBullet.instantiate()
+			bullet = EBULLET.instantiate()
 		
 		bullet.global_position = child.global_position
 		
@@ -346,9 +316,9 @@ func fire(target_pos: Vector2 = Vector2.ZERO):
 	for child in firing_positions.get_children():
 		var bullet
 		if is_shadow_enemy:
-			bullet = ShadowEBullet.instantiate()
+			bullet = SHADOW_EBULLET.instantiate()
 		else:
-			bullet = EBullet.instantiate()
+			bullet = EBULLET.instantiate()
 		
 		bullet.global_position = child.global_position
 		
@@ -397,11 +367,19 @@ func _create_defensive_effects():
 	defensive_shield.z_index = 1
 	add_child(defensive_shield)
 	
-	# Animate the shield
+	# Animate the shield without infinite loops
 	defensive_tween = create_tween()
-	defensive_tween.set_loops()
+	# Remove set_loops() to prevent infinite loops
+	# Instead, we'll manually restart the tween when it finishes if needed
 	defensive_tween.tween_property(defensive_shield, "modulate:a", 0.2, 0.5)
 	defensive_tween.tween_property(defensive_shield, "modulate:a", 0.5, 0.5)
+	# Connect to finished signal to restart if needed
+	defensive_tween.finished.connect(_on_defensive_shield_finished)
+
+func _on_defensive_shield_finished():
+	# Restart the defensive shield animation if the enemy is still in defensive mode
+	if is_defensive_mode and is_alive and is_inside_tree():
+		_create_defensive_effects()
 
 # End defensive mode
 func _end_defensive_mode():

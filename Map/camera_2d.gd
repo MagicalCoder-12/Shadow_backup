@@ -2,7 +2,7 @@ extends Camera2D
 
 # Hardcoded limits
 const START_LIMIT: float = 1000 # Bottom limit (can't go below this)
-const END_LIMIT: float = -5700.0    # Top limit (can't go above this)
+const END_LIMIT: float = -11250.0    # Top limit (can't go above this)
 
 @export var scroll_speed: float = 1.0    # Sensitivity
 @export var inertia: float = 0.95        # Smooth stop

@@ -3,105 +3,99 @@
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_cb8d3"]
 [ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_yk3sq"]
 
-[sub_resource type="Resource" id="Resource_hqkxu"]
+[sub_resource type="Resource" id="Resource_0qsy2"]
+script = ExtResource("2_yk3sq")
+formation_type = 0
+entry_pattern = 5
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_3x0r5"]
 script = ExtResource("2_yk3sq")
 formation_type = 0
 entry_pattern = 0
-difficulty = 0
-enemy_type = "mob1"
-enemy_density = "Sparse"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_ust6x"]
-script = ExtResource("2_yk3sq")
-formation_type = 1
-entry_pattern = 1
-difficulty = 0
-enemy_type = "mob2"
-enemy_density = "Normal"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_xlq1s"]
-script = ExtResource("2_yk3sq")
-formation_type = 2
-entry_pattern = 2
-difficulty = 0
-enemy_type = "mob3"
-enemy_density = "Sparse"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_2p8tm"]
-script = ExtResource("2_yk3sq")
-formation_type = 3
-entry_pattern = 3
-difficulty = 0
-enemy_type = "mob4"
-enemy_density = "Sparse"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_rqhq5"]
-script = ExtResource("2_yk3sq")
-formation_type = 4
-entry_pattern = 4
 difficulty = 1
 enemy_type = "SlowShooter"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
-[sub_resource type="Resource" id="Resource_q6lrt"]
+[sub_resource type="Resource" id="Resource_modaw"]
 script = ExtResource("2_yk3sq")
-formation_type = 3
-entry_pattern = 1
+formation_type = 0
+entry_pattern = 0
 difficulty = 1
 enemy_type = "FastEnemy"
-enemy_density = "Dense"
-formation_center = Vector2(640, 300)
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
-[sub_resource type="Resource" id="Resource_cg2d5"]
+[sub_resource type="Resource" id="Resource_0akuu"]
 script = ExtResource("2_yk3sq")
-formation_type = 4
-entry_pattern = 4
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_sqdv6"]
+script = ExtResource("2_yk3sq")
+formation_type = 0
+entry_pattern = 0
 difficulty = 1
 enemy_type = "BomberBug"
 enemy_density = "Normal"
-formation_center = Vector2(640, 300)
+formation_center = Vector2(640, 600)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_i8w10"]
+script = ExtResource("2_yk3sq")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "BomberBug"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_jqa6c"]
+script = ExtResource("2_yk3sq")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "ShadowSentinel"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
 
 [node name="Level_3" instance=ExtResource("1_cb8d3")]
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 3
-waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_hqkxu"), SubResource("Resource_ust6x"), SubResource("Resource_xlq1s"), SubResource("Resource_2p8tm"), SubResource("Resource_rqhq5"), SubResource("Resource_q6lrt"), SubResource("Resource_cg2d5")])
-
-[node name="WaveManager" parent="." index="6"]
-current_level = 3
-
-[node name="Player" parent="." index="7"]
-position = Vector2(541, 2013)
+waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_0qsy2"), SubResource("Resource_3x0r5"), SubResource("Resource_modaw"), SubResource("Resource_0akuu"), SubResource("Resource_sqdv6"), SubResource("Resource_i8w10"), SubResource("Resource_jqa6c")])

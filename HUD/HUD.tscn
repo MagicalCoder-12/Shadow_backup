@@ -1,13 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://s66mklagl4fy"]
+[gd_scene load_steps=10 format=3 uid="uid://s66mklagl4fy"]
 
 [ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
 [ext_resource type="Script" path="res://HUD/HUD.gd" id="2"]
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="3_hsjlv"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="4_bkns3"]
-[ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="4_njmlf"]
-[ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="5_lkt0t"]
-[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="6_6i5cd"]
 [ext_resource type="Texture2D" uid="uid://bosx1bop5mg50" path="res://Textures/UI/Main_Menu/Clock_Icon.png" id="7_36gqn"]
+[ext_resource type="PackedScene" uid="uid://d0e0vvw0ntlk8" path="res://HUD/Power_symbol.tscn" id="7_d42kf"]
+[ext_resource type="PackedScene" uid="uid://bq8v4j2h5n8yc" path="res://HUD/ShadowModeButton.tscn" id="8_shadow"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_amwvk"]
 font = ExtResource("3_hsjlv")
@@ -16,11 +15,6 @@ outline_size = 4
 outline_color = Color(1, 0.137255, 0.317647, 1)
 shadow_size = 12
 shadow_color = Color(0, 0, 0, 1)
-
-[sub_resource type="LabelSettings" id="LabelSettings_t1yhm"]
-font = ExtResource("6_6i5cd")
-font_size = 45
-font_color = Color(0.156863, 1, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_qp8j6"]
 font = ExtResource("4_bkns3")
@@ -72,44 +66,16 @@ label_settings = SubResource("LabelSettings_amwvk")
 horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="ShadowModeButton" type="TextureButton" parent="." groups=["UI"]]
+[node name="ShadowModeButton" parent="." instance=ExtResource("8_shadow")]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.0574074
 anchor_top = 0.521667
-anchor_right = 0.25
-anchor_bottom = 0.608958
-offset_right = 208.0
-offset_bottom = 209.5
-grow_vertical = 2
+anchor_right = 0.153704
+anchor_bottom = 0.566465
+offset_right = 104.385
+offset_bottom = 106.845
 scale = Vector2(0.5, 0.5)
-disabled = true
-texture_normal = ExtResource("4_njmlf")
-texture_disabled = ExtResource("5_lkt0t")
-metadata/_edit_use_anchors_ = true
-
-[node name="ShadowModeCharge" type="TextureProgressBar" parent="ShadowModeButton"]
-z_index = -1
-layout_mode = 0
-offset_top = -2.0
-offset_right = 416.0
-offset_bottom = 417.0
-fill_mode = 3
-texture_under = ExtResource("5_lkt0t")
-texture_progress = ExtResource("4_njmlf")
-
-[node name="ShadowModeLabel" type="Label" parent="ShadowModeButton/ShadowModeCharge"]
-z_index = 1
-layout_mode = 0
-offset_left = -9.99998
-offset_top = 156.0
-offset_right = 428.0
-offset_bottom = 316.0
-text = "Shadow Mode
-"
-label_settings = SubResource("LabelSettings_t1yhm")
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 0
@@ -134,4 +100,27 @@ horizontal_alignment = 2
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[connection signal="pressed" from="ShadowModeButton" to="." method="_on_shadow_mode_button_pressed"]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 145.0
+offset_right = 179.0
+offset_bottom = 185.0
+
+[node name="PowerSymbol" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="PowerSymbol2" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="PowerSymbol3" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[node name="PowerSymbol4" parent="HBoxContainer" instance=ExtResource("7_d42kf")]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+
+[connection signal="shadow_mode_requested" from="ShadowModeButton" to="." method="_on_shadow_mode_requested"]

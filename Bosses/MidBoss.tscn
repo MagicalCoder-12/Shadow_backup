@@ -1,9 +1,8 @@
 [gd_scene load_steps=16 format=3 uid="uid://dpbpiarnq8dd1"]
 
 [ext_resource type="Script" path="res://Bosses/Scripts/ShadowUnlockBoss.gd" id="1_mwcmj"]
-[ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bosses/homing_bullet.tscn" id="2_uo67q"]
-[ext_resource type="Texture2D" uid="uid://bqidytwxyr5sy" path="res://Textures/Boss/Boss_1_B_Large_NoLight.png" id="3_uo67q"]
-[ext_resource type="Texture2D" uid="uid://dsxrxoruwv3sv" path="res://Textures/Boss/Boss_1_A_Large_NoLight.png" id="4_5donl"]
+[ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bullet/Boss_bullet/homing_bullet.tscn" id="2_uo67q"]
+[ext_resource type="Texture2D" uid="uid://bna0irko30tcn" path="res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png" id="3_lya23"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_uo67q"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="5_oe4f5"]
 [ext_resource type="AudioStream" uid="uid://ywr4cb2khhyc" path="res://Textures/Music/BossOpressorDeath.wav" id="6_etykq"]
@@ -12,14 +11,105 @@
 [ext_resource type="AudioStream" uid="uid://d0hou0ybwsa1p" path="res://Textures/Music/monster_60_attack.wav" id="8_rkkp3"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gnr7p"]
-size = Vector2(539, 571.5)
+size = Vector2(363, 504)
 
-[sub_resource type="Animation" id="Animation_etykq"]
+[sub_resource type="Animation" id="Animation_yt7b6"]
+resource_name = "Idle"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.466667, 0.733333, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(2, 2), Vector2(1.8069, 1.72341), Vector2(1.83448, 1.86823), Vector2(2, 2)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:flip_v")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:flip_h")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.3, 0.766667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+
+[sub_resource type="Animation" id="Animation_6f1kc"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:flip_h")
+tracks/0/path = NodePath("Sprite2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(2, 2)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:flip_v")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:flip_h")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("BossDeathParticles:emitting")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_8hkoj"]
+resource_name = "death"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("BossDeathParticles:emitting")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -28,76 +118,12 @@ tracks/0/keys = {
 "update": 1,
 "values": [true]
 }
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:texture")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("4_5donl")]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Sprite2D:scale")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0.539506, 0.48726)]
-}
-
-[sub_resource type="Animation" id="Animation_5donl"]
-resource_name = "Shrink"
-length = 1.5
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:flip_h")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.42, 1.11),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 1,
-"values": [true, false, true]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:texture")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0.766667, 1.46667),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [ExtResource("4_5donl"), ExtResource("3_uo67q")]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("Sprite2D:scale")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0.03608, 0.5, 1.4),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(0.539506, 0.48726), Vector2(0.551225, 0.515092), Vector2(0.541252, 0.499586)]
-}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_etykq"]
 _data = {
-"RESET": SubResource("Animation_etykq"),
-"Shrink": SubResource("Animation_5donl")
+"Idle": SubResource("Animation_yt7b6"),
+"RESET": SubResource("Animation_6f1kc"),
+"death": SubResource("Animation_8hkoj")
 }
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rkkp3"]
@@ -107,43 +133,46 @@ particles_anim_v_frames = 3
 particles_anim_loop = false
 
 [node name="ShadowUnlockBoss" type="Area2D" groups=["Boss"]]
+position = Vector2(-2, -6)
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_mwcmj")
-max_health = 10000
-phase_transition_health = 5000
+max_health = 30000
+phase_transition_health = 15000
+base_attack_interval_p1 = 3.5
+base_attack_interval_p2 = 2.5
 projectile_scene = ExtResource("2_uo67q")
 move_speed = 500.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(-0.121122, -30.7879)
-scale = Vector2(0.539506, 0.48726)
-texture = ExtResource("4_5donl")
+position = Vector2(-4.00001, -49.8939)
+scale = Vector2(2, 2)
+texture = ExtResource("3_lya23")
 flip_h = true
+flip_v = true
 
 [node name="Nozzel" type="Node2D" parent="Sprite2D"]
-position = Vector2(8.86577, 317.173)
+position = Vector2(-1.01274, 52.9777)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -62)
+position = Vector2(1.5, -36)
 shape = SubResource("RectangleShape2D_gnr7p")
 
 [node name="AttackTimer" type="Timer" parent="."]
 
 [node name="HealthBar" parent="." instance=ExtResource("4_uo67q")]
-offset_left = -329.0
-offset_top = -428.0
-offset_right = 348.0
-offset_bottom = -387.0
+offset_left = -322.0
+offset_top = -333.0
+offset_right = 355.0
+offset_bottom = -292.0
 texture_under = ExtResource("5_oe4f5")
-texture_over = null
 texture_progress = ExtResource("6_xjoeo")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 "": SubResource("AnimationLibrary_etykq")
 }
-autoplay = "Shrink"
+autoplay = "Idle"
 
 [node name="BossDeathParticles" type="CPUParticles2D" parent="."]
 material = SubResource("CanvasItemMaterial_rkkp3")

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cu4njtwsku2vw"]
+
+[ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_e8s23"]
+
+[node name="Level_16" instance=ExtResource("1_e8s23")]
+
+[node name="LevelManager" parent="." index="4"]
+level_num = 16

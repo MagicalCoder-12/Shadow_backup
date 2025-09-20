@@ -22,6 +22,7 @@ var formation_sway_timer: float = 0.0
 var sway_amplitude: float = 30.0
 var sway_frequency: float = 2.0
 var original_formation_pos: Vector2
+var death_reason: String = ""
 
 func _ready():
 	super._ready()
@@ -137,7 +138,8 @@ func _handle_formation_sway(delta):
 
 # Called by FormationManager when enemy reaches formation
 func on_reach_formation():
-	super.on_reach_formation()
+	# Set formation reached state
+	arrived_at_formation = true
 	original_formation_pos = global_position
 	
 	if debug_mode:
@@ -194,7 +196,7 @@ func _start_rapid_fire():
 
 # Override fire to add rapid fire effects
 func fire():
-	super.fire()
+	_fire_at_player()
 	
 	if is_rapid_firing and debug_mode:
 		print("FastEnemy rapid fire shot")
@@ -265,3 +267,7 @@ func get_status() -> String:
 func _exit_tree():
 	if fire_timer and fire_timer.timeout.is_connected(_on_fire_timer_timeout):
 		fire_timer.timeout.disconnect(_on_fire_timer_timeout)
+	# Kill any running tweens
+	for child in get_children():
+		if child.get_class() == "Tween":
+			child.kill()

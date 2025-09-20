@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var fall_speed: float = 400.0  # Speed at which the bomb falls
-var explosion_scene = preload("res://Bullet/Explosion.tscn")
+var explosion_scene = preload("res://Bullet/Ebullet/Bomb.tscn")
 @onready var timer: Timer = $Timer
 var player_in_area: Player = null
 

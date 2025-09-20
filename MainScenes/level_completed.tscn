@@ -1,27 +1,35 @@
-[gd_scene load_steps=13 format=3 uid="uid://b2dr1w4bni0qf"]
+[gd_scene load_steps=17 format=3 uid="uid://b2dr1w4bni0qf"]
 
 [ext_resource type="Script" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_vwgn2"]
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="4_20gqo"]
 [ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="4_etx2i"]
 [ext_resource type="Texture2D" uid="uid://crf8s3lmcu0hn" path="res://Textures/UI/Main_Menu/BTNs_Active/Menu_BTN.png" id="5_a4r2w"]
 [ext_resource type="Texture2D" uid="uid://cplo7hlkir3ii" path="res://Textures/UI/Main_Menu/BTNs/Replay_BTN.png" id="5_jnrss"]
+[ext_resource type="Texture2D" uid="uid://brlinyw3kiffu" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_01.png" id="5_qo8e3"]
 [ext_resource type="Texture2D" uid="uid://dnpcvc0hqf6d0" path="res://Textures/UI/Main_Menu/BTNs/Forward_BTN.png" id="6_hha4d"]
 [ext_resource type="Texture2D" uid="uid://bvp1csfyerbbp" path="res://Textures/UI/Main_Menu/BTNs_Active/Replay_BTN.png" id="6_xrh6e"]
 [ext_resource type="Texture2D" uid="uid://cf2u1w86trya3" path="res://Textures/UI/Main_Menu/BTNs_Active/Forward_BTN.png" id="9_4da8t"]
+[ext_resource type="AudioStream" uid="uid://xxco01ml12px" path="res://Textures/Music/794489__gobbe57__coin-pickup.wav" id="12_8j3bx"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_syrab"]
 font = ExtResource("1_vwgn2")
 font_size = 60
 outline_size = 10
 
-[sub_resource type="LabelSettings" id="LabelSettings_3ol6k"]
-font = ExtResource("3_vwgn2")
-font_size = 70
-
 [sub_resource type="LabelSettings" id="LabelSettings_mjsg3"]
 font = ExtResource("3_vwgn2")
-font_size = 70
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_exqyw"]
+font = ExtResource("3_vwgn2")
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_3ol6k"]
+line_spacing = 0.0
+font = ExtResource("3_vwgn2")
+font_size = 52
 
 [node name="LevelCompleted" type="Control"]
 process_mode = 3
@@ -66,53 +74,88 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
-layout_mode = 0
-anchor_left = 0.107514
-anchor_top = 0.332967
-anchor_right = 0.934104
-anchor_bottom = 0.563736
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0462428
+anchor_top = 0.167033
+anchor_right = 0.965318
+anchor_bottom = 1.01099
 offset_bottom = -46.0
-theme_override_constants/separation = 50
+theme_override_constants/separation = 60
 metadata/_edit_use_anchors_ = true
-
-[node name="HighScore" type="Label" parent="Panel/VBoxContainer"]
-layout_mode = 2
-text = "Hi-Score: 0000
-"
-label_settings = SubResource("LabelSettings_3ol6k")
 
 [node name="Score" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
-text = "Score: 0000"
+text = "Score: 000000000"
 label_settings = SubResource("LabelSettings_mjsg3")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Panel"]
-layout_mode = 0
-anchor_left = 0.0867052
-anchor_top = 0.668131
-anchor_right = 0.930636
-anchor_bottom = 0.8989
+[node name="Coin_texture" type="TextureRect" parent="Panel/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("4_20gqo")
+stretch_mode = 2
+
+[node name="Coins" type="Label" parent="Panel/VBoxContainer/Coin_texture"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+offset_left = 77.0
+offset_top = 1.0
+offset_right = 781.0
+offset_bottom = 60.0
+text = "Coins: 0"
+label_settings = SubResource("LabelSettings_exqyw")
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="Crystal_texture" type="TextureRect" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(125, 0)
+layout_mode = 2
+texture = ExtResource("5_qo8e3")
+stretch_mode = 2
+
+[node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystal_texture"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+offset_left = 87.0
+offset_top = 27.0008
+offset_right = 712.0
+offset_bottom = 86.0008
+text = "Crystals: 0"
+label_settings = SubResource("LabelSettings_3ol6k")
+autowrap_mode = 2
+
+[node name="Gap" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 8
 theme_override_constants/separation = 50
 metadata/_edit_use_anchors_ = true
 
-[node name="Map" type="TextureButton" parent="Panel/HBoxContainer"]
+[node name="Map" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("4_etx2i")
 texture_pressed = ExtResource("5_a4r2w")
 texture_hover = ExtResource("5_a4r2w")
 
-[node name="Restart" type="TextureButton" parent="Panel/HBoxContainer"]
+[node name="Restart" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("5_jnrss")
 texture_pressed = ExtResource("6_xrh6e")
 texture_hover = ExtResource("6_xrh6e")
 
-[node name="Next" type="TextureButton" parent="Panel/HBoxContainer"]
+[node name="Next" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("6_hha4d")
 texture_pressed = ExtResource("9_4da8t")
 texture_hover = ExtResource("9_4da8t")
 
-[connection signal="pressed" from="Panel/HBoxContainer/Map" to="." method="_on_map_pressed"]
-[connection signal="pressed" from="Panel/HBoxContainer/Restart" to="." method="_on_restart_pressed"]
-[connection signal="pressed" from="Panel/HBoxContainer/Next" to="." method="_on_next_pressed"]
+[node name="CountUpTimer" type="Timer" parent="."]
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("12_8j3bx")
+
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Map" to="." method="_on_map_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Next" to="." method="_on_next_pressed"]

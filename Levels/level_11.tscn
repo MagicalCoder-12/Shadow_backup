@@ -1,0 +1,114 @@
+[gd_scene load_steps=11 format=3 uid="uid://d2550fg3euhqj"]
+
+[ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_jerhw"]
+[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_5wub7"]
+
+[sub_resource type="Resource" id="Resource_80uvy"]
+script = ExtResource("2_5wub7")
+formation_type = 10
+entry_pattern = 0
+difficulty = 3
+enemy_type = "BomberBug"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_f12pv"]
+script = ExtResource("2_5wub7")
+formation_type = 0
+entry_pattern = 8
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_vfios"]
+script = ExtResource("2_5wub7")
+formation_type = 8
+entry_pattern = 0
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_xg7bv"]
+script = ExtResource("2_5wub7")
+formation_type = 7
+entry_pattern = 11
+difficulty = 3
+enemy_type = "BomberBug"
+enemy_density = "Maximum"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_vbyrn"]
+script = ExtResource("2_5wub7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "BouncerEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_hkrpy"]
+script = ExtResource("2_5wub7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "FastEnemy"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_y1nks"]
+script = ExtResource("2_5wub7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "SlowShooter"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[sub_resource type="Resource" id="Resource_pfqd1"]
+script = ExtResource("2_5wub7")
+formation_type = 0
+entry_pattern = 0
+difficulty = 1
+enemy_type = "mob4"
+enemy_density = "Normal"
+formation_center = Vector2(640, 600)
+formation_radius = 150.0
+formation_spacing = 100.0
+spawn_delay = 0.3
+entry_speed = 500.0
+
+[node name="Level_11" instance=ExtResource("1_jerhw")]
+
+[node name="LevelManager" parent="." index="4"]
+level_num = 11
+waves = Array[ExtResource("2_5wub7")]([SubResource("Resource_80uvy"), SubResource("Resource_f12pv"), SubResource("Resource_vfios"), SubResource("Resource_xg7bv"), SubResource("Resource_vbyrn"), SubResource("Resource_hkrpy"), SubResource("Resource_y1nks"), SubResource("Resource_pfqd1")])

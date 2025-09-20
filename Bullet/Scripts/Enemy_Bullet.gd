@@ -1,7 +1,7 @@
 extends Area2D
 
 @export var speed: float = 1200
-var EBulletEffect := preload("res://Bullet/EnemyBulletEffect.tscn")
+var EBulletEffect := preload("res://Bullet/Ebullet/EnemyBulletEffect.tscn")
 
 func _on_area_entered(area: Area2D) -> void:
 	if area is Player:

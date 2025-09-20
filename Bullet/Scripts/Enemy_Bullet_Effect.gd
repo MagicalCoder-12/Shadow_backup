@@ -1,4 +1,3 @@
-extends Sprite2D
+extends EffectBase
 
-func _on_timer_timeout() :
-	queue_free()
+# Enemy bullet effect - uses base cleanup functionality and consistent naming

@@ -1,6 +1,12 @@
 extends Enemy
 class_name BouncerEnemy
 
+func _exit_tree():
+	# Clean up tweens if any
+	for child in get_children():
+		if child.get_class() == "Tween":
+			child.kill()
+
 @export var bounce_amplitude: float = 50.0
 @export var bounce_frequency: float = 2.0
 @export var fire_delay: float = 1.0

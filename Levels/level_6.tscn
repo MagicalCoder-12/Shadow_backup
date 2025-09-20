@@ -14,7 +14,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_4nmgx"]
 script = ExtResource("2_27blp")
@@ -27,7 +27,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_of4xl"]
 script = ExtResource("2_27blp")
@@ -40,7 +40,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_x2alc"]
 script = ExtResource("2_27blp")
@@ -53,7 +53,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_8kfbr"]
 script = ExtResource("2_27blp")
@@ -66,7 +66,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_4yppk"]
 script = ExtResource("2_27blp")
@@ -79,7 +79,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_5axy1"]
 script = ExtResource("2_27blp")
@@ -92,13 +92,10 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [node name="Level_6" instance=ExtResource("1_r2npx")]
 
-[node name="LevelManager" parent="." index="5"]
+[node name="LevelManager" parent="." index="4"]
 level_num = 6
 waves = Array[ExtResource("2_27blp")]([SubResource("Resource_rslch"), SubResource("Resource_4nmgx"), SubResource("Resource_of4xl"), SubResource("Resource_x2alc"), SubResource("Resource_8kfbr"), SubResource("Resource_4yppk"), SubResource("Resource_5axy1")])
-
-[node name="WaveManager" parent="." index="7"]
-current_level = 6

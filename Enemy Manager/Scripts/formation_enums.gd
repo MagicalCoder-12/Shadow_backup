@@ -9,7 +9,10 @@ enum FormationType {
 	V_FORMATION,
 	DOUBLE_CIRCLE,
 	HEXAGON,
-	TRIANGLE
+	TRIANGLE,
+	V_WAVE,         # New formation type
+	CLUSTER,        # New formation type
+	DYNAMIC         # New formation type
 }
 
 enum EntryPattern {
@@ -20,7 +23,12 @@ enum EntryPattern {
 	ZIGZAG,
 	BOUNCE,
 	LOOP,
-	WAVE_ENTRY
+	WAVE_ENTRY,
+	STAGGERED,      # New entry pattern
+	AMBUSH,         # New entry pattern
+	MULTI_SIDE,     # New entry pattern
+	RANDOM_EDGE,    # New entry pattern
+	CORNER_AMBUSH   # New entry pattern
 }
 
 # Difficulty levels for enemy behavior
@@ -29,4 +37,19 @@ enum DifficultyLevel {
 	NORMAL,
 	HARD,
 	NIGHTMARE
+}
+
+# New enemy types
+enum EnemyType {
+	MOB1,
+	MOB2,
+	MOB3,
+	MOB4,
+	SLOW_SHOOTER,
+	FAST_ENEMY,
+	BOUNCER_ENEMY,
+	BOMBER_BUG,
+	OblivionTank,      
+	PhasePhantom,     
+	ShadowSentinel
 }

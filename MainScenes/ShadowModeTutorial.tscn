@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://cjph7f2ttbirj"]
+[gd_scene load_steps=9 format=3 uid="uid://cjph7f2ttbirj"]
 
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="1_7lulu"]
 [ext_resource type="Script" path="res://MainScenes/Scripts/shadow_mode_tutorial.gd" id="1_374j1"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="3_jf62g"]
 [ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Textures/UI/Neon _CONTINUE_ Button Glowing.png" id="4_jf62g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4nl8d"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_sex1l"]
 font = ExtResource("1_7lulu")
@@ -22,6 +24,7 @@ bg_color = Color(0.0705882, 0.945098, 0.360784, 1)
 border_width_left = 20
 
 [node name="ShadowModeTutorial" type="Control"]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -43,12 +46,13 @@ color = Color(0, 0, 0, 0.368627)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.0287037
-anchor_top = 0.202917
+anchor_top = 0.183333
 anchor_right = 0.960185
 anchor_bottom = 0.721667
 offset_bottom = -0.00012207
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_4nl8d")
 metadata/_edit_use_anchors_ = true
 
 [node name="Panel" type="Panel" parent="PanelContainer"]

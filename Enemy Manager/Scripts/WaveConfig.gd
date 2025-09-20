@@ -12,7 +12,7 @@ class_name WaveConfig
 # CORRECTED: Difficulty enum now matches the Enemy script
 @export var difficulty: formation_enums.DifficultyLevel = formation_enums.DifficultyLevel.NORMAL
 
-@export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug")
+@export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug", "OblivionTank", "PhasePhantom","ShadowSentinel")
 var enemy_type: String = "mob1"
 
 # NEW: Dedicated boss scene for boss waves
@@ -23,11 +23,11 @@ var enemy_type: String = "mob1"
 var enemy_density: String = "Normal"
 
 # Formation parameters
-@export var formation_center: Vector2 = Vector2(640, 300)
+@export var formation_center: Vector2 = Vector2(640, 600)
 @export var formation_radius: float = 150.0
 @export var formation_spacing: float = 100.0
 @export var spawn_delay: float = 0.3
-@export var entry_speed: float = 300.0
+@export var entry_speed: float = 500.0
 
 # Internal properties used by FormationManager (don't export these)
 var spawn_pos: Vector2
@@ -45,7 +45,10 @@ var formation_counts := {
 	formation_enums.FormationType.V_FORMATION: [6, 8, 10, 12],     # Even numbers for balanced V
 	formation_enums.FormationType.DOUBLE_CIRCLE: [8, 12, 16, 20],  # Even for inner/outer circles
 	formation_enums.FormationType.HEXAGON: [6, 12, 18, 24],        # Multiples of 6 for hexagon sides
-	formation_enums.FormationType.TRIANGLE: [6, 10, 15, 21],       # Triangular numbers (3+2+1, 4+3+2+1, etc.)
+	formation_enums.FormationType.TRIANGLE: [6, 10, 15, 21],       # Triangular numbers (3+2+1, 4+3+2+1, etc.),
+	formation_enums.FormationType.V_WAVE: [8, 12, 16, 20],         # New V-wave formation
+	formation_enums.FormationType.CLUSTER: [6, 9, 12, 15],         # New cluster formation
+	formation_enums.FormationType.DYNAMIC: [8, 12, 16, 20]        # New dynamic formation
 }
 
 # Paths to enemy scenes
@@ -57,7 +60,10 @@ var enemy_paths := {
 	"SlowShooter": preload("res://Enemy/SlowShooter.tscn"),
 	"FastEnemy": preload("res://Enemy/FastEnemy.tscn"),
 	"BouncerEnemy": preload("res://Enemy/BouncerEnemy.tscn"),
-	"BomberBug" : preload("res://Enemy/BomberBug.tscn")
+	"BomberBug" : preload("res://Enemy/BomberBug.tscn"),
+	"OblivionTank": preload("res://Enemy/OblivionTank.tscn"),            
+	"PhasePhantom": preload("res://Enemy/PhasePhantom.tscn"),
+	"ShadowSentinel":preload("res://Enemy/ShadowSentinel.tscn")
 }
 
 # Returns the configured enemy or boss scene

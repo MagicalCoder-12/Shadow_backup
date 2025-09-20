@@ -8,44 +8,44 @@ script = ExtResource("2_2ka36")
 formation_type = 0
 entry_pattern = 0
 difficulty = 0
-enemy_type = "mob1"
+enemy_type = "mob4"
 enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_ust6x"]
 script = ExtResource("2_2ka36")
 formation_type = 1
 entry_pattern = 1
 difficulty = 0
-enemy_type = "mob2"
+enemy_type = "SlowShooter"
 enemy_density = "Normal"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_xlq1s"]
 script = ExtResource("2_2ka36")
 formation_type = 2
 entry_pattern = 2
 difficulty = 0
-enemy_type = "mob3"
-enemy_density = "Sparse"
+enemy_type = "BouncerEnemy"
+enemy_density = "Dense"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_2p8tm"]
 script = ExtResource("2_2ka36")
 formation_type = 3
-entry_pattern = 3
+entry_pattern = 10
 difficulty = 0
 enemy_type = "mob4"
 enemy_density = "Sparse"
@@ -53,33 +53,33 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_rqhq5"]
 script = ExtResource("2_2ka36")
 formation_type = 4
-entry_pattern = 4
+entry_pattern = 10
 difficulty = 1
-enemy_type = "SlowShooter"
+enemy_type = "mob3"
 enemy_density = "Normal"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_b3kg5"]
 script = ExtResource("2_2ka36")
 formation_type = 0
 entry_pattern = 0
-difficulty = 1
+difficulty = 2
 enemy_type = "SlowShooter"
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_wiecx"]
 script = ExtResource("2_2ka36")
@@ -92,7 +92,7 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_ii0oj"]
 script = ExtResource("2_2ka36")
@@ -105,13 +105,10 @@ formation_center = Vector2(640, 300)
 formation_radius = 150.0
 formation_spacing = 100.0
 spawn_delay = 0.3
-entry_speed = 300.0
+entry_speed = 500.0
 
 [node name="Level_4" instance=ExtResource("1_ftfcu")]
 
-[node name="LevelManager" parent="." index="5"]
+[node name="LevelManager" parent="." index="4"]
 level_num = 4
 waves = Array[ExtResource("2_2ka36")]([SubResource("Resource_hqkxu"), SubResource("Resource_ust6x"), SubResource("Resource_xlq1s"), SubResource("Resource_2p8tm"), SubResource("Resource_rqhq5"), SubResource("Resource_b3kg5"), SubResource("Resource_wiecx"), SubResource("Resource_ii0oj")])
-
-[node name="WaveManager" parent="." index="7"]
-current_level = 4

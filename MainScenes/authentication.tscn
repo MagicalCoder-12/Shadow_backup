@@ -1,0 +1,118 @@
+[gd_scene load_steps=8 format=3 uid="uid://bnhufxpe8br1o"]
+
+[ext_resource type="Script" path="res://MainScenes/Scripts/authentication.gd" id="1_7cwmy"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="1_0424m"]
+[ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="2_mrds1"]
+[ext_resource type="Texture2D" uid="uid://b41nqh802bkwl" path="res://Textures/UI/Main_Menu/BTNs/Google_BTN.png" id="3_8a06j"]
+[ext_resource type="Texture2D" uid="uid://sxlsjrnvh51q" path="res://Textures/UI/Main_Menu/BTNs_Active/Google_BTN.png" id="5_5gcmp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_es60m"]
+font = ExtResource("1_0424m")
+font_size = 150
+
+[sub_resource type="LabelSettings" id="LabelSettings_g4e5j"]
+font = ExtResource("1_0424m")
+font_size = 70
+
+[node name="Authentication" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7cwmy")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+text = "Login"
+label_settings = SubResource("LabelSettings_es60m")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.2125
+anchor_right = 1.0
+anchor_bottom = 0.797917
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_mrds1")
+theme_type_variation = &"Ship_panel"
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.062037
+anchor_top = 0.0640569
+anchor_right = 0.937963
+anchor_bottom = 0.888256
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+metadata/_edit_use_anchors_ = true
+
+[node name="Status" type="Label" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Not logged in"
+label_settings = SubResource("LabelSettings_g4e5j")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Email" type="LineEdit" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 50
+placeholder_text = "Email"
+
+[node name="Password" type="LineEdit" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 50
+placeholder_text = "Password"
+secret = true
+
+[node name="Login" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("2_mrds1")
+theme_type_variation = &"FlatButton"
+theme_override_font_sizes/font_size = 70
+text = "Login"
+
+[node name="Signup" type="Button" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("2_mrds1")
+theme_override_font_sizes/font_size = 70
+text = "SignUP"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+alignment = 1
+
+[node name="Google" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+texture_normal = ExtResource("3_8a06j")
+texture_pressed = ExtResource("5_5gcmp")
+texture_hover = ExtResource("5_5gcmp")
+
+[connection signal="pressed" from="Panel/VBoxContainer/Login" to="." method="_on_login_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Signup" to="." method="_on_signup_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Google" to="." method="_on_google_pressed"]

@@ -1,0 +1,50 @@
+[gd_scene load_steps=8 format=3 uid="uid://wj3opyp5x4yl"]
+
+[ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_024sp"]
+[ext_resource type="Script" path="res://Ships/Scripts/Ship2.gd" id="2_spnhh"]
+[ext_resource type="Texture2D" uid="uid://chh7w32nqgbfb" path="res://Textures/player/ship_textures/ship_02_lvl0.png" id="3_c88ya"]
+[ext_resource type="Texture2D" uid="uid://bsq1h0i0bmh68" path="res://Textures/player/Example_ships/Spaceships-12/Spaceships/Spaceship12-purple-03.png" id="3_p6j1y"]
+[ext_resource type="Texture2D" uid="uid://dvfvojl7qalqv" path="res://Textures/player/ship_textures/ship_02_lvl1.png" id="4_knfr4"]
+[ext_resource type="Texture2D" uid="uid://cjpg44ujmgk6j" path="res://Textures/player/ship_textures/ship_02_lvl2.png" id="5_do63i"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2eqej"]
+size = Vector2(226.667, 153.333)
+
+[node name="aetherstrike" instance=ExtResource("1_024sp")]
+position = Vector2(-12, 2)
+script = ExtResource("2_spnhh")
+burst_count = 2
+burst_delay = 0.2
+burst_cooldown = 0.8
+shadow_burst_count = 5
+shadow_burst_delay = 0.05
+shadow_burst_sequence_count = 3
+shadow_burst_sequence_delay = 0.3
+super_burst_count = 7
+super_burst_spread = 60.0
+base_texture_scale = Vector2(1, 1)
+evolution_texture_scales = Array[Vector2]([])
+default_evolution_scale = Vector2(1, 1)
+ship_id = "Ship2"
+normal_fire_delay = 5.0
+spawn_point_offset = 15.0
+base_bullet_damage = 25
+shadow_texture = ExtResource("3_p6j1y")
+evolution_textures = Array[Texture2D]([ExtResource("3_c88ya"), ExtResource("4_knfr4"), ExtResource("5_do63i")])
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("3_c88ya")
+flip_v = true
+
+[node name="Thruster" parent="Sprite2D" index="0"]
+position = Vector2(-3.6, 89.6)
+
+[node name="LeftGun" parent="Sprite2D/FiringPositions" index="0"]
+position = Vector2(-54.4, -54.4)
+
+[node name="RightGun" parent="Sprite2D/FiringPositions" index="1"]
+position = Vector2(55.2, -53.6)
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(-2.86102e-06, 38.6667)
+shape = SubResource("RectangleShape2D_2eqej")
