@@ -487,11 +487,12 @@ func _grant_reward(reward_type: String) -> void:
 			gm.add_currency("crystals", ad_crystal_reward)
 			gm.add_currency("void_shards", ad_ascend_reward)
 			_debug_log("Granted %d crystals and %d void_shards" % [ad_crystal_reward, ad_ascend_reward])
-			gm.ad_reward_granted.emit("crystals")
 		"coins":
 			gm.add_currency("coins", ad_coins_reward)
 			_debug_log("Granted %d coins" % ad_coins_reward)
-			gm.ad_reward_granted.emit("coins")
+	
+	# Emit the signal to notify that reward has been granted
+	gm.ad_reward_granted.emit(reward_type)
 
 func handle_node_added(_node: Node) -> void:
 	pass  # Placeholder, not needed for static ReviveAdButton
@@ -515,14 +516,14 @@ func request_reward_ad(reward_type: String) -> void:
 	_debug_log("Requesting reward ad for: %s" % reward_type)
 	if not admob or not is_initialized:
 		push_error("Cannot request reward ad: AdMob not initialized or missing.")
-		# Grant reward directly if ads aren't available
-		_grant_reward(reward_type)
+		# Emit failed signal instead of granting reward directly
+		gm.ad_failed_to_load.emit(reward_type, {"message": "AdMob not initialized"})
 		return
 
 	if is_ad_showing:
 		print("Ad request ignored: Another ad is already showing.")
-		# Grant reward directly if another ad is showing
-		_grant_reward(reward_type)
+		# Emit failed signal instead of granting reward directly
+		gm.ad_failed_to_load.emit(reward_type, {"message": "Another ad is already showing"})
 		return
 
 	# Set up reward state

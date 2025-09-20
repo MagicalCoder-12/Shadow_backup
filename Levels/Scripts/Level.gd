@@ -450,7 +450,7 @@ func _show_level_completed_ui():
 	GameManager.save_manager.save_progress()
 
 # Add this new function to calculate level completion rewards
-func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
+func _calculate_level_completion_rewards(level_num_param: int) -> Dictionary:
 	# Get reward configuration
 	var reward_config = {}
 	if ConfigLoader and ConfigLoader.upgrade_settings:
@@ -462,7 +462,7 @@ func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
 	
 	# Calculate rewards based on level number with diminishing returns
 	# Using square root to provide growth that slows over time
-	var level_multiplier = pow(float(level_num), 0.75)
+	var level_multiplier = pow(float(level_num_param), 0.75)
 	
 	return {
 		"coins": int(base_coins * level_multiplier),
