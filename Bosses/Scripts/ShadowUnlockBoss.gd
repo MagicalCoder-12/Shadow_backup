@@ -162,9 +162,9 @@ func _execute_attack_pattern() -> void:
 	_show_muzzle_flash()
 	
 	if current_phase == BossPhase.PHASE_1:
-		_pattern_p1_spiral_wave()
-	else:
 		_pattern_p2_converging_storm()
+	else:
+		_pattern_p1_spiral_wave()
 
 func _show_muzzle_flash() -> void:
 	var flash = MUZZLE_FLASH.instantiate()
@@ -209,6 +209,7 @@ func _pattern_p2_converging_storm() -> void:
 	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
 		# Fallback to regular bullet pattern if hell pattern not available
 		_fallback_p2_pattern()
+		print("falling abck to p2")
 		return
 	
 	# Use HellPatternBullet for Phase 2 (360-degree pattern, no homing)
@@ -240,7 +241,7 @@ func _pattern_p2_converging_storm() -> void:
 
 # Fallback pattern for Phase 2 when HellPatternBullet is not available
 func _fallback_p2_pattern() -> void:
-	var bullet_count = 12
+	var bullet_count = 16
 	var speed_variation = 600.0
 	
 	for i in range(bullet_count):

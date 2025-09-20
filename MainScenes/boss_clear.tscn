@@ -1,6 +1,6 @@
 [gd_scene load_steps=18 format=3 uid="uid://b8xr1xabni0qf"]
 
-[ext_resource type="Script" path="res://MainScenes/Scripts/boss_clear.gd" id="1_boss_clear"]
+[ext_resource type="Script" uid="uid://bheoj8wcpuhe" path="res://MainScenes/Scripts/boss_clear.gd" id="1_boss_clear"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="2_future_font"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_narrow_font"]
 [ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="4_coins_icon"]
@@ -45,7 +45,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_boss_clear")
-debug = true
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1

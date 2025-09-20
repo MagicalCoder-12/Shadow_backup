@@ -1,6 +1,6 @@
 [gd_scene load_steps=36 format=3 uid="uid://bmlutcsqb2gte"]
 
-[ext_resource type="Script" path="res://Enemy/Scripts/Enemy.gd" id="1_bjyvl"]
+[ext_resource type="Script" uid="uid://co6kbijd10gf0" path="res://Enemy/Scripts/Enemy.gd" id="1_bjyvl"]
 [ext_resource type="Texture2D" uid="uid://dd500r0g4v3hq" path="res://Textures/Enemy/Ship_1_E_Small_NoLight.png" id="2_7jp3o"]
 [ext_resource type="Texture2D" uid="uid://dopawxl613yyd" path="res://Textures/Enemy/enemyUFO.png" id="2_epr5s"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="14_o5xt3"]
@@ -138,7 +138,7 @@ z_index = 100
 collision_layer = 4
 collision_mask = 17
 script = ExtResource("1_bjyvl")
-speed = 500.0
+speed = 700.0
 shadow_texture = ExtResource("2_7jp3o")
 ambush_probability = 0.5
 

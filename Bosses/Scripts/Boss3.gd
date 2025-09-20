@@ -165,7 +165,12 @@ func _initialize_minion_spawn_positions() -> void:
 func start_movement() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var center_x: float = viewport_size.x / 2
-	global_position = Vector2(center_x, 500)
+	# Spawn above screen bounds
+	global_position = Vector2(center_x, -200)
+	
+	# Tween to visible position
+	var tween = create_tween()
+	tween.tween_property(self, "global_position:y", 100, 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _physics_process(delta: float) -> void:
 	if defeated:

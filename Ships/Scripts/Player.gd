@@ -233,8 +233,13 @@ func _on_shadow_mode_deactivated() -> void:
 
 func apply_shadow_mode_effects() -> void:
 	if sprite_2d:
-		sprite_2d.texture = shadow_texture
-		sprite_2d.modulate = Color(1.2, 1.2, 1.2)
+		# For Ship2, use different visual effects
+		if ship_id == "Ship2":
+			sprite_2d.texture = shadow_texture
+			sprite_2d.modulate = Color(0.7, 0.3, 1.0)  # Purple tint for Ship2 shadow mode (from Ship2.gd)
+		else:
+			sprite_2d.texture = shadow_texture
+			sprite_2d.modulate = Color(1.2, 1.2, 1.2)
 	speed = original_speed * shadow_speed_multiplier
 	fire_delay_timer.wait_time = shadow_fire_delay_multiplier
 	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
@@ -244,13 +249,22 @@ func revert_shadow_mode_effects() -> void:
 		sprite_2d.texture = original_texture
 		# Check if super mode is still active
 		if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-			sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
+			# For Ship2, use super mode visual effects
+			if ship_id == "Ship2":
+				sprite_2d.modulate = Color(1, 0.706, 0.385)  # Ship2-specific super mode color
+			else:
+				sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
 		else:
 			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
 	
 	# Restore speed based on whether super mode is still active
 	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		speed = original_speed * super_mode_speed_multiplier
+		# If super mode is active, check if it's Ship2 for combined effects
+		if ship_id == "Ship2" and GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+			# Combined mode for Ship2
+			speed = original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
+		elif GameManager.player_manager.player_stats.get("is_super_mode_active", false):
+			speed = original_speed * super_mode_speed_multiplier
 	else:
 		speed = original_speed
 	
@@ -274,14 +288,38 @@ func shoot() -> void:
 	fire_delay_timer.start(fire_delay_timer.wait_time)
 	var is_super_mode = GameManager.player_manager.player_stats.get("is_super_mode_active", false)
 	var is_shadow_mode = GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)
-	var bullet_scene: PackedScene = plSuperBullet if is_super_mode else plShadowBullet if is_shadow_mode else plBullet
-	var bullet_speed: float = super_mode_bullet_speed if is_super_mode else GameManager.player_manager.default_bullet_speed
-	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
-
-	if is_shadow_mode and not is_super_mode:
-		_shoot_shadow_bullets(bullet_scene, bullet_speed, bullet_damage)
+	
+	# Check if this is Ship2 to apply swapped behavior
+	if ship_id == "Ship2":
+		# For Ship2, swap the bullet types and patterns
+		if is_super_mode and not is_shadow_mode:
+			# Super mode active: use shadow bullets with shadow pattern
+			var bullet_scene: PackedScene = plShadowBullet
+			var bullet_speed: float = GameManager.player_manager.default_bullet_speed
+			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+			_shoot_shadow_bullets(bullet_scene, bullet_speed, bullet_damage)
+		elif is_shadow_mode and not is_super_mode:
+			# Shadow mode active: use super bullets with super pattern
+			var bullet_scene: PackedScene = plSuperBullet
+			var bullet_speed: float = super_mode_bullet_speed
+			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+			_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
+		else:
+			# Neither mode or both modes: use normal bullets with normal pattern
+			var bullet_scene: PackedScene = plBullet
+			var bullet_speed: float = GameManager.player_manager.default_bullet_speed
+			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+			_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
 	else:
-		_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
+		# For other ships, use standard behavior
+		var bullet_scene: PackedScene = plSuperBullet if is_super_mode else plShadowBullet if is_shadow_mode else plBullet
+		var bullet_speed: float = super_mode_bullet_speed if is_super_mode else GameManager.player_manager.default_bullet_speed
+		var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+
+		if is_shadow_mode and not is_super_mode:
+			_shoot_shadow_bullets(bullet_scene, bullet_speed, bullet_damage)
+		else:
+			_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
 
 	# Play shooting sound via AudioManager
 	if AudioManager:
@@ -622,11 +660,17 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	# Apply visual effects for super mode
 	if sprite_2d:
 		if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-			# Combined mode: blue tint with bright white glow
-			sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
+			# Combined mode: different visual effect for Ship2
+			if ship_id == "Ship2":
+				sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
+			else:
+				sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
 		else:
-			# Normal super mode: blue tint
-			sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
+			# Normal super mode: Ship2-specific color
+			if ship_id == "Ship2":
+				sprite_2d.modulate = Color(1, 0.706, 0.385)  # Ship2-specific super mode color
+			else:
+				sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
 	
 	# Apply speed multiplier
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
@@ -784,7 +828,7 @@ func _handle_enemy_collision(enemy: Area2D) -> void:
 	
 	# Damage or destroy the enemy
 	if enemy.has_method("damage"):
-		enemy.damage(100)  # Deal significant damage to enemy on collision
+		enemy.damage(500)  # Deal significant damage to enemy on collision
 	
 	_debug_log("Player collided with enemy: %s" % enemy.name)
 

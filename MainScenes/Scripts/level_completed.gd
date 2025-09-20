@@ -9,7 +9,7 @@ const Map = "res://Map/map.tscn"
 var current_level: int
 var collected_coins: int = 0
 var collected_crystals: int = 0
-var debug: bool = true  # Enable or disable debug logging
+@export var debug: bool = false  # Enable or disable debug logging
 var signals_connected: bool = false
 
 # Add a method to initialize the screen when it's actually shown

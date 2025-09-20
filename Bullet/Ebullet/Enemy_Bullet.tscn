@@ -1,10 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://du3ci30e08fmr"]
 
-[ext_resource type="Script" path="res://Bullet/Scripts/Enemy_Bullet.gd" id="1_vf00a"]
+[ext_resource type="Script" uid="uid://beyknshp22rtn" path="res://Bullet/Scripts/Enemy_Bullet.gd" id="1_vf00a"]
 [ext_resource type="Texture2D" uid="uid://cjgdykp7vlg1x" path="res://Textures/Lasers/Laser Sprites/33.png" id="2_umru0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7t6hs"]
-size = Vector2(28, 134)
+size = Vector2(14, 83)
 
 [node name="EnemyBullet" type="Area2D" groups=["EnemyBullet"]]
 z_index = 1
@@ -15,15 +15,17 @@ speed = 1500.0
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(3.683e-07, 15.9685)
 rotation = 1.5708
+scale = Vector2(0.7, 0.7)
 texture = ExtResource("2_umru0")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-2, -9)
+position = Vector2(-3, -1.5)
 shape = SubResource("RectangleShape2D_7t6hs")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
-position = Vector2(1.5, -9.00001)
+position = Vector2(-1, -6.999999)
 scale = Vector2(1.55, 6.9)
+rect = Rect2(-6.774194, -5.507245, 10.967742, 12.753622)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

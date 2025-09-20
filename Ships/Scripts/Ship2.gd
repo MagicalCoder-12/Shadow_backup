@@ -14,8 +14,8 @@ extends BaseShip
 @export var shadow_burst_sequence_delay: float = 0.3  # Delay between burst sequences in shadow mode
 
 # Super mode burst-fire configuration
-@export var super_burst_count: int = 7  # Number of bullets per burst in super mode
-@export var super_burst_spread: float = 60  # Spread angle for super mode bursts (degrees)
+@export var super_burst_count: int = 5  # Number of bullets per burst in super mode
+@export var super_burst_spread: float = 45  # Spread angle for super mode bursts (degrees)
 
 # Burst-fire state tracking
 var current_burst_shot: int = 0
@@ -81,10 +81,12 @@ func shoot() -> void:
 	var is_shadow_mode = GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)
 	
 	# Handle different modes with their specific attack patterns
-	if is_shadow_mode and not is_super_mode:
-		_shoot_shadow_mode()
-	elif is_super_mode and not is_shadow_mode:
+	if is_super_mode and not is_shadow_mode:
+		# Super mode active: use super bullets with super pattern
 		_shoot_super_mode()
+	elif is_shadow_mode and not is_super_mode:
+		# Shadow mode active: use shadow bullets with shadow pattern
+		_shoot_shadow_mode()
 	else:
 		# Normal burst-fire for regular mode
 		_shoot_normal_burst()
@@ -108,7 +110,7 @@ func _shoot_shadow_mode() -> void:
 	if is_shadow_bursting or not shadow_sequence_timer.is_stopped():
 		return
 	
-	# Start shadow burst sequence
+	# Start shadow burst sequence (using shadow bullets with shadow pattern)
 	is_shadow_bursting = true
 	current_burst_sequence = 0
 	current_burst_shot = 0
@@ -123,7 +125,7 @@ func _shoot_super_mode() -> void:
 	if is_super_bursting:
 		return
 	
-	# Start super burst-fire sequence
+	# Start super burst-fire sequence (using super bullets with super pattern)
 	is_super_bursting = true
 	current_burst_shot = 0
 	_fire_super_burst_shot()  # Fire first shot immediately
@@ -169,10 +171,11 @@ func _fire_shadow_burst_shot() -> void:
 		return
 	
 	# Fire shadow bullets in a circular pattern
-	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")  # Distinct shadow bullet
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
 	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_speed_multiplier
-	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
+	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	
+	# Use shadow burst bullets pattern
 	_shoot_shadow_burst_bullets(bullet_scene, bullet_speed, bullet_damage)
 	
 	# Play shadow mode shooting sound via AudioManager
@@ -189,12 +192,12 @@ func _fire_super_burst_shot() -> void:
 			super_burst_timer.stop()
 		return
 	
-	# Fire super bullets with spread pattern for super mode
-	# Use Ship2-specific bullet instead of the generic plSuperBullet
+	# Fire super bullets with spread pattern
 	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/super2.tscn")
 	var bullet_speed: float = super_mode_bullet_speed
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	
+	# Use super burst bullets pattern
 	_shoot_super_burst_bullets(bullet_scene, bullet_speed, bullet_damage)
 	
 	# Play super mode shooting sound via AudioManager
@@ -292,9 +295,9 @@ func _apply_ship_specific_stats() -> void:
 	shadow_burst_sequence_count = 3
 	shadow_burst_sequence_delay = 0.3
 	
-	# Super mode configurations - Reduced bullet count from 7 to 4
-	super_burst_count = 4
-	super_burst_spread = 60.0
+	# Super mode configurations
+	super_burst_count = 5
+	super_burst_spread = 45.0
 	
 	_debug_log("Applied Ship2-specific stats")
 
