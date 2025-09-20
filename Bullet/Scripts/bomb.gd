@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var fall_speed: float = 400.0  # Speed at which the bomb falls
-var explosion_scene = preload("res://Bullet/Ebullet/Bomb.tscn")
+var explosion_scene = preload("res://Bullet/Ebullet/Explosion.tscn")
 @onready var timer: Timer = $Timer
 var player_in_area: Player = null
 
@@ -20,9 +20,8 @@ func _on_area_entered(area: Area2D) -> void:
 	set_deferred("monitoring", false)
 	# Defer explosion spawning and cleanup
 	call_deferred("spawn_explosion")
-	if area is Player and player_in_area == null:
-		player_in_area = area
-		player_in_area.damage(2)
+	if area is Player:
+		area.damage(2)
 
 func spawn_explosion() -> void:
 	var explosion = explosion_scene.instantiate()

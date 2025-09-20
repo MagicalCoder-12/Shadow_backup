@@ -13,7 +13,7 @@ score = 300
 max_health = 300
 enemy_type = "Bomber"
 movement_pattern = 4
-dive_bomb_probability = 1.0
+dive_bomb_probability = 0.2
 swarm_coherence = 0.3
 elite_spawn_probability = 0.2
 

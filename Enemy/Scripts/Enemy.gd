@@ -317,18 +317,12 @@ func _perform_formation_movement(delta: float):
 func _handle_dive_bomb_pattern(delta: float):
 	if should_dive_bomb and not is_diving:
 		is_diving = true
-		if is_instance_valid(player_reference):
-			dive_target = player_reference.global_position
-		else:
-			# If no player, dive straight down
-			dive_target = global_position + Vector2(0, 1000)
-	elif is_diving:
-		# Execute dive toward target
-		var direction = (dive_target - global_position).normalized()
-		global_position += direction * speed * 2.0 * delta
-	else:
-		# Return to formation when not diving
-		global_position = global_position.lerp(formation_position, 2.0 * delta)
+		# Instead of diving, just drop a bomb from current position and return to formation
+		_drop_bomb()
+		is_diving = false  # Reset dive state immediately
+	
+	# Return to formation when not diving
+	global_position = global_position.lerp(formation_position, 2.0 * delta)
 
 func _handle_swarm_pattern(delta: float):
 	# Move in coordination with nearby enemies
@@ -367,6 +361,13 @@ func _handle_ambush_pattern(delta: float):
 
 func _handle_shooting(_delta: float):
 	if not arrived_at_formation or not is_instance_valid(player_reference):
+		return
+	
+	# Bomber enemies drop bombs instead of shooting
+	if enemy_type == "Bomber":
+		# Drop bombs periodically
+		if randf() < 0.01:  # 1% chance per frame to drop a bomb (increased from 0.5%)
+			_drop_bomb()
 		return
 	
 	# Enhanced shooting logic based on enemy type or special conditions
@@ -482,6 +483,21 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		bullet.global_position = global_position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
+
+# --- Bomb Dropping Functionality ---
+
+func _drop_bomb():
+	# Only bomber enemies should drop bombs
+	if enemy_type != "Bomber":
+		return
+	
+	# Create a bomb instance
+	var bomb = BOMB.instantiate()
+	if bomb:
+		# Position the bomb at the enemy's position
+		bomb.global_position = global_position
+		# Add the bomb to the scene
+		get_tree().current_scene.add_child(bomb)
 
 # --- Formation Setup ---
 @warning_ignore("unused_parameter")

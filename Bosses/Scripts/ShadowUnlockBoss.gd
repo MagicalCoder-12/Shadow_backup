@@ -209,11 +209,10 @@ func _pattern_p2_converging_storm() -> void:
 	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
 		# Fallback to regular bullet pattern if hell pattern not available
 		_fallback_p2_pattern()
-		print("falling abck to p2")
 		return
 	
 	# Use HellPatternBullet for Phase 2 (360-degree pattern, no homing)
-	var bullet_count = 16  # Number of bullets in the 360-degree pattern
+	var bullet_count = 25  # Number of bullets in the 360-degree pattern
 	var speed_variation = 600.0  # Base speed for HellPatternBullet
 	
 	for i in range(bullet_count):
@@ -297,8 +296,6 @@ func take_damage(damage_amount: int) -> void:
 		_die()
 
 func _die() -> void:
-	print("Boss defeated!")
-	
 	attack_timer.stop()
 	
 	if boss_death_particles:
