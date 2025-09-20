@@ -188,6 +188,11 @@ func request_ad_revive() -> void:
 		_debug_log("Ad revive ignored: GameManager revive pending")
 		return
 
+	# Hide banner ad when requesting revive to prevent conflicts
+	if is_banner_showing and is_initialized:
+		_debug_log("Hiding banner ad before requesting revive")
+		hide_banner_ad()
+
 	gm.is_revive_pending = true
 	revive_type = "ad"
 	is_revive_pending = true
@@ -230,12 +235,6 @@ func complete_ad_revive() -> void:
 		print("[DEBUG] AdManager: No revive pending in GameManager")
 		_debug_log("No revive pending in GameManager")
 		return
-	
-	# Show banner ad again after rewarded ad is complete
-	if is_initialized:
-		_debug_log("Showing banner ad after rewarded ad completion")
-		admob.show_banner_ad()
-		is_banner_showing = true
 	
 	# Stop timeout timer
 	if revive_timeout_timer and revive_timeout_timer.time_left > 0:
