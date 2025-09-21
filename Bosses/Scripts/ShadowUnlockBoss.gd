@@ -172,6 +172,16 @@ func _show_muzzle_flash() -> void:
 		flash.global_position = nozzel.global_position
 		get_tree().current_scene.add_child(flash)
 
+func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
+	# Create a small visual effect when bullets are fired
+	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
+	if effect_scene and effect_scene.can_instantiate():
+		var effect = effect_scene.instantiate()
+		effect.global_position = spawn_position
+		if effect.has_method("set_color"):
+			effect.set_color(color)
+		get_tree().current_scene.call_deferred("add_child", effect)
+
 func _pattern_p1_spiral_wave() -> void:
 	var bullet_count = 3
 	var spiral_arms = 2

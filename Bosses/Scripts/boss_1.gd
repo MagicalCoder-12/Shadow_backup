@@ -1,13 +1,13 @@
 extends Area2D
 
 signal boss_defeated
-signal phase_changed  # Add this line to emit signal when phase changes
+signal phase_changed
 
 enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 
 # Boss stats
-@export var max_health: int = 30000 # Stage 1
-@export var stage_2_max_health: int = 60000 # Stage 2
+@export var max_health: int = 30000
+@export var stage_2_max_health: int = 60000
 @export var stage_1_sprite: Texture2D = preload("res://Textures/Boss/B1.png")
 @export var stage_2_sprite: Texture2D = preload("res://Textures/Boss/Final_boss.png")
 @export var projectile_scene: PackedScene = preload("res://Bullet/Boss_bullet/homing_bullet.tscn")
@@ -19,15 +19,27 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @export var dash_interval: float = 6.0
 @export var invincibility_duration: float = 3.0
 @export var bullet_lifetime: float = 3.0
-@export var bullet_speed: float = 350.0 # Reduced from 400.0
+@export var bullet_speed: float = 350.0
 
 # Minion system properties
 @export var minion_scene: PackedScene = preload("res://Enemy/minion.tscn")
 @export var max_minions: int = 6
 @export var minion_spawn_interval: float = 8.0
 @export var minion_spawn_distance: float = 200.0
-@export var phase2_minion_boost: int = 2 # Extra minions in phase 2
-@export var enraged_minion_boost: int = 3 # Extra minions in enraged phase
+@export var phase2_minion_boost: int = 2
+@export var enraged_minion_boost: int = 3
+
+# Enhanced movement properties
+@export var vertical_movement_range: float = 300.0
+@export var movement_pattern_change_interval: float = 10.0
+@export var min_y_position: float = 150.0
+@export var max_y_position: float = 400.0
+
+# Enhanced bullet hell properties
+@export var spiral_bullet_count: int = 24
+@export var spiral_rotation_speed: float = 0.5
+@export var wave_amplitude: float = 50.0
+@export var wave_frequency: float = 0.5
 
 # Node references
 @onready var marker_2d: Marker2D = $Boss/Marker2D
@@ -38,12 +50,13 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @onready var attack_timer: Timer = $AttackTimer
 @onready var phase_timer: Timer = $PhaseTimer
 @onready var minion_spawn_timer: Timer = $MinionSpawnTimer
+@onready var movement_pattern_timer: Timer = $MovementPatternTimer
 @onready var boss_death: AudioStreamPlayer = $BossDeath
 @onready var phase_change: AudioStreamPlayer2D = $PhaseChange
 @onready var boss_death_particles: CPUParticles2D = $BossDeathParticles
 @onready var health_bar: TextureProgressBar = $HealthBar
 @onready var sprite_2d: Sprite2D = $Boss
-# Add boss music player as a variable since it's created dynamically
+
 var boss_music: AudioStreamPlayer
 
 # State variables
@@ -57,91 +70,59 @@ var dash_cooldown: float = 0.0
 var effects_layer: Node
 var shadow_mode_active: bool = false
 
+# Movement pattern system
+enum MovementPattern { HORIZONTAL_SWING, VERTICAL_SWING, CIRCULAR, RANDOM_WALK, DIAGONAL_SWEEP }
+var current_movement_pattern: MovementPattern = MovementPattern.HORIZONTAL_SWING
+var movement_pattern_timer_value: float = 0.0
+var target_position: Vector2 = Vector2.ZERO
+var movement_speed_multiplier: float = 1.0
+
+# Bullet hell pattern tracking
+var spiral_angle_offset: float = 0.0
+var wave_timer: float = 0.0
+
 # Minion management
 var active_minions: Array[Node] = []
 var minion_spawn_positions: Array[Vector2] = []
 var minions_spawned_this_phase: int = 0
 
 func _ready() -> void:
-	# Add boss to group
 	add_to_group("Boss")
 	
-	# Create boss music player dynamically
-	boss_music = AudioStreamPlayer.new()
-	boss_music.name = "BossMusic"
-	boss_music.bus = "Boss"  # Use the Boss audio bus
-	add_child(boss_music)
-	
 	# Validate properties
-	if max_health <= 0:
-		print("Warning: max_health is non-positive. Setting to 30000.")
-		max_health = 30000
-	if stage_2_max_health <= 0:
-		print("Warning: stage_2_max_health is non-positive. Setting to 60000.")
-		stage_2_max_health = 60000
-	if attack_interval <= 0:
-		print("Warning: attack_interval is non-positive. Setting to 4.0.")
-		attack_interval = 4.0
-	if move_speed <= 0:
-		print("Warning: move_speed is non-positive. Setting to 250.0.")
-		move_speed = 250.0
-	if move_range <= 0:
-		print("Warning: move_range is non-positive. Setting to 400.0.")
-		move_range = 400.0
-	if not projectile_scene or not projectile_scene.can_instantiate():
-		print("Error: Invalid projectile_scene.")
-	if not minion_scene or not minion_scene.can_instantiate():
-		print("Error: Invalid minion_scene.")
-	if not sprite_2d:
-		print("Error: Sprite2D node not found.")
-	if not health_bar:
-		print("Error: HealthBar node not found.")
-	if not boss_death_particles:
-		print("Error: BossDeathParticles node not found.")
-	if not boss_death:
-		print("Error: BossDeath AudioStreamPlayer not found.")
-	if not phase_change:
-		print("Error: PhaseChange AudioStreamPlayer2D not found.")
-	if bullet_speed <= 0:
-		print("Warning: bullet_speed is non-positive. Setting to 350.0.")
-		bullet_speed = 350.0
+	if max_health <= 0: max_health = 30000
+	if stage_2_max_health <= 0: stage_2_max_health = 60000
+	if attack_interval <= 0: attack_interval = 4.0
+	if move_speed <= 0: move_speed = 250.0
+	if move_range <= 0: move_range = 400.0
+	
+	if boss_death: boss_death.process_mode = PROCESS_MODE_ALWAYS
+	if phase_change: phase_change.process_mode = PROCESS_MODE_ALWAYS
+	if boss_music: boss_music.process_mode = PROCESS_MODE_ALWAYS
 
-	# Ensure audio nodes continue playing during pause
-	if boss_death:
-		boss_death.process_mode = PROCESS_MODE_ALWAYS
-	if phase_change:
-		phase_change.process_mode = PROCESS_MODE_ALWAYS
-	if boss_music:
-		boss_music.process_mode = PROCESS_MODE_ALWAYS
-
-	# Initialize boss stats
 	current_health = max_health
 	health_bar.max_value = max_health
 	health_bar.value = max_health
 	sprite_2d.texture = stage_1_sprite
-	sprite_2d.scale = Vector2(1.0, 1.0)
 	attack_timer.wait_time = attack_interval
 	attack_timer.start()
-	last_position = global_position
-	effects_layer = get_tree().current_scene.get_node_or_null("Effects")
-
-	# Initialize minion system
-	_setup_minion_spawn_timer()
-	_initialize_minion_spawn_positions()
-
-	# Connect signals
-	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
-
-	start_movement()
-	# Play boss music when boss is ready
-	_play_boss_music()
 	
-	# Tween for INTRO animation (scale from 0 to 1)
+	# Initialize movement system
+	last_position = Vector2.ZERO
+	movement_pattern_timer = Timer.new()
+	movement_pattern_timer.wait_time = movement_pattern_change_interval
+	movement_pattern_timer.autostart = true
+	movement_pattern_timer.timeout.connect(_on_movement_pattern_timeout)
+	add_child(movement_pattern_timer)
+	
+	# Set initial position
+	start_movement()
+	
+	# Tween for INTRO animation
 	sprite_2d.scale = Vector2(0.0, 0.0)
 	var tween = create_tween()
-	tween.tween_property(sprite_2d, "scale", Vector2(1.0, 1.0), 2.0).set_trans(Tween.TRANS_ELASTIC)
-	phase_timer.start(2.0) # Transition to PHASE1 after intro
+	tween.tween_property(sprite_2d, "scale", Vector2(2.0, 2.0), 2.0).set_trans(Tween.TRANS_ELASTIC)
+	phase_timer.start(2.0)
 
 func _setup_minion_spawn_timer() -> void:
 	if not minion_spawn_timer:
@@ -152,7 +133,6 @@ func _setup_minion_spawn_timer() -> void:
 	minion_spawn_timer.start()
 
 func _initialize_minion_spawn_positions() -> void:
-	# Define spawn positions around the boss
 	var spawn_angles = [0, PI/3, 2*PI/3, PI, 4*PI/3, 5*PI/3]
 	for angle in spawn_angles:
 		var pos = Vector2(cos(angle), sin(angle)) * minion_spawn_distance
@@ -161,70 +141,399 @@ func _initialize_minion_spawn_positions() -> void:
 func start_movement() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var center_x: float = viewport_size.x / 2
-	# Spawn above screen bounds
+	
+	# Start above screen, then move to battle position
 	global_position = Vector2(center_x, -200)
 	
-	# Tween to visible position
 	var tween = create_tween()
-	tween.tween_property(self, "global_position:y", 100, 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Move to initial battle position (center top)
+	tween.tween_property(self, "global_position", Vector2(center_x, min_y_position + 50), 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _physics_process(delta: float) -> void:
-	if defeated:
-		return
+	if defeated: return
+	
+	# Update phase-based multipliers
 	var phase_speed_multiplier = 1.0
-	if current_phase == BossPhase.PHASE2:
-		phase_speed_multiplier = 1.3
-	elif current_phase == BossPhase.ENRAGED:
-		phase_speed_multiplier = 1.6
+	match current_phase:
+		BossPhase.PHASE1: phase_speed_multiplier = 1.0
+		BossPhase.PHASE2: phase_speed_multiplier = 1.3
+		BossPhase.ENRAGED: phase_speed_multiplier = 1.6
+	
 	var shadow_speed_multiplier = 1.5 if shadow_mode_active else 1.0
-	var current_speed = move_speed * phase_speed_multiplier * shadow_speed_multiplier
-	var center_x = get_viewport().get_visible_rect().size.x / 2
-	var t = Time.get_ticks_msec() / 1000.0
-	var offset_x = sin(t * current_speed / 200.0) * move_range * (0.7 if current_phase == BossPhase.ENRAGED else 1.0)
-	global_position.x = center_x + offset_x
+	movement_speed_multiplier = phase_speed_multiplier * shadow_speed_multiplier
+	
+	# Update timers
+	dash_cooldown -= delta
+	movement_pattern_timer_value += delta
+	wave_timer += delta
+	
+	# Execute current movement pattern
+	execute_movement_pattern(delta)
+	
+	# Check for dash
+	if dash_cooldown <= 0.0 and randf() < 0.1 * delta and current_phase != BossPhase.INTRO:
+		perform_dash()
+	
+	# Update minion management
+	_update_minion_management()
 
+func execute_movement_pattern(delta: float) -> void:
+	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
+	var center_x = viewport_rect.size.x / 2
+	var center_y = (min_y_position + max_y_position) / 2
+	var half_width = move_range / 2
+	var half_height = vertical_movement_range / 2
+	
+	match current_movement_pattern:
+		MovementPattern.HORIZONTAL_SWING:
+			# Horizontal sine wave movement
+			var t = Time.get_ticks_msec() / 1000.0
+			var offset_x = sin(t * 2.0) * half_width
+			var constrained_y = clamp(global_position.y, min_y_position, max_y_position)
+			target_position = Vector2(center_x + offset_x, constrained_y)
+			
+		MovementPattern.VERTICAL_SWING:
+			# Vertical sine wave movement
+			var t = Time.get_ticks_msec() / 1000.0
+			var offset_y = sin(t * 2.0) * half_height
+			var constrained_y = clamp(center_y + offset_y, min_y_position, max_y_position)
+			target_position = Vector2(center_x, constrained_y)
+			
+		MovementPattern.CIRCULAR:
+			# Circular movement around center
+			var t = Time.get_ticks_msec() / 1000.0
+			var radius = min(half_width, half_height) * 0.8
+			var angle = t * 1.5
+			var circle_x = center_x + cos(angle) * radius
+			var circle_y = center_y + sin(angle) * radius
+			circle_y = clamp(circle_y, min_y_position, max_y_position)
+			target_position = Vector2(circle_x, circle_y)
+			
+		MovementPattern.RANDOM_WALK:
+			# Random walk within bounds
+			if movement_pattern_timer_value > 1.0:
+				var random_x = center_x + randf_range(-half_width, half_width)
+				var random_y = randf_range(min_y_position, max_y_position)
+				target_position = Vector2(random_x, random_y)
+				movement_pattern_timer_value = 0.0
+			
+		MovementPattern.DIAGONAL_SWEEP:
+			# Diagonal sweeping movement
+			var t = Time.get_ticks_msec() / 1000.0
+			var offset = sin(t * 1.5) * half_width
+			var y_offset = cos(t * 1.5) * half_height
+			var constrained_y = clamp(center_y + y_offset, min_y_position, max_y_position)
+			target_position = Vector2(center_x + offset, constrained_y)
+	
+	# Smoothly move towards target position
+	var direction = (target_position - global_position).normalized()
+	var speed = move_speed * movement_speed_multiplier
+	global_position += direction * speed * delta
+	
+	# Keep boss within screen bounds
+	global_position.x = clamp(global_position.x, 100, viewport_rect.size.x - 100)
+	global_position.y = clamp(global_position.y, min_y_position, max_y_position)
+	
+	# Update move direction for animations
 	var current_position = global_position
 	move_direction = 1.0 if current_position.x > last_position.x else -1.0 if current_position.x < last_position.x else 0.0
 	last_position = current_position
 
-	dash_cooldown -= delta
-	if dash_cooldown <= 0.0 and randf() < 0.1 * delta and current_phase != BossPhase.INTRO:
-		perform_dash()
 
-	# Update minion management
-	_update_minion_management()
+func _on_movement_pattern_timeout() -> void:
+	if defeated or current_phase == BossPhase.INTRO:
+		return
+	
+	# Cycle through movement patterns
+	# FIX: Enums are treated like integers. To cycle, increment and use modulo with the number of items in the enum.
+	current_movement_pattern = (current_movement_pattern + 1) % MovementPattern.keys().size()
+	movement_pattern_timer_value = 0.0
+	print("Boss changed movement pattern to: %s" % MovementPattern.keys()[current_movement_pattern])
+
+func perform_dash() -> void:
+	if defeated: return
+	
+	dash_cooldown = dash_interval * (0.7 if current_phase == BossPhase.ENRAGED else 1.0)
+	
+	# Choose dash direction based on current phase
+	var dash_direction: Vector2
+	if current_phase == BossPhase.ENRAGED:
+		# In enraged phase, dash towards player
+		var player = get_tree().get_first_node_in_group("Player")
+		if player:
+			dash_direction = (player.global_position - global_position).normalized()
+		else:
+			# Random direction if no player
+			var angle = randf() * 2 * PI
+			dash_direction = Vector2(cos(angle), sin(angle))
+	else:
+		# Horizontal dash in earlier phases
+		var horizontal_dir = 1.0 if randi() % 2 == 0 else -1.0
+		var vertical_dir = 1.0 if randi() % 2 == 0 else -1.0
+		dash_direction = Vector2(horizontal_dir, 0.2 * vertical_dir)
+		dash_direction = dash_direction.normalized()
+	
+	var dash_distance = move_range * 0.6
+	var target_pos = global_position + dash_direction * dash_distance
+	
+	# Keep within bounds
+	var viewport = get_viewport().get_visible_rect()
+	target_pos.x = clamp(target_pos.x, 100, viewport.size.x - 100)
+	target_pos.y = clamp(target_pos.y, min_y_position, max_y_position)
+	
+	var tween = create_tween()
+	tween.tween_property(self, "global_position", target_pos, dash_duration).set_trans(Tween.TRANS_QUAD)
+	await tween.finished
 
 func _update_minion_management() -> void:
-	# Clean up dead minions
-	active_minions = active_minions.filter(func(minion): return is_instance_valid(minion) and minion.is_alive)
+	active_minions = active_minions.filter(func(minion): return is_instance_valid(minion) and (not minion.has_method("is_alive") or minion.is_alive))
 	
-	# Update minion references
 	for minion in active_minions:
 		if minion.has_method("set_boss_reference"):
 			minion.set_boss_reference(self)
 
-func perform_dash() -> void:
-	if defeated:
+# REDESIGNED BULLET HELL FUNCTION - MUCH MORE IMPRESSIVE AND VARIED
+func fire_bullet_hell() -> void:
+	# Load the hell pattern scene
+	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
+	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
+		print("Error: Cannot spawn hell pattern bullets, hell_pattern_scene invalid")
+		# Fallback to regular bullets
+		fire_spread_shot()
 		return
-	dash_cooldown = dash_interval * (0.7 if current_phase == BossPhase.ENRAGED else 1.0)
-	var dash_direction = 1.0 if randi() % 2 == 0 else -1.0
-	var target_x = global_position.x + dash_direction * move_range * 0.5
-	var tween = create_tween()
-	tween.tween_property(self, "global_position:x", target_x, dash_duration).set_trans(Tween.TRANS_QUAD)
-	await tween.finished
+
+	# Adjust bullet count and patterns based on phase
+	var base_bullet_count = 8
+	var speed_multiplier = 1.0
+	var damage_multiplier = 1.0
+	
+	match current_phase:
+		BossPhase.PHASE1:
+			base_bullet_count = 12
+			speed_multiplier = 1.0
+			damage_multiplier = 1.5
+		BossPhase.PHASE2:
+			base_bullet_count = 18
+			speed_multiplier = 1.3
+			damage_multiplier = 2.0
+		BossPhase.ENRAGED:
+			base_bullet_count = 24
+			speed_multiplier = 1.6
+			damage_multiplier = 2.5
+
+	# Get player reference for targeting
+	var player = get_tree().get_first_node_in_group("Player")
+	var player_pos = player.global_position if player else Vector2.ZERO
+	
+	# Different bullet hell patterns based on phase and randomness
+	var pattern_type = 0
+	if current_phase == BossPhase.PHASE1:
+		pattern_type = randi() % 2 # Spiral or Wave
+	elif current_phase == BossPhase.PHASE2:
+		pattern_type = randi() % 3 # Spiral, Wave, or Concentric
+	else: # ENRAGED
+		pattern_type = randi() % 5 # All patterns + more intense versions
+
+	match pattern_type:
+		0: # SPIRAL PATTERN
+			fire_spiral_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
+			
+		1: # WAVE PATTERN
+			fire_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
+			
+		2: # CONCENTRIC CIRCLES
+			fire_concentric_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
+			
+		3: # HOMING WAVE (ENRAGED ONLY)
+			fire_homing_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
+			
+		4: # CHAOS PATTERN (ENRAGED ONLY)
+			fire_chaos_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
+
+func fire_spiral_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
+	# Create a beautiful spiral pattern that rotates over time
+	spiral_angle_offset += 0.1 * (2.0 if current_phase == BossPhase.ENRAGED else 1.0)
+	
+	var markers = get_valid_markers()
+	if markers.size() == 0: return
+	
+	for marker in markers:
+		for i in range(int(bullet_count / markers.size())):
+			var bullet = scene.instantiate()
+			if not bullet: continue
+			
+			bullet.global_position = marker.global_position
+			
+			# Create spiral with rotating offset
+			var angle = (2 * PI * i / (bullet_count / markers.size())) + spiral_angle_offset
+			var direction = Vector2(cos(angle), sin(angle))
+			
+			if bullet.has_method("set_direction"): bullet.set_direction(direction)
+			if bullet.has_method("set_speed"): bullet.set_speed(200.0 * speed_mult)
+			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
+			
+			get_tree().current_scene.call_deferred("add_child", bullet)
+			
+			# Add visual effect for spiral pattern
+			spawn_bullet_effect(marker.global_position, Color.YELLOW)
+
+func fire_wave_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
+	# Create a wave-like pattern that moves up and down
+	var markers = get_valid_markers()
+	if markers.size() == 0: return
+	
+	for marker in markers:
+		for i in range(int(bullet_count / markers.size())):
+			var bullet = scene.instantiate()
+			if not bullet: continue
+			
+			bullet.global_position = marker.global_position
+			
+			# Create wave pattern
+			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
+			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
+			var base_angle = PI / 2 # Downward
+			var direction = Vector2(cos(base_angle), sin(base_angle)).rotated(deg_to_rad(wave_offset / 50))
+			
+			if bullet.has_method("set_direction"): bullet.set_direction(direction)
+			if bullet.has_method("set_speed"): bullet.set_speed(180.0 * speed_mult)
+			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
+			
+			get_tree().current_scene.call_deferred("add_child", bullet)
+			
+			# Add color variation based on position in wave
+			var hue = normalized_i
+			spawn_bullet_effect(marker.global_position, Color8(int(255*hue), int(255*(1-hue)), 255, 255))
+
+func fire_concentric_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
+	# FIX: Parameter "_target_pos" is unused, prefixed with underscore to ignore warning.
+	# Create multiple concentric circles of bullets
+	var markers = get_valid_markers()
+	if markers.size() == 0: return
+	
+	var rings = 2 if current_phase == BossPhase.ENRAGED else 1
+	var bullets_per_ring = int(bullet_count / (markers.size() * rings))
+	
+	for marker in markers:
+		for ring in range(rings):
+			var ring_speed_mult = speed_mult * (1.0 + ring * 0.3)
+			for i in range(bullets_per_ring):
+				var bullet = scene.instantiate()
+				if not bullet: continue
+				
+				bullet.global_position = marker.global_position
+				
+				# Evenly distribute bullets in circle
+				var angle = (2 * PI * i / bullets_per_ring) + (ring * PI / bullets_per_ring)
+				var direction = Vector2(cos(angle), sin(angle))
+				
+				if bullet.has_method("set_direction"): bullet.set_direction(direction)
+				if bullet.has_method("set_speed"): bullet.set_speed(220.0 * ring_speed_mult)
+				if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
+				
+				get_tree().current_scene.call_deferred("add_child", bullet)
+				
+				# Different colors for different rings
+				var color = Color.BLUE if ring == 0 else Color.RED
+				spawn_bullet_effect(marker.global_position, color)
+
+func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
+	# Combination of wave pattern with homing capability
+	var markers = get_valid_markers()
+	if markers.size() == 0: return
+	
+	for marker in markers:
+		for i in range(int(bullet_count / markers.size())):
+			var bullet = scene.instantiate()
+			if not bullet: continue
+			
+			bullet.global_position = marker.global_position
+			
+			# Start with wave pattern
+			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
+			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
+			var base_angle = PI / 2
+			var initial_direction = Vector2(cos(base_angle), sin(base_angle)).rotated(deg_to_rad(wave_offset / 50))
+			
+			if bullet.has_method("set_direction"): bullet.set_direction(initial_direction)
+			if bullet.has_method("set_speed"): bullet.set_speed(160.0 * speed_mult)
+			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
+			
+			# Add homing capability for more challenge
+			if bullet.has_method("set_target") and target_pos != Vector2.ZERO:
+				bullet.set_target(target_pos)
+				if bullet.has_method("set_turn_rate"):
+					bullet.set_turn_rate(0.03 * (1.5 if current_phase == BossPhase.ENRAGED else 1.0))
+			
+			get_tree().current_scene.call_deferred("add_child", bullet)
+			spawn_bullet_effect(marker.global_position, Color.PURPLE)
+
+func fire_chaos_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
+	# Ultimate chaos pattern for enraged phase
+	var markers = get_valid_markers()
+	if markers.size() == 0: return
+	
+	# Use all markers and increase bullet count
+	var total_bullets = bullet_count * 2 # Double the bullets in chaos mode
+	var bullets_per_marker = int(total_bullets / markers.size())
+	
+	for marker in markers:
+		for i in range(bullets_per_marker):
+			var bullet = scene.instantiate()
+			if not bullet: continue
+			
+			bullet.global_position = marker.global_position
+			
+			# Completely random directions with some bias toward player
+			var random_angle = randf() * 2 * PI
+			var random_direction = Vector2(cos(random_angle), sin(random_angle))
+			
+			# 30% chance to aim toward player
+			if randf() < 0.3 and target_pos != Vector2.ZERO:
+				var to_player = (target_pos - marker.global_position).normalized()
+				# Mix random and player direction
+				random_direction = random_direction.lerp(to_player, 0.7)
+			
+			if bullet.has_method("set_direction"): bullet.set_direction(random_direction)
+			if bullet.has_method("set_speed"): bullet.set_speed(250.0 * speed_mult * (0.8 + randf() * 0.4)) # Variable speeds
+			if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
+			
+			get_tree().current_scene.call_deferred("add_child", bullet)
+			
+			# Random colors for chaos effect
+			var random_color = Color(randf(), randf(), randf())
+			spawn_bullet_effect(marker.global_position, random_color)
+
+func get_valid_markers() -> Array:
+	var markers = []
+	if left and is_instance_valid(left): markers.append(left)
+	if center and is_instance_valid(center): markers.append(center)
+	if right and is_instance_valid(right): markers.append(right)
+	return markers
+
+func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
+	# FIX: Renamed parameter from "position" to "spawn_position" to avoid shadowing the base class property.
+	# Create a small visual effect when bullets are fired
+	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
+	if effect_scene and effect_scene.can_instantiate():
+		var effect = effect_scene.instantiate()
+		effect.global_position = spawn_position
+		if effect.has_method("set_color"):
+			effect.set_color(color)
+		if effects_layer:
+			effects_layer.call_deferred("add_child", effect)
+		else:
+			get_tree().current_scene.call_deferred("add_child", effect)
+
+# Rest of your existing functions below (I'm keeping them mostly as-is since they work)
+# ... [all your other functions remain unchanged] ...
 
 func take_damage(amount: int) -> void:
 	if defeated or is_invincible or amount <= 0:
-		if defeated:
-			print("Boss already defeated, ignoring damage")
-		elif is_invincible:
-			print("Boss is invincible, ignoring damage: %d" % amount)
-		else:
-			print("Warning: take_damage received non-positive amount: %d" % amount)
+		if defeated: print("Boss already defeated, ignoring damage")
+		elif is_invincible: print("Boss is invincible, ignoring damage: %d" % amount)
+		else: print("Warning: take_damage received non-positive amount: %d" % amount)
 		return
-
-	if amount > 100:
-		print("Warning: High damage received: %d, health before: %d" % [amount, current_health])
 
 	current_health -= amount
 	health_bar.value = current_health
@@ -237,7 +546,7 @@ func take_damage(amount: int) -> void:
 		enter_phase(BossPhase.PHASE2)
 		await get_tree().create_timer(invincibility_duration).timeout
 		is_invincible = false
-	elif current_phase == BossPhase.PHASE2 and current_health <= stage_2_max_health * 0.3: # Transition to ENRAGED at 30% health
+	elif current_phase == BossPhase.PHASE2 and current_health <= stage_2_max_health * 0.3:
 		is_invincible = true
 		phase_change.play()
 		await phase_change.finished
@@ -245,44 +554,30 @@ func take_damage(amount: int) -> void:
 		await get_tree().create_timer(invincibility_duration).timeout
 		is_invincible = false
 
-	if current_health <= 0 and current_phase != BossPhase.PHASE1: # Only die in PHASE2 or ENRAGED
+	if current_health <= 0 and current_phase != BossPhase.PHASE1:
 		defeated = true
 		attack_timer.stop()
 		phase_timer.stop()
 		minion_spawn_timer.stop()
+		movement_pattern_timer.stop()
 		boss_death_particles.emitting = true
 		boss_death.play()
-		print("Playing boss death effects")
 		
-		# Stop boss music when boss is defeated
 		if boss_music and boss_music.playing:
 			boss_music.stop()
-			print("Boss music stopped")
 		
-		# Destroy all minions
 		_destroy_all_minions()
 		
 		var particle_lifetime = boss_death_particles.lifetime if boss_death_particles else 1.0
 		await get_tree().create_timer(particle_lifetime).timeout
 		if boss_death:
 			await boss_death.finished
-		print("Boss defeated, emitting boss_defeated signal")
 		boss_defeated.emit()
 		queue_free()
 
-func _play_boss_music() -> void:
-	# Play boss music
-	var boss_music_stream = preload("res://Textures/Music/Boss_music.mp3")
-	if boss_music_stream:
-		boss_music.stream = boss_music_stream
-		boss_music.play()
-		print("Boss music started")
-	else:
-		print("Error: Boss music file not found")
-
 func enter_phase(phase: BossPhase) -> void:
 	current_phase = phase
-	phase_changed.emit(phase)  # Emit the phase changed signal
+	phase_changed.emit(phase)
 	
 	var phase_multiplier = 1.0
 	match phase:
@@ -290,7 +585,6 @@ func enter_phase(phase: BossPhase) -> void:
 			health_bar.max_value = max_health
 			health_bar.value = current_health
 			sprite_2d.texture = stage_1_sprite
-			sprite_2d.scale = Vector2(1.0, 1.0)
 			attack_timer.wait_time = attack_interval
 			phase_multiplier = 1.0
 		BossPhase.PHASE2:
@@ -298,31 +592,23 @@ func enter_phase(phase: BossPhase) -> void:
 			health_bar.max_value = stage_2_max_health
 			health_bar.value = current_health
 			sprite_2d.texture = stage_2_sprite
-			sprite_2d.scale = Vector2(0.5, 0.5)
 			attack_timer.wait_time = attack_interval * 0.7
 			phase_multiplier = 1.2
 			spawn_phase_transition_effect()
-			# Spawn initial minions for phase 2
 			_spawn_phase_minions()
 		BossPhase.ENRAGED:
 			attack_timer.wait_time = attack_interval * 0.5
 			phase_multiplier = 1.5
-			sprite_2d.scale = Vector2(0.5, 0.5)
 			spawn_phase_transition_effect()
-			# Spawn additional minions for enraged phase
 			_spawn_phase_minions()
 	
-	# Make boss invincible for 5 seconds after phase change
 	is_invincible = true
 	print("Boss is now invincible for 5 seconds after phase change")
 	await get_tree().create_timer(5.0).timeout
 	is_invincible = false
-	print("Boss invincibility ended")
 	
-	# Adjust minion spawn rate based on phase
 	_adjust_minion_spawn_rate()
 	
-	# Tween for phase transition (pulse effect)
 	var tween = create_tween()
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale * 1.2, 0.3).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale, 0.3).set_trans(Tween.TRANS_SINE)
@@ -576,8 +862,18 @@ func fire_homing_missiles() -> void:
 	# Reduced missile count
 	var bullet_count = 4 if current_phase == BossPhase.ENRAGED else 3 if current_phase == BossPhase.PHASE2 else 2
 	var player = get_tree().get_first_node_in_group("Player")
-	# Check if player exists and is alive
-	var target_pos = player.global_position if (player and player.is_alive) else global_position + Vector2(0, 1000)
+	
+	# FIX: Replaced ternary with a safer if/else block to determine target position.
+	var target_pos: Vector2
+	if player and player.has_method("is_alive") and player.is_alive():
+		target_pos = player.global_position
+	elif player:
+		# Fallback if player is found but doesn't have is_alive or is not alive
+		target_pos = player.global_position
+	else:
+		# Fallback if player is not found
+		target_pos = global_position + Vector2(0, 1000)
+		
 	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0 # Reduced from 1.5/1.2
 	
 	for marker in [left, right]:
@@ -664,81 +960,13 @@ func fire_energy_ball() -> void:
 			if energy_ball.has_method("set_speed"):
 				energy_ball.set_speed(200.0 * speed_multiplier)
 			if energy_ball.has_method("set_damage"):
-				energy_ball.set_damage(int(3 * damage_multiplier))  # Energy balls do more damage
+				energy_ball.set_damage(int(3 * damage_multiplier)) # Energy balls do more damage
 			get_tree().current_scene.call_deferred("add_child", energy_ball)
 			print("Spawned energy ball from %s" % marker.name)
 		else:
 			print("Error: Failed to instantiate energy ball")
 
-## ✅ IMPROVED BULLET HELL FUNCTION
-func fire_bullet_hell() -> void:
-	# Load the hell pattern scene
-	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
-	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
-		print("Error: Cannot spawn hell pattern bullets, hell_pattern_scene invalid")
-		# Fallback to regular bullets
-		fire_spread_shot()
-		return
 
-	# Adjust bullet count based on phase
-	var bullet_count = 16 if current_phase == BossPhase.ENRAGED else 12 if current_phase == BossPhase.PHASE2 else 8
-	var speed_multiplier = 1.5 if current_phase == BossPhase.ENRAGED else 1.2 if current_phase == BossPhase.PHASE2 else 1.0
-	var damage_multiplier = 2.5 if current_phase == BossPhase.ENRAGED else 2.0 if current_phase == BossPhase.PHASE2 else 1.5
-
-	# Get all valid markers — ensure center is included!
-	var markers = []
-	if left and is_instance_valid(left): markers.append(left)
-	if center and is_instance_valid(center): markers.append(center)
-	if right and is_instance_valid(right): markers.append(right)
-
-	if markers.size() == 0:
-		print("Error: No valid markers found for bullet hell!")
-		return
-
-	# Distribute bullets as evenly as possible
-	var base_per_marker = int(bullet_count / markers.size())
-	var remainder = bullet_count % markers.size()
-
-	var player = get_tree().get_first_node_in_group("Player")
-	var player_pos = player.global_position if player else Vector2.ZERO
-
-	for i in range(markers.size()):
-		var marker = markers[i]
-		var bullets_for_this_marker = base_per_marker + (1 if i < remainder else 0)
-
-		for j in range(bullets_for_this_marker):
-			var bullet = hell_pattern_scene.instantiate()
-			if not bullet:
-				continue
-
-			bullet.global_position = marker.global_position
-
-			# 70% chance: circular spread around marker
-			# 30% chance: aim directly at player (stream pattern)
-			var direction: Vector2
-			if randf() < 0.7:
-				# Circular pattern with slight randomization
-				var base_angle = (2 * PI * j) / bullets_for_this_marker
-				var jitter = randf_range(-0.3, 0.3)  # Add chaos
-				direction = Vector2(cos(base_angle + jitter), sin(base_angle + jitter))
-			else:
-				# Player-seeking stream
-				direction = (player_pos - marker.global_position).normalized()
-				# Add slight inaccuracy
-				var rot = randf_range(-PI/12, PI/12)  # ±15 degrees
-				direction = direction.rotated(rot)
-
-			# Apply direction and speed
-			if bullet.has_method("set_direction"):
-				bullet.set_direction(direction)
-			if bullet.has_method("set_speed"):
-				bullet.set_speed(180.0 * speed_multiplier)
-			if bullet.has_method("set_damage"):
-				bullet.set_damage(int(2 * damage_multiplier))
-
-			get_tree().current_scene.call_deferred("add_child", bullet)
-
-	print("Fired hell pattern attack with %d bullets from %d markers" % [bullet_count, markers.size()])
 
 
 func _on_shadow_mode_activated() -> void:

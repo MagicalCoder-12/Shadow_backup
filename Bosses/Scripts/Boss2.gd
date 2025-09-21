@@ -673,6 +673,19 @@ func _on_shadow_mode_deactivated() -> void:
 	# Adjust minion spawning back to normal
 	_adjust_minion_spawn_rate()
 
+func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
+	# Create a small visual effect when bullets are fired
+	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
+	if effect_scene and effect_scene.can_instantiate():
+		var effect = effect_scene.instantiate()
+		effect.global_position = spawn_position
+		if effect.has_method("set_color"):
+			effect.set_color(color)
+		if effects_layer:
+			effects_layer.call_deferred("add_child", effect)
+		else:
+			get_tree().current_scene.call_deferred("add_child", effect)
+
 func _on_phase_timer_timeout() -> void:
 	if current_phase == BossPhase.INTRO:
 		enter_phase(BossPhase.PHASE1)

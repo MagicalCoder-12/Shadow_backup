@@ -1,6 +1,6 @@
 [gd_scene load_steps=11 format=3 uid="uid://b88dxokqk2pv5"]
 
-[ext_resource type="Script" path="res://Bosses/Scripts/Boss3.gd" id="1_5c45g"]
+[ext_resource type="Script" uid="uid://bev7ahjejnowo" path="res://Bosses/Scripts/Boss3.gd" id="1_5c45g"]
 [ext_resource type="Texture2D" uid="uid://cgce5tto321sl" path="res://Textures/Boss/oldBossGFX/oldVIRGO2.png" id="2_vvmta"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_r0gn5"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="4_bn1uh"]
@@ -66,9 +66,9 @@ position = Vector2(9, -13)
 scale = Vector2(2, 2)
 emitting = false
 amount = 500
+texture = ExtResource("7_j30ty")
 one_shot = true
 explosiveness = 1.0
-texture = ExtResource("7_j30ty")
 emission_shape = 1
 emission_sphere_radius = 128.0
 spread = 180.0

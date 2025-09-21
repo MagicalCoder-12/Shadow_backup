@@ -355,7 +355,7 @@ func _play_boss_music() -> void:
 		
 		# Reduce volume of other buses except Boss bus
 	if AudioManager:
-		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -10.0)
+		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
 		print("Boss music started by WaveManager")
 	else:
 		print("Error: Boss music player or file not found")

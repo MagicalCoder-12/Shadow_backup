@@ -365,8 +365,8 @@ func _handle_shooting(_delta: float):
 	
 	# Bomber enemies drop bombs instead of shooting
 	if enemy_type == "Bomber":
-		# Drop bombs periodically
-		if randf() < 0.01:  # 1% chance per frame to drop a bomb (increased from 0.5%)
+		# Drop bombs periodically - reduced frequency to prevent spam
+		if randf() < 0.003:  # 0.3% chance per frame to drop a bomb (reduced from 1%)
 			_drop_bomb()
 		return
 	
@@ -393,28 +393,32 @@ func _on_fire_timer_timeout():
 	# In shadow mode, enemies shoot more aggressively but with reasonable limits
 	if GameManager.level_manager.shadow_mode_enabled:
 		# Higher chance of using advanced shooting patterns in shadow mode, but controlled
-		@warning_ignore("confusable_local_declaration")
-		var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
-		
-		match shooting_pattern:
-			0, 1, 2:  # 60% chance of standard shooting
-				_fire_at_player()  # Standard aimed shooting (most common)
-			3:
-				_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
-			4:
-				_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
+		# Add a cooldown to prevent continuous shooting
+		if randf() < 0.02:  # 2% chance per frame to shoot (creates gaps)
+			@warning_ignore("confusable_local_declaration")
+			var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
+			
+			match shooting_pattern:
+				0, 1, 2:  # 60% chance of standard shooting
+					_fire_at_player()  # Standard aimed shooting (most common)
+				3:
+					_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
+				4:
+					_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
 		return
 	
 	# Standard shooting logic - even in normal mode, reduce frequency of advanced patterns
-	var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
-	
-	match shooting_pattern:
-		0, 1, 2:  # 75% chance of standard shooting
-			_fire_at_player()  # Standard aimed shooting
-		3:
-			_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
-		_:
-			_fire_at_player()  # Fallback to standard shooting
+	# Add a cooldown to prevent continuous shooting
+	if randf() < 0.015:  # 1.5% chance per frame to shoot (creates gaps)
+		var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
+		
+		match shooting_pattern:
+			0, 1, 2:  # 75% chance of standard shooting
+				_fire_at_player()  # Standard aimed shooting
+			3:
+				_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
+			_:
+				_fire_at_player()  # Fallback to standard shooting
 
 func _fire_at_player():
 	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
@@ -610,7 +614,7 @@ func _on_shadow_mode_activated():
 		_make_shadow_enemy()
 	
 	# Increase fire rate in shadow mode to make enemies more threatening, but not excessively
-	fire_timer.wait_time = (1.0 / fire_rate) * 0.85  # 15% faster firing (more reasonable)
+	fire_timer.wait_time = (1.0 / fire_rate) * 0.9  # 10% faster firing (more reasonable)
 	
 	# Increase movement speed in shadow mode
 	speed = original_speed * 1.2  # Reduced from 1.3 to 1.2
