@@ -753,7 +753,7 @@ func _drop_resources():
 		get_tree().current_scene.call_deferred("add_child", crystal)
 		
 		# NEW: Drop power-ups occasionally
-		if randf() < 0.1:  # 10% chance to drop a power-up
+		if randf() < 0.3:  # 30% chance to drop a power-up
 			_drop_powerup()
 
 func _drop_powerup():

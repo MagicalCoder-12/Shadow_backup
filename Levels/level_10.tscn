@@ -1,21 +1,14 @@
-[gd_scene load_steps=14 format=3 uid="uid://b3cb5f6bt333p"]
+[gd_scene load_steps=6 format=3 uid="uid://b3cb5f6bt333p"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_sgl13"]
-[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_7y1m2"]
-[ext_resource type="PackedScene" uid="uid://ccpqmepj3j62j" path="res://Bosses/Boss_2.tscn" id="3_u1qkd"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_7y1m2"]
 [ext_resource type="PackedScene" uid="uid://bvb27mesmd4mo" path="res://Bosses/Boss1.tscn" id="4_boss1"]
 
 [sub_resource type="Resource" id="Resource_dvmrr"]
 script = ExtResource("2_7y1m2")
-formation_type = 0
-entry_pattern = 0
 difficulty = 3
-enemy_type = "mob1"
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_7aytn"]
@@ -24,120 +17,13 @@ formation_type = 1
 entry_pattern = 1
 difficulty = 3
 enemy_type = "mob2"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_bk6my"]
-script = ExtResource("2_7y1m2")
-formation_type = 2
-entry_pattern = 2
-difficulty = 3
-enemy_type = "mob3"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_doo4b"]
-script = ExtResource("2_7y1m2")
-formation_type = 3
-entry_pattern = 3
-difficulty = 3
-enemy_type = "mob4"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_g5ksx"]
-script = ExtResource("2_7y1m2")
-formation_type = 4
-entry_pattern = 4
-difficulty = 3
-enemy_type = "SlowShooter"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_tblhg"]
-script = ExtResource("2_7y1m2")
-formation_type = 5
-entry_pattern = 5
-difficulty = 3
-enemy_type = "FastEnemy"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_u6bf7"]
-script = ExtResource("2_7y1m2")
-formation_type = 6
-entry_pattern = 6
-difficulty = 3
-enemy_type = "BouncerEnemy"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_fajt1"]
-script = ExtResource("2_7y1m2")
-formation_type = 7
-entry_pattern = 7
-difficulty = 3
-enemy_type = "BomberBug"
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_tjanx"]
-script = ExtResource("2_7y1m2")
-formation_type = 0
-entry_pattern = 0
-difficulty = 0
-enemy_type = "mob1"
-enemy_density = "Sparse"
-formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 300.0
-
-[sub_resource type="Resource" id="Resource_useay"]
-script = ExtResource("2_7y1m2")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob1"
 boss_scene = ExtResource("4_boss1")
-enemy_density = "Normal"
+enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [node name="Level_10" instance=ExtResource("1_sgl13")]
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 10
-waves = Array[ExtResource("2_7y1m2")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn"), SubResource("Resource_bk6my"), SubResource("Resource_doo4b"), SubResource("Resource_g5ksx"), SubResource("Resource_tblhg"), SubResource("Resource_u6bf7"), SubResource("Resource_fajt1"), SubResource("Resource_tjanx"), SubResource("Resource_useay")])
+waves = Array[ExtResource("2_7y1m2")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn")])

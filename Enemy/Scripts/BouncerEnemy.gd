@@ -14,6 +14,7 @@ func _exit_tree():
 
 func _ready():
 	super._ready()
+	sprite.scale=Vector2(1.5,1.5)
 	score = 150
 	max_health = 200
 	health = max_health

@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://c85v45j2cioqh"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_rgb4l"]
-[ext_resource type="Script" path="res://Enemy/Scripts/BouncerEnemy.gd" id="2_aylsa"]
+[ext_resource type="Script" uid="uid://1kl5b4nf0h3" path="res://Enemy/Scripts/BouncerEnemy.gd" id="2_aylsa"]
 [ext_resource type="Texture2D" uid="uid://bfp2eh0rwd6gu" path="res://Textures/Enemy/Enemy_4_C_Small_NoLight.png" id="3_euqxl"]
 [ext_resource type="Texture2D" uid="uid://b0cqck5xoix0u" path="res://Textures/Enemy/Enemy_2Light.png" id="3_pjexh"]
 

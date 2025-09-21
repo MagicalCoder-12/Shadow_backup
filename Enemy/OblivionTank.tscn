@@ -1,6 +1,6 @@
 [gd_scene load_steps=36 format=3 uid="uid://cwuhyoc4d13q2"]
 
-[ext_resource type="Script" path="res://Enemy/Scripts/oblivion_tank.gd" id="1_qhiup"]
+[ext_resource type="Script" uid="uid://cmtn47mbn6rca" path="res://Enemy/Scripts/oblivion_tank.gd" id="1_qhiup"]
 [ext_resource type="Texture2D" uid="uid://gt452xfd2ekd" path="res://Textures/Enemy/Enemy_4_D_Small_NoLight.png" id="2_l2teg"]
 [ext_resource type="Texture2D" uid="uid://bfp2eh0rwd6gu" path="res://Textures/Enemy/Enemy_4_C_Small_NoLight.png" id="2_qr6kr"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_o5xt4"]

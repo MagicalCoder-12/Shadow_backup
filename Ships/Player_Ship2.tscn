@@ -12,14 +12,14 @@ size = Vector2(226.667, 153.333)
 
 [node name="aetherstrike" instance=ExtResource("1_024sp")]
 script = ExtResource("2_spnhh")
-burst_count = 2
+burst_count = 3
 burst_delay = 0.2
 burst_cooldown = 0.8
-shadow_burst_count = 5
+shadow_burst_count = 12
 shadow_burst_delay = 0.05
 shadow_burst_sequence_count = 3
 shadow_burst_sequence_delay = 0.3
-super_burst_count = 7
+super_burst_count = 5
 super_burst_spread = 60.0
 base_texture_scale = Vector2(1, 1)
 evolution_texture_scales = Array[Vector2]([])
