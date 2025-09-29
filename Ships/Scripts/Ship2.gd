@@ -14,8 +14,8 @@ extends BaseShip
 @export var shadow_burst_sequence_delay: float = 0.2  # Delay between burst sequences in shadow mode
 
 # Super mode burst-fire configuration
-@export var super_burst_count: int = 3  # Number of bullets per burst in super mode
-@export var super_burst_spread: float = 30  # Spread angle for super mode bursts (degrees)
+@export var super_burst_count: int = 4  # Number of bullets per burst in super mode
+@export var super_burst_spread: float = 45  # Spread angle for super mode bursts (degrees)
 
 # Burst-fire state tracking
 var current_burst_shot: int = 0
@@ -299,7 +299,7 @@ func _apply_ship_specific_stats() -> void:
 	
 	# Super mode configurations - reduced bullet intensity
 	super_burst_count = 3  # Reduced from 5 to 3
-	super_burst_spread = 30.0  # Reduced from 45 to 30 degrees for tighter spread
+	super_burst_spread = 45  # Reduced from 45 to 30 degrees for tighter spread
 	
 	_debug_log("Applied Ship2-specific stats")
 

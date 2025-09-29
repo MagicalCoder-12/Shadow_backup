@@ -2,6 +2,7 @@ extends Area2D
 
 signal boss_defeated
 signal phase_changed
+signal descent_completed
 
 enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 
@@ -148,6 +149,8 @@ func start_movement() -> void:
 	var tween = create_tween()
 	# Move to initial battle position (center top)
 	tween.tween_property(self, "global_position", Vector2(center_x, min_y_position + 50), 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Emit signal when descent is complete
+	tween.tween_callback(func(): descent_completed.emit())
 
 func _physics_process(delta: float) -> void:
 	if defeated: return
@@ -245,8 +248,9 @@ func _on_movement_pattern_timeout() -> void:
 		return
 	
 	# Cycle through movement patterns
-	# FIX: Enums are treated like integers. To cycle, increment and use modulo with the number of items in the enum.
-	current_movement_pattern = (current_movement_pattern + 1) % MovementPattern.keys().size()
+	current_movement_pattern = (current_movement_pattern + 1) as MovementPattern
+	if current_movement_pattern >= MovementPattern.keys().size() as int:
+		current_movement_pattern = 0 as MovementPattern
 	movement_pattern_timer_value = 0.0
 	print("Boss changed movement pattern to: %s" % MovementPattern.keys()[current_movement_pattern])
 
@@ -292,7 +296,6 @@ func _update_minion_management() -> void:
 		if minion.has_method("set_boss_reference"):
 			minion.set_boss_reference(self)
 
-# REDESIGNED BULLET HELL FUNCTION - MUCH MORE IMPRESSIVE AND VARIED
 func fire_bullet_hell() -> void:
 	# Load the hell pattern scene
 	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
@@ -337,21 +340,16 @@ func fire_bullet_hell() -> void:
 	match pattern_type:
 		0: # SPIRAL PATTERN
 			fire_spiral_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-			
 		1: # WAVE PATTERN
 			fire_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-			
 		2: # CONCENTRIC CIRCLES
 			fire_concentric_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-			
 		3: # HOMING WAVE (ENRAGED ONLY)
 			fire_homing_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-			
 		4: # CHAOS PATTERN (ENRAGED ONLY)
 			fire_chaos_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
 
 func fire_spiral_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	# Create a beautiful spiral pattern that rotates over time
 	spiral_angle_offset += 0.1 * (2.0 if current_phase == BossPhase.ENRAGED else 1.0)
 	
 	var markers = get_valid_markers()
@@ -364,7 +362,6 @@ func fire_spiral_pattern(scene, bullet_count, speed_mult, damage_mult, _target_p
 			
 			bullet.global_position = marker.global_position
 			
-			# Create spiral with rotating offset
 			var angle = (2 * PI * i / (bullet_count / markers.size())) + spiral_angle_offset
 			var direction = Vector2(cos(angle), sin(angle))
 			
@@ -373,12 +370,9 @@ func fire_spiral_pattern(scene, bullet_count, speed_mult, damage_mult, _target_p
 			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
 			
 			get_tree().current_scene.call_deferred("add_child", bullet)
-			
-			# Add visual effect for spiral pattern
 			spawn_bullet_effect(marker.global_position, Color.YELLOW)
 
 func fire_wave_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	# Create a wave-like pattern that moves up and down
 	var markers = get_valid_markers()
 	if markers.size() == 0: return
 	
@@ -389,7 +383,6 @@ func fire_wave_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos
 			
 			bullet.global_position = marker.global_position
 			
-			# Create wave pattern
 			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
 			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
 			var base_angle = PI / 2 # Downward
@@ -400,14 +393,10 @@ func fire_wave_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos
 			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
 			
 			get_tree().current_scene.call_deferred("add_child", bullet)
-			
-			# Add color variation based on position in wave
 			var hue = normalized_i
 			spawn_bullet_effect(marker.global_position, Color8(int(255*hue), int(255*(1-hue)), 255, 255))
 
 func fire_concentric_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	# FIX: Parameter "_target_pos" is unused, prefixed with underscore to ignore warning.
-	# Create multiple concentric circles of bullets
 	var markers = get_valid_markers()
 	if markers.size() == 0: return
 	
@@ -423,7 +412,6 @@ func fire_concentric_pattern(scene, bullet_count, speed_mult, damage_mult, _targ
 				
 				bullet.global_position = marker.global_position
 				
-				# Evenly distribute bullets in circle
 				var angle = (2 * PI * i / bullets_per_ring) + (ring * PI / bullets_per_ring)
 				var direction = Vector2(cos(angle), sin(angle))
 				
@@ -432,13 +420,10 @@ func fire_concentric_pattern(scene, bullet_count, speed_mult, damage_mult, _targ
 				if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
 				
 				get_tree().current_scene.call_deferred("add_child", bullet)
-				
-				# Different colors for different rings
 				var color = Color.BLUE if ring == 0 else Color.RED
 				spawn_bullet_effect(marker.global_position, color)
 
 func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
-	# Combination of wave pattern with homing capability
 	var markers = get_valid_markers()
 	if markers.size() == 0: return
 	
@@ -449,7 +434,6 @@ func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, targ
 			
 			bullet.global_position = marker.global_position
 			
-			# Start with wave pattern
 			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
 			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
 			var base_angle = PI / 2
@@ -459,7 +443,6 @@ func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, targ
 			if bullet.has_method("set_speed"): bullet.set_speed(160.0 * speed_mult)
 			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
 			
-			# Add homing capability for more challenge
 			if bullet.has_method("set_target") and target_pos != Vector2.ZERO:
 				bullet.set_target(target_pos)
 				if bullet.has_method("set_turn_rate"):
@@ -469,12 +452,10 @@ func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, targ
 			spawn_bullet_effect(marker.global_position, Color.PURPLE)
 
 func fire_chaos_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
-	# Ultimate chaos pattern for enraged phase
 	var markers = get_valid_markers()
 	if markers.size() == 0: return
 	
-	# Use all markers and increase bullet count
-	var total_bullets = bullet_count * 2 # Double the bullets in chaos mode
+	var total_bullets = bullet_count * 2
 	var bullets_per_marker = int(total_bullets / markers.size())
 	
 	for marker in markers:
@@ -484,23 +465,19 @@ func fire_chaos_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos
 			
 			bullet.global_position = marker.global_position
 			
-			# Completely random directions with some bias toward player
 			var random_angle = randf() * 2 * PI
 			var random_direction = Vector2(cos(random_angle), sin(random_angle))
 			
-			# 30% chance to aim toward player
 			if randf() < 0.3 and target_pos != Vector2.ZERO:
 				var to_player = (target_pos - marker.global_position).normalized()
-				# Mix random and player direction
 				random_direction = random_direction.lerp(to_player, 0.7)
 			
 			if bullet.has_method("set_direction"): bullet.set_direction(random_direction)
-			if bullet.has_method("set_speed"): bullet.set_speed(250.0 * speed_mult * (0.8 + randf() * 0.4)) # Variable speeds
+			if bullet.has_method("set_speed"): bullet.set_speed(250.0 * speed_mult * (0.8 + randf() * 0.4))
 			if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
 			
 			get_tree().current_scene.call_deferred("add_child", bullet)
 			
-			# Random colors for chaos effect
 			var random_color = Color(randf(), randf(), randf())
 			spawn_bullet_effect(marker.global_position, random_color)
 
@@ -512,8 +489,6 @@ func get_valid_markers() -> Array:
 	return markers
 
 func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
-	# FIX: Renamed parameter from "position" to "spawn_position" to avoid shadowing the base class property.
-	# Create a small visual effect when bullets are fired
 	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
 	if effect_scene and effect_scene.can_instantiate():
 		var effect = effect_scene.instantiate()
@@ -525,8 +500,9 @@ func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
 		else:
 			get_tree().current_scene.call_deferred("add_child", effect)
 
-# Rest of your existing functions below (I'm keeping them mostly as-is since they work)
-# ... [all your other functions remain unchanged] ...
+func set_invincible(invincible: bool) -> void:
+	is_invincible = invincible
+	print("Boss invincibility set to: %s" % invincible)
 
 func take_damage(amount: int) -> void:
 	if defeated or is_invincible or amount <= 0:
@@ -676,11 +652,9 @@ func _spawn_minion() -> void:
 		print("Error: Failed to instantiate minion")
 		return
 	
-	# Set spawn position
 	var spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
 	minion.global_position = spawn_pos
 	
-	# Set minion properties based on phase
 	var movement_type = _get_minion_movement_type()
 	if minion.has_method("set_movement_type"):
 		minion.set_movement_type(movement_type)
@@ -688,15 +662,12 @@ func _spawn_minion() -> void:
 	if minion.has_method("set_boss_reference"):
 		minion.set_boss_reference(self)
 	
-	# Connect minion death signal
 	if minion.has_signal("boss_minion_died"):
 		minion.boss_minion_died.connect(_on_minion_died)
 	
-	# Add to scene
 	get_tree().current_scene.call_deferred("add_child", minion)
 	active_minions.append(minion)
 	
-	# Use MovementType enum keys for logging
 	var movement_type_name = "Unknown"
 	if minion.has_method("get_movement_type"):
 		var type_idx = minion.get_movement_type()
@@ -706,7 +677,6 @@ func _spawn_minion() -> void:
 	print("Spawned minion at position: %s, Type: %s" % [spawn_pos, movement_type_name])
 
 func _get_minion_movement_type() -> int:
-	# Define movement types based on phase and randomness
 	match current_phase:
 		BossPhase.PHASE1:
 			return randi() % 2 # SWARM or ORBIT
@@ -740,6 +710,13 @@ func on_minion_died(minion: Node) -> void:
 	_on_minion_died(minion)
 
 func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group("player_bullets"):
+		var damage = 1
+		if area.has_method("get_damage"):
+			damage = area.get_damage()
+		
+		take_damage(damage)
+		area.queue_free()
 	if defeated:
 		return
 	if area.is_in_group("Player"):
@@ -749,24 +726,18 @@ func _on_attack_timer_timeout() -> void:
 	if defeated:
 		return
 	
-	# Updated attack weights to meet requirements:
-	# Phase 1: Use homing bullets and hell pattern bullets
-	# Phase 2: Use energy balls and hell pattern bullets
 	match current_phase:
 		BossPhase.PHASE1:
-			# In phase 1: 50% homing missiles, 50% hell pattern
 			if randf() < 0.5:
 				fire_homing_missiles()
 			else:
 				fire_bullet_hell()
 		BossPhase.PHASE2:
-			# In phase 2: 50% energy balls, 50% hell pattern
 			if randf() < 0.5:
 				fire_energy_ball()
 			else:
 				fire_bullet_hell()
 		BossPhase.ENRAGED:
-			# In enraged phase: Use all attacks with emphasis on hell pattern and energy balls
 			var r = randf()
 			if r < 0.25:
 				fire_homing_missiles()
@@ -777,7 +748,6 @@ func _on_attack_timer_timeout() -> void:
 			else:
 				command_minions()
 		_:
-			# Default to homing missiles and hell pattern
 			if randf() < 0.5:
 				fire_homing_missiles()
 			else:
@@ -789,7 +759,6 @@ func command_minions() -> void:
 	if active_minions.size() == 0:
 		return
 	
-	# Give commands to minions
 	var command_type = randi() % 3
 	match command_type:
 		0: # Make some minions kamikaze
@@ -805,7 +774,7 @@ func command_minions() -> void:
 		2: # Boost minion aggression by dealing damage
 			for minion in active_minions:
 				if minion.has_method("damage"):
-					minion.damage(1) # Triggers speed and fire rate boost in minion.gd
+					minion.damage(1)
 	
 	print("Commanded minions - Type: %d, Count: %d" % [command_type, active_minions.size()])
 
@@ -826,11 +795,10 @@ func fire_spread_shot() -> void:
 		print("Error: Cannot spawn bullets, projectile_scene invalid")
 		return
 	
-	# Reduced bullet count and spread
 	var bullet_count = 6 if current_phase == BossPhase.ENRAGED else 5
-	var angle_offset = deg_to_rad(15.0) # Reduced from 20.0
+	var angle_offset = deg_to_rad(15.0)
 	var base_angle = PI / 2
-	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0 # Reduced from 1.5/1.2
+	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
 	
 	for marker in [left, center, right]:
 		if not marker or not is_instance_valid(marker):
@@ -841,8 +809,9 @@ func fire_spread_shot() -> void:
 				bullet.global_position = marker.global_position
 				var angle = base_angle + angle_offset * (i - bullet_count / 2.0 + randf_range(-0.2, 0.2))
 				bullet.rotation = angle
-				bullet.velocity = Vector2(cos(angle), sin(angle)) * bullet_speed * speed_multiplier
-				bullet.damage = 1
+				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
+				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
+				if bullet.has_method("set_damage"): bullet.set_damage(1)
 				get_tree().current_scene.call_deferred("add_child", bullet)
 				var bullet_ref = weakref(bullet)
 				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
@@ -859,22 +828,18 @@ func fire_homing_missiles() -> void:
 		print("Error: Cannot spawn bullets, projectile_scene invalid")
 		return
 	
-	# Reduced missile count
 	var bullet_count = 4 if current_phase == BossPhase.ENRAGED else 3 if current_phase == BossPhase.PHASE2 else 2
 	var player = get_tree().get_first_node_in_group("Player")
 	
-	# FIX: Replaced ternary with a safer if/else block to determine target position.
 	var target_pos: Vector2
 	if player and player.has_method("is_alive") and player.is_alive():
 		target_pos = player.global_position
 	elif player:
-		# Fallback if player is found but doesn't have is_alive or is not alive
 		target_pos = player.global_position
 	else:
-		# Fallback if player is not found
 		target_pos = global_position + Vector2(0, 1000)
 		
-	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0 # Reduced from 1.5/1.2
+	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
 	
 	for marker in [left, right]:
 		if not marker or not is_instance_valid(marker):
@@ -883,13 +848,14 @@ func fire_homing_missiles() -> void:
 			var bullet = projectile_scene.instantiate()
 			if bullet:
 				bullet.global_position = marker.global_position
-				var angle = randf_range(-PI / 6, PI / 6) # Reduced spread
+				var angle = randf_range(-PI / 6, PI / 6)
 				bullet.rotation = angle
-				bullet.velocity = Vector2(cos(angle), sin(angle)) * bullet_speed * speed_multiplier
+				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
+				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
 				if bullet.has_method("set_target"):
 					bullet.set_target(target_pos + Vector2(randf_range(-50, 50), randf_range(-50, 50)))
-					bullet.turn_rate = 0.05 if current_phase == BossPhase.ENRAGED else 0.04 # Reduced turning
-				bullet.damage = 1
+				if bullet.has_method("set_turn_rate"): bullet.set_turn_rate(0.05 if current_phase == BossPhase.ENRAGED else 0.04)
+				if bullet.has_method("set_damage"): bullet.set_damage(1)
 				get_tree().current_scene.call_deferred("add_child", bullet)
 				var bullet_ref = weakref(bullet)
 				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
@@ -906,9 +872,8 @@ func fire_laser_burst() -> void:
 		print("Error: Cannot spawn bullets, projectile_scene invalid")
 		return
 	
-	# Reduced burst count
 	var burst_count = 3 if current_phase == BossPhase.ENRAGED else 2
-	var speed_multiplier = 1.5 if current_phase == BossPhase.ENRAGED else 1.3 # Reduced from 2.0/1.8
+	var speed_multiplier = 1.5 if current_phase == BossPhase.ENRAGED else 1.3
 	
 	for burst in range(burst_count):
 		for marker in [left, center, right]:
@@ -917,10 +882,11 @@ func fire_laser_burst() -> void:
 			var bullet = projectile_scene.instantiate()
 			if bullet:
 				bullet.global_position = marker.global_position
-				var angle = PI / 2 + randf_range(-0.05, 0.05) # Reduced spread
+				var angle = PI / 2 + randf_range(-0.05, 0.05)
 				bullet.rotation = angle
-				bullet.velocity = Vector2(cos(angle), sin(angle)) * bullet_speed * speed_multiplier
-				bullet.damage = 1
+				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
+				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
+				if bullet.has_method("set_damage"): bullet.set_damage(1)
 				get_tree().current_scene.call_deferred("add_child", bullet)
 				var bullet_ref = weakref(bullet)
 				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
@@ -931,19 +897,21 @@ func fire_laser_burst() -> void:
 				print("Spawned laser burst bullet from %s" % marker.name)
 			else:
 				print("Error: Failed to instantiate bullet for laser burst")
-		await get_tree().create_timer(0.15 if current_phase == BossPhase.ENRAGED else 0.2).timeout # Increased delay
+		await get_tree().create_timer(0.15 if current_phase == BossPhase.ENRAGED else 0.2).timeout
 
 func fire_energy_ball() -> void:
-	# Load the energy ball scene
 	var energy_ball_scene = preload("res://Bullet/Boss_bullet/energy_ball.tscn")
 	if not energy_ball_scene or not energy_ball_scene.can_instantiate():
 		print("Error: Cannot spawn energy balls, energy_ball_scene invalid")
 		return
 	
-	# Fire energy balls from all markers
 	var markers = [left, center, right]
 	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
-	var damage_multiplier = 2 if current_phase == BossPhase.ENRAGED else 1.5 if current_phase == BossPhase.PHASE2 else 1
+	var damage_multiplier = 1.0
+	if current_phase == BossPhase.ENRAGED:
+		damage_multiplier = 2.0
+	elif current_phase == BossPhase.PHASE2:
+		damage_multiplier = 1.5
 	
 	for marker in markers:
 		if not marker or not is_instance_valid(marker):
@@ -951,7 +919,6 @@ func fire_energy_ball() -> void:
 		var energy_ball = energy_ball_scene.instantiate()
 		if energy_ball:
 			energy_ball.global_position = marker.global_position
-			# Set direction towards player
 			var player = get_tree().get_first_node_in_group("Player")
 			var target_pos = player.global_position if player else global_position + Vector2(0, 1000)
 			var direction = (target_pos - marker.global_position).normalized()
@@ -960,24 +927,19 @@ func fire_energy_ball() -> void:
 			if energy_ball.has_method("set_speed"):
 				energy_ball.set_speed(200.0 * speed_multiplier)
 			if energy_ball.has_method("set_damage"):
-				energy_ball.set_damage(int(3 * damage_multiplier)) # Energy balls do more damage
+				energy_ball.set_damage(int(3 * damage_multiplier))
 			get_tree().current_scene.call_deferred("add_child", energy_ball)
 			print("Spawned energy ball from %s" % marker.name)
 		else:
 			print("Error: Failed to instantiate energy ball")
-
-
-
 
 func _on_shadow_mode_activated() -> void:
 	shadow_mode_active = true
 	attack_timer.wait_time = attack_timer.wait_time * 0.7
 	attack_timer.start()
 	
-	# Boost minion spawning in shadow mode
 	_adjust_minion_spawn_rate()
 	
-	# Make existing minions more aggressive
 	for minion in active_minions:
 		if minion.has_method("_make_shadow_enemy"):
 			minion._make_shadow_enemy()
@@ -992,7 +954,6 @@ func _on_shadow_mode_deactivated() -> void:
 	attack_timer.wait_time = attack_interval * phase_multiplier
 	attack_timer.start()
 	
-	# Adjust minion spawning back to normal
 	_adjust_minion_spawn_rate()
 
 func _on_phase_timer_timeout() -> void:
@@ -1014,7 +975,3 @@ func get_minion_status() -> Array:
 func force_spawn_minion() -> void:
 	if active_minions.size() < get_max_minions():
 		_spawn_minion()
-
-func set_invincible(invincible: bool) -> void:
-	is_invincible = invincible
-	print("Boss invincibility set to: %s" % invincible)

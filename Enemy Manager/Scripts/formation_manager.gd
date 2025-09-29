@@ -1,6 +1,9 @@
 extends Node2D
 class_name FormationManager
 
+# Import formation_enums to access shared enums
+const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 signal formation_complete
 signal enemy_spawned(enemy: Enemy)
 signal all_enemies_destroyed

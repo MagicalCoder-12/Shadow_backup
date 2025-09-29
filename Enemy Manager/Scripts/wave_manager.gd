@@ -1,6 +1,9 @@
 extends Node2D
 class_name WaveManager
 
+# Import formation_enums to access shared enums
+const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 # Signals for wave progression and events
 signal wave_started(current_wave: int, total_waves: int)
 signal wave_cleared(current_wave: int, wave_config: WaveConfig)
@@ -342,12 +345,12 @@ func _spawn_boss_wave() -> void:
 	current_boss = boss_instance
 	active_enemies.append(boss_instance)
 	_connected_enemies.append(boss_instance)
-	# enemies_alive = 1  # Defer this until descent completes
+	enemies_alive = 0  # Defer this until descent completes
 	
 	enemy_spawned.emit(boss_instance)
 	
 	if debug_mode:
-		print("WaveManager: Boss spawned off-screen at %s (will descend to y=400, Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
+		print("WaveManager: Boss spawned off-screen at %s (Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
 
 func _play_boss_music() -> void:
 	# Play boss music using the existing boss_music AudioStreamPlayer
@@ -356,6 +359,7 @@ func _play_boss_music() -> void:
 		# Reduce volume of other buses except Boss bus
 	if AudioManager:
 		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
+		AudioManager.mute_bus("Bullet",true)
 		print("Boss music started by WaveManager")
 	else:
 		print("Error: Boss music player or file not found")
@@ -374,7 +378,7 @@ func _connect_boss_signals(boss: Node2D) -> void:
 	if boss.has_signal("phase_changed"):
 		boss.phase_changed.connect(_on_boss_phase_changed.bind(boss))
 	
-	# New: Connect descent completed to start full tracking
+	# Connect descent completed signal to start full tracking
 	if boss.has_signal("descent_completed"):
 		boss.descent_completed.connect(func(): 
 			enemies_alive = 1
@@ -572,3 +576,4 @@ func _on_shadow_mode_deactivated():
 func _on_boss_music_finished() -> void:
 	if AudioManager:
 		AudioManager.restore_bus_volumes()
+		AudioManager.mute_bus("Bullet",false)

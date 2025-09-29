@@ -12,6 +12,9 @@ extends Node
 
 # === EXPORTED ===
 @export var level_num: int = 1
+# Array of WaveConfig resources defining the waves for this level
+# Create WaveConfig resources using the WaveConfig.tscn template
+# or load existing .tres files
 @export var waves: Array[WaveConfig] = []
 @export var debug_mode: bool = false
 
@@ -260,6 +263,9 @@ func _game_over_triggered():
 		return
 	game_over = true
 	GameManager.game_over = true
+	# Set the game over screen active flag in LevelManager
+	if GameManager.level_manager:
+		GameManager.level_manager.is_game_over_screen_active = true
 	get_tree().paused = false
 	pause_menu.hide()
 	if hud and hud.has_method("update_charge_display"):
@@ -268,9 +274,8 @@ func _game_over_triggered():
 	game_over_screen.modulate.a = 0.0
 	game_over_screen.show()
 	
-	# Show banner ad when game over screen is displayed
-	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
-		GameManager.ad_manager.show_banner_ad()
+	# Don't show banner ad when game over screen is displayed
+	# Banner ads are hidden when game over screen appears
 	
 	if is_inside_tree() and game_over_screen:
 		var tween = create_tween()
@@ -283,6 +288,9 @@ func _on_player_revived():
 		return
 	game_over = false
 	GameManager.game_over = false
+	# Reset the game over screen active flag in LevelManager
+	if GameManager.level_manager:
+		GameManager.level_manager.is_game_over_screen_active = false
 
 	var player = get_tree().get_first_node_in_group("Player")
 	if not player:
@@ -297,6 +305,10 @@ func _on_player_revived():
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
 	GameManager.revive_player(2)
+	
+	# Ensure banner ad is hidden after revive
+	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
+		GameManager.ad_manager.hide_banner_ad()
 
 func revive_player():
 	_on_player_revived()

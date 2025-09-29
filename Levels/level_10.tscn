@@ -1,29 +1,79 @@
-[gd_scene load_steps=6 format=3 uid="uid://b3cb5f6bt333p"]
+[gd_scene load_steps=15 format=3 uid="uid://b3cb5f6bt333p"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_sgl13"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_7y1m2"]
 [ext_resource type="PackedScene" uid="uid://bvb27mesmd4mo" path="res://Bosses/Boss1.tscn" id="4_boss1"]
 
-[sub_resource type="Resource" id="Resource_dvmrr"]
+[sub_resource type="Resource" id="Resource_w76ts"]
 script = ExtResource("2_7y1m2")
-difficulty = 3
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-entry_speed = 300.0
+enemy_type = "BomberBug"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
-[sub_resource type="Resource" id="Resource_7aytn"]
+[sub_resource type="Resource" id="Resource_k4mr7"]
 script = ExtResource("2_7y1m2")
-formation_type = 1
-entry_pattern = 1
-difficulty = 3
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_752rg"]
+script = ExtResource("2_7y1m2")
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_gu58g"]
+script = ExtResource("2_7y1m2")
+formation_type = 7
+entry_pattern = 5
+difficulty = 2
 enemy_type = "mob2"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_55fqf"]
+script = ExtResource("2_7y1m2")
+formation_type = 6
+entry_pattern = 6
+enemy_type = "mob4"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_wn6d5"]
+script = ExtResource("2_7y1m2")
+enemy_type = "SlowShooter"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_i2ob1"]
+script = ExtResource("2_7y1m2")
+enemy_type = "BomberBug"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_d8hbd"]
+script = ExtResource("2_7y1m2")
+entry_pattern = 11
+enemy_type = "BouncerEnemy"
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_k83ce"]
+script = ExtResource("2_7y1m2")
+formation_type = 9
+entry_pattern = 12
+enemy_type = "OblivionTank"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_lvjp3"]
+script = ExtResource("2_7y1m2")
+formation_type = 10
+entry_pattern = 10
+difficulty = 2
+enemy_type = "ShadowSentinel"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_0es07"]
+script = ExtResource("2_7y1m2")
 boss_scene = ExtResource("4_boss1")
-enemy_density = "Maximum"
-formation_center = Vector2(640, 300)
-entry_speed = 300.0
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [node name="Level_10" instance=ExtResource("1_sgl13")]
 
+[node name="PauseMenu" parent="CanvasLayer" index="4"]
+modulate = Color(1, 1, 1, 0)
+
 [node name="LevelManager" parent="." index="4"]
 level_num = 10
-waves = Array[ExtResource("2_7y1m2")]([SubResource("Resource_dvmrr"), SubResource("Resource_7aytn")])
+waves = Array[ExtResource("2_7y1m2")]([SubResource("Resource_w76ts"), SubResource("Resource_k4mr7"), SubResource("Resource_752rg"), SubResource("Resource_gu58g"), SubResource("Resource_55fqf"), SubResource("Resource_wn6d5"), SubResource("Resource_i2ob1"), SubResource("Resource_d8hbd"), SubResource("Resource_k83ce"), SubResource("Resource_lvjp3"), SubResource("Resource_0es07")])

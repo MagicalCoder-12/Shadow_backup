@@ -89,6 +89,9 @@ func _on_revive_pressed() -> void:
 	revive_button.disabled = true
 	# Request rewarded ad for revive
 	if GameManager and GameManager.ad_manager:
+		# Ensure banner is hidden before requesting revive
+		if GameManager.ad_manager.is_initialized and GameManager.ad_manager.is_banner_showing:
+			GameManager.ad_manager.hide_banner_ad()
 		GameManager.ad_manager.request_ad_revive()
 	else:
 		emit_signal("ad_revive_requested") # fallback
@@ -136,6 +139,9 @@ func _input(event: InputEvent) -> void:
 		revive_button.disabled = true
 		# Use the same logic as the revive button
 		if GameManager and GameManager.ad_manager:
+			# Ensure banner is hidden before requesting revive
+			if GameManager.ad_manager.is_initialized and GameManager.ad_manager.is_banner_showing:
+				GameManager.ad_manager.hide_banner_ad()
 			GameManager.ad_manager.request_ad_revive()
 		else:
 			emit_signal("ad_revive_requested") # fallback

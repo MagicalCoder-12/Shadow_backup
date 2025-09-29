@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="WaveConfig" load_steps=2 format=3 uid="uid://bdrda1o20x0t7"]
+
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="1_waveconfig"]
+
+[resource]
+script = ExtResource("1_waveconfig")
+difficulty = 0

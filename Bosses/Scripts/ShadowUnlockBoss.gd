@@ -7,10 +7,10 @@ class_name ShadowUnlockBoss
 
 # Boss Phases (added DESCENT)
 enum BossPhase {
-	DESCENT,   # Initial drop from off-screen
-	PHASE_1,   # Normal phase (100% - 50% health)
-	PHASE_2,   # Shadow phase (50% - 0% health)
-	TRANSITION # Brief transition between phases
+	DESCENT,    # Initial drop from off-screen
+	PHASE_1,    # Normal phase (100% - 50% health)
+	PHASE_2,    # Shadow phase (50% - 0% health)
+	TRANSITION  # Brief transition between phases
 }
 
 ## Core Stats
@@ -161,10 +161,12 @@ func _execute_attack_pattern() -> void:
 	
 	_show_muzzle_flash()
 	
+	# Swapped the patterns to match the description.
+	# Phase 1 should be the spiral, Phase 2 the storm.
 	if current_phase == BossPhase.PHASE_1:
-		_pattern_p2_converging_storm()
-	else:
 		_pattern_p1_spiral_wave()
+	else: # PHASE_2
+		_pattern_p2_converging_storm()
 
 func _show_muzzle_flash() -> void:
 	var flash = MUZZLE_FLASH.instantiate()
@@ -214,10 +216,10 @@ func _pattern_p1_spiral_wave() -> void:
 				_add_bullet_to_scene(bullet)
 
 func _pattern_p2_converging_storm() -> void:
-	# Load the hell pattern scene directly for Phase 2
+	# Load the [heck] pattern scene directly for Phase 2
 	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
 	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
-		# Fallback to regular bullet pattern if hell pattern not available
+		# Fallback to regular bullet pattern if [heck] pattern not available
 		_fallback_p2_pattern()
 		return
 	

@@ -137,6 +137,8 @@ func revive_player(lives: int = 2) -> void:
 	# Hide banner ad when reviving player to prevent conflicts
 	if gm.ad_manager.is_initialized:
 		gm.ad_manager.hide_banner_ad()
+		# Add a small delay before potentially showing banner again
+		await gm.get_tree().create_timer(1.0).timeout
 
 
 func _hide_game_over_screen(current_scene: Node) -> void:

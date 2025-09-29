@@ -8,6 +8,7 @@ const formations_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd
 const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB = preload("res://Bullet/Ebullet/Bomb.tscn")
+const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")  # Add this line to access bomb script
 const COINS = preload("res://Resources/Coins.tscn")
 const CRYSTAL = preload("res://Resources/Crystal.tscn")
 
@@ -43,6 +44,12 @@ signal shadow_state_changed(is_shadow: bool)
 @export var entry_shadow_shield_time: float = 2.0
 @export var shadow_texture: Texture2D
 @export var enemy_type: String = "standard"
+
+# --- Bomber Enemy Properties ---
+var last_bomb_drop_time: float = 0.0
+const BOMB_DROP_COOLDOWN: float = 2.0  # Minimum time between bomb drops (in seconds)
+var bombs_dropped: int = 0
+const MAX_BOMBS_PER_ENEMY: int = 5  # Maximum bombs a single bomber can drop
 
 # --- Shadow Visual Properties ---
 var shadow_pulse_speed: float = 2.0
@@ -144,6 +151,10 @@ func _ready():
 	_connect_signals()
 	_update_player_reference()
 	_initialize_shadow_state()
+	
+	# Reset bomber counters
+	bombs_dropped = 0
+	last_bomb_drop_time = 0.0
 	
 	if shadow_core_shield:
 		shadow_core_shield.visible = true
@@ -365,9 +376,15 @@ func _handle_shooting(_delta: float):
 	
 	# Bomber enemies drop bombs instead of shooting
 	if enemy_type == "Bomber":
-		# Drop bombs periodically - reduced frequency to prevent spam
-		if randf() < 0.003:  # 0.3% chance per frame to drop a bomb (reduced from 1%)
-			_drop_bomb()
+		# Check if we haven't exceeded the maximum bombs per enemy
+		if bombs_dropped < MAX_BOMBS_PER_ENEMY:
+			# Use time-based cooldown instead of random chance per frame
+			if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
+				# 50% chance to drop a bomb when cooldown is ready
+				if randf() < 0.5:
+					_drop_bomb()
+					bombs_dropped += 1
+					last_bomb_drop_time = time_since_spawn
 		return
 	
 	# Enhanced shooting logic based on enemy type or special conditions
@@ -495,13 +512,17 @@ func _drop_bomb():
 	if enemy_type != "Bomber":
 		return
 	
+	# Check if we've exceeded the global bomb limit
+	if BOMB_SCRIPT.active_bombs >= BOMB_SCRIPT.MAX_ACTIVE_BOMBS:
+		return
+	
 	# Create a bomb instance
-	var bomb = BOMB.instantiate()
-	if bomb:
+	var bomb_instance = BOMB.instantiate()
+	if bomb_instance:
 		# Position the bomb at the enemy's position
-		bomb.global_position = global_position
+		bomb_instance.global_position = global_position
 		# Add the bomb to the scene
-		get_tree().current_scene.add_child(bomb)
+		get_tree().current_scene.add_child(bomb_instance)
 
 # --- Formation Setup ---
 @warning_ignore("unused_parameter")

@@ -60,26 +60,14 @@ _data = {
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_5c45g")
-max_health = 60000
-stage_2_max_health = 100000
+max_health = 40000
+stage_2_max_health = 80000
 stage_1_sprite = ExtResource("2_1ldl7")
 stage_2_sprite = ExtResource("3_hse6t")
-projectile_scene = null
-move_speed = null
-move_range = null
 attack_interval = 5.0
-dash_speed = null
-dash_duration = null
 dash_interval = 4.0
-invincibility_duration = null
-bullet_lifetime = null
 bullet_speed = 1500.0
-minion_scene = null
 max_minions = 10
-minion_spawn_interval = null
-minion_spawn_distance = null
-phase2_minion_boost = null
-enraged_minion_boost = null
 
 [node name="Boss" type="Sprite2D" parent="."]
 position = Vector2(-23.721592, 161.06999)
@@ -110,10 +98,10 @@ shape = SubResource("RectangleShape2D_kpgky")
 [node name="PhaseTimer" type="Timer" parent="."]
 
 [node name="HealthBar" parent="." instance=ExtResource("3_r0gn5")]
-offset_left = -345.0
-offset_top = -249.0
-offset_right = 308.0
-offset_bottom = -185.0
+offset_left = -333.0
+offset_top = -189.0
+offset_right = 320.0
+offset_bottom = -125.0
 texture_under = ExtResource("4_bn1uh")
 texture_progress = ExtResource("5_mw6p5")
 
@@ -152,6 +140,9 @@ bus = &"Boss"
 libraries = {
 &"": SubResource("AnimationLibrary_vs5kx")
 }
+autoplay = "Idle"
+speed_scale = 1.5
 
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]
 [connection signal="timeout" from="PhaseTimer" to="." method="_on_phase_timer_timeout"]

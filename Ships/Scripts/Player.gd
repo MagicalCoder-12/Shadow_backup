@@ -649,9 +649,13 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
 		# Combined damage: (base damage * 2) + super_mode_damage_boost
 		GameManager.player_manager.player_stats["bullet_damage"] = (base_damage * 2) + super_mode_damage_boost
+		# Set bullet type to shadow bullet for combined mode
+		plBullet = plShadowBullet
 	else:
 		# Normal super mode damage calculation
 		GameManager.player_manager.player_stats["bullet_damage"] = int(current_damage * multiplier_div) + super_mode_damage_boost
+		# Set bullet type to super bullet for normal super mode
+		plBullet = plSuperBullet
 	
 	fire_delay_timer.wait_time = super_mode_fire_delay
 	add_super_mode_spawn_points()

@@ -138,6 +138,7 @@ icon_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" instance=ExtResource("7_c1kre")]
+modulate = Color(1, 1, 1, 0)
 
 [node name="LevelCompleted" parent="CanvasLayer" instance=ExtResource("13_23710")]
 

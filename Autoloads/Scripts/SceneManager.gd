@@ -25,6 +25,10 @@ func change_scene(scene_path: String) -> void:
 	gm.scene_change_started.emit()
 	var root: Node = gm.get_tree().current_scene
 	
+	# Update stars before transitioning to map scene
+	if scene_path == MAP_SCENE:
+		_prepare_map_scene()
+	
 	if root:
 		for child in root.get_children():
 			if child.name == "LoaderCanvasLayer" or child.name == "VideoPlaybackLayer":
@@ -45,6 +49,13 @@ func change_scene(scene_path: String) -> void:
 		
 		loader.start_load(scene_path)
 
+# Prepare map scene by updating stars visibility
+func _prepare_map_scene() -> void:
+	# Emit a signal to update stars before transitioning to map scene
+	# This ensures stars are properly set before the scene transition
+	if gm.has_signal("prepare_map_scene"):
+		gm.emit_signal("prepare_map_scene")
+
 func handle_node_added(node: Node) -> void:
 	if node is Control and node.name == "LoaderCanvasLayer":
 		node.z_index = 100
@@ -52,7 +63,7 @@ func handle_node_added(node: Node) -> void:
 	if node == gm.get_tree().current_scene:
 		var scene_path = node.scene_file_path if node.scene_file_path else ""
 		
-		if scene_path == START_SCREEN_SCENE or scene_path == MAP_SCENE:
+		if scene_path == START_SCREEN_SCENE or scene_path == MAP_SCENE or scene_path == UPGRADE_MENU:
 			AudioManager.play_background_music(BACKGROUND_MUSIC, false)
 			if AudioManager.background_player:
 				AudioManager.background_player.stream.loop = true

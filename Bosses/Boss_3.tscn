@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b88dxokqk2pv5"]
+[gd_scene load_steps=14 format=3 uid="uid://b88dxokqk2pv5"]
 
 [ext_resource type="Script" uid="uid://bev7ahjejnowo" path="res://Bosses/Scripts/Boss3.gd" id="1_5c45g"]
 [ext_resource type="Texture2D" uid="uid://cgce5tto321sl" path="res://Textures/Boss/oldBossGFX/oldVIRGO2.png" id="2_vvmta"]
@@ -10,7 +10,7 @@
 [ext_resource type="AudioStream" uid="uid://d0hou0ybwsa1p" path="res://Textures/Music/monster_60_attack.wav" id="9_6bcr1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kpgky"]
-size = Vector2(14, 9.79835)
+size = Vector2(12.475729, 9.734394)
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dsyg1"]
 particles_animation = true
@@ -18,33 +18,93 @@ particles_anim_h_frames = 5
 particles_anim_v_frames = 3
 particles_anim_loop = false
 
+[sub_resource type="Animation" id="Animation_s18dc"]
+resource_name = "Idle"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Boss:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.4, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1.5, 1.5), Vector2(1.348968, 1.5), Vector2(1.5, 1.668)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Boss:skew")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.37, 0.63, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.05235988, -0.06981317007977318, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_3a1xm"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Boss:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1.5, 1.5)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Boss:skew")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_3a1xm"]
+_data = {
+&"Idle": SubResource("Animation_s18dc"),
+&"RESET": SubResource("Animation_3a1xm")
+}
+
 [node name="Boss3" type="Area2D" groups=["Boss"]]
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_5c45g")
+max_health = 40000
+stage_2_max_health = 80000
 
 [node name="Boss" type="Sprite2D" parent="."]
-position = Vector2(13.2547, -14.1836)
+position = Vector2(27.499979, -14.1836)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_vvmta")
 
-[node name="Marker2D" type="Marker2D" parent="Boss"]
-position = Vector2(-4.00002, -34)
-
 [node name="Left" type="Marker2D" parent="Boss"]
-position = Vector2(-259.99, 190.907)
+position = Vector2(-200.1698, 40.12239)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="Right" type="Marker2D" parent="Boss"]
-position = Vector2(222.01, 215.907)
+position = Vector2(176.49687, 30.12239)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="Center" type="Marker2D" parent="Boss"]
-position = Vector2(-11.989, -13.0928)
+position = Vector2(-2.8364658, 87.455734)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(3.5, -9.5)
+position = Vector2(34.00001, -9.249968)
 scale = Vector2(42.6428, -39.0882)
 shape = SubResource("RectangleShape2D_kpgky")
 
@@ -91,5 +151,12 @@ bus = &"Boss"
 
 [node name="MinionSpawnTimer" type="Timer" parent="."]
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_3a1xm")
+}
+autoplay = "Idle"
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="timeout" from="AttackTimer" to="." method="_on_attack_timer_timeout"]
 [connection signal="timeout" from="PhaseTimer" to="." method="_on_phase_timer_timeout"]

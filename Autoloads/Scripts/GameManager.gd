@@ -34,6 +34,8 @@ signal revive_completed(success: bool)
 signal ship_stats_updated(ship_id: String, new_damage: int)
 @warning_ignore("unused_signal")
 signal enemy_killed(enemy: Node)
+@warning_ignore("unused_signal")
+signal prepare_map_scene()
 
 # 🔒 CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"
@@ -139,6 +141,11 @@ func _ready() -> void:
 
 	get_tree().node_added.connect(_on_node_added)
 
+	# Connect prepare_map_scene signal
+	if prepare_map_scene.is_connected(_on_prepare_map_scene):
+		prepare_map_scene.disconnect(_on_prepare_map_scene)
+	prepare_map_scene.connect(_on_prepare_map_scene)
+
 # Connect revive_completed signal to resume game after ad
 	if not revive_completed.is_connected(_on_revive_completed):
 		revive_completed.connect(_on_revive_completed)
@@ -217,6 +224,9 @@ func load_level(level_num: int) -> void:
 
 func request_ad_revive() -> void:
 	pause_for_ad_revive()  # Pause game before requesting ad
+	# Ensure any banner ads are hidden before requesting revive
+	if ad_manager.is_initialized and ad_manager.is_banner_showing:
+		ad_manager.hide_banner_ad()
 	ad_manager.request_ad_revive()
 
 func revive_player(lives: int = 2) -> void:
@@ -306,6 +316,13 @@ func _on_revive_completed(success: bool) -> void:
 	else:
 		print("[GameManager]: Revive failed or was cancelled")
 
+# Add this method to handle level selection from the map
+func _on_level_selected(level_num: int) -> void:
+	if is_level_unlocked(level_num):
+		load_level(level_num)
+	else:
+		print("[GameManager]: Level %d is locked" % level_num)
+
 # Notify when ship stats are updated
 func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:
 	ship_stats_updated.emit(ship_id, new_damage)
@@ -316,3 +333,9 @@ func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:
 # Notify when enemy is killed for shadow mode charging
 func notify_enemy_killed(enemy: Node) -> void:
 	enemy_killed.emit(enemy)
+
+# Handle prepare_map_scene signal
+func _on_prepare_map_scene() -> void:
+	# This function is called before transitioning to the map scene
+	# It ensures stars are updated before the scene transition
+	pass

@@ -1,12 +1,13 @@
 [gd_scene load_steps=4 format=3 uid="uid://05gucqppwbyy"]
 
-[ext_resource type="Script" path="res://Bullet/Scripts/bomb.gd" id="1_4iuhc"]
+[ext_resource type="Script" uid="uid://dpwah0otox5lg" path="res://Bullet/Scripts/bomb.gd" id="1_4iuhc"]
 [ext_resource type="Texture2D" uid="uid://ba8y41i3mxjlf" path="res://Textures/Sprites/Bombs/Bomb_3_Idle_000.png" id="2_lkd4l"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0afi6"]
 radius = 112.821
 
 [node name="Bomb" type="Area2D" groups=["EnemyBullet", "enemy_bullet"]]
+scale = Vector2(0.5, 0.5)
 collision_layer = 64
 script = ExtResource("1_4iuhc")
 
