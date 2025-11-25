@@ -1,46 +1,29 @@
 [gd_scene load_steps=11 format=3 uid="uid://c5711ruls0swq"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_8dfjl"]
-[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_n8stu"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_n8stu"]
 
 [sub_resource type="Resource" id="Resource_hqkxu"]
 script = ExtResource("2_n8stu")
-formation_type = 0
-entry_pattern = 0
 difficulty = 0
-enemy_type = "mob1"
+enemy_type = "BomberBug"
 enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_ust6x"]
 script = ExtResource("2_n8stu")
 formation_type = 1
 entry_pattern = 1
 difficulty = 0
-enemy_type = "mob2"
-enemy_density = "Normal"
+enemy_type = "BouncerEnemy"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_xlq1s"]
 script = ExtResource("2_n8stu")
 formation_type = 2
 entry_pattern = 2
-difficulty = 0
-enemy_type = "mob3"
-enemy_density = "Sparse"
+enemy_type = "BouncerEnemy"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_2p8tm"]
 script = ExtResource("2_n8stu")
@@ -50,62 +33,28 @@ difficulty = 0
 enemy_type = "mob4"
 enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_rqhq5"]
 script = ExtResource("2_n8stu")
 formation_type = 4
 entry_pattern = 4
-difficulty = 1
 enemy_type = "SlowShooter"
-enemy_density = "Normal"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_30275"]
 script = ExtResource("2_n8stu")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob1"
-enemy_density = "Normal"
+enemy_type = "PhasePhantom"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_ihop3"]
 script = ExtResource("2_n8stu")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob1"
-enemy_density = "Normal"
+enemy_type = "mob3"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_bs27r"]
 script = ExtResource("2_n8stu")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
-enemy_type = "mob1"
-enemy_density = "Normal"
+enemy_type = "ShadowSentinel"
 formation_center = Vector2(640, 300)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [node name="Level_8" instance=ExtResource("1_8dfjl")]
 

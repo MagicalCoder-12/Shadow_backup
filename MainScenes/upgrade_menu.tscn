@@ -1,7 +1,7 @@
 [gd_scene load_steps=62 format=4 uid="uid://pc4ms7p3xhud"]
 
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="1_mddtv"]
-[ext_resource type="Script" path="res://MainScenes/Scripts/upgrade_menu.gd" id="1_uf2vc"]
+[ext_resource type="Script" uid="uid://clhuqfpv8nfj8" path="res://MainScenes/Scripts/upgrade_menu.gd" id="1_uf2vc"]
 [ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="4_c3ohk"]
 [ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="5_34scy"]
 [ext_resource type="Texture2D" uid="uid://jfjmhs2pyri8" path="res://Textures/UI/Main_Menu/Header.png" id="6_64fx3"]
@@ -31,11 +31,11 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_gmmlx"]
 font = ExtResource("13_n170t")
-font_size = 32
+font_size = 35
 
 [sub_resource type="LabelSettings" id="LabelSettings_n5e6d"]
 font = ExtResource("1_mddtv")
-font_size = 32
+font_size = 35
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nr62u"]
 
@@ -68,7 +68,7 @@ bg_color = Color(0.313726, 0.717647, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_xifhc"]
 font = ExtResource("13_n170t")
-font_size = 50
+font_size = 60
 
 [sub_resource type="LabelSettings" id="LabelSettings_1r538"]
 font = ExtResource("13_n170t")
@@ -546,7 +546,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -17.0
-offset_top = -19.0
+offset_top = 5.0
 offset_right = 217.0
 offset_bottom = 69.0
 grow_horizontal = 2
@@ -576,12 +576,12 @@ texture = ExtResource("6_64fx3")
 metadata/_edit_use_anchors_ = true
 
 [node name="Resources" type="HBoxContainer" parent="."]
-layout_mode = 2
+layout_mode = 0
 anchor_left = 0.0166667
 anchor_top = 0.0494373
 anchor_right = 0.825758
 anchor_bottom = 0.0932476
-theme_override_constants/separation = 15
+theme_override_constants/separation = 30
 metadata/_edit_use_anchors_ = true
 
 [node name="VoidCrystal" type="HBoxContainer" parent="Resources"]
@@ -595,9 +595,11 @@ label_settings = SubResource("LabelSettings_gmmlx")
 vertical_alignment = 2
 
 [node name="Void_shards" type="TextureRect" parent="Resources/VoidCrystal"]
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 texture = ExtResource("9_8sam1")
-stretch_mode = 2
+expand_mode = 5
+stretch_mode = 5
 
 [node name="Crystal" type="HBoxContainer" parent="Resources"]
 layout_mode = 2
@@ -614,13 +616,13 @@ metadata/_edit_use_anchors_ = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 texture = ExtResource("12_hj2yo")
-stretch_mode = 2
+expand_mode = 4
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="Money" type="HBoxContainer" parent="Resources"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/separation = 20
 metadata/_edit_use_anchors_ = true
 
 [node name="Coins_display" type="Label" parent="Resources/Money"]
@@ -631,10 +633,11 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="Coins" type="TextureRect" parent="Resources/Money"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(45, 45)
 layout_mode = 2
 texture = ExtResource("10_yijgs")
-stretch_mode = 2
+expand_mode = 4
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="UI" type="CanvasLayer" parent="."]
@@ -684,10 +687,10 @@ theme_override_font_sizes/font_size = 75
 text = "Shop"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI"]
-offset_left = 17.0
-offset_top = 1127.0
-offset_right = 1077.0
-offset_bottom = 1456.0
+offset_left = 14.0
+offset_top = 879.0
+offset_right = 1074.0
+offset_bottom = 1208.0
 theme_override_constants/separation = 120
 
 [node name="Upgrade_coins" type="TextureButton" parent="UI/HBoxContainer"]
@@ -772,6 +775,10 @@ anchor_left = 0.0287037
 anchor_top = 0.3725
 anchor_right = 1.03796
 anchor_bottom = 0.410417
+offset_left = -8.999996
+offset_top = 380.0
+offset_right = -9.0
+offset_bottom = 379.99994
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
@@ -801,23 +808,28 @@ text_overrun_behavior = 2
 metadata/_edit_use_anchors_ = true
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI/Buy_Ascend/Ascend"]
-layout_mode = 0
-offset_left = 101.0
-offset_top = 99.0
-offset_right = 515.0
-offset_bottom = 208.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.20801228
+anchor_top = 0.7912088
+anchor_right = 0.7565485
+anchor_bottom = 1.7912087
 alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="Void_shard" type="TextureRect" parent="UI/Buy_Ascend/Ascend/HBoxContainer"]
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 texture = ExtResource("9_8sam1")
+expand_mode = 5
+stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
 [node name="Void_Shard" type="Label" parent="UI/Buy_Ascend/Ascend/HBoxContainer"]
 layout_mode = 2
-text = "Cost:50
-"
+text = "Cost:50"
 label_settings = SubResource("LabelSettings_xifhc")
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="WarningPanel" type="Panel" parent="UI"]
@@ -830,9 +842,12 @@ theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
 [node name="Warning_Label" type="Label" parent="UI/WarningPanel"]
-layout_mode = 0
-anchor_right = 0.93985
-anchor_bottom = 0.921739
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.073275864
+anchor_top = 0.15306123
+anchor_right = 0.92528737
+anchor_bottom = 0.872449
 text = "Insufficient Funds"
 label_settings = SubResource("LabelSettings_1r538")
 horizontal_alignment = 1
@@ -888,7 +903,7 @@ stretch_mode = 4
 metadata/_edit_use_anchors_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="SelectedShipDisplay"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 595.191
 offset_top = 11.0003
 offset_right = 1080.19
@@ -901,7 +916,7 @@ theme = ExtResource("7_462bn")
 theme_type_variation = &"Details_panel"
 
 [node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel"]
-layout_mode = 2
+layout_mode = 0
 anchor_left = 0.0817204
 anchor_top = 0.271186
 anchor_right = 0.939785
@@ -929,7 +944,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="ShipName" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel"]
 custom_minimum_size = Vector2(100, 100)
-layout_mode = 2
+layout_mode = 0
 offset_left = 2.0
 offset_top = 17.0
 offset_right = 462.0

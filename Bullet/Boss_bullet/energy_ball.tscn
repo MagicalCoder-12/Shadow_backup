@@ -1,6 +1,6 @@
 [gd_scene load_steps=14 format=3 uid="uid://dtm0xakdd7x6u"]
 
-[ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/energy_ball.gd" id="1_energyball"]
+[ext_resource type="Script" uid="uid://jei3apmwcmnp" path="res://Bullet/Boss_bullet/Scripts/energy_ball.gd" id="1_energyball"]
 [ext_resource type="Texture2D" uid="uid://bcnw1tp07vyss" path="res://Textures/Boss/ball.png" id="2_rpceq"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_olngl"]
@@ -78,14 +78,13 @@ animations = [{
 radius = 49.0102
 
 [node name="EnergyBall" type="Area2D"]
+scale = Vector2(1.5, 1.5)
 collision_layer = 128
 script = ExtResource("1_energyball")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_x1si1")
-frame = 8
-frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(4, -10)

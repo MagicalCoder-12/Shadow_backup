@@ -1,5 +1,25 @@
+# WaveConfig
+# Resource class for defining enemy wave configurations in levels
+# 
+# Usage:
+# 1. Create a new resource from this script
+# 2. Set the desired properties in the inspector
+# 3. Assign to a level's waves array
+#
+# For boss waves:
+# - Set the boss_scene property to a boss scene
+# - Leave enemy_type as default (ignored for boss waves)
+#
+# For regular enemy waves:
+# - Set enemy_type to desired enemy
+# - Configure formation and entry pattern
+# - Set difficulty and density
+
 extends Resource
 class_name WaveConfig
+
+# Import formation_enums to access shared enums
+const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
 
 # Import shared enums (from your shared enum script, e.g., formation_enums.gd)
 @export var formation_type: formation_enums.FormationType = formation_enums.FormationType.CIRCLE:
@@ -16,6 +36,7 @@ class_name WaveConfig
 var enemy_type: String = "mob1"
 
 # NEW: Dedicated boss scene for boss waves
+# When set, this creates a boss wave with a single boss enemy
 @export var boss_scene: PackedScene
 
 # Dynamic enemy count based on formation type
@@ -150,3 +171,10 @@ func get_density_description() -> String:
 # NEW: Check if this is a boss wave
 func is_boss_wave() -> bool:
 	return boss_scene != null
+
+# Debug string representation
+func as_debug_string() -> String:
+	if boss_scene:
+		return "Boss Wave (%s)" % boss_scene.resource_path.get_file()
+	else:
+		return "%s (%s, %s)" % [enemy_type, formation_enums.FormationType.keys()[formation_type], enemy_density]

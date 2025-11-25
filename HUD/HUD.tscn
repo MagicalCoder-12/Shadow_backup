@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://s66mklagl4fy"]
 
 [ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
-[ext_resource type="Script" path="res://HUD/HUD.gd" id="2"]
+[ext_resource type="Script" uid="uid://bpm43fhtutkx7" path="res://HUD/HUD.gd" id="2"]
 [ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="3_hsjlv"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="4_bkns3"]
 [ext_resource type="Texture2D" uid="uid://bosx1bop5mg50" path="res://Textures/UI/Main_Menu/Clock_Icon.png" id="7_36gqn"]
@@ -69,12 +69,12 @@ metadata/_edit_use_anchors_ = true
 [node name="ShadowModeButton" parent="." instance=ExtResource("8_shadow")]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0574074
-anchor_top = 0.521667
-anchor_right = 0.153704
-anchor_bottom = 0.566465
-offset_right = 104.385
-offset_bottom = 106.845
+anchor_left = 0.029520296
+anchor_top = 0.48553458
+anchor_right = 0.12581667
+anchor_bottom = 0.530333
+offset_right = 104.38527
+offset_bottom = 106.84412
 scale = Vector2(0.5, 0.5)
 
 [node name="TextureRect" type="TextureRect" parent="."]

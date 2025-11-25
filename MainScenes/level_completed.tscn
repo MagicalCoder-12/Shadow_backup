@@ -1,6 +1,6 @@
 [gd_scene load_steps=17 format=3 uid="uid://b2dr1w4bni0qf"]
 
-[ext_resource type="Script" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
+[ext_resource type="Script" uid="uid://ddr4wdg1jkxig" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_vwgn2"]
 [ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="4_20gqo"]
@@ -96,7 +96,7 @@ stretch_mode = 2
 
 [node name="Coins" type="Label" parent="Panel/VBoxContainer/Coin_texture"]
 custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
+layout_mode = 0
 offset_left = 77.0
 offset_top = 1.0
 offset_right = 781.0
@@ -114,7 +114,7 @@ stretch_mode = 2
 
 [node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystal_texture"]
 custom_minimum_size = Vector2(10, 0)
-layout_mode = 2
+layout_mode = 0
 offset_left = 87.0
 offset_top = 27.0008
 offset_right = 712.0

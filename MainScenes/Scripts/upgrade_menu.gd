@@ -5,7 +5,7 @@ extends Control
 # ================================
 const MAP = "res://Map/map.tscn"
 const SHOP = "res://MainScenes/Shop.tscn"
-const AD_LIMIT_PER_HOUR = 10
+const AD_LIMIT_PER_HOUR = 15
 const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 
 # ================================
@@ -131,6 +131,8 @@ func _connect_ad_signals() -> void:
 		if GameManager.ad_manager.has_signal("ad_failed_to_load"):
 			if not GameManager.ad_manager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
 				GameManager.ad_manager.ad_failed_to_load.connect(_on_ad_failed_to_load)
+
+
 
 func _on_currency_updated(_currency_type: String, _new_amount: int) -> void:
 	_update_currency_display()
@@ -730,10 +732,11 @@ func _show_rewarded_ad(reward_type: String) -> void:
 		is_ad_loading = true
 		GameManager.ad_manager.request_reward_ad(reward_type)
 	else:
-		# If ads aren't available, grant reward directly and update UI
-		_grant_ad_reward(reward_type)
+		# If ads aren't available, don't grant reward directly
+		# Instead, show a message that ads are not available
+		_show_warning("Ads not available. Please try again later.")
+		is_ad_loading = false
 		_update_currency_display()
-		_show_ad_reward_message(reward_type)
 
 func _grant_ad_reward(reward_type: String) -> void:
 	var ad_rewards = {}
@@ -917,7 +920,7 @@ func _show_message(text: String) -> void:
 		message.text = text
 		msg_panel.show()
 		# Hide the message after a delay
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(1.0).timeout
 		msg_panel.hide()
 
 func _show_warning(text: String) -> void:
@@ -925,7 +928,7 @@ func _show_warning(text: String) -> void:
 		warning.text = text
 		warning_panel.show()
 		# Hide the warning after a delay
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(1.0).timeout
 		warning_panel.hide()
 
 func _process(_delta: float) -> void:

@@ -14,11 +14,7 @@ extends Control
 func _ready() -> void:
 	# Connect to the signals from the new FirebaseAuth script.
 	# Note the signal names are slightly different (e.g., "login_succeeded" instead of "login_success").
-	Firebase.Auth.login_succeeded.connect(_on_login_succeeded)
-	Firebase.Auth.login_failed.connect(_on_login_failed)
-	Firebase.Auth.signup_succeeded.connect(_on_signup_succeeded)
-	Firebase.Auth.signup_failed.connect(_on_signup_failed)
-	
+	pass
 	status.text = "Please log in or sign up."
 
 
@@ -32,7 +28,6 @@ func _on_login_pressed() -> void:
 		status.text = "Email and password cannot be empty."
 		return
 		
-	Firebase.Auth.login_with_email_and_password(user_email, user_password)
 	status.text = "Logging in..."
 
 
@@ -44,7 +39,7 @@ func _on_signup_pressed() -> void:
 	if user_email.is_empty() or user_password.is_empty():
 		status.text = "Email and password cannot be empty."
 		return
-	Firebase.Auth.signup_with_email_and_password(user_email, user_password)
+
 	status.text = "Creating account..."
 
 
@@ -54,7 +49,6 @@ func _on_google_pressed() -> void:
 	# This function starts the OAuth process. It will open a browser window
 	# for the user to sign in and then listen for the response automatically.
 	status.text = "Waiting for Google Sign-In..."
-	Firebase.Auth.get_auth_localhost()
 
 
 # --- Firebase Signal Handlers ---

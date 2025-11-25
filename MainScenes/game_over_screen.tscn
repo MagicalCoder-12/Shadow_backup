@@ -1,6 +1,6 @@
 [gd_scene load_steps=17 format=4 uid="uid://c6uejmh8c7koe"]
 
-[ext_resource type="Script" path="res://MainScenes/Scripts/game_over_screen.gd" id="1_g2wiu"]
+[ext_resource type="Script" uid="uid://dv5ug2tnu0bt" path="res://MainScenes/Scripts/game_over_screen.gd" id="1_g2wiu"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_npbix"]
 [ext_resource type="Texture2D" uid="uid://cplo7hlkir3ii" path="res://Textures/UI/Main_Menu/BTNs/Replay_BTN.png" id="3_0cpef"]
 [ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="4_bomtk"]
@@ -54,7 +54,9 @@ data = PackedByteArray("AAEAAAATAQAABAAwQkFTRWxYeJwAAAKIAAAA0kdQT1PObs4MAAANuAAA
 font_name = "IBM Plex Sans JP SemiBold"
 style_name = "SemiBold"
 font_weight = 600
+subpixel_positioning = 0
 msdf_pixel_range = 8
+msdf_size = 128
 cache/0/16/0/ascent = 17.0
 cache/0/16/0/descent = 8.0
 cache/0/16/0/underline_position = 1.90625
@@ -286,10 +288,10 @@ color = Color(0, 0, 0, 0.490196)
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 153.0
-offset_top = 545.0
-offset_right = 894.0
-offset_bottom = 1390.0
+offset_left = 142.0
+offset_top = 734.0
+offset_right = 883.0
+offset_bottom = 1579.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rlusx")
 
 [node name="Panel" type="Panel" parent="PanelContainer"]

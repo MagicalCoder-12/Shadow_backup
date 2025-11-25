@@ -8,6 +8,7 @@ const formations_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd
 const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB = preload("res://Bullet/Ebullet/Bomb.tscn")
+const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")  # Add this line to access bomb script
 const COINS = preload("res://Resources/Coins.tscn")
 const CRYSTAL = preload("res://Resources/Crystal.tscn")
 
@@ -43,6 +44,12 @@ signal shadow_state_changed(is_shadow: bool)
 @export var entry_shadow_shield_time: float = 2.0
 @export var shadow_texture: Texture2D
 @export var enemy_type: String = "standard"
+
+# --- Bomber Enemy Properties ---
+var last_bomb_drop_time: float = 0.0
+const BOMB_DROP_COOLDOWN: float = 2.0  # Minimum time between bomb drops (in seconds)
+var bombs_dropped: int = 0
+const MAX_BOMBS_PER_ENEMY: int = 5  # Maximum bombs a single bomber can drop
 
 # --- Shadow Visual Properties ---
 var shadow_pulse_speed: float = 2.0
@@ -144,6 +151,10 @@ func _ready():
 	_connect_signals()
 	_update_player_reference()
 	_initialize_shadow_state()
+	
+	# Reset bomber counters
+	bombs_dropped = 0
+	last_bomb_drop_time = 0.0
 	
 	if shadow_core_shield:
 		shadow_core_shield.visible = true
@@ -317,18 +328,12 @@ func _perform_formation_movement(delta: float):
 func _handle_dive_bomb_pattern(delta: float):
 	if should_dive_bomb and not is_diving:
 		is_diving = true
-		if is_instance_valid(player_reference):
-			dive_target = player_reference.global_position
-		else:
-			# If no player, dive straight down
-			dive_target = global_position + Vector2(0, 1000)
-	elif is_diving:
-		# Execute dive toward target
-		var direction = (dive_target - global_position).normalized()
-		global_position += direction * speed * 2.0 * delta
-	else:
-		# Return to formation when not diving
-		global_position = global_position.lerp(formation_position, 2.0 * delta)
+		# Instead of diving, just drop a bomb from current position and return to formation
+		_drop_bomb()
+		is_diving = false  # Reset dive state immediately
+	
+	# Return to formation when not diving
+	global_position = global_position.lerp(formation_position, 2.0 * delta)
 
 func _handle_swarm_pattern(delta: float):
 	# Move in coordination with nearby enemies
@@ -369,6 +374,19 @@ func _handle_shooting(_delta: float):
 	if not arrived_at_formation or not is_instance_valid(player_reference):
 		return
 	
+	# Bomber enemies drop bombs instead of shooting
+	if enemy_type == "Bomber":
+		# Check if we haven't exceeded the maximum bombs per enemy
+		if bombs_dropped < MAX_BOMBS_PER_ENEMY:
+			# Use time-based cooldown instead of random chance per frame
+			if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
+				# 50% chance to drop a bomb when cooldown is ready
+				if randf() < 0.5:
+					_drop_bomb()
+					bombs_dropped += 1
+					last_bomb_drop_time = time_since_spawn
+		return
+	
 	# Enhanced shooting logic based on enemy type or special conditions
 	# In shadow mode, enemies shoot more aggressively
 	if GameManager.level_manager.shadow_mode_enabled:
@@ -392,28 +410,32 @@ func _on_fire_timer_timeout():
 	# In shadow mode, enemies shoot more aggressively but with reasonable limits
 	if GameManager.level_manager.shadow_mode_enabled:
 		# Higher chance of using advanced shooting patterns in shadow mode, but controlled
-		@warning_ignore("confusable_local_declaration")
-		var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
-		
-		match shooting_pattern:
-			0, 1, 2:  # 60% chance of standard shooting
-				_fire_at_player()  # Standard aimed shooting (most common)
-			3:
-				_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
-			4:
-				_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
+		# Add a cooldown to prevent continuous shooting
+		if randf() < 0.02:  # 2% chance per frame to shoot (creates gaps)
+			@warning_ignore("confusable_local_declaration")
+			var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
+			
+			match shooting_pattern:
+				0, 1, 2:  # 60% chance of standard shooting
+					_fire_at_player()  # Standard aimed shooting (most common)
+				3:
+					_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
+				4:
+					_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
 		return
 	
 	# Standard shooting logic - even in normal mode, reduce frequency of advanced patterns
-	var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
-	
-	match shooting_pattern:
-		0, 1, 2:  # 75% chance of standard shooting
-			_fire_at_player()  # Standard aimed shooting
-		3:
-			_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
-		_:
-			_fire_at_player()  # Fallback to standard shooting
+	# Add a cooldown to prevent continuous shooting
+	if randf() < 0.015:  # 1.5% chance per frame to shoot (creates gaps)
+		var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
+		
+		match shooting_pattern:
+			0, 1, 2:  # 75% chance of standard shooting
+				_fire_at_player()  # Standard aimed shooting
+			3:
+				_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
+			_:
+				_fire_at_player()  # Fallback to standard shooting
 
 func _fire_at_player():
 	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
@@ -482,6 +504,25 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		bullet.global_position = global_position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
+
+# --- Bomb Dropping Functionality ---
+
+func _drop_bomb():
+	# Only bomber enemies should drop bombs
+	if enemy_type != "Bomber":
+		return
+	
+	# Check if we've exceeded the global bomb limit
+	if BOMB_SCRIPT.active_bombs >= BOMB_SCRIPT.MAX_ACTIVE_BOMBS:
+		return
+	
+	# Create a bomb instance
+	var bomb_instance = BOMB.instantiate()
+	if bomb_instance:
+		# Position the bomb at the enemy's position
+		bomb_instance.global_position = global_position
+		# Add the bomb to the scene
+		get_tree().current_scene.add_child(bomb_instance)
 
 # --- Formation Setup ---
 @warning_ignore("unused_parameter")
@@ -594,7 +635,7 @@ func _on_shadow_mode_activated():
 		_make_shadow_enemy()
 	
 	# Increase fire rate in shadow mode to make enemies more threatening, but not excessively
-	fire_timer.wait_time = (1.0 / fire_rate) * 0.85  # 15% faster firing (more reasonable)
+	fire_timer.wait_time = (1.0 / fire_rate) * 0.9  # 10% faster firing (more reasonable)
 	
 	# Increase movement speed in shadow mode
 	speed = original_speed * 1.2  # Reduced from 1.3 to 1.2
@@ -733,7 +774,7 @@ func _drop_resources():
 		get_tree().current_scene.call_deferred("add_child", crystal)
 		
 		# NEW: Drop power-ups occasionally
-		if randf() < 0.1:  # 10% chance to drop a power-up
+		if randf() < 0.3:  # 30% chance to drop a power-up
 			_drop_powerup()
 
 func _drop_powerup():

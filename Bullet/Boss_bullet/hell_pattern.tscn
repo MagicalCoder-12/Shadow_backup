@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://byg84ie7778o1"]
 
 [ext_resource type="Texture2D" uid="uid://dijy18kkuc222" path="res://Textures/Lasers/Laser Sprites/02.png" id="1_1grdc"]
-[ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/hell_pattern.gd" id="1_s6ruc"]
+[ext_resource type="Script" uid="uid://c7b4aejh8iuru" path="res://Bullet/Boss_bullet/Scripts/hell_pattern.gd" id="1_s6ruc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ypd1e"]
 size = Vector2(27, 10)
@@ -9,7 +9,6 @@ size = Vector2(27, 10)
 [node name="HellPattern" type="Area2D"]
 collision_layer = 128
 script = ExtResource("1_s6ruc")
-speed = 1200.0
 lifetime = 6.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

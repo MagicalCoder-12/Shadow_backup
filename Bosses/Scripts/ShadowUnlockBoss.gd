@@ -7,10 +7,10 @@ class_name ShadowUnlockBoss
 
 # Boss Phases (added DESCENT)
 enum BossPhase {
-	DESCENT,   # Initial drop from off-screen
-	PHASE_1,   # Normal phase (100% - 50% health)
-	PHASE_2,   # Shadow phase (50% - 0% health)
-	TRANSITION # Brief transition between phases
+	DESCENT,    # Initial drop from off-screen
+	PHASE_1,    # Normal phase (100% - 50% health)
+	PHASE_2,    # Shadow phase (50% - 0% health)
+	TRANSITION  # Brief transition between phases
 }
 
 ## Core Stats
@@ -161,9 +161,11 @@ func _execute_attack_pattern() -> void:
 	
 	_show_muzzle_flash()
 	
+	# Swapped the patterns to match the description.
+	# Phase 1 should be the spiral, Phase 2 the storm.
 	if current_phase == BossPhase.PHASE_1:
 		_pattern_p1_spiral_wave()
-	else:
+	else: # PHASE_2
 		_pattern_p2_converging_storm()
 
 func _show_muzzle_flash() -> void:
@@ -171,6 +173,16 @@ func _show_muzzle_flash() -> void:
 	if flash:
 		flash.global_position = nozzel.global_position
 		get_tree().current_scene.add_child(flash)
+
+func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
+	# Create a small visual effect when bullets are fired
+	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
+	if effect_scene and effect_scene.can_instantiate():
+		var effect = effect_scene.instantiate()
+		effect.global_position = spawn_position
+		if effect.has_method("set_color"):
+			effect.set_color(color)
+		get_tree().current_scene.call_deferred("add_child", effect)
 
 func _pattern_p1_spiral_wave() -> void:
 	var bullet_count = 3
@@ -204,15 +216,15 @@ func _pattern_p1_spiral_wave() -> void:
 				_add_bullet_to_scene(bullet)
 
 func _pattern_p2_converging_storm() -> void:
-	# Load the hell pattern scene directly for Phase 2
+	# Load the [heck] pattern scene directly for Phase 2
 	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
 	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
-		# Fallback to regular bullet pattern if hell pattern not available
+		# Fallback to regular bullet pattern if [heck] pattern not available
 		_fallback_p2_pattern()
 		return
 	
 	# Use HellPatternBullet for Phase 2 (360-degree pattern, no homing)
-	var bullet_count = 16  # Number of bullets in the 360-degree pattern
+	var bullet_count = 25  # Number of bullets in the 360-degree pattern
 	var speed_variation = 600.0  # Base speed for HellPatternBullet
 	
 	for i in range(bullet_count):
@@ -240,7 +252,7 @@ func _pattern_p2_converging_storm() -> void:
 
 # Fallback pattern for Phase 2 when HellPatternBullet is not available
 func _fallback_p2_pattern() -> void:
-	var bullet_count = 12
+	var bullet_count = 16
 	var speed_variation = 600.0
 	
 	for i in range(bullet_count):
@@ -296,8 +308,6 @@ func take_damage(damage_amount: int) -> void:
 		_die()
 
 func _die() -> void:
-	print("Boss defeated!")
-	
 	attack_timer.stop()
 	
 	if boss_death_particles:

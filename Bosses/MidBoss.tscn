@@ -1,6 +1,6 @@
 [gd_scene load_steps=16 format=3 uid="uid://dpbpiarnq8dd1"]
 
-[ext_resource type="Script" path="res://Bosses/Scripts/ShadowUnlockBoss.gd" id="1_mwcmj"]
+[ext_resource type="Script" uid="uid://ba6ipukbj1oyx" path="res://Bosses/Scripts/ShadowUnlockBoss.gd" id="1_mwcmj"]
 [ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bullet/Boss_bullet/homing_bullet.tscn" id="2_uo67q"]
 [ext_resource type="Texture2D" uid="uid://bna0irko30tcn" path="res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png" id="3_lya23"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_uo67q"]
@@ -121,9 +121,9 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_etykq"]
 _data = {
-"Idle": SubResource("Animation_yt7b6"),
-"RESET": SubResource("Animation_6f1kc"),
-"death": SubResource("Animation_8hkoj")
+&"Idle": SubResource("Animation_yt7b6"),
+&"RESET": SubResource("Animation_6f1kc"),
+&"death": SubResource("Animation_8hkoj")
 }
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_rkkp3"]
@@ -133,7 +133,6 @@ particles_anim_v_frames = 3
 particles_anim_loop = false
 
 [node name="ShadowUnlockBoss" type="Area2D" groups=["Boss"]]
-position = Vector2(-2, -6)
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_mwcmj")
@@ -161,16 +160,16 @@ shape = SubResource("RectangleShape2D_gnr7p")
 [node name="AttackTimer" type="Timer" parent="."]
 
 [node name="HealthBar" parent="." instance=ExtResource("4_uo67q")]
-offset_left = -322.0
-offset_top = -333.0
-offset_right = 355.0
-offset_bottom = -292.0
+offset_left = -329.0
+offset_top = -377.0
+offset_right = 348.0
+offset_bottom = -336.0
 texture_under = ExtResource("5_oe4f5")
 texture_progress = ExtResource("6_xjoeo")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_etykq")
+&"": SubResource("AnimationLibrary_etykq")
 }
 autoplay = "Idle"
 
@@ -179,9 +178,9 @@ material = SubResource("CanvasItemMaterial_rkkp3")
 position = Vector2(9, -13)
 emitting = false
 amount = 500
+texture = ExtResource("6_ri1nu")
 one_shot = true
 explosiveness = 1.0
-texture = ExtResource("6_ri1nu")
 emission_shape = 1
 emission_sphere_radius = 128.0
 spread = 180.0
