@@ -1,8 +1,7 @@
 extends Node2D
 class_name WaveManager
 
-# Import formation_enums to access shared enums
-const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 
 # Signals for wave progression and events
 signal wave_started(current_wave: int, total_waves: int)

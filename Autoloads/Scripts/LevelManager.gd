@@ -79,9 +79,9 @@ func complete_level(current_level: int) -> void:
 		_show_shadow_mode_tutorial()
 		should_transition_to_next_level = false
 		#Don't set is_level_just_completed = false here, it interferes with level unlocking
-	elif current_level == 20 and not is_video_playing:
-		_play_ending_video()
-		should_transition_to_next_level = false
+	#elif current_level == 20 and not is_video_playing:
+	#	_play_ending_video()
+	#	should_transition_to_next_level = false
 	
 	# Only add to completed levels if not already completed
 	if not completed_levels.has(current_level):
@@ -128,34 +128,34 @@ func _show_shadow_mode_tutorial() -> void:
 	else:
 		push_error("LevelManager: Cannot add tutorial: No current scene available")
 
-func _play_ending_video() -> void:
-	var current_scene = gm.get_tree().current_scene
-	if current_scene and ResourceLoader.exists(gm.scene_manager.VIDEO_SCENE):
-		is_video_playing = true
-		AudioManager.lower_bus_volumes_except(["Video", "Master"], -10.0)
-		
-		var video_layer = CanvasLayer.new()
-		video_layer.name = "VideoPlaybackLayer"
-		video_layer.layer = 10
-		
-		var video_scene: Node = load(gm.scene_manager.VIDEO_SCENE).instantiate()
-		video_layer.add_child(video_scene)
-		current_scene.add_child(video_layer)
-		
-		if video_scene.has_signal("finished"):
-			video_scene.finished.connect(_on_video_finished.bind(video_layer))
-		else:
-			await gm.get_tree().create_timer(10.0).timeout
-			_on_video_finished(video_layer)
-	else:
-		push_error("LevelManager: Cannot play video: No current scene or VideoPlayback.tscn missing")
+#func _play_ending_video() -> void:
+#	var current_scene = gm.get_tree().current_scene
+#	if current_scene and ResourceLoader.exists(gm.scene_manager.VIDEO_SCENE):
+#		is_video_playing = true
+#		AudioManager.lower_bus_volumes_except(["Video", "Master"], -10.0)
+#		
+#		var video_layer = CanvasLayer.new()
+#		video_layer.name = "VideoPlaybackLayer"
+#		video_layer.layer = 10
+#		
+#		var video_scene: Node = load(gm.scene_manager.VIDEO_SCENE).instantiate()
+#		video_layer.add_child(video_scene)
+#		current_scene.add_child(video_layer)
+#		
+#		if video_scene.has_signal("finished"):
+#			video_scene.finished.connect(_on_video_finished.bind(video_layer))
+#		else:
+#			await gm.get_tree().create_timer(10.0).timeout
+#			_on_video_finished(video_layer)
+#	else:
+#		push_error("LevelManager: Cannot play video: No current scene or VideoPlayback.tscn missing")
 
-func _on_video_finished(video_layer: CanvasLayer) -> void:
-	AudioManager.restore_bus_volumes()
-	video_layer.queue_free()
-	is_video_playing = false
-	gm.change_scene(gm.scene_manager.START_SCREEN_SCENE)
-	is_level_just_completed = false
+#func _on_video_finished(video_layer: CanvasLayer) -> void:
+#	AudioManager.restore_bus_volumes()
+#	video_layer.queue_free()
+#	is_video_playing = false
+#	gm.change_scene(gm.scene_manager.START_SCREEN_SCENE)
+#	is_level_just_completed = false
 
 func unlock_next_level(current_level: int) -> void:
 	var next_level: int = current_level + 1

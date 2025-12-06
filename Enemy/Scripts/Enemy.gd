@@ -47,9 +47,9 @@ signal shadow_state_changed(is_shadow: bool)
 
 # --- Bomber Enemy Properties ---
 var last_bomb_drop_time: float = 0.0
-const BOMB_DROP_COOLDOWN: float = 2.0  # Minimum time between bomb drops (in seconds)
+const BOMB_DROP_COOLDOWN: float = 3.0  # Increased from 2.0 to 3.0 seconds (minimum time between bomb drops)
 var bombs_dropped: int = 0
-const MAX_BOMBS_PER_ENEMY: int = 5  # Maximum bombs a single bomber can drop
+const MAX_BOMBS_PER_ENEMY: int = 3  # Reduced from 5 to 3 (maximum bombs a single bomber can drop)
 
 # --- Shadow Visual Properties ---
 var shadow_pulse_speed: float = 2.0
@@ -380,8 +380,8 @@ func _handle_shooting(_delta: float):
 		if bombs_dropped < MAX_BOMBS_PER_ENEMY:
 			# Use time-based cooldown instead of random chance per frame
 			if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
-				# 50% chance to drop a bomb when cooldown is ready
-				if randf() < 0.5:
+				# 30% chance to drop a bomb when cooldown is ready (reduced from 50%)
+				if randf() < 0.3:
 					_drop_bomb()
 					bombs_dropped += 1
 					last_bomb_drop_time = time_since_spawn

@@ -250,7 +250,23 @@ func take_damage(amount: int) -> void:
 	current_health -= amount
 	health_bar.value = current_health
 
-	if current_health <= 0:
+	# Phase transition logic
+	if current_phase == BossPhase.PHASE1 and current_health <= max_health * 0.3:
+		is_invincible = true
+		phase_change.play()
+		await phase_change.finished
+		enter_phase(BossPhase.PHASE2)
+		await get_tree().create_timer(invincibility_duration).timeout
+		is_invincible = false
+	elif current_phase == BossPhase.PHASE2 and current_health <= stage_2_max_health * 0.3:
+		is_invincible = true
+		phase_change.play()
+		await phase_change.finished
+		enter_phase(BossPhase.ENRAGED)
+		await get_tree().create_timer(invincibility_duration).timeout
+		is_invincible = false
+
+	if current_health <= 0 and current_phase != BossPhase.PHASE1:
 		defeated = true
 		attack_timer.stop()
 		phase_timer.stop()
