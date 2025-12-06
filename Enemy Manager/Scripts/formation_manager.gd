@@ -464,13 +464,149 @@ func _calculate_entry_paths(enemy_count: int) -> void:
 		print("FormationManager: Generated ", entry_paths.size(), " entry paths")
 
 func _create_entry_path(spawn_pos: Vector2, target_pos: Vector2) -> Array[Vector2]:
+	"""Create a curved entry path for more interesting enemy entries"""
 	var path: Array[Vector2] = []
-	var steps = 8
+	var steps = 12  # Increased from 8 for smoother curves
 	
-	# Simple linear interpolation path
+	# Determine path type based on spawn position and entry pattern
+	var path_type = _determine_path_type(spawn_pos)
+	
+	match path_type:
+		"curve_left":
+			path = _create_curved_path(spawn_pos, target_pos, -1.0, steps)
+		"curve_right":
+			path = _create_curved_path(spawn_pos, target_pos, 1.0, steps)
+		"s_curve":
+			path = _create_s_curve_path(spawn_pos, target_pos, steps)
+		"dive":
+			path = _create_dive_path(spawn_pos, target_pos, steps)
+		"spiral":
+			path = _create_spiral_entry_path(spawn_pos, target_pos, steps)
+		_:
+			path = _create_bezier_path(spawn_pos, target_pos, steps)
+	
+	return path
+
+func _determine_path_type(spawn_pos: Vector2) -> String:
+	"""Determine the path type based on spawn position and randomization"""
+	var entry_pattern = formation_enums.EntryPattern.TOP_DIVE
+	if current_wave_config:
+		entry_pattern = current_wave_config.get_entry_pattern()
+	
+	# Map entry patterns to path types with some randomization
+	match entry_pattern:
+		formation_enums.EntryPattern.SIDE_CURVE:
+			return "curve_right" if spawn_pos.x < screen_width / 2 else "curve_left"
+		formation_enums.EntryPattern.TOP_DIVE:
+			return "dive" if randf() < 0.7 else "bezier"
+		formation_enums.EntryPattern.SPIRAL_IN:
+			return "spiral"
+		formation_enums.EntryPattern.FIGURE_EIGHT:
+			return "s_curve"
+		formation_enums.EntryPattern.ZIGZAG:
+			return "s_curve"
+		formation_enums.EntryPattern.WAVE_ENTRY:
+			return "curve_left" if randf() < 0.5 else "curve_right"
+		formation_enums.EntryPattern.STAGGERED:
+			return "dive"
+		formation_enums.EntryPattern.AMBUSH:
+			return "dive"
+		formation_enums.EntryPattern.MULTI_SIDE:
+			if spawn_pos.x < 0:
+				return "curve_right"
+			elif spawn_pos.x > screen_width:
+				return "curve_left"
+			else:
+				return "dive"
+		formation_enums.EntryPattern.CORNER_AMBUSH:
+			return "spiral"
+		_:
+			return "bezier"
+
+func _create_curved_path(start: Vector2, end: Vector2, curve_direction: float, steps: int) -> Array[Vector2]:
+	"""Create a curved path using quadratic bezier"""
+	var path: Array[Vector2] = []
+	
+	# Calculate control point perpendicular to the line
+	var mid = (start + end) / 2.0
+	var perpendicular = Vector2(-(end.y - start.y), end.x - start.x).normalized()
+	var curve_strength = start.distance_to(end) * 0.4
+	var control = mid + perpendicular * curve_strength * curve_direction
+	
 	for i in range(steps + 1):
 		var t = float(i) / steps
-		var point = spawn_pos.lerp(target_pos, t)
+		# Quadratic bezier formula: B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
+		var point = (1 - t) * (1 - t) * start + 2 * (1 - t) * t * control + t * t * end
+		path.append(point)
+	
+	return path
+
+func _create_s_curve_path(start: Vector2, end: Vector2, steps: int) -> Array[Vector2]:
+	"""Create an S-curve path for zigzag entries"""
+	var path: Array[Vector2] = []
+	
+	# Two control points for S-curve (cubic bezier)
+	var quarter = (end - start) / 4.0
+	var curve_offset = abs(end.x - start.x) * 0.5
+	if curve_offset < 80:
+		curve_offset = 80
+	
+	var control1 = start + quarter + Vector2(curve_offset, 0)
+	var control2 = end - quarter - Vector2(curve_offset, 0)
+	
+	for i in range(steps + 1):
+		var t = float(i) / steps
+		# Cubic bezier formula
+		var u = 1.0 - t
+		var point = u*u*u * start + 3*u*u*t * control1 + 3*u*t*t * control2 + t*t*t * end
+		path.append(point)
+	
+	return path
+
+func _create_dive_path(start: Vector2, end: Vector2, steps: int) -> Array[Vector2]:
+	"""Create a diving path with acceleration"""
+	var path: Array[Vector2] = []
+	
+	for i in range(steps + 1):
+		var t = float(i) / steps
+		# Use ease-in for acceleration effect
+		var eased_t = t * t  # Quadratic ease-in
+		var point = start.lerp(end, eased_t)
+		path.append(point)
+	
+	return path
+
+func _create_spiral_entry_path(start: Vector2, end: Vector2, steps: int) -> Array[Vector2]:
+	"""Create a spiral entry path"""
+	var path: Array[Vector2] = []
+	
+	var distance = start.distance_to(end)
+	var initial_radius = distance * 0.3
+	var rotations = 1.5  # 1.5 full rotations
+	
+	for i in range(steps + 1):
+		var t = float(i) / steps
+		var current_radius = initial_radius * (1.0 - t)  # Shrinking spiral
+		var angle = t * rotations * 2 * PI
+		var base_pos = start.lerp(end, t)
+		var spiral_offset = Vector2(cos(angle), sin(angle)) * current_radius
+		path.append(base_pos + spiral_offset)
+	
+	return path
+
+func _create_bezier_path(start: Vector2, end: Vector2, steps: int) -> Array[Vector2]:
+	"""Create a smooth bezier curve path (default)"""
+	var path: Array[Vector2] = []
+	
+	# Calculate a control point for smooth entry
+	var mid = (start + end) / 2.0
+	var offset = Vector2(randf_range(-50, 50), -50)  # Slight random offset
+	var control = mid + offset
+	
+	for i in range(steps + 1):
+		var t = float(i) / steps
+		var u = 1.0 - t
+		var point = u * u * start + 2 * u * t * control + t * t * end
 		path.append(point)
 	
 	return path

@@ -1,6 +1,7 @@
 extends Control
 
 @onready var level_buttons: Node2D = $LevelButtons
+@onready var canvaslayer: CanvasLayer = $CanvasLayer
 
 const Start_screen = "res://MainScenes/start_menu.tscn"
 const Shop = "res://MainScenes/upgrade_menu.tscn"
@@ -85,6 +86,7 @@ func _initialize_level_buttons():
 		
 		# 4. Connect signals safely
 		if button.has_signal("level_selected"):
+			# Connect to GameManager
 			if not button.is_connected("level_selected", Callable(GameManager, "_on_level_selected")):
 				var success = button.connect(
 					"level_selected",
@@ -94,6 +96,14 @@ func _initialize_level_buttons():
 				
 				if success != OK:
 					push_error("Failed to connect signal 'level_selected' for button: ", button.name)
+			
+			# Connect to local handler to hide canvas layer
+			if not button.is_connected("level_selected", Callable(self, "_on_level_button_pressed")):
+				button.connect(
+					"level_selected",
+					Callable(self, "_on_level_button_pressed"),
+					CONNECT_DEFERRED
+				)
 		
 		# 5. Force position update (fixes rendering glitches)
 		button.position = button.position # Triggers transform update
@@ -138,7 +148,14 @@ func _on_level_star_earned():
 	update_stars()
 
 func _on_back_pressed() -> void:
+	canvaslayer.hide()
 	GameManager.change_scene(Start_screen)
 
 func _on_shop_pressed() -> void:
+	canvaslayer.hide()
 	GameManager.change_scene(Shop)
+
+# Hide canvas layer when a level button is pressed
+func _on_level_button_pressed(_level_num: int) -> void:
+	if canvaslayer:
+		canvaslayer.hide()

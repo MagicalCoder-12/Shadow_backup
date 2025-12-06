@@ -48,6 +48,7 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 # GAME STATE VARIABLES
 # ================================
 var selected_ship_index: int = 0
+var selected_satellite_index: int = 0
 var is_ad_loading: bool = false
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
@@ -364,7 +365,7 @@ func update_ship_ui() -> void:
 		else:
 			buy_button.text = "Buy for %d crystals" % cost
 			status_label.text = "Locked - Cost: %d crystals" % cost
-		selected_ship.modulate = Color.BLACK
+		selected_ship.modulate = Color.WHITE
 		
 		# Ensure ascend button is hidden for locked ships
 		ascend.visible = false
@@ -446,7 +447,7 @@ func _update_all_ship_textures() -> void:
 		var current_texture = _get_ship_texture_dynamic(ship, ship["current_evolution_stage"])
 		if current_texture:
 			texture_node.texture = current_texture
-			texture_node.modulate = Color.WHITE if ship["unlocked"] else Color.GRAY
+			texture_node.modulate = Color.WHITE if ship["unlocked"] else Color.BLACK
 
 func _get_rank_color(rank: String) -> Color:
 	match rank:
@@ -988,3 +989,187 @@ func _on_satellites_pressed() -> void:
 func _on_shop_pressed() -> void:
 	# Use GameManager's scene system to change to shop scene
 	GameManager.change_scene(SHOP)
+
+# ================================
+# SATELLITE MANAGEMENT SYSTEM
+# ================================
+
+func _get_satellite_upgrade_costs() -> Dictionary:
+	"""Calculate current satellite upgrade costs based on upgrade and ascend counts"""
+	if GameManager.satellites.is_empty() or selected_satellite_index >= GameManager.satellites.size():
+		return {"crystal_cost": 30, "coin_cost": 500, "void_shard_cost": 80}
+
+	var satellite = GameManager.satellites[selected_satellite_index]
+	if not satellite is Dictionary:
+		return {"crystal_cost": 30, "coin_cost": 500, "void_shard_cost": 80}
+
+	var upgrade_count = satellite.get("upgrade_count", 0)
+	var ascend_count = satellite.get("ascend_count", 0)
+	
+	# Get base costs from config
+	var base_crystal_cost = 30
+	var base_coin_cost = 500
+	var ascend_cost = 80
+	
+	var crystal_scaling_factor = 1.10
+	var coin_scaling_factor = 1.15
+	var ascend_scaling_factor = 1.05
+
+	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
+		base_crystal_cost = ConfigLoader.upgrade_settings.get("satellite_crystal_cost", 30)
+		base_coin_cost = ConfigLoader.upgrade_settings.get("satellite_coin_cost", 500)
+		ascend_cost = ConfigLoader.upgrade_settings.get("satellite_ascend_cost", 80)
+		
+		crystal_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_crystal_scaling_factor", 1.10)
+		coin_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_coin_scaling_factor", 1.15)
+		ascend_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_ascend_scaling_factor", 1.05)
+
+	# Calculate costs using exponential scaling
+	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count - ascend_count))
+	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count - ascend_count))
+	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(ascend_count))
+
+	return {
+		"crystal_cost": int(crystal_cost),
+		"coin_cost": int(coin_cost),
+		"void_shard_cost": int(void_shard_cost)
+	}
+
+func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
+	"""Upgrade a satellite using crystals or coins"""
+	var satellite = GameManager.satellites[satellite_index]
+	var costs = _get_satellite_upgrade_costs()
+
+	if not satellite["unlocked"] or satellite["can_ascend"]:
+		return false
+
+	# Check if satellite is at max rank
+	if satellite["ascend_count"] >= satellite["max_evolution_stage"]:
+		return false
+
+	var cost = costs["crystal_cost"] if currency_type == "crystals" else costs["coin_cost"]
+	if not _can_afford_upgrade(cost, currency_type):
+		_show_warning("Not enough %s to upgrade %s!" % [currency_type, satellite["display_name"]])
+		return false
+
+	_deduct_currency(cost, currency_type)
+	satellite["upgrade_count"] += 1
+	_apply_satellite_stat_boost(satellite)
+	_check_satellite_ascension_eligibility(satellite_index)
+	power_up.play()
+
+	# Save progress after upgrade
+	GameManager.save_manager.save_progress()
+	return true
+
+func _apply_satellite_stat_boost(satellite: Dictionary) -> void:
+	"""Apply damage bonus increase to satellite"""
+	var base_damage_boost = 2
+	var ascend_count = satellite.get("ascend_count", 0)
+	var stage_multiplier = 1.0 + (ascend_count * 0.2)
+	satellite["damage_bonus"] += int(base_damage_boost * stage_multiplier)
+	
+	# Notify GameManager that satellite stats have been updated
+	GameManager.notify_satellite_stats_updated(satellite["id"], satellite["damage_bonus"])
+
+func _check_satellite_ascension_eligibility(satellite_index: int) -> void:
+	"""Check if satellite has reached ascension threshold"""
+	var satellite = GameManager.satellites[satellite_index]
+	var satellite_id = satellite["id"]
+	var thresholds = GameManager.SATELLITE_ASCENSION_THRESHOLDS.get(satellite_id, [])
+	var ascend_count = satellite["ascend_count"]
+
+	if ascend_count < thresholds.size() and satellite["upgrade_count"] >= thresholds[ascend_count]:
+		satellite["can_ascend"] = true
+
+func _ascend_satellite(satellite_index: int) -> bool:
+	"""Ascend satellite to increase rank"""
+	var satellite = GameManager.satellites[satellite_index]
+	var costs = _get_satellite_upgrade_costs()
+
+	if not satellite["unlocked"] or not satellite["can_ascend"]:
+		return false
+
+	if not _can_afford_upgrade(costs["void_shard_cost"], "void_shards"):
+		_show_warning("Not enough void shards to ascend %s!" % satellite["display_name"])
+		return false
+
+	_deduct_currency(costs["void_shard_cost"], "void_shards")
+
+	# Increment both counters
+	satellite["upgrade_count"] += 1
+	satellite["ascend_count"] += 1
+
+	# Apply evolution bonus
+	var evolution_bonus = _get_satellite_evolution_bonus(satellite["id"], satellite["ascend_count"])
+	satellite["damage_bonus"] += evolution_bonus
+	
+	# Update rank if reached max evolution stage
+	if satellite["ascend_count"] >= satellite["max_evolution_stage"]:
+		satellite["rank"] = satellite["final_rank"]
+
+	satellite["can_ascend"] = false
+	
+	# Notify GameManager that satellite stats have been updated
+	GameManager.notify_satellite_stats_updated(satellite["id"], satellite["damage_bonus"])
+	
+	power_up.play()
+	_show_message("Satellite %s rank increased to %s!" % [satellite["display_name"], satellite["rank"]])
+
+	# Save progress after ascension
+	GameManager.save_manager.save_progress()
+	return true
+
+func _get_satellite_evolution_bonus(satellite_id: String, ascend_count: int) -> int:
+	"""Calculate evolution bonus for satellite ascension"""
+	var base_bonus = 10
+	var rarity_multiplier = _get_satellite_rarity_multiplier(satellite_id)
+	var stage_multiplier = 1.0 + (ascend_count * 0.5)
+
+	return int(base_bonus * rarity_multiplier * stage_multiplier)
+
+func _get_satellite_rarity_multiplier(satellite_id: String) -> float:
+	"""Get rarity multiplier for satellite based on current rank"""
+	var satellite = _get_satellite_by_id(satellite_id)
+	if not satellite:
+		return 1.0
+
+	match satellite["rank"]:
+		"R": return 1.0
+		"SR": return 1.3
+		"SSR": return 1.6
+		"LR": return 2.0
+		_: return 1.0
+
+func _get_satellite_by_id(satellite_id: String) -> Dictionary:
+	"""Find satellite by ID in GameManager.satellites array"""
+	for satellite in GameManager.satellites:
+		if satellite["id"] == satellite_id:
+			return satellite
+	return {}
+
+func _purchase_satellite(satellite_index: int) -> bool:
+	"""Purchase a locked satellite"""
+	var satellite = GameManager.satellites[satellite_index]
+	if satellite["unlocked"]:
+		return false
+
+	var cost = satellite.get("purchase_cost", 0)
+	
+	# If cost is 0, unlock immediately
+	if cost <= 0:
+		satellite["unlocked"] = true
+		GameManager.save_manager.save_progress()
+		_show_message("%s unlocked!" % satellite["display_name"])
+		return true
+	
+	# For paid satellites, check if player can afford
+	if GameManager.can_afford("crystals", cost):
+		GameManager.deduct_currency("crystals", cost)
+		satellite["unlocked"] = true
+		GameManager.save_manager.save_progress()
+		_show_message("%s purchased!" % satellite["display_name"])
+		return true
+	else:
+		_show_warning("Not enough crystals to purchase %s!" % satellite["display_name"])
+		return false

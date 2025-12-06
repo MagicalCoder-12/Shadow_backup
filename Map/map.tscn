@@ -3,9 +3,9 @@
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="2_3g1qk"]
 [ext_resource type="Texture2D" uid="uid://b1u8585mn0uux" path="res://Textures/Background/Mapbackground.png" id="2_6yc6o"]
 [ext_resource type="PackedScene" uid="uid://q8xvk7xqckbr" path="res://UI/level_button.tscn" id="2_njngi"]
-[ext_resource type="Script" path="res://Map/map.gd" id="3_8svjd"]
+[ext_resource type="Script" uid="uid://cpmbvt0ophbg" path="res://Map/map.gd" id="3_8svjd"]
 [ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="4_0bgbn"]
-[ext_resource type="Script" path="res://Map/camera_2d.gd" id="4_86j4t"]
+[ext_resource type="Script" uid="uid://cxotc3e6ibo" path="res://Map/camera_2d.gd" id="4_86j4t"]
 [ext_resource type="Texture2D" uid="uid://b6a2r8ennyrn7" path="res://Textures/Background/bg2.png" id="4_eiwrt"]
 [ext_resource type="Texture2D" uid="uid://x8bdqinealjc" path="res://Textures/guibuttons/RedButton-Active.png" id="7_lymsy"]
 [ext_resource type="Texture2D" uid="uid://dutffj6j65vue" path="res://Textures/guibuttons/RedButton-Hover.png" id="8_5cbny"]
@@ -54,9 +54,12 @@ label_settings = SubResource("LabelSettings_bmidu")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Clouds" type="Sprite2D" parent="."]
-position = Vector2(591, 1208)
-scale = Vector2(1.26367, 2.88086)
+[node name="Firstbg" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -60.0
+offset_top = -75.0
+offset_right = 1287.0
+offset_bottom = 2733.0
 texture = ExtResource("12_rr5ff")
 flip_v = true
 
@@ -437,8 +440,9 @@ stretch_mode = 4
 stream = ExtResource("11_ptuj4")
 parameters/looping = true
 
-[node name="Back" type="TextureButton" parent="."]
-layout_mode = 0
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Back" type="TextureButton" parent="CanvasLayer"]
 offset_left = 42.0
 offset_top = 1982.0
 offset_right = 252.0
@@ -447,8 +451,7 @@ texture_normal = ExtResource("11_31513")
 texture_pressed = ExtResource("11_0th5g")
 texture_hover = ExtResource("11_31513")
 
-[node name="Shop" type="TextureButton" parent="."]
-layout_mode = 0
+[node name="Shop" type="TextureButton" parent="CanvasLayer"]
 offset_left = 854.0
 offset_top = 1972.0
 offset_right = 1064.0
@@ -456,5 +459,5 @@ offset_bottom = 2182.0
 texture_normal = ExtResource("14_hry20")
 texture_pressed = ExtResource("16_t5i76")
 
-[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="Shop" to="." method="_on_shop_pressed"]
+[connection signal="pressed" from="CanvasLayer/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/Shop" to="." method="_on_shop_pressed"]

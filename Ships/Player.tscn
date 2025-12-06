@@ -21,7 +21,7 @@
 [ext_resource type="Texture2D" uid="uid://bthds8813gbus" path="res://Textures/odd_thruster/14.png" id="29_xw4su"]
 [ext_resource type="Texture2D" uid="uid://b7271b2ld4v63" path="res://Textures/odd_thruster/15.png" id="30_x2ho1"]
 [ext_resource type="AudioStream" uid="uid://mg37jjtqsnf3" path="res://Textures/Music/Laser_Shoot16.wav" id="31_bgaaw"]
-[ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/satellite.tscn" id="32_gv3fu"]
+[ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="32_gv3fu"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_eennk"]
 animations = [{

@@ -66,5 +66,21 @@
 		"Ship6": ["Void Howler", "Cosmic Screamer", "Stellar Devourer", "Galactic Destroyer", "Nova Reaver", "Quantum Predator","Singularity Hunter", "Infinity Ravager", "Omniverse Annihilator"],
 		"Ship7": ["Tenebris Fang", "Shadow Blade", "Darkness Cutter", "Void Ripper", "Abyssal Slicer", "Nightmare Edge", "Spectral Razor"],
 		"Ship8": ["Void Serpent", "Cosmic Cobra", "Stellar Python", "Galactic Anaconda", "Infinity Wyrm"]
+	},
+	
+	"satellite_crystal_cost": 30,
+	"satellite_coin_cost": 500,
+	"satellite_ascend_cost": 80,
+	"satellite_crystal_scaling_factor": 1.10,
+	"satellite_coin_scaling_factor": 1.15,
+	"satellite_ascend_scaling_factor": 1.05,
+	
+	"satellite_ascension_thresholds": {
+		"Satellite1": [3, 6],
+		"Satellite2": [3, 6],
+		"Satellite3": [3, 6, 9],
+		"Satellite4": [3, 6, 9],
+		"Satellite5": [3, 6, 9, 12],
+		"Satellite6": [3, 6, 9, 12, 15]
 	}
 }

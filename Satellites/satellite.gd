@@ -13,6 +13,8 @@ extends Node2D
 var is_shooting_active: bool = true
 var original_fire_rate: float
 var is_shadow_mode_active: bool = false
+var satellite_id: String = "Satellite1"  # Default satellite ID
+var damage_bonus: int = 0  # Damage bonus from satellite upgrades
 
 func _ready() -> void:
 	original_fire_rate = fire_rate
@@ -26,11 +28,35 @@ func _ready() -> void:
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 	
+	# Connect to satellite stats updates
+	if GameManager.has_signal("satellite_stats_updated"):
+		GameManager.satellite_stats_updated.connect(_on_satellite_stats_updated)
+	
+	# Initialize satellite data from GameManager
+	_load_satellite_data()
+	
 	# Validate bullet_scene to avoid shooting blanks
 	if not bullet_scene or not bullet_scene.can_instantiate():
 		push_error("SatelliteWeapon: Invalid bullet_scene. Expected SatelliteBullet.tscn.")
 		is_shooting_active = false
 		timer.stop()
+
+func _load_satellite_data() -> void:
+	"""Load satellite data from GameManager to get damage bonus"""
+	if GameManager.satellites.is_empty():
+		return
+	
+	# Use first unlocked satellite by default
+	for satellite in GameManager.satellites:
+		if satellite.get("unlocked", false):
+			satellite_id = satellite.get("id", "Satellite1")
+			damage_bonus = satellite.get("damage_bonus", 0)
+			break
+
+func _on_satellite_stats_updated(sat_id: String, new_damage_bonus: int) -> void:
+	"""Update damage bonus when satellite stats change"""
+	if sat_id == satellite_id:
+		damage_bonus = new_damage_bonus
 
 ## Shoots bullets like a space cowboy, shadow mode or not.
 func _on_timer_timeout() -> void:
@@ -44,6 +70,8 @@ func _on_timer_timeout() -> void:
 	if player and player is Player:
 		bullet_damage = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 
+	# Add satellite damage bonus
+	bullet_damage += damage_bonus
 	
 	if is_shadow_mode_active:
 		# Shadow mode: unleash a spread of homing bullets like a cosmic sprinkler

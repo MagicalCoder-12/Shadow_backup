@@ -33,6 +33,8 @@ signal revive_completed(success: bool)
 @warning_ignore("unused_signal")
 signal ship_stats_updated(ship_id: String, new_damage: int)
 @warning_ignore("unused_signal")
+signal satellite_stats_updated(satellite_id: String, new_damage_bonus: int)
+@warning_ignore("unused_signal")
 signal enemy_killed(enemy: Node)
 @warning_ignore("unused_signal")
 signal prepare_map_scene()
@@ -53,6 +55,16 @@ const ASCENSION_THRESHOLDS: Dictionary = {
 	"Ship6": [4, 8, 12, 16, 20, 24, 28, 32],
 	"Ship7": [4, 8, 12, 16, 20, 24],
 	"Ship8": [4, 8, 12, 16, 20, 24]
+}
+
+# Ascension thresholds for satellites (mirroring upgrade_settings.json)
+const SATELLITE_ASCENSION_THRESHOLDS: Dictionary = {
+	"Satellite1": [3, 6],
+	"Satellite2": [3, 6],
+	"Satellite3": [3, 6, 9],
+	"Satellite4": [3, 6, 9],
+	"Satellite5": [3, 6, 9, 12],
+	"Satellite6": [3, 6, 9, 12, 15]
 }
 
 # 🧠 MANAGERS - Now using autoload references
@@ -96,6 +108,7 @@ var game_won: bool = false
 
 # SHIP AND CURRENCY DATA
 var ships: Array = []
+var satellites: Array = []
 var _crystal_count: int = 0
 var crystal_count: int:
 	get: return _crystal_count
@@ -329,6 +342,10 @@ func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:
 	# Update PlayerManager's base damage for the current ship
 	if player_manager.selected_ship_id == ship_id:
 		player_manager.update_current_ship_damage(new_damage)
+
+# Notify when satellite stats are updated
+func notify_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void:
+	satellite_stats_updated.emit(satellite_id, damage_bonus)
 
 # Notify when enemy is killed for shadow mode charging
 func notify_enemy_killed(enemy: Node) -> void:

@@ -55,6 +55,7 @@ func save_progress() -> void:
 		file.store_var(gm.player_lives)
 		file.store_var(gm.player_manager.selected_ship_id)
 		file.store_var(gm.ships)
+		file.store_var(gm.satellites)
 		file.store_var(gm.crystal_count)
 		file.store_var(gm.coin_count)
 		file.store_var(gm.void_shards_count)
@@ -114,6 +115,10 @@ func load_progress() -> void:
 			if !file.eof_reached():
 				gm.ships = file.get_var()
 			if !file.eof_reached():
+				gm.satellites = file.get_var()
+			else:
+				gm.satellites = _get_default_satellites()
+			if !file.eof_reached():
 				gm.crystal_count = file.get_var()
 			if !file.eof_reached():
 				gm.coin_count = file.get_var()
@@ -153,6 +158,11 @@ func load_progress() -> void:
 				gm.ships = _get_default_ships()
 				push_warning("Loaded ships data was invalid. Using default data.")
 			
+			# Validate satellites data
+			if gm.satellites.is_empty() or not gm.satellites is Array:
+				gm.satellites = _get_default_satellites()
+				push_warning("Loaded satellites data was invalid. Using default data.")
+			
 			# Ensure all ships have required fields and valid textures
 			for ship in gm.ships:
 				if not ship.has("unlocked"):
@@ -165,6 +175,20 @@ func load_progress() -> void:
 						if not ResourceLoader.exists(path, "Texture2D"):
 							push_warning("Invalid texture path %s for ship %s, using fallback" % [path, ship.get("display_name", "Unknown")])
 							ship["textures"][key] = "res://Textures/player/ship_textures/ship_01_lvl0.png"
+			
+			# Ensure all satellites have required fields and valid texture
+			for satellite in gm.satellites:
+				if not satellite.has("unlocked"):
+					satellite["unlocked"] = false
+				if not satellite.has("ascend_count"):
+					satellite["ascend_count"] = 0
+				if not satellite.has("can_ascend"):
+					satellite["can_ascend"] = false
+				if satellite.has("texture"):
+					var path = satellite["texture"]
+					if not ResourceLoader.exists(path, "Texture2D"):
+						push_warning("Invalid satellite texture path %s for %s, using fallback" % [path, satellite.get("display_name", "Unknown")])
+						satellite["texture"] = "res://Textures/player/Sat_textures/Sat1.png"
 			
 			file.close()
 		else:
@@ -180,6 +204,7 @@ func reset_progress() -> void:
 	if gm.level_manager:
 		gm.level_manager.reset_level_progress()
 	gm.ships = _get_default_ships()
+	gm.satellites = _get_default_satellites()
 	gm.crystal_count = DEFAULT_RESOURCES["crystal_count"]
 	gm.coin_count = DEFAULT_RESOURCES["coin_count"]
 	gm.void_shards_count = DEFAULT_RESOURCES["void_shards_count"]
@@ -223,4 +248,23 @@ func _get_default_ships() -> Array:
 			"upgrade_1": "res://Textures/player/ship_textures/ship_01_lvl1.png",
 			"upgrade_2": "res://Textures/player/ship_textures/ship_01_lvl2.png"
 		}
+	}]
+
+func _get_default_satellites() -> Array:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.satellites_data and ConfigLoader.satellites_data is Array:
+		return ConfigLoader.satellites_data.duplicate(true)
+	return [{
+		"id": "Satellite1",
+		"display_name": "Guardian Drone",
+		"rank": "R",
+		"max_evolution_stage": 2,
+		"final_rank": "LR",
+		"damage_bonus": 5,
+		"upgrade_count": 0,
+		"ascend_count": 0,
+		"can_ascend": false,
+		"unlocked": true,
+		"description": "A basic but reliable orbital companion",
+		"texture": "res://Textures/player/Sat_textures/Sat1.png",
+		"purchase_cost": 0
 	}]
