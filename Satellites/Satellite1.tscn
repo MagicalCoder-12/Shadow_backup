@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://m4hqp78bi33k"]
 
-[ext_resource type="Script" uid="uid://b7tthx3vibkj0" path="res://Satellites/Scripts/satellite.gd" id="1_fg3ep"]
+[ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite.gd" id="1_fg3ep"]
 [ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/Satellite/Sat_textures/Sat1.png" id="2_pk3iq"]
 [ext_resource type="Texture2D" uid="uid://dtpayeuwncpve" path="res://Textures/Satellite/Ship2/Parts/ship2_detail.png" id="3_110tt"]
 
