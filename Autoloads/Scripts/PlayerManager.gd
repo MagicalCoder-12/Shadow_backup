@@ -4,6 +4,7 @@ extends Node
 var gm: Node
 var default_ship_id: String = "Ship1"
 var selected_ship_id: String
+var selected_satellite_ids: Array[String] = []  # Array of selected satellite IDs
 var player_spawn_position: Vector2 = Vector2.ZERO
 var default_bullet_speed: float = 3000.0
 var default_bullet_damage: int = 20
@@ -52,6 +53,9 @@ func _initialize_player_stats() -> void:
 		"is_shadow_mode_active": false,
 		"is_super_mode_active": false
 	}
+	# Initialize satellite selection - default to first two available satellites
+	if selected_satellite_ids.is_empty():
+		selected_satellite_ids = ["Satellite1", "Satellite2"]  # Default to first two satellites
 
 func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool, is_super_mode_active: bool = false) -> void:
 	player_stats["attack_level"] = attack_level
@@ -179,3 +183,20 @@ func update_current_ship_damage(new_damage: int) -> void:
 	# If not in shadow mode or super mode, also update current bullet damage
 	if not player_stats.get("is_shadow_mode_active", false) and not player_stats.get("is_super_mode_active", false):
 		player_stats["bullet_damage"] = new_damage
+
+
+# Update satellite selection and textures in the current scene
+func update_selected_satellites() -> void:
+	# Find the current player in the scene and update its satellites
+	var players = gm.get_tree().get_nodes_in_group("Player")
+	if players.size() > 0:
+		var player = players[0]
+		
+		# Try to get satellites attached to player and update them
+		var player_sprite = player.get_node_or_null("Sprite2D")
+		if player_sprite:
+			for child in player_sprite.get_children():
+				if child.name.begins_with("Satellite") and child.has_method("_load_satellite_data"):
+					child._load_satellite_data()  # Reload satellite data to update texture
+					print("Updated satellite texture for: ", child.name)
+			

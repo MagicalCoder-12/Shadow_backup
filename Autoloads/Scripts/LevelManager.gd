@@ -229,10 +229,11 @@ func reset_level_progress() -> void:
 
 func handle_node_added(node: Node) -> void:
 	if node is WaveManager:
-		if not node.wave_started.is_connected(_on_wave_started):
+		# Safely connect to WaveManager signals
+		if node.has_signal("wave_started") and not node.wave_started.is_connected(_on_wave_started):
 			node.wave_started.connect(_on_wave_started)
 			
-		if not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
+		if node.has_signal("all_waves_cleared") and not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
 			node.all_waves_cleared.connect(_on_all_waves_cleared)
 	
 	if node.is_in_group(gm.GROUP_BOSS):
@@ -243,6 +244,15 @@ func handle_node_added(node: Node) -> void:
 		if node.has_signal("unlock_shadow_mode"):
 			if not node.unlock_shadow_mode.is_connected(_on_unlock_shadow_mode):
 				node.unlock_shadow_mode.connect(_on_unlock_shadow_mode)
+
+	# Additional safety check for other node types
+	if node.has_signal("level_completed"):
+		if not node.level_completed.is_connected(_on_level_completed):
+			node.level_completed.connect(_on_level_completed)
+
+func _on_level_completed(_level_num: int) -> void:
+	# Default implementation - can be overridden
+	pass
 
 
 func _on_wave_started(current_wave: int, total_waves: int) -> void:
@@ -266,6 +276,11 @@ func _on_boss_defeated() -> void:
 
 func _on_unlock_shadow_mode() -> void:
 	unlock_shadow_mode()
+
+func _exit_tree() -> void:
+	# Disconnect any connected signals to prevent memory leaks
+	# Note: In autoloads, this is rarely called, but good practice
+	pass
 
 func _on_level_selected(level_num: int) -> void:
 	if is_level_unlocked(level_num):

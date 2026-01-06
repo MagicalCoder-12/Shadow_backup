@@ -4,14 +4,14 @@
 		"display_name": "Guardian Drone",
 		"rank": "R",
 		"max_evolution_stage": 2,
-		"final_rank": "LR",
+		"final_rank": "SR",
 		"damage_bonus": 5,
 		"upgrade_count": 0,
 		"ascend_count": 0,
 		"can_ascend": false,
 		"unlocked": true,
 		"description": "A basic but reliable orbital companion",
-		"texture": "res://Textures/player/Sat_textures/Sat1.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat1.png",
 		"purchase_cost": 0
 	},
 	{
@@ -19,14 +19,14 @@
 		"display_name": "Scout Pod",
 		"rank": "R",
 		"max_evolution_stage": 2,
-		"final_rank": "LR",
+		"final_rank": "SR",
 		"damage_bonus": 8,
 		"upgrade_count": 0,
 		"ascend_count": 0,
 		"can_ascend": false,
 		"unlocked": false,
 		"description": "A nimble reconnaissance satellite",
-		"texture": "res://Textures/player/Sat_textures/Sat2.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat2.png",
 		"purchase_cost": 300
 	},
 	{
@@ -41,7 +41,7 @@
 		"can_ascend": false,
 		"unlocked": false,
 		"description": "An aggressive offensive platform",
-		"texture": "res://Textures/player/Sat_textures/Sat3.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat3.png",
 		"purchase_cost": 800
 	},
 	{
@@ -56,7 +56,7 @@
 		"can_ascend": false,
 		"unlocked": false,
 		"description": "A defensive satellite with enhanced firepower",
-		"texture": "res://Textures/player/Sat_textures/Sat4.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat4.png",
 		"purchase_cost": 1500
 	},
 	{
@@ -71,7 +71,7 @@
 		"can_ascend": false,
 		"unlocked": false,
 		"description": "A powerful void-tech satellite",
-		"texture": "res://Textures/player/Sat_textures/Sat5.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat5.png",
 		"purchase_cost": 3000
 	},
 	{
@@ -86,7 +86,7 @@
 		"can_ascend": false,
 		"unlocked": false,
 		"description": "The ultimate satellite weapon system",
-		"texture": "res://Textures/player/Sat_textures/Sat6.png",
+		"texture": "res://Textures/Satellite/Sat_textures/Sat6.png",
 		"purchase_cost": 5000
 	}
 ]

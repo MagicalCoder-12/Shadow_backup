@@ -19,18 +19,18 @@ extends Resource
 class_name WaveConfig
 
 # Import formation_enums to access shared enums
-const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
 
 # Import shared enums (from your shared enum script, e.g., formation_enums.gd)
-@export var formation_type: formation_enums.FormationType = formation_enums.FormationType.CIRCLE:
+@export var formation_type: FormationEnums.FormationType = FormationEnums.FormationType.CIRCLE:
 	set(value):
 		formation_type = value
 		_update_count_options()
 
-@export var entry_pattern: formation_enums.EntryPattern = formation_enums.EntryPattern.SIDE_CURVE
+@export var entry_pattern: FormationEnums.EntryPattern = FormationEnums.EntryPattern.SIDE_CURVE
 
 # CORRECTED: Difficulty enum now matches the Enemy script
-@export var difficulty: formation_enums.DifficultyLevel = formation_enums.DifficultyLevel.NORMAL
+@export var difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.NORMAL
 
 @export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug", "OblivionTank", "PhasePhantom","ShadowSentinel")
 var enemy_type: String = "mob1"
@@ -59,17 +59,17 @@ var padding: float
 
 # Optimal enemy counts for each formation type
 var formation_counts := {
-	formation_enums.FormationType.CIRCLE: [6, 8, 12, 16],          # Even divisions for circle
-	formation_enums.FormationType.SPIRAL: [8, 12, 16, 20],         # Good for spiral progression
-	formation_enums.FormationType.DIAMOND: [6, 8, 12, 16],         # Symmetric diamond shapes
-	formation_enums.FormationType.GRID: [9, 16, 25, 36],           # Perfect squares (3x3, 4x4, 5x5, 6x6)
-	formation_enums.FormationType.V_FORMATION: [6, 8, 10, 12],     # Even numbers for balanced V
-	formation_enums.FormationType.DOUBLE_CIRCLE: [8, 12, 16, 20],  # Even for inner/outer circles
-	formation_enums.FormationType.HEXAGON: [6, 12, 18, 24],        # Multiples of 6 for hexagon sides
-	formation_enums.FormationType.TRIANGLE: [6, 10, 15, 21],       # Triangular numbers (3+2+1, 4+3+2+1, etc.),
-	formation_enums.FormationType.V_WAVE: [8, 12, 16, 20],         # New V-wave formation
-	formation_enums.FormationType.CLUSTER: [6, 9, 12, 15],         # New cluster formation
-	formation_enums.FormationType.DYNAMIC: [8, 12, 16, 20]        # New dynamic formation
+	FormationEnums.FormationType.CIRCLE: [6, 8, 12, 16],          # Even divisions for circle
+	FormationEnums.FormationType.SPIRAL: [8, 12, 16, 20],         # Good for spiral progression
+	FormationEnums.FormationType.DIAMOND: [6, 8, 12, 16],         # Symmetric diamond shapes
+	FormationEnums.FormationType.GRID: [9, 16, 25, 36],           # Perfect squares (3x3, 4x4, 5x5, 6x6)
+	FormationEnums.FormationType.V_FORMATION: [6, 8, 10, 12],     # Even numbers for balanced V
+	FormationEnums.FormationType.DOUBLE_CIRCLE: [8, 12, 16, 20],  # Even for inner/outer circles
+	FormationEnums.FormationType.HEXAGON: [6, 12, 18, 24],        # Multiples of 6 for hexagon sides
+	FormationEnums.FormationType.TRIANGLE: [6, 10, 15, 21],       # Triangular numbers (3+2+1, 4+3+2+1, etc.),
+	FormationEnums.FormationType.V_WAVE: [8, 12, 16, 20],         # New V-wave formation
+	FormationEnums.FormationType.CLUSTER: [6, 9, 12, 15],         # New cluster formation
+	FormationEnums.FormationType.DYNAMIC: [8, 12, 16, 20]        # New dynamic formation
 }
 
 # Paths to enemy scenes
@@ -123,10 +123,10 @@ func _update_count_options():
 	pass
 
 # Getter methods that FormationManager expects
-func get_formation_type() -> formation_enums.FormationType:
+func get_formation_type() -> FormationEnums.FormationType:
 	return formation_type
 
-func get_entry_pattern() -> formation_enums.EntryPattern:
+func get_entry_pattern() -> FormationEnums.EntryPattern:
 	return entry_pattern
 
 func get_formation_center() -> Vector2:
@@ -177,4 +177,4 @@ func as_debug_string() -> String:
 	if boss_scene:
 		return "Boss Wave (%s)" % boss_scene.resource_path.get_file()
 	else:
-		return "%s (%s, %s)" % [enemy_type, formation_enums.FormationType.keys()[formation_type], enemy_density]
+		return "%s (%s, %s)" % [enemy_type, FormationEnums.FormationType.keys()[formation_type], enemy_density]

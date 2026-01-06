@@ -1,98 +1,36 @@
 [gd_scene load_steps=10 format=3 uid="uid://bptlns3wth3vq"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_cb8d3"]
-[ext_resource type="Script" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_yk3sq"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_yk3sq"]
 
 [sub_resource type="Resource" id="Resource_0qsy2"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
 entry_pattern = 5
-difficulty = 1
 enemy_type = "BouncerEnemy"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_3x0r5"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "SlowShooter"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_modaw"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "FastEnemy"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_0akuu"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "BouncerEnemy"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_sqdv6"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "BomberBug"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_i8w10"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "BomberBug"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [sub_resource type="Resource" id="Resource_jqa6c"]
 script = ExtResource("2_yk3sq")
-formation_type = 0
-entry_pattern = 0
-difficulty = 1
 enemy_type = "ShadowSentinel"
-enemy_density = "Normal"
-formation_center = Vector2(640, 600)
-formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
-entry_speed = 500.0
 
 [node name="Level_3" instance=ExtResource("1_cb8d3")]
 

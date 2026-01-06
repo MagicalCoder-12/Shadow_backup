@@ -169,17 +169,17 @@ func _on_next_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_next_pressed called")
 	if GameManager and GameManager.level_manager:
-		# Complete the level properly before unlocking the next one
-		current_level = GameManager.level_manager.get_current_level()  # ← FIXED: no 'var'
+		# Complete the level properly before going to map
+		current_level = GameManager.level_manager.get_current_level()
 		GameManager.level_manager.complete_level(current_level)
-		# Then unlock the next level
-		GameManager.level_manager.unlock_next_level(current_level)
 		GameManager.score = 0
 		if debug:
-			print("[LevelCompleted Debug] Unlocking next level after %d, onward and upward!" % current_level)
+			print("[LevelCompleted Debug] Level completed after %d, going to map!" % current_level)
+		# Navigate to map
+		GameManager.change_scene(Map)
 	else:
 		if debug:
-			print("[LevelCompleted Debug] Error: GameManager or level_manager missing, can't unlock next level!")
+			print("[LevelCompleted Debug] Error: GameManager or level_manager missing, can't go to map!")
 
 func _on_map_pressed() -> void:
 	if debug:

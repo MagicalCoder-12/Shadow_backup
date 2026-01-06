@@ -2,7 +2,7 @@ extends Node2D
 class_name FormationManager
 
 # Import formation_enums to access shared enums
-const formation_enums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
 
 signal formation_complete
 signal enemy_spawned(enemy: Enemy)
@@ -34,7 +34,7 @@ var is_spawning: bool = false
 var current_wave_config: WaveConfig = null
 
 var difficulty_multipliers := {
-	formation_enums.DifficultyLevel.EASY: {
+	FormationEnums.DifficultyLevel.EASY: {
 		"spawn_delay": 1.2,
 		"entry_speed": 0.8,
 		"enemy_count": 0.8
@@ -119,11 +119,11 @@ func spawn_formation(config: WaveConfig) -> void:
 	
 	if debug_mode:
 		print("FormationManager: Starting formation spawn:")
-		print("  Type: ", formation_enums.FormationType.keys()[current_wave_config.formation_type])
-		print("  Pattern: ", formation_enums.EntryPattern.keys()[current_wave_config.entry_pattern])
+		print("  Type: ", FormationEnums.FormationType.keys()[current_wave_config.formation_type])
+		print("  Pattern: ", FormationEnums.EntryPattern.keys()[current_wave_config.entry_pattern])
 		print("  Enemy Type: ", current_wave_config.enemy_type)
 		print("  Count: ", adjusted_enemy_count)
-		print("  Difficulty: ", formation_enums.DifficultyLevel.keys()[difficulty])
+		print("  Difficulty: ", FormationEnums.DifficultyLevel.keys()[difficulty])
 		queue_redraw()
 	
 	_spawn_enemies_sequence(adjusted_enemy_count)
@@ -152,20 +152,20 @@ func _calculate_formation_positions(enemy_count: int) -> void:
 	var formation_spacing = current_wave_config.get_formation_spacing()
 	
 	match formation_type:
-		formation_enums.FormationType.CIRCLE:
+		FormationEnums.FormationType.CIRCLE:
 			_calculate_circle_formation(enemy_count, formation_center, formation_radius)
-		formation_enums.FormationType.GRID:
+		FormationEnums.FormationType.GRID:
 			_calculate_grid_formation(enemy_count, formation_center, formation_spacing)
-		formation_enums.FormationType.V_FORMATION:
+		FormationEnums.FormationType.V_FORMATION:
 			_calculate_v_formation(enemy_count, formation_center, formation_spacing)
-		formation_enums.FormationType.DIAMOND:
+		FormationEnums.FormationType.DIAMOND:
 			_calculate_diamond_formation(enemy_count, formation_center, formation_radius, formation_spacing)
 		# New formation types
-		formation_enums.FormationType.V_WAVE:
+		FormationEnums.FormationType.V_WAVE:
 			_calculate_v_wave_formation(enemy_count, formation_center, formation_spacing)
-		formation_enums.FormationType.CLUSTER:
+		FormationEnums.FormationType.CLUSTER:
 			_calculate_cluster_formation(enemy_count, formation_center, 5)  # Default cluster size of 5
-		formation_enums.FormationType.DYNAMIC:
+		FormationEnums.FormationType.DYNAMIC:
 			_calculate_dynamic_formation(enemy_count, formation_center, Time.get_ticks_msec() / 1000.0)
 		_:
 			# Default to circle formation
@@ -186,7 +186,7 @@ func _calculate_v_wave_formation(enemy_count: int, center: Vector2, spacing: flo
 	var cols = ceil(float(enemy_count) / rows)
 	
 	for i in range(enemy_count):
-		var row = i / cols
+		var row = int(i / cols)
 		var col = i % int(cols)
 		
 		# Create wave pattern
@@ -232,13 +232,12 @@ func _calculate_grid_formation(enemy_count: int, center: Vector2, spacing: float
 	
 	for i in range(enemy_count):
 		var col = i % cols
-		var row = i / cols
+		var row = int(i / cols)
 		var pos = Vector2(start_x + col * spacing, start_y + row * spacing)
 		formation_positions.append(pos)
 
 func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
-	@warning_ignore("integer_division")
-	var half_count = enemy_count / 2
+	var half_count = int(enemy_count / 2)
 	var v_angle = PI / 6
 	
 	for i in range(half_count):
@@ -252,8 +251,7 @@ func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -
 		formation_positions.append(pos)
 
 func _calculate_diamond_formation(enemy_count: int, center: Vector2, radius: float, spacing: float) -> void:
-	@warning_ignore("integer_division")
-	var half_count = enemy_count / 2
+	var half_count = int(enemy_count / 2)
 	var enemies_per_side = ceil(float(half_count) / 2.0)
 	
 	for i in range(enemies_per_side):
@@ -281,24 +279,24 @@ func _calculate_spawn_positions(enemy_count: int) -> void:
 	var entry_pattern = current_wave_config.get_entry_pattern()
 	
 	if debug_mode:
-		print("FormationManager: Calculating spawn positions for pattern: ", formation_enums.EntryPattern.keys()[entry_pattern])
+		print("FormationManager: Calculating spawn positions for pattern: ", FormationEnums.EntryPattern.keys()[entry_pattern])
 	
 	match entry_pattern:
-		formation_enums.EntryPattern.SIDE_CURVE:
+		FormationEnums.EntryPattern.SIDE_CURVE:
 			_calculate_side_spawn_positions(enemy_count)
-		formation_enums.EntryPattern.TOP_DIVE:
+		FormationEnums.EntryPattern.TOP_DIVE:
 			_calculate_top_spawn_positions(enemy_count)
 		# New entry patterns
-		formation_enums.EntryPattern.STAGGERED:
+		FormationEnums.EntryPattern.STAGGERED:
 			_calculate_staggered_entry_positions(enemy_count, 5)  # Default group size of 5
-		formation_enums.EntryPattern.AMBUSH:
+		FormationEnums.EntryPattern.AMBUSH:
 			_calculate_ambush_entry_positions(enemy_count, 3)  # Default ambush count of 3
 		# Enemy Spawn Variation Design - New entry patterns
-		formation_enums.EntryPattern.MULTI_SIDE:
+		FormationEnums.EntryPattern.MULTI_SIDE:
 			_calculate_multi_side_positions(enemy_count)
-		formation_enums.EntryPattern.RANDOM_EDGE:
+		FormationEnums.EntryPattern.RANDOM_EDGE:
 			_calculate_random_edge_positions(enemy_count)
-		formation_enums.EntryPattern.CORNER_AMBUSH:
+		FormationEnums.EntryPattern.CORNER_AMBUSH:
 			_calculate_corner_ambush_positions(enemy_count)
 		_:
 			# Default to top dive
@@ -371,8 +369,7 @@ func _calculate_multi_side_positions(enemy_count: int) -> void:
 	spawn_positions.clear()
 	
 	# Calculate enemies per side
-	@warning_ignore("integer_division")
-	var enemies_per_side = enemy_count / 3
+	var enemies_per_side = int(enemy_count / 3)
 	var remainder = enemy_count % 3
 	
 	# Top side enemies
@@ -495,30 +492,30 @@ func _determine_path_type(spawn_pos: Vector2) -> String:
 	
 	# Map entry patterns to path types with some randomization
 	match entry_pattern:
-		formation_enums.EntryPattern.SIDE_CURVE:
+		FormationEnums.EntryPattern.SIDE_CURVE:
 			return "curve_right" if spawn_pos.x < screen_width / 2 else "curve_left"
-		formation_enums.EntryPattern.TOP_DIVE:
+		FormationEnums.EntryPattern.TOP_DIVE:
 			return "dive" if randf() < 0.7 else "bezier"
-		formation_enums.EntryPattern.SPIRAL_IN:
+		FormationEnums.EntryPattern.SPIRAL_IN:
 			return "spiral"
-		formation_enums.EntryPattern.FIGURE_EIGHT:
+		FormationEnums.EntryPattern.FIGURE_EIGHT:
 			return "s_curve"
-		formation_enums.EntryPattern.ZIGZAG:
+		FormationEnums.EntryPattern.ZIGZAG:
 			return "s_curve"
-		formation_enums.EntryPattern.WAVE_ENTRY:
+		FormationEnums.EntryPattern.WAVE_ENTRY:
 			return "curve_left" if randf() < 0.5 else "curve_right"
-		formation_enums.EntryPattern.STAGGERED:
+		FormationEnums.EntryPattern.STAGGERED:
 			return "dive"
-		formation_enums.EntryPattern.AMBUSH:
+		FormationEnums.EntryPattern.AMBUSH:
 			return "dive"
-		formation_enums.EntryPattern.MULTI_SIDE:
+		FormationEnums.EntryPattern.MULTI_SIDE:
 			if spawn_pos.x < 0:
 				return "curve_right"
 			elif spawn_pos.x > screen_width:
 				return "curve_left"
 			else:
 				return "dive"
-		formation_enums.EntryPattern.CORNER_AMBUSH:
+		FormationEnums.EntryPattern.CORNER_AMBUSH:
 			return "spiral"
 		_:
 			return "bezier"
@@ -780,8 +777,12 @@ func _on_enemy_died(enemy: Enemy) -> void:
 
 func get_alive_enemy_count() -> int:
 	#var count = 0
-	spawned_enemies = spawned_enemies.filter(func(e): return is_instance_valid(e))
-	return spawned_enemies.size()
+	var count = 0
+	# More efficient approach: only count valid enemies without modifying the array
+	for enemy in spawned_enemies:
+		if is_instance_valid(enemy):
+			count += 1
+	return count
 
 func destroy_all_enemies() -> void:
 	for enemy in spawned_enemies:

@@ -562,7 +562,7 @@ func _select_weighted_attack_pattern() -> AttackPattern:
 		total_weight += weight
 	
 	# Random selection based on weights
-	var roll = randi() % total_weight
+	var roll = randi() % int(total_weight)
 	var cumulative = 0
 	
 	for pattern in weights.keys():

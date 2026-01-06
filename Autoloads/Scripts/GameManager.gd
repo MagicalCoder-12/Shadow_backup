@@ -67,6 +67,10 @@ const SATELLITE_ASCENSION_THRESHOLDS: Dictionary = {
 	"Satellite6": [3, 6, 9, 12, 15]
 }
 
+# Bullet constants for compatibility
+const DEFAULT_BULLET_SPEED: float = 600.0
+const DEFAULT_BULLET_DAMAGE: int = 10
+
 # 🧠 MANAGERS - Now using autoload references
 var save_manager: SaveManager
 var ad_manager: AdManager
@@ -163,6 +167,26 @@ func _ready() -> void:
 	if not revive_completed.is_connected(_on_revive_completed):
 		revive_completed.connect(_on_revive_completed)
 
+func _exit_tree() -> void:
+	# Clean up the timer to prevent memory leaks
+	if shadow_mode_timer and shadow_mode_timer.is_inside_tree():
+		if shadow_mode_timer.timeout.is_connected(_on_shadow_mode_timer_timeout):
+			shadow_mode_timer.timeout.disconnect(_on_shadow_mode_timer_timeout)
+		shadow_mode_timer.stop()
+		shadow_mode_timer.queue_free()
+	
+	# Disconnect node_added signal
+	if get_tree().node_added.is_connected(_on_node_added):
+		get_tree().node_added.disconnect(_on_node_added)
+	
+	# Disconnect prepare_map_scene signal
+	if prepare_map_scene.is_connected(_on_prepare_map_scene):
+		prepare_map_scene.disconnect(_on_prepare_map_scene)
+	
+	# Disconnect revive_completed signal
+	if revive_completed.is_connected(_on_revive_completed):
+		revive_completed.disconnect(_on_revive_completed)
+
 func trigger_game_over() -> void:
 	AudioManager.mute_bus("Bullet", true)
 	AudioManager.mute_bus("Explosion", true)
@@ -230,6 +254,8 @@ func connect_score_signals(target_node: Node) -> void:
 
 # Public API methods
 func change_scene(scene_path: String) -> void:
+	# Clear bullet pools before changing scenes to prevent memory leaks
+	BulletFactory.clear_pools()
 	scene_manager.change_scene(scene_path)
 
 func load_level(level_num: int) -> void:

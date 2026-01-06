@@ -22,12 +22,12 @@
 [ext_resource type="Texture2D" uid="uid://ekui6ko7t814" path="res://Textures/player/ship_textures/ship_06_lvl0.png" id="19_xi3qs"]
 [ext_resource type="Texture2D" uid="uid://n3xkkipbaqqw" path="res://Textures/player/ship_textures/ship_07_lvl0.png" id="20_symq1"]
 [ext_resource type="Texture2D" uid="uid://djxdxx523tjm2" path="res://Textures/player/ship_textures/ship_08_lvl0.png" id="21_wxflo"]
-[ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/player/Sat_textures/Sat1.png" id="23_vkili"]
-[ext_resource type="Texture2D" uid="uid://bsxh7ep1ao0tr" path="res://Textures/player/Sat_textures/Sat2.png" id="24_868fn"]
-[ext_resource type="Texture2D" uid="uid://py6eihk45hm2" path="res://Textures/player/Sat_textures/Sat3.png" id="25_lybpu"]
-[ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/player/Sat_textures/Sat4.png" id="26_irsms"]
-[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/player/Sat_textures/Sat5.png" id="27_y7qod"]
-[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/player/Sat_textures/Sat6.png" id="28_l34vq"]
+[ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/Satellite/Sat_textures/Sat1.png" id="23_vkili"]
+[ext_resource type="Texture2D" uid="uid://bsxh7ep1ao0tr" path="res://Textures/Satellite/Sat_textures/Sat2.png" id="24_868fn"]
+[ext_resource type="Texture2D" uid="uid://py6eihk45hm2" path="res://Textures/Satellite/Sat_textures/Sat3.png" id="25_lybpu"]
+[ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/Satellite/Sat_textures/Sat4.png" id="26_irsms"]
+[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="27_y7qod"]
+[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/Satellite/Sat_textures/Sat6.png" id="28_l34vq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gmmlx"]
 font = ExtResource("13_n170t")
@@ -547,7 +547,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -17.0
 offset_top = 5.0
-offset_right = 217.0
+offset_right = 280.0
 offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -1296,7 +1296,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat1"]
+[node name="Sat1Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat1"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1322,7 +1322,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat2"]
+[node name="Sat2Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat2"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1348,7 +1348,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat3"]
+[node name="Sat3Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat3"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1374,7 +1374,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat4"]
+[node name="Sat4Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat4"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1400,7 +1400,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat5"]
+[node name="Sat5Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat5"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1426,7 +1426,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat6"]
+[node name="Sat6Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat6"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1561,3 +1561,9 @@ metadata/_edit_use_anchors_ = true
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship6" to="." method="_on_ship6_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship7" to="." method="_on_ship7_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship8" to="." method="_on_ship8_selected"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat1" to="." method="_on_sat_1_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat2" to="." method="_on_sat_2_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat3" to="." method="_on_sat_3_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat4" to="." method="_on_sat_4_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat5" to="." method="_on_sat_5_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat6" to="." method="_on_sat_6_gui_input"]

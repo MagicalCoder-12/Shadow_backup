@@ -49,6 +49,8 @@ var elite_enemy_spawned: bool = false
 var swarm_spawned: bool = false
 
 func _ready():
+	# Start the stuck check timer
+	stuck_check_timer.start()
 	game_manager = GameManager
 	if debug_mode:
 		print("WaveManager: Ready for level %d" % current_level)
@@ -525,7 +527,11 @@ func _complete_wave():
 
 func _cleanup_wave():
 	# Clean up invalid enemies first
-	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+	var valid_enemies: Array[Node2D] = []
+	for enemy in active_enemies:
+		if is_instance_valid(enemy):
+			valid_enemies.append(enemy)
+	active_enemies = valid_enemies
 	
 	for enemy in active_enemies:
 		if is_instance_valid(enemy):
@@ -547,21 +553,48 @@ func _cleanup_wave():
 	current_boss = null
 	enemies_alive = 0
 
+# Timer to check for stuck wave periodically instead of every frame
+@onready var stuck_check_timer: Timer = _create_stuck_check_timer()
+
+func _create_stuck_check_timer() -> Timer:
+	var timer = Timer.new()
+	add_child(timer)
+	timer.timeout.connect(_check_for_stuck_wave)
+	timer.wait_time = 1.0  # Check every second instead of every frame
+	return timer
+
 func _physics_process(_delta: float):
+	# Only check for stuck wave when timer is not running
+	# The actual check happens in the timer callback
+	pass
+
+func _check_for_stuck_wave():
 	if wave_in_progress and not waiting_for_next_wave:
 		# Check for stuck wave due to untracked enemy deaths
-		var valid_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
-		if valid_enemies.size() != enemies_alive:
+		var valid_enemies: Array[Node2D] = []
+		var valid_count = 0
+		for enemy in active_enemies:
+			if is_instance_valid(enemy):
+				valid_enemies.append(enemy)
+				valid_count += 1
+		if valid_count != enemies_alive:
 			if debug_mode:
-				print("WaveManager: Mismatch detected - enemies_alive: %d, valid_enemies: %d (Wave: %d, Level: %d)" % [enemies_alive, valid_enemies.size(), current_wave + 1, current_level])
-			
-			enemies_alive = valid_enemies.size()
+				print("WaveManager: Mismatch detected - enemies_alive: %d, valid_enemies: %d (Wave: %d, Level: %d)" % [enemies_alive, valid_count, current_wave + 1, current_level])
+				
+			enemies_alive = valid_count
 			active_enemies = valid_enemies
 			
 			if enemies_alive <= 0:
 				if debug_mode:
 					print("WaveManager: Forcing wave completion due to no valid enemies remaining")
 				_complete_wave()
+
+func _exit_tree():
+	# Clean up timer when node exits tree
+	if stuck_check_timer:
+		stuck_check_timer.stop()
+		if stuck_check_timer.is_inside_tree():
+			stuck_check_timer.queue_free()
 
 func _on_shadow_mode_activated():
 	if debug_mode:

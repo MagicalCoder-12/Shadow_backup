@@ -47,7 +47,7 @@ func _ready() -> void:
 			var texture_path = satellite["texture"]
 			if not ResourceLoader.exists(texture_path, "Texture2D"):
 				push_warning("Invalid satellite texture path %s for %s, using fallback" % [texture_path, satellite.get("display_name", "Unknown")])
-				satellite["texture"] = "res://Textures/player/Sat_textures/Sat1.png"
+				satellite["texture"] = "res://Textures/Satellite/Sat_textures/Sat1.png"
 
 	# Load upgrade settings
 	upgrade_settings = _load_json_file(UPGRADE_SETTINGS_PATH, _get_default_upgrade_settings())

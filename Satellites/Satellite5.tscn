@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://du5kk6u5l0tql"]
+
+[ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_nuape"]
+[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="2_iw3rx"]
+
+[node name="Satellite5" instance=ExtResource("1_nuape")]
+
+[node name="Sprite2D" parent="." index="0"]
+texture = ExtResource("2_iw3rx")
