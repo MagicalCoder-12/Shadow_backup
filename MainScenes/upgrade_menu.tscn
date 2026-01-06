@@ -794,8 +794,26 @@ text = "Buy"
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 60
-text = "Select
+text = " Select 
 "
+autowrap_trim_flags = 0
+
+[node name="Sat_left_select" type="Button" parent="UI/Buy_Ascend"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 60
+text = " Select Left 
+"
+autowrap_trim_flags = 0
+
+[node name="Sat_right_select" type="Button" parent="UI/Buy_Ascend"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 60
+text = " Select Right "
+autowrap_trim_flags = 0
 
 [node name="Ascend" type="Button" parent="UI/Buy_Ascend"]
 layout_mode = 2
@@ -1552,6 +1570,8 @@ metadata/_edit_use_anchors_ = true
 [connection signal="pressed" from="UI/HBoxContainer/VBoxContainer/Ads_Coins" to="." method="_on_ad_coins_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Buy" to="." method="_on_buy_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Selected" to="." method="_on_selected_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Sat_left_select" to="." method="_on_sat_left_select_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Sat_right_select" to="." method="_on_sat_right_select_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Ascend" to="." method="_on_ascend_pressed"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship1" to="." method="_on_ship1_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship2" to="." method="_on_ship2_selected"]

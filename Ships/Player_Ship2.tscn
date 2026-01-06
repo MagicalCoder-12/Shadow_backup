@@ -25,10 +25,23 @@ base_texture_scale = Vector2(1, 1)
 evolution_texture_scales = Array[Vector2]([])
 default_evolution_scale = Vector2(1, 1)
 ship_id = "Ship2"
+speed = 2000.0
+touch_speed = 500.0
+smoothness = 0.3
 normal_fire_delay = 5.0
+max_life = 4
+shadow_speed_multiplier = 1.2
+shadow_fire_delay_multiplier = 0.1
+spread_angle_increment = 10.0
 spawn_point_offset = 15.0
+super_mode_damage_boost = 2
+super_mode_speed_multiplier = 2.0
+super_mode_fire_delay = 0.15
+super_mode_bullet_speed = 5000.0
+shadow_bullet_count = 25
 base_bullet_damage = 25
 shadow_texture = ExtResource("3_p6j1y")
+enable_debug_logging = false
 evolution_textures = Array[Texture2D]([ExtResource("3_c88ya"), ExtResource("4_knfr4"), ExtResource("5_do63i")])
 
 [node name="Sprite2D" parent="." index="0"]

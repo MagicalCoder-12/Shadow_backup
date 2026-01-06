@@ -264,7 +264,7 @@ func _fire_focused_beam(bullet_scene: PackedScene, bullet_speed: float, bullet_d
 			child.global_position,
 			child.rotation + angle_variation,
 			bullet_speed * 1.2,  # Slightly faster for focused beam
-			bullet_damage * 1.5  # Increased damage for focused beam
+			int(bullet_damage * 1.5)
 		)
 		if bullet:
 			get_tree().current_scene.call_deferred("add_child", bullet)

@@ -67,9 +67,10 @@ func _on_game_over_triggered() -> void:
 func _award_half_collected_currency() -> void:
 	if GameManager:
 		# Calculate half of collected coins and crystals (rounded down)
-		var half_coins = int(GameManager.coins_collected_this_level / 2)
-		var half_crystals = int(GameManager.crystals_collected_this_level / 2)
-		
+		var half_coins = roundi(GameManager.coins_collected_this_level / 2.0)
+		var half_crystals = roundi(GameManager.crystals_collected_this_level / 2.0)
+
+
 		# Award the half amounts to the player's total
 		if half_coins > 0:
 			GameManager.add_currency("coins", half_coins)

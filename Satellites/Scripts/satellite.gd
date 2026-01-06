@@ -97,3 +97,35 @@ func _on_shadow_mode_deactivated() -> void:
 	timer.wait_time = fire_rate
 	if is_shooting_active:
 		timer.start()
+
+var satellite_id: String = ""
+
+func set_satellite_id(id: String) -> void:
+	satellite_id = id
+
+func _load_satellite_data() -> void:
+	# This function is called by the Player when satellite data needs to be updated
+	# For example, when the satellite texture or stats change in the upgrade menu
+	
+	# If satellite_id is not set via the setter method, try to get it from metadata
+	if satellite_id.is_empty():
+		if has_meta("satellite_id"):
+			satellite_id = get_meta("satellite_id")
+	
+	# Look up satellite data in GameManager
+	for sat_data in GameManager.satellites:
+		if sat_data.get("id", "") == satellite_id:
+			# Update any visual properties based on satellite data
+			if sat_data.has("texture") and sat_data["texture"]:
+				var texture_path = sat_data["texture"]
+				if ResourceLoader.exists(texture_path):
+					var texture = load(texture_path)
+					# Find the sprite node and update its texture
+					var sprite = get_node_or_null("Sprite2D")
+					if sprite:
+						sprite.texture = texture
+						print("Updated satellite texture for: ", satellite_id)
+						break
+				else:
+					push_warning("Invalid texture path for satellite: " + texture_path)
+					break

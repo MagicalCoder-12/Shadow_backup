@@ -186,7 +186,7 @@ func _calculate_v_wave_formation(enemy_count: int, center: Vector2, spacing: flo
 	var cols = ceil(float(enemy_count) / rows)
 	
 	for i in range(enemy_count):
-		var row = int(i / cols)
+		var row = int(float(i) / cols)
 		var col = i % int(cols)
 		
 		# Create wave pattern
@@ -200,7 +200,7 @@ func _calculate_cluster_formation(enemy_count: int, center: Vector2, cluster_siz
 	for c in range(clusters):
 		var cluster_center = Vector2(
 			center.x + (c % 3 - 1) * 200,
-			center.y + (c / 3) * 150
+			center.y + (float(c) / 3.0) * 150.0
 		)
 		
 		var cluster_count = min(cluster_size, enemy_count - c * cluster_size)
@@ -232,12 +232,12 @@ func _calculate_grid_formation(enemy_count: int, center: Vector2, spacing: float
 	
 	for i in range(enemy_count):
 		var col = i % cols
-		var row = int(i / cols)
+		var row = int(float(i) / cols)
 		var pos = Vector2(start_x + col * spacing, start_y + row * spacing)
 		formation_positions.append(pos)
 
 func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -> void:
-	var half_count = int(enemy_count / 2)
+	var half_count = int(float(enemy_count) / 2)
 	var v_angle = PI / 6
 	
 	for i in range(half_count):
@@ -251,7 +251,7 @@ func _calculate_v_formation(enemy_count: int, center: Vector2, spacing: float) -
 		formation_positions.append(pos)
 
 func _calculate_diamond_formation(enemy_count: int, center: Vector2, radius: float, spacing: float) -> void:
-	var half_count = int(enemy_count / 2)
+	var half_count = int(float(enemy_count) / 2)
 	var enemies_per_side = ceil(float(half_count) / 2.0)
 	
 	for i in range(enemies_per_side):
@@ -369,7 +369,7 @@ func _calculate_multi_side_positions(enemy_count: int) -> void:
 	spawn_positions.clear()
 	
 	# Calculate enemies per side
-	var enemies_per_side = int(enemy_count / 3)
+	var enemies_per_side = int(float(enemy_count) / 3)
 	var remainder = enemy_count % 3
 	
 	# Top side enemies

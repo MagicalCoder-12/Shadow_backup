@@ -25,6 +25,8 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 @onready var upgrade_coins_button: TextureButton = $UI/HBoxContainer/Upgrade_coins
 @onready var buy_button: Button = $UI/Buy_Ascend/Buy
 @onready var selected: Button = $UI/Buy_Ascend/Selected
+@onready var sat_left_select: Button = $UI/Buy_Ascend/Sat_left_select
+@onready var sat_right_select: Button = $UI/Buy_Ascend/Sat_right_select
 @onready var power_up: AudioStreamPlayer = $"Power-up"
 @onready var msg_panel: Panel = $UI/Msg_panel
 @onready var message: Label = $UI/Msg_panel/Message
@@ -171,8 +173,10 @@ func _initialize_ui() -> void:
 	if sat_container and ship_container:
 		sat_container.hide()
 		ship_container.show()
-	
+
 	update_ship_ui()
+	# Set initial visibility of selection buttons
+	_update_selection_buttons_visibility()
 
 func _initialize_ad_tracking() -> void:
 	ad_usage_timer = Timer.new()
@@ -202,6 +206,23 @@ func _on_ad_timer_timeout() -> void:
 	# Reset ad usage count if more than an hour has passed
 	if current_time - ad_last_used_time >= AD_COOLDOWN_SECONDS:
 		ad_usage_count = 0
+
+func _update_selection_buttons_visibility() -> void:
+	# When on satellites tab, hide normal select button and show left/right select buttons
+	if is_satellite_tab_active:
+		selected.hide()
+		if sat_left_select:
+			sat_left_select.show()
+		if sat_right_select:
+			sat_right_select.show()
+	else:
+		# When on ships tab, hide left/right select buttons and show normal select button
+		if sat_left_select:
+			sat_left_select.hide()
+		if sat_right_select:
+			sat_right_select.hide()
+		if selected:
+			selected.show()
 
 func _can_show_rewarded_ad() -> bool:
 	var current_time = Time.get_unix_time_from_system() as int
@@ -1285,6 +1306,8 @@ func _on_ships_pressed() -> void:
 		is_satellite_tab_active = false
 		# Update the main display to show the currently selected ship
 		update_ship_ui()
+		# Show/hide appropriate selection buttons
+		_update_selection_buttons_visibility()
 
 
 func _on_satellites_pressed() -> void:
@@ -1298,6 +1321,8 @@ func _on_satellites_pressed() -> void:
 		is_satellite_tab_active = true
 		# Update the main display to show the currently selected satellite
 		update_satellite_ui()
+		# Show/hide appropriate selection buttons
+		_update_selection_buttons_visibility()
 
 
 
@@ -1563,3 +1588,11 @@ func _on_sat_5_gui_input(event: InputEvent) -> void:
 
 func _on_sat_6_gui_input(event: InputEvent) -> void:
 	_handle_satellite_selection(event, 5)
+
+
+func _on_sat_right_select_pressed() -> void:
+	pass # Replace with function body.
+
+
+func _on_sat_left_select_pressed() -> void:
+	pass # Replace with function body.
