@@ -135,7 +135,7 @@ var void_shards_count: int:
 		currency_updated.emit("void_shards", _void_shards_count)
 
 # UPGRADE MENU REFERENCE
-var upgrade_menu_ref: Node = null
+@export var upgrade_menu_scene: PackedScene
 
 var shadow_mode_timer: Timer = Timer.new()
 var shadow_mode_state: ShadowModeState = ShadowModeState.new()
@@ -332,9 +332,6 @@ func get_current_level() -> int:
 	if level_manager:
 		return level_manager.get_current_level()
 	return 0
-
-func set_upgrade_menu_ref(menu: Node) -> void:
-	upgrade_menu_ref = menu
 
 func can_afford(currency_type: String, cost: int) -> bool:
 	match currency_type:

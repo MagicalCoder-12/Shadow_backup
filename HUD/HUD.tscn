@@ -67,14 +67,14 @@ metadata/_edit_use_anchors_ = true
 
 [node name="ShadowModeButton" parent="." instance=ExtResource("8_shadow")]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.029520296
-anchor_top = 0.48553458
-anchor_right = 0.12581667
-anchor_bottom = 0.530333
-offset_right = 104.38527
-offset_bottom = 106.84412
-scale = Vector2(0.5, 0.5)
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -53.42212
+offset_right = 412.0
+offset_bottom = 356.42212
+grow_vertical = 2
+scale = Vector2(0.7, 0.7)
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 1
