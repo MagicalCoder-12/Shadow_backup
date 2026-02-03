@@ -705,7 +705,10 @@ func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
 	if enemy.has_method("assign_formation_slot"):
 		var config = _create_enemy_config(index)
 		var formation_pos_global = formation_positions[index]
-		var formation_pos_local = enemy.get_parent().to_local(formation_pos_global)
+		# Convert to local space using formation manager's parent (they should share the same parent)
+		var formation_pos_local = formation_pos_global
+		if self.get_parent() and self.get_parent().has_method("to_local"):
+			formation_pos_local = self.get_parent().to_local(formation_pos_global)
 		var start_delay = 0.0
 		var entry_path = entry_paths[index]
 		enemy.assign_formation_slot({
