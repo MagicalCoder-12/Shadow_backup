@@ -108,7 +108,7 @@ func revive_player(lives: int = 2) -> void:
 	gm.ad_manager.selected_ad_type = ""
 	gm.ad_manager.is_ad_showing = false
 
-	gm.game_over = false
+	gm.request_game_over_clear("PlayerManager.revive_player")
 	gm.is_paused = false
 	gm.get_tree().paused = false
 

@@ -105,7 +105,7 @@ func _on_ad_reward_granted(_ad_type: String) -> void:
 	message_label.visible = false
 	if GameManager and GameManager.game_over:
 		_debug_log("Warning: Game over still true after ad revive! Forcing to false.")
-		GameManager.game_over = false
+		GameManager.request_game_over_clear("GameOverScreen._on_ad_reward_granted")
 	_debug_log("Ad reward granted, player revived like a cosmic phoenix!")
 
 func _on_ad_failed(_ad_type: String, _error_code: Variant) -> void:
@@ -120,7 +120,7 @@ func _on_revive_completed(success: bool) -> void:
 	if success:
 		if GameManager and GameManager.game_over:
 			_debug_log("Warning: Game over still true after successful revive! Forcing to false.")
-			GameManager.game_over = false
+			GameManager.request_game_over_clear("GameOverScreen._on_revive_completed")
 		visible = false
 		message_label.visible = false
 		_debug_log("Revive completed successfully! Player's back in the galaxy!")

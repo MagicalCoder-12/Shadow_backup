@@ -597,7 +597,7 @@ func _setup_revival_state() -> void:
 	
 	blinking(true)
 	is_alive = true
-	GameManager.game_over = false
+	GameManager.request_game_over_clear("Player._setup_revival_state")
 	_debug_log("Revival state setup complete, invincibility timer started, just_revived set to true")
 
 func set_lives(new_lives: int) -> void:

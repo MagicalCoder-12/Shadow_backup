@@ -26,7 +26,7 @@ extends Node
 
 # === VARIABLES ===
 var has_completed_level: bool = false
-var game_over: bool = false
+var level_game_over: bool = false
 var waves_initialized: bool = false
 var saved_shadow_charge: float = 0.0
 var player_scene: PackedScene = preload("res://Ships/Player_Ship1.tscn")
@@ -48,7 +48,7 @@ func _ready():
 	pause_menu.hide()
 	level_completed.hide()
 	boss_clear.hide()
-	game_over = GameManager.game_over
+	level_game_over = GameManager.game_over
 
 	# Hide banner ad when entering a level
 	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
@@ -263,7 +263,7 @@ func _on_pause_pressed():
 	_toggle_pause_menu()
 
 func _on_game_paused(paused: bool):
-	if game_over or has_completed_level:
+	if level_game_over or has_completed_level:
 		_hide_pause_menu()
 		get_tree().paused = false
 		GameManager.is_paused = false
@@ -279,8 +279,8 @@ func _on_game_paused(paused: bool):
 func _game_over_triggered():
 	if GameManager.level_manager.is_level_just_completed:
 		return
-	game_over = true
-	GameManager.game_over = true
+	level_game_over = true
+	GameManager.request_game_over("Level._game_over_triggered")
 	# Set the game over screen active flag in LevelManager
 	if GameManager.level_manager:
 		GameManager.level_manager.is_game_over_screen_active = true
@@ -304,8 +304,8 @@ func _game_over_triggered():
 func _on_player_revived():
 	if not GameManager.is_revive_pending:
 		return
-	game_over = false
-	GameManager.game_over = false
+	level_game_over = false
+	GameManager.request_game_over_clear("Level._on_player_revived")
 	# Reset the game over screen active flag in LevelManager
 	if GameManager.level_manager:
 		GameManager.level_manager.is_game_over_screen_active = false
