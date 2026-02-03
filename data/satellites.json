@@ -1,7 +1,7 @@
 [
 	{
 		"id": "Satellite1",
-		"display_name": "Guardian Drone",
+		"display_name": "Scout Pod",
 		"rank": "R",
 		"max_evolution_stage": 2,
 		"final_rank": "SR",
@@ -16,7 +16,7 @@
 	},
 	{
 		"id": "Satellite2",
-		"display_name": "Scout Pod",
+		"display_name": "Guardian Drone",
 		"rank": "R",
 		"max_evolution_stage": 2,
 		"final_rank": "SR",
