@@ -15,6 +15,7 @@ shape = SubResource("CircleShape2D_lenlv")
 debug_color = Color(0.95135266, 0.075981475, 0.5221597, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0, 1, 0, 1)
 texture = ExtResource("1_j626h")
 region_enabled = true
 region_rect = Rect2(233.5, 120, 57, 55)
@@ -22,6 +23,7 @@ region_rect = Rect2(233.5, 120, 57, 55)
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
 position = Vector2(-1, 4)
 scale = Vector2(1.7, 2.2)
+rect = Rect2(-11.176472, -9.090909, 21.176472, 13.636364)
 
 [node name="LifetimeTimer" type="Timer" parent="."]
 one_shot = true
