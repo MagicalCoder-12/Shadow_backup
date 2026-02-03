@@ -139,6 +139,8 @@ var upgrade_menu_ref: Node = null
 
 var shadow_mode_timer: Timer = Timer.new()
 
+var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
+
 func _ready() -> void:
 	# Reference autoload managers instead of instantiating them
 	save_manager = SaveManager
@@ -316,8 +318,15 @@ func deduct_currency(currency_type: String, amount: int) -> void:
 			void_shards_count -= amount
 	save_manager.save_progress()
 
-var coins_collected_this_level: int = 0
-var crystals_collected_this_level: int = 0
+var coins_collected_this_level: int:
+	get: return level_currency_state.coins_collected_this_level
+	set(value):
+		level_currency_state.coins_collected_this_level = value
+
+var crystals_collected_this_level: int:
+	get: return level_currency_state.crystals_collected_this_level
+	set(value):
+		level_currency_state.crystals_collected_this_level = value
 
 func add_currency(currency_type: String, amount: int) -> void:
 	match currency_type:
