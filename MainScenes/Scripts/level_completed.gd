@@ -1,8 +1,8 @@
 extends Control
 
 @onready var scoreLabel := $Panel/VBoxContainer/Score
-@onready var crystalsLabel := $Panel/VBoxContainer/Crystal_texture/Crystals
-@onready var coins_label: Label = $Panel/VBoxContainer/Coin_texture/Coins
+@onready var crystalsLabel := $Panel/VBoxContainer/Crystals/Crystals
+@onready var coins_label: Label = $Panel/VBoxContainer/Coins/Coins
 @onready var completed_sound: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 const Map = "res://Map/map.tscn"

@@ -741,6 +741,16 @@ func set_entry_path(path: Array[Vector2]):
 	if debug_mode:
 		print("Entry path set with ", path.size(), " waypoints")
 
+func assign_formation_slot(data: Dictionary) -> void:
+	# TEMP SHIM - behavior must remain identical
+	setup_formation_entry(
+		data.wave_config,
+		data.formation_index,
+		data.formation_position,
+		data.start_delay
+	)
+	set_entry_path(data.entry_path)
+
 func _apply_difficulty_multipliers(difficulty: formation_enums.DifficultyLevel):
 	var multipliers = difficulty_multipliers.get(difficulty, difficulty_multipliers[formation_enums.DifficultyLevel.NORMAL])
 	
