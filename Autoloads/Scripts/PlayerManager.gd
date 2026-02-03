@@ -103,7 +103,7 @@ func spawn_player(lives: int) -> void:
 
 func revive_player(lives: int = 2) -> void:
 	# Always reset the ad manager's revive pending state to prevent double revives
-	gm.ad_manager.is_revive_pending = false
+	gm.ad_manager.ad_revive_pending = false
 	gm.ad_manager.revive_type = "none"
 	gm.ad_manager.selected_ad_type = ""
 	gm.ad_manager.is_ad_showing = false

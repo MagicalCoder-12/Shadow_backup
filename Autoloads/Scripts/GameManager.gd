@@ -199,11 +199,17 @@ func trigger_game_over() -> void:
 	# 	ad_manager.show_banner_ad()
 	game_over_triggered.emit()
 
-func request_game_over(source: String = "") -> void:
+func request_game_over(_source: String = "") -> void:
 	game_over = true
 
-func request_game_over_clear(source: String = "") -> void:
+func request_game_over_clear(_source: String = "") -> void:
 	game_over = false
+
+func request_revive_pending_start(_source: String = "") -> void:
+	is_revive_pending = true
+
+func request_revive_pending_clear(_source: String = "") -> void:
+	is_revive_pending = false
 
 func reset_game() -> void:
 	score = 0

@@ -58,7 +58,7 @@ func load_level(level_num: int) -> void:
 		push_error("LevelManager: Failed to load level %d, no current scene" % level_num)
 
 func complete_level(current_level: int) -> void:
-	if gm.game_over and not gm.ad_manager.is_revive_pending:
+	if gm.game_over and not gm.ad_manager.ad_revive_pending:
 		return
 	
 	is_level_just_completed = true
