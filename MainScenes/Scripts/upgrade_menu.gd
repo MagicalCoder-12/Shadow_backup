@@ -16,10 +16,10 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 @onready var void_shards_display: Label = $Resources/VoidCrystal/Void_Shards_display
 @onready var warning: Label = $UI/WarningPanel/Warning_Label
 @onready var warning_panel: Panel = $UI/WarningPanel
-@onready var selected_ship: TextureRect = $SelectedShipDisplay/SelectedShip
-@onready var ship_name: Label = $SelectedShipDisplay/MarginContainer/Panel/ShipName
-@onready var damage: Label = $SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats/Damage
-@onready var status_label: Label = $SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats/StatusLabel
+@onready var selected_ship: TextureRect = $SelectedShipDisplay/HBoxContainer/SelectedShip
+@onready var ship_name: Label = $SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipName
+@onready var damage: Label = $SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats/Damage
+@onready var status_label: Label =$SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats/StatusLabel
 @onready var ascend: Button = $UI/Buy_Ascend/Ascend
 @onready var upgrade_crystals_button: TextureButton = $UI/HBoxContainer/Upgrade_Crystals
 @onready var upgrade_coins_button: TextureButton = $UI/HBoxContainer/Upgrade_coins
@@ -30,6 +30,7 @@ const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 @onready var power_up: AudioStreamPlayer = $"Power-up"
 @onready var msg_panel: Panel = $UI/Msg_panel
 @onready var message: Label = $UI/Msg_panel/Message
+@onready var details_container: MarginContainer = $SelectedShipDisplay/HBoxContainer/DetailsContainer
 
 @onready var Coins_amt: Label = $UI/HBoxContainer/Upgrade_coins/HBoxContainer/Coins_amt
 @onready var Crystal_amt: Label = $UI/HBoxContainer/Upgrade_Crystals/HBoxContainer/Crystal_amt
@@ -115,6 +116,10 @@ func _ready() -> void:
 	# Use the proper method to set reference
 	if GameManager.has_method("set_upgrade_menu_ref"):
 		GameManager.set_upgrade_menu_ref(self)
+	
+	# Connect the selected ship's gui_input signal to handle toggle functionality
+	if selected_ship and not selected_ship.is_connected("gui_input", _on_selected_ship_gui_input):
+		selected_ship.gui_input.connect(_on_selected_ship_gui_input)
 
 func _connect_gamemanager_signals() -> void:
 	"""Connect to relevant GameManager signals"""
@@ -177,6 +182,10 @@ func _initialize_ui() -> void:
 	update_ship_ui()
 	# Set initial visibility of selection buttons
 	_update_selection_buttons_visibility()
+	
+	# Hide the details container by default
+	if details_container:
+		details_container.hide()
 
 func _initialize_ad_tracking() -> void:
 	ad_usage_timer = Timer.new()
@@ -211,10 +220,20 @@ func _update_selection_buttons_visibility() -> void:
 	# When on satellites tab, hide normal select button and show left/right select buttons
 	if is_satellite_tab_active:
 		selected.hide()
-		if sat_left_select:
-			sat_left_select.show()
-		if sat_right_select:
-			sat_right_select.show()
+		if sat_left_select and sat_right_select:
+			# Only show left/right select buttons if the currently selected satellite is unlocked
+			if not GameManager.satellites.is_empty() and selected_satellite_index < GameManager.satellites.size():
+				var current_satellite = GameManager.satellites[selected_satellite_index]
+				if current_satellite["unlocked"]:
+					sat_left_select.show()
+					sat_right_select.show()
+				else:
+					sat_left_select.hide()
+					sat_right_select.hide()
+			else:
+				# Default to hiding if we can't determine the satellite status
+				sat_left_select.hide()
+				sat_right_select.hide()
 	else:
 		# When on ships tab, hide left/right select buttons and show normal select button
 		if sat_left_select:
@@ -412,6 +431,10 @@ func update_ship_ui() -> void:
 		
 		# Ensure ascend button is hidden for locked ships
 		ascend.visible = false
+	
+	# Hide the details container by default when updating ship UI
+	if details_container:
+		details_container.hide()
 
 func update_satellite_ui() -> void:
 	if GameManager.satellites.is_empty():
@@ -487,6 +510,13 @@ func update_satellite_ui() -> void:
 		
 		# Ensure ascend button is hidden for locked satellites
 		ascend.visible = false
+	
+	# Hide the details container by default when updating satellite UI
+	if details_container:
+		details_container.hide()
+	
+	# Update the visibility of selection buttons based on satellite status
+	_update_selection_buttons_visibility()
 
 func _update_ascend_button_visibility() -> void:
 	var ship = GameManager.ships[selected_ship_index]
@@ -899,20 +929,21 @@ func _on_selected_pressed() -> void:
 	if is_satellite_tab_active:
 		var satellite = GameManager.satellites[selected_satellite_index]
 		if satellite["unlocked"]:
-			# For satellites, update the selected satellite in PlayerManager
-			# For now, let's just set it to the first slot
-			if PlayerManager.selected_satellite_ids.is_empty():
-				# Initialize with default satellites if empty
-				PlayerManager.selected_satellite_ids = ["Satellite1", "Satellite2"]
+			# For satellites, update both satellite slots in PlayerManager with the selected satellite (same drone can be used on both sides)
+			if PlayerManager.selected_satellite_ids.size() < 2:
+				PlayerManager.selected_satellite_ids.resize(2)
+				PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
+				PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
 			
-			# Update the first satellite slot with the selected satellite
+			# Update both satellite slots with the selected satellite (same drone can be used on both sides)
 			PlayerManager.selected_satellite_ids[0] = satellite["id"]
+			PlayerManager.selected_satellite_ids[1] = satellite["id"]
 			GameManager.save_manager.save_progress()
 			
 			# Update satellite textures in the current scene
 			PlayerManager.update_selected_satellites()
 			# Show message in the message panel
-			_show_message("%s equipped" % satellite["display_name"])
+			_show_message("%s equipped to both left and right slots" % satellite["display_name"])
 	else:
 		var ship = GameManager.ships[selected_ship_index]
 		if ship["unlocked"]:
@@ -1590,9 +1621,51 @@ func _on_sat_6_gui_input(event: InputEvent) -> void:
 	_handle_satellite_selection(event, 5)
 
 
-func _on_sat_right_select_pressed() -> void:
-	pass # Replace with function body.
-
-
 func _on_sat_left_select_pressed() -> void:
-	pass # Replace with function body.
+	# When player selects left satellite, equip the currently selected satellite in the left position
+	var satellite = GameManager.satellites[selected_satellite_index]
+	if satellite["unlocked"]:
+		# Ensure the selected_satellite_ids array has at least 2 elements
+		if PlayerManager.selected_satellite_ids.size() < 2:
+			PlayerManager.selected_satellite_ids.resize(2)
+			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
+			PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
+		
+		# Update the left satellite slot with the selected satellite
+		PlayerManager.selected_satellite_ids[0] = satellite["id"]
+		GameManager.save_manager.save_progress()
+		
+		# Update satellite textures in the current scene
+		PlayerManager.update_selected_satellites()
+		# Show message in the message panel
+		_show_message("%s equipped to left slot" % satellite["display_name"])
+
+
+func _on_sat_right_select_pressed() -> void:
+	# When player selects right satellite, equip the currently selected satellite in the right position
+	var satellite = GameManager.satellites[selected_satellite_index]
+	if satellite["unlocked"]:
+		# Ensure the selected_satellite_ids array has at least 2 elements
+		if PlayerManager.selected_satellite_ids.size() < 2:
+			PlayerManager.selected_satellite_ids.resize(2)
+			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
+			PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
+		
+		# Update the right satellite slot with the selected satellite
+		PlayerManager.selected_satellite_ids[1] = satellite["id"]
+		GameManager.save_manager.save_progress()
+		
+		# Update satellite textures in the current scene
+		PlayerManager.update_selected_satellites()
+		# Show message in the message panel
+		_show_message("%s equipped to right slot" % satellite["display_name"])
+
+
+func _on_selected_ship_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		# Toggle visibility of the details container
+		if details_container:
+			if details_container.visible:
+				details_container.hide()
+			else:
+				details_container.show()

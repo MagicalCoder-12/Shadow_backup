@@ -55,7 +55,9 @@ func _initialize_player_stats() -> void:
 	}
 	# Initialize satellite selection - default to first two available satellites
 	if selected_satellite_ids.is_empty():
-		selected_satellite_ids = ["Satellite1", "Satellite2"]  # Default to first two satellites
+		selected_satellite_ids.resize(2)
+		selected_satellite_ids[0] = "Satellite1"  # Default left satellite
+		selected_satellite_ids[1] = "Satellite2"  # Default right satellite
 
 func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool, is_super_mode_active: bool = false) -> void:
 	player_stats["attack_level"] = attack_level
@@ -192,11 +194,19 @@ func update_selected_satellites() -> void:
 	if players.size() > 0:
 		var player = players[0]
 		
-		# Try to get satellites attached to player and update them
-		var player_sprite = player.get_node_or_null("Sprite2D")
-		if player_sprite:
-			for child in player_sprite.get_children():
-				if child.name.begins_with("Satellite") and child.has_method("_load_satellite_data"):
-					child._load_satellite_data()  # Reload satellite data to update texture
-					print("Updated satellite texture for: ", child.name)
-			
+		# Call the player's method to update satellites from selection
+		if player and player.has_method("update_satellites_from_selection"):
+			player.update_satellites_from_selection()
+	
+	# Also emit a signal so all players can update their satellites if needed
+	gm.player_manager_satellites_changed.emit()
+
+
+# Signal handler for when satellite selections change
+func _on_player_manager_satellites_changed() -> void:
+	# This method will be called when satellite selections change
+	# Find all players and update their satellites
+	var players = gm.get_tree().get_nodes_in_group("Player")
+	for player in players:
+		if player and player.has_method("update_satellites_from_selection"):
+			player.update_satellites_from_selection()

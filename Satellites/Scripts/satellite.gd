@@ -41,7 +41,7 @@ func _on_timer_timeout() -> void:
 	var player: Node = get_parent().get_parent()
 	var bullet_damage: int = GameManager.player_manager.default_bullet_damage
 	
-	if player and player is Player:
+	if player:
 		bullet_damage = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 
 	
@@ -55,9 +55,17 @@ func _on_timer_timeout() -> void:
 				1500,
 				int(bullet_damage * 0.8)  # Satellite bullets pack 80% of the punch
 			)
-			if bullet and bullet is SatelliteBullet:
-				bullet.homing_strength = shadow_homing_strength  # Crank up the homing juice
-				get_tree().current_scene.call_deferred("add_child", bullet)
+			if bullet:
+				# Set homing strength if the bullet has this property
+				if "homing_strength" in bullet:
+					bullet.homing_strength = shadow_homing_strength  # Crank up the homing juice
+				# Only add the bullet to the scene if it doesn't already have a parent
+				if not bullet.get_parent():
+					get_tree().current_scene.add_child(bullet)
+				elif bullet.get_parent() != get_tree().current_scene:
+					# If bullet is in a different scene, remove it from there first
+					bullet.get_parent().remove_child(bullet)
+					get_tree().current_scene.add_child(bullet)
 	else:
 		# Normal mode: just a single, no-nonsense bullet
 		var bullet: Node = BulletFactory.spawn_bullet(
@@ -67,8 +75,17 @@ func _on_timer_timeout() -> void:
 			1500,
 			int(bullet_damage * 0.8)  # Keepin' it consistent
 		)
-		if bullet and bullet is SatelliteBullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+		if bullet:
+			# Set homing strength if the bullet has this property
+			if "homing_strength" in bullet:
+				bullet.homing_strength = shadow_homing_strength  # Crank up the homing juice
+			# Only add the bullet to the scene if it doesn't already have a parent
+			if not bullet.get_parent():
+				get_tree().current_scene.add_child(bullet)
+			elif bullet.get_parent() != get_tree().current_scene:
+				# If bullet is in a different scene, remove it from there first
+				bullet.get_parent().remove_child(bullet)
+				get_tree().current_scene.add_child(bullet)
 
 ## Toggles shooting on or off, like flipping a laser switch.
 func set_shooting_active(active: bool) -> void:

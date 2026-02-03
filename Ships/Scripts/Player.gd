@@ -58,7 +58,23 @@ var input_enabled: bool = true
 # Satellite management variables
 var satellites: Array[Node2D] = []
 var satellite_scenes: Dictionary = {}
-var satellite_offsets: Array[Vector2] = [Vector2(-50, 0), Vector2(50, 0)]  # Left and right positions
+
+func _remove_all_satellites() -> void:
+	# Remove all current satellites
+	for satellite in satellites:
+		if satellite and is_instance_valid(satellite):
+			# Stop the satellite from shooting before removing it to prevent
+			# any remaining timers from firing and adding bullets to the scene
+			if satellite.has_method("set_shooting_active"):
+				satellite.set_shooting_active(false)
+			# Remove the satellite from its parent (the player) before queue_free
+			if satellite.get_parent() == self:
+				remove_child(satellite)
+			satellite.queue_free()
+
+	# Clear the satellites array
+	satellites.clear()
+	_debug_log("Removed all satellites")
 
 func _ready() -> void:
 	_initialize_player()
@@ -170,6 +186,7 @@ func _connect_signals() -> void:
 	GameManager.level_completed.connect(_on_level_completed)
 	GameManager.ship_stats_updated.connect(_on_ship_stats_updated)
 	GameManager.satellite_stats_updated.connect(_on_satellite_stats_updated)
+	GameManager.player_manager_satellites_changed.connect(_on_player_manager_satellites_changed)
 
 func _apply_initial_state() -> void:
 	# Apply shadow mode if enabled
@@ -229,8 +246,8 @@ func _add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
 	# Set satellite name to identify it later
 	satellite.name = "Satellite%d" % position_index
 	
-	# Position the satellite relative to the player
-	var offset = satellite_offsets[position_index] if position_index < satellite_offsets.size() else satellite_offsets[0]
+	# Position the satellite relative to the player using dynamic calculation based on sprite bounds
+	var offset = _calculate_satellite_offset(position_index)
 	satellite.position = offset
 	
 	# Add satellite as child of player
@@ -253,16 +270,6 @@ func _add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
 func _debug_log(message: String) -> void:
 	if enable_debug_logging:
 		print("[Player Debug] " + message)
-
-func _remove_all_satellites() -> void:
-	# Remove all current satellites
-	for satellite in satellites:
-		if satellite and is_instance_valid(satellite):
-			satellite.queue_free()
-	
-	# Clear the satellites array
-	satellites.clear()
-	_debug_log("Removed all satellites")
 
 func update_satellites_from_selection() -> void:
 	# Remove existing satellites and add new ones based on updated selection
@@ -900,6 +907,36 @@ func _on_player_manager_satellites_changed() -> void:
 	"""Handle when PlayerManager's selected satellites are changed"""
 	update_satellites_from_selection()
 	_debug_log("Satellite selection updated from PlayerManager")
+
+
+func _calculate_satellite_offset(position_index: int) -> Vector2:
+	"""Calculate satellite position based on the player sprite's visual bounds and scale"""
+	if not sprite_2d:
+		push_warning("Sprite2D not found, using default offset")
+		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	
+	# Get the texture size if available
+	var texture_size: Vector2 = Vector2.ZERO
+	if sprite_2d.texture:
+		texture_size = sprite_2d.texture.get_size()
+	else:
+		push_warning("No texture found on player sprite, using default offset")
+		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	
+	# Apply the current scale of the sprite
+	var scaled_size = texture_size * sprite_2d.scale
+	
+	# Calculate offset based on half of the scaled width plus some padding
+	# Position index 0 = left satellite, position index 1 = right satellite
+	var padding: float = 10.0  # Additional padding to prevent overlap
+	var offset_x = (scaled_size.x / 2.0) + padding
+	
+	if position_index == 0:
+		# Left satellite
+		return Vector2(-offset_x, 0)
+	else:
+		# Right satellite
+		return Vector2(offset_x, 0)
 
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == "Player_sweep":

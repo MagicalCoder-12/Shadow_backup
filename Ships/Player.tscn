@@ -79,7 +79,7 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cy6s0"]
-size = Vector2(221.333, 146)
+size = Vector2(73.333336, 50)
 
 [sub_resource type="Animation" id="Animation_yixmy"]
 resource_name = "Player_sweep"
@@ -144,28 +144,9 @@ _data = {
 
 [node name="Player" type="Area2D" groups=["Player"]]
 z_index = 100
-scale = Vector2(1.5, 1.5)
+scale = Vector2(3, 3)
 collision_mask = 14
 script = ExtResource("1_4bi7n")
-ship_id = null
-speed = null
-touch_speed = null
-smoothness = null
-normal_fire_delay = 0.5
-boundary_padding = 20.0
-max_life = null
-shadow_speed_multiplier = null
-shadow_fire_delay_multiplier = null
-spread_angle_increment = null
-spawn_point_offset = null
-super_mode_damage_boost = null
-super_mode_speed_multiplier = null
-super_mode_fire_delay = null
-super_mode_bullet_speed = null
-shadow_bullet_count = null
-base_bullet_damage = null
-shadow_texture = null
-enable_debug_logging = null
 evolution_textures = Array[Texture2D]([ExtResource("2_p2q7k"), ExtResource("3_jjmcd")])
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
@@ -190,7 +171,7 @@ position = Vector2(53, -26)
 gizmo_extents = 100.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(2, 17.6667)
+position = Vector2(-0.33333334, 1.999999)
 shape = SubResource("RectangleShape2D_cy6s0")
 
 [node name="FireDelayTimer" type="Timer" parent="."]

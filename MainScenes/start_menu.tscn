@@ -1,6 +1,6 @@
 [gd_scene load_steps=46 format=3 uid="uid://dgv64lgc6rm83"]
 
-[ext_resource type="Script" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
+[ext_resource type="Script" uid="uid://dkoa187w4j8tq" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
 [ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
 [ext_resource type="Texture2D" uid="uid://cyh4wk5wujkxe" path="res://Textures/player/Splayer.png" id="3_3nkws"]
 [ext_resource type="Texture2D" uid="uid://bs84m6qvou1ht" path="res://Textures/Sprites/Missile/Missile_3_Flying_000.png" id="4_2r68k"]
@@ -100,17 +100,17 @@ animations = [{
 
 [sub_resource type="LabelSettings" id="LabelSettings_w5iua"]
 font = ExtResource("27_uvmca")
-font_size = 70
+font_size = 80
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_75pxm"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xu6k0"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m4cmf"]
 texture = ExtResource("28_x6b8c")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kb1xe"]
 texture = ExtResource("28_x6b8c")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m4cmf"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xu6k0"]
 texture = ExtResource("28_x6b8c")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xufyx"]
@@ -143,8 +143,9 @@ grow_vertical = 2
 texture = ExtResource("2_mccjh")
 
 [node name="Splayer" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(578, 2125)
+position = Vector2(724.99994, 2925)
 rotation = -0.888373
+scale = Vector2(1.3, 1.3)
 texture = ExtResource("3_3nkws")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Splayer"]
@@ -188,8 +189,8 @@ scale = Vector2(0.600761, 0.455315)
 texture = ExtResource("10_3pl5x")
 
 [node name="Boss" type="Sprite2D" parent="CanvasLayer"]
-position = Vector2(539, 449)
-scale = Vector2(0.801336, 0.749152)
+position = Vector2(763.5, 578.49994)
+scale = Vector2(0.9365234, 0.9326172)
 texture = ExtResource("8_mccjh")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Boss"]
@@ -211,10 +212,10 @@ stream = ExtResource("18_mccjh")
 parameters/looping = true
 
 [node name="Panel" type="Panel" parent="."]
-offset_left = 180.0
-offset_top = 897.0
-offset_right = 968.0
-offset_bottom = 1615.0
+offset_left = 207.0
+offset_top = 1210.0
+offset_right = 1270.0
+offset_bottom = 2164.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -223,13 +224,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -210.0
-offset_top = -329.0
-offset_right = 229.0
-offset_bottom = 289.0
+offset_left = -299.5
+offset_top = -452.0
+offset_right = 202.5
+offset_bottom = 317.99994
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 60
+scale = Vector2(1.2, 1.2)
+theme_override_constants/separation = 80
 
 [node name="Welcome" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
@@ -243,21 +245,23 @@ layout_mode = 2
 texture_normal = ExtResource("8_5c6u1")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = ExtResource("8_5c6u1")
+stretch_mode = 0
 
 [node name="Exit" type="TextureButton" parent="Panel/VBoxContainer"]
 layout_mode = 2
 texture_normal = ExtResource("28_a5br4")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = SubResource("CompressedTexture2D_75pxm")
+stretch_mode = 0
 
 [node name="Info" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(100, 120)
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_fonts/font = ExtResource("28_5h8pl")
-theme_override_font_sizes/font_size = 60
-theme_override_styles/focus = SubResource("StyleBoxTexture_xu6k0")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_kb1xe")
+theme_override_font_sizes/font_size = 100
 theme_override_styles/normal = SubResource("StyleBoxTexture_m4cmf")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_kb1xe")
+theme_override_styles/focus = SubResource("StyleBoxTexture_xu6k0")
 text = "INFO"
 
 [node name="ExitUI" type="CanvasLayer" parent="."]

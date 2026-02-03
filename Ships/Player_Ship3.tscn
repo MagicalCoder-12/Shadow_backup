@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://dsy2feyx5l6m6"]
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_jvelg"]
-[ext_resource type="Script" path="res://Ships/Scripts/Ship3.gd" id="2_dqtih"]
+[ext_resource type="Script" uid="uid://jwxwhubky28x" path="res://Ships/Scripts/Ship3.gd" id="2_dqtih"]
 [ext_resource type="Texture2D" uid="uid://c3ogkrsa2jvnk" path="res://Textures/player/ship_textures/ship_03_lvl0.png" id="3_pvn5r"]
 [ext_resource type="Texture2D" uid="uid://chom5tjb0ccyo" path="res://Textures/player/Example_ships/ships-03/Spaceships-03-Purple-03.png" id="3_syngj"]
 [ext_resource type="Texture2D" uid="uid://ccl5my2qqu1ab" path="res://Textures/player/ship_textures/ship_03_lvl1.png" id="4_0vkc4"]
@@ -11,6 +11,7 @@
 load_path = "res://.godot/imported/ship_03_lvl0.png-4c564a724fd7af508b2502d2657b8056.ctex"
 
 [node name="astrablade" instance=ExtResource("1_jvelg")]
+scale = Vector2(2, 2)
 script = ExtResource("2_dqtih")
 wave_pattern_count = 2
 shots_per_wave = 2

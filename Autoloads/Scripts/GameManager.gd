@@ -38,6 +38,8 @@ signal satellite_stats_updated(satellite_id: String, new_damage_bonus: int)
 signal enemy_killed(enemy: Node)
 @warning_ignore("unused_signal")
 signal prepare_map_scene()
+@warning_ignore("unused_signal")
+signal player_manager_satellites_changed()
 
 # 🔒 CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"

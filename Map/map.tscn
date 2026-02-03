@@ -40,12 +40,16 @@ script = ExtResource("3_8svjd")
 
 [node name="Label" type="Label" parent="."]
 top_level = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = -0.332407
 anchor_top = -4.27333
 anchor_right = 1.42778
 anchor_bottom = -3.93125
-offset_top = 0.000976563
+offset_left = 16.666077
+offset_top = 3363.6563
+offset_right = 16.666016
+offset_bottom = 3363.6553
 theme_override_colors/font_color = Color(0.952941, 0.996078, 0.294118, 1)
 theme_override_font_sizes/font_size = 200
 text = "More Levels 
@@ -58,16 +62,15 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = -60.0
 offset_top = -75.0
-offset_right = 1287.0
-offset_bottom = 2733.0
+offset_right = 1665.0
+offset_bottom = 3239.0
 texture = ExtResource("12_rr5ff")
-flip_v = true
 
 [node name="Space2" type="TextureRect" parent="."]
 layout_mode = 0
 offset_left = -68.0
 offset_top = -5896.0
-offset_right = 1265.0
+offset_right = 1668.0
 offset_bottom = -3003.0
 texture = ExtResource("4_eiwrt")
 
@@ -75,7 +78,7 @@ texture = ExtResource("4_eiwrt")
 layout_mode = 0
 offset_left = -79.0
 offset_top = -8801.0
-offset_right = 1254.0
+offset_right = 1660.0
 offset_bottom = -5908.0
 texture = SubResource("CompressedTexture2D_t0nxn")
 
@@ -84,29 +87,30 @@ modulate = Color(0.777569, 0.584156, 0.35576, 1)
 layout_mode = 0
 offset_left = -86.0
 offset_top = -3165.0
-offset_right = 1261.0
+offset_right = 1668.0
 offset_bottom = -66.0
 texture = ExtResource("4_0bgbn")
 
 [node name="Commingsoon" type="Sprite2D" parent="."]
-position = Vector2(623, -9494)
-scale = Vector2(1.5, 1.44873)
+position = Vector2(777, -9494)
+scale = Vector2(1.8007813, 1.44873)
 texture = ExtResource("2_6yc6o")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(-68, 22)
+position = Vector2(-45, -355)
 anchor_mode = 0
 zoom = Vector2(0.9, 0.9)
 script = ExtResource("4_86j4t")
-scroll_speed = 3.0
+scroll_speed = 4.0
 
 [node name="LevelButtons" type="Node2D" parent="."]
+scale = Vector2(1.1, 1.1)
 
 [node name="LevelButton1" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 443.0
-offset_top = 1955.0
-offset_right = 543.0
-offset_bottom = 2055.0
+offset_left = 544.5455
+offset_top = 1983.6362
+offset_right = 644.54553
+offset_bottom = 2083.6362
 locked = false
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton1"]
@@ -119,10 +123,10 @@ texture = ExtResource("8_uh8jt")
 expand_mode = 1
 
 [node name="LevelButton2" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 835.0
-offset_top = 1657.0
-offset_right = 935.0
-offset_bottom = 1757.0
+offset_left = 870.90906
+offset_top = 1550.0
+offset_right = 970.90906
+offset_bottom = 1650.0
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton2"]
 layout_mode = 0
@@ -134,10 +138,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton3" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 781.0
-offset_top = 1069.0
-offset_right = 881.0
-offset_bottom = 1169.0
+offset_left = 986.36365
+offset_top = 995.4545
+offset_right = 1086.3636
+offset_bottom = 1095.4546
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton3"]
 layout_mode = 0
@@ -150,10 +154,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton4" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 533.0
-offset_top = 717.0
-offset_right = 633.0
-offset_bottom = 817.0
+offset_left = 910.0
+offset_top = 430.9091
+offset_right = 1010.0
+offset_bottom = 530.90906
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton4"]
 layout_mode = 0
@@ -166,10 +170,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton5" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 411.0
-offset_top = 100.0
-offset_right = 511.0
-offset_bottom = 200.0
+offset_left = 381.81818
+offset_top = 135.45454
+offset_right = 481.81818
+offset_bottom = 235.45454
 scale = Vector2(4, 4)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -186,10 +190,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton6" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 353.0
-offset_top = -536.0
-offset_right = 453.0
-offset_bottom = -436.0
+offset_left = 341.81818
+offset_top = -429.99997
+offset_right = 441.81818
+offset_bottom = -329.99997
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton6"]
 layout_mode = 0
@@ -202,10 +206,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton7" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 741.0
-offset_top = -1027.0
-offset_right = 841.0
-offset_bottom = -927.0
+offset_left = 658.18176
+offset_top = -895.45447
+offset_right = 758.18176
+offset_bottom = -795.45447
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton7"]
 layout_mode = 0
@@ -218,10 +222,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton8" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 881.0
-offset_top = -1584.0
-offset_right = 981.0
-offset_bottom = -1484.0
+offset_left = 836.3636
+offset_top = -1452.7273
+offset_right = 936.3636
+offset_bottom = -1352.7273
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton8"]
 layout_mode = 0
@@ -233,10 +237,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton9" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 543.0
-offset_top = -2040.0
-offset_right = 643.0
-offset_bottom = -1940.0
+offset_left = 590.9091
+offset_top = -1901.8182
+offset_right = 690.9091
+offset_bottom = -1801.8182
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton9"]
 layout_mode = 0
@@ -249,10 +253,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton10" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 370.0
-offset_top = -2924.0
-offset_right = 470.0
-offset_bottom = -2824.0
+offset_left = 325.45456
+offset_top = -2761.8184
+offset_right = 425.45456
+offset_bottom = -2661.8184
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -269,10 +273,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton11" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 816.0
-offset_top = -3714.0
-offset_right = 916.0
-offset_bottom = -3614.0
+offset_left = 740.90906
+offset_top = -3420.9092
+offset_right = 840.90906
+offset_bottom = -3320.9092
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton11"]
 layout_mode = 0
@@ -285,10 +289,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton12" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 278.0
-offset_top = -3986.0
-offset_right = 378.0
-offset_bottom = -3886.0
+offset_left = 322.72726
+offset_top = -3854.5454
+offset_right = 422.72726
+offset_bottom = -3754.5454
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton12"]
 layout_mode = 0
@@ -301,10 +305,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton13" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 622.0
-offset_top = -4544.0
-offset_right = 722.0
-offset_bottom = -4444.0
+offset_left = 562.72723
+offset_top = -4251.8184
+offset_right = 662.72723
+offset_bottom = -4151.8184
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton13"]
 layout_mode = 0
@@ -317,10 +321,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton14" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 977.0
-offset_top = -4983.0
-offset_right = 1077.0
-offset_bottom = -4883.0
+offset_left = 884.5455
+offset_top = -4618.1816
+offset_right = 984.5455
+offset_bottom = -4518.1816
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton14"]
 layout_mode = 0
@@ -333,10 +337,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton15" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 430.0
-offset_top = -5622.0
-offset_right = 530.0
-offset_bottom = -5522.0
+offset_left = 374.54547
+offset_top = -5221.818
+offset_right = 474.54547
+offset_bottom = -5121.818
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -353,10 +357,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton16" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 498.0
-offset_top = -6501.0
-offset_right = 598.0
-offset_bottom = -6401.0
+offset_left = 519.09094
+offset_top = -6031.8184
+offset_right = 619.09094
+offset_bottom = -5931.8184
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton16"]
 layout_mode = 0
@@ -369,10 +373,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton17" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 817.0
-offset_top = -6987.0
-offset_right = 917.0
-offset_bottom = -6887.0
+offset_left = 875.4545
+offset_top = -6397.2725
+offset_right = 975.4545
+offset_bottom = -6297.2725
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton17"]
 layout_mode = 0
@@ -385,10 +389,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton18" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 427.0
-offset_top = -7516.0
-offset_right = 527.0
-offset_bottom = -7416.0
+offset_left = 572.72723
+offset_top = -6873.636
+offset_right = 672.72723
+offset_bottom = -6773.636
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton18"]
 layout_mode = 0
@@ -401,10 +405,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton19" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 797.0
-offset_top = -7848.0
-offset_right = 897.0
-offset_bottom = -7748.0
+offset_left = 965.4544
+offset_top = -7252.727
+offset_right = 1065.4543
+offset_bottom = -7152.727
 
 [node name="Star" type="TextureRect" parent="LevelButtons/LevelButton19"]
 layout_mode = 0
@@ -417,10 +421,10 @@ expand_mode = 1
 stretch_mode = 4
 
 [node name="LevelButton20" parent="LevelButtons" instance=ExtResource("2_njngi")]
-offset_left = 340.0
-offset_top = -8593.0
-offset_right = 440.0
-offset_bottom = -8493.0
+offset_left = 347.27277
+offset_top = -7902.7266
+offset_right = 447.27277
+offset_bottom = -7802.7266
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
@@ -443,21 +447,34 @@ parameters/looping = true
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Back" type="TextureButton" parent="CanvasLayer"]
-offset_left = 42.0
-offset_top = 1982.0
-offset_right = 252.0
-offset_bottom = 2192.0
+anchors_preset = -1
+anchor_left = 0.010416667
+anchor_top = 0.85625
+anchor_right = 0.18541667
+anchor_bottom = 0.935
+offset_right = -42.0
+offset_bottom = -42.0
+grow_vertical = 0
+scale = Vector2(1.2, 1.2)
 texture_normal = ExtResource("11_31513")
 texture_pressed = ExtResource("11_0th5g")
 texture_hover = ExtResource("11_31513")
+metadata/_edit_use_anchors_ = true
 
 [node name="Shop" type="TextureButton" parent="CanvasLayer"]
-offset_left = 854.0
-offset_top = 1972.0
-offset_right = 1064.0
-offset_bottom = 2182.0
+anchors_preset = -1
+anchor_left = 0.80625
+anchor_top = 0.8540625
+anchor_right = 0.98125
+anchor_bottom = 0.9328125
+offset_right = -42.0
+offset_bottom = -42.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(1.2, 1.2)
 texture_normal = ExtResource("14_hry20")
 texture_pressed = ExtResource("16_t5i76")
+metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="CanvasLayer/Back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/Shop" to="." method="_on_shop_pressed"]

@@ -54,10 +54,13 @@ func spawn_bullet(
 	# We still connect this as a backup in case a bullet gets freed unexpectedly
 	if bullet.has_signal("tree_exiting"):
 		bullet.pool_key = bullet_scene.resource_path  # Store the pool key in the bullet
+		# Disconnect any existing connection to prevent multiple connections
+		var existing_callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
+		if bullet.tree_exiting.is_connected(existing_callable):
+			bullet.tree_exiting.disconnect(existing_callable)
 		# Create a callable that will pass the bullet as an argument when tree_exiting is emitted
 		var callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
-		if not bullet.tree_exiting.is_connected(callable):
-			bullet.tree_exiting.connect(callable)
+		bullet.tree_exiting.connect(callable)
 	
 	return bullet
 
@@ -119,6 +122,11 @@ func return_bullet_to_pool(bullet: BulletBase, pool_key: String) -> void:
 			bullet.queue_free()
 			return
 		if bullet_pool[pool_key].size() < MAX_POOL_SIZE:
+			# Disconnect any existing signal connection before returning to pool
+			if bullet.has_signal("tree_exiting"):
+				var existing_callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
+				if bullet.tree_exiting.is_connected(existing_callable):
+					bullet.tree_exiting.disconnect(existing_callable)
 			# Reset bullet properties before returning to pool
 			bullet.is_active = false
 			bullet.visible = false
