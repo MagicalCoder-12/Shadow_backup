@@ -32,6 +32,7 @@ var enemies_spawned_count: int = 0
 var all_enemies_have_spawned: bool = false
 var is_spawning: bool = false
 var current_wave_config: WaveConfig = null
+var enemies_reached_formation: Dictionary = {}
 
 var difficulty_multipliers := {
 	FormationEnums.DifficultyLevel.EASY: {
@@ -132,6 +133,7 @@ func _clear_formation_data() -> void:
 	formation_positions.clear()
 	spawn_positions.clear()
 	entry_paths.clear()
+	enemies_reached_formation.clear()
 	
 	# Properly clean up enemies
 	for enemy in spawned_enemies:
@@ -700,14 +702,18 @@ func _spawn_single_enemy(index: int) -> void:
 		print("FormationManager: Spawned enemy %d at %s" % [index, enemy.global_position])
 
 func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
-	if enemy.has_method("setup_formation_entry"):
+	if enemy.has_method("assign_formation_slot"):
 		var config = _create_enemy_config(index)
 		var formation_pos = formation_positions[index]
-		enemy.setup_formation_entry(config, index, formation_pos, 0.0)
-		
-		if enemy.has_method("set_entry_path") and index < entry_paths.size():
-			var entry_path = entry_paths[index]
-			enemy.set_entry_path(entry_path)
+		var start_delay = 0.0
+		var entry_path = entry_paths[index]
+		enemy.assign_formation_slot({
+			"wave_config": config,
+			"formation_index": index,
+			"formation_position": formation_pos,
+			"start_delay": start_delay,
+			"entry_path": entry_path
+		})
 
 func _create_enemy_config(index: int) -> WaveConfig:
 	var config = current_wave_config.duplicate()
@@ -729,6 +735,10 @@ func _on_enemy_formation_reached(enemy: Enemy) -> void:
 			print("FormationManager: Formation reached signal for invalid enemy")
 		return
 	
+	if enemies_reached_formation.has(enemy):
+		return
+	
+	enemies_reached_formation[enemy] = true
 	enemies_in_formation += 1
 	if debug_mode:
 		print("FormationManager: Enemy reached formation. Total: %d" % enemies_in_formation)
@@ -758,7 +768,8 @@ func _on_enemy_died(enemy: Enemy) -> void:
 			print("FormationManager: Died signal received for invalid enemy")
 		return
 	
-	if enemy.arrived_at_formation:
+	if enemies_reached_formation.has(enemy):
+		enemies_reached_formation.erase(enemy)
 		enemies_in_formation = max(0, enemies_in_formation - 1)
 		if debug_mode:
 			print("FormationManager: Enemy died (was in formation). Formation count: %d" % enemies_in_formation)
