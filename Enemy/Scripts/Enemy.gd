@@ -307,7 +307,7 @@ func _physics_process(delta: float) -> void:
 	_handle_shooting(delta)
 	
 	# Keep enemy within screen bounds with buffer
-	global_position.x = clamp(global_position.x, -50, viewport_size.x + 50)
+	position.x = clamp(position.x, -50, viewport_size.x + 50)
 
 func _update_player_reference():
 	if not is_instance_valid(player_reference):
@@ -340,10 +340,10 @@ func _follow_entry_path(delta: float):
 		return
 	
 	var target_pos = entry_path[entry_path_index]
-	var direction = (target_pos - global_position).normalized()
+	var direction = (target_pos - global_position).normalized()  # Still need to use global_position for path calculations
 	var move_speed = speed * entry_speed_multiplier
 	
-	global_position += direction * move_speed * delta
+	position += direction * move_speed * delta
 	
 	# Check if we're close enough to the next waypoint
 	if global_position.distance_to(target_pos) < 20.0:
@@ -352,7 +352,7 @@ func _follow_entry_path(delta: float):
 func _reach_formation():
 	is_in_entry_phase = false
 	arrived_at_formation = true
-	global_position = formation_position
+	position = formation_position
 	formation_reached.emit()
 	
 	if debug_mode:
@@ -383,7 +383,7 @@ func _handle_formation_hold(delta: float):
 		cos(time_since_spawn * 0.3) * 3.0
 	)
 	var target = formation_position + drift
-	global_position = global_position.lerp(target, 2.0 * delta)
+	position = position.lerp(target, 2.0 * delta)
 
 func _handle_side_to_side(delta: float):
 	"""Move side to side around formation position with smooth easing"""
@@ -396,7 +396,7 @@ func _handle_side_to_side(delta: float):
 	var phase_offset = formation_index * 0.5
 	var side_offset = sin(time_since_spawn * 2.0 + phase_offset) * amplitude
 	var target_pos = formation_position + Vector2(side_offset, 0)
-	global_position = global_position.lerp(target_pos, 3.0 * delta)
+	position = position.lerp(target_pos, 3.0 * delta)
 
 func _handle_circle_movement(delta: float):
 	"""Circle around formation position"""
@@ -404,16 +404,16 @@ func _handle_circle_movement(delta: float):
 	var rotation_speed = 2.0 + (formation_index % 3) * 0.3
 	circle_angle += delta * rotation_speed
 	var circle_offset = Vector2(cos(circle_angle), sin(circle_angle)) * circle_radius
-	global_position = formation_position + circle_offset
+	position = formation_position + circle_offset
 
 func _handle_dive_pattern(delta: float):
 	"""Occasional dive towards player with smooth recovery"""
 	if is_instance_valid(player_reference) and randf() < 0.002:  # Less frequent dives
 		var dive_direction = (player_reference.global_position - global_position).normalized()
-		global_position += dive_direction * speed * 2.0 * delta
+		position += dive_direction * speed * 2.0 * delta
 	else:
 		# Smooth return to formation
-		global_position = global_position.lerp(formation_position, 3.0 * delta)
+		position = position.lerp(formation_position, 3.0 * delta)
 
 # --- New Movement Pattern Implementations ---
 
@@ -425,7 +425,7 @@ func _handle_dive_bomb_pattern(delta: float):
 		is_diving = false  # Reset dive state immediately
 	
 	# Return to formation when not diving
-	global_position = global_position.lerp(formation_position, 2.0 * delta)
+	position = position.lerp(formation_position, 2.0 * delta)
 
 func _handle_swarm_pattern(delta: float):
 	"""Move in coordinated swarm behavior with nearby enemies"""
@@ -448,13 +448,13 @@ func _handle_swarm_pattern(delta: float):
 	var swarm_offset = primary_wave + secondary_wave
 	
 	# Add slight attraction to center of formation for cohesion
-	var center_attraction = (swarm_center - global_position) * 0.02
+	var center_attraction = (swarm_center - position) * 0.02
 	swarm_offset += center_attraction
 	
 	var target_pos = formation_position + swarm_offset
 	
 	# Smooth lerp with slightly faster response
-	global_position = global_position.lerp(target_pos, 2.5 * delta)
+	position = position.lerp(target_pos, 2.5 * delta)
 
 func _handle_ambush_pattern(delta: float):
 	"""Hide at screen edges and ambush the player with improved behavior"""
@@ -475,28 +475,28 @@ func _setup_ambush_position():
 		# Right edge
 		ambush_position = Vector2(viewport_size.x + 30, randf_range(100, viewport_size.y - 100))
 	
-	global_position = ambush_position
+	position = ambush_position
 
 func _execute_ambush_behavior(delta: float):
 	"""Execute the ambush behavior - wait and attack"""
 	if not is_instance_valid(player_reference):
 		return
 	
-	var distance_to_player = global_position.distance_to(player_reference.global_position)
+	var distance_to_player = position.distance_to(player_reference.global_position)
 	
 	# Attack when player comes close enough
 	if distance_to_player < 350:
 		# Rush towards player
 		var direction = (player_reference.global_position - global_position).normalized()
-		global_position += direction * speed * 1.8 * delta
+		position += direction * speed * 1.8 * delta
 		
 		# Check if we've passed the player, then retreat
-		if global_position.y > player_reference.global_position.y + 100:
+		if position.y > player_reference.global_position.y + 100:
 			is_ambushing = false  # Reset to set up new ambush
 	else:
 		# Slowly creep towards center while waiting
 		var creep_target = ambush_position.lerp(Vector2(viewport_size.x / 2, ambush_position.y), 0.15)
-		global_position = global_position.lerp(creep_target, 0.5 * delta)
+		position = position.lerp(creep_target, 0.5 * delta)
 
 func _handle_shooting(delta: float):
 	if not arrived_at_formation or not is_instance_valid(player_reference):
@@ -589,7 +589,7 @@ func _fire_single_shot():
 	if not bullet:
 		return
 	
-	bullet.global_position = global_position
+	bullet.global_position = position
 	bullet.rotation = PI/2  # Straight down
 	get_tree().current_scene.add_child(bullet)
 
@@ -629,10 +629,10 @@ func _fire_at_player():
 		return
 	
 	# Position bullet at enemy center
-	bullet.global_position = global_position
+	bullet.global_position = position
 	
 	# Calculate direction to player
-	var direction = (player_reference.global_position - global_position).normalized()
+	var direction = (player_reference.global_position - position).normalized()
 	bullet.rotation = direction.angle() + PI/2
 	
 	# Add to scene
@@ -655,13 +655,13 @@ func _fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI/6):  # Re
 		var angle_offset = spread_angle * (i - (bullet_count-1)/2.0) / (bullet_count-1)
 		var direction = Vector2.ZERO
 		if is_instance_valid(player_reference):
-			direction = (player_reference.global_position - global_position).normalized()
+			direction = (player_reference.global_position - position).normalized()
 		else:
 			direction = Vector2(0, 1)  # Default downward direction
 		
 		direction = direction.rotated(angle_offset)
 		
-		bullet.global_position = global_position
+		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
 
@@ -677,7 +677,7 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		# Calculate direction to player with slight variation for each burst
 		var direction = Vector2.ZERO
 		if is_instance_valid(player_reference):
-			direction = (player_reference.global_position - global_position).normalized()
+			direction = (player_reference.global_position - position).normalized()
 		else:
 			direction = Vector2(0, 1)  # Default downward direction
 		
@@ -685,7 +685,7 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		var angle_variation = (i - (burst_count-1)/2.0) * 0.05  # Reduced from 0.1 to 0.05
 		direction = direction.rotated(angle_variation)
 		
-		bullet.global_position = global_position
+		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
 
@@ -704,7 +704,7 @@ func _drop_bomb():
 	var bomb_instance = BOMB.instantiate()
 	if bomb_instance:
 		# Position the bomb at the enemy's position
-		bomb_instance.global_position = global_position
+		bomb_instance.global_position = position
 		# Add the bomb to the scene
 		get_tree().current_scene.add_child(bomb_instance)
 
@@ -729,7 +729,7 @@ func setup_formation_entry(config: WaveConfig, index: int, formation_pos: Vector
 	if fire_timer:
 		fire_timer.wait_time = 1.0 / fire_rate
 	
-	spawn_position = global_position
+	spawn_position = position
 	
 	if debug_mode:
 		print("Enemy formation setup complete")

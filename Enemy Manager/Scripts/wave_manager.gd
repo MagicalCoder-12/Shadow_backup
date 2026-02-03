@@ -513,6 +513,20 @@ func _stop_boss_audio() -> void:
 		AudioManager.restore_bus_volumes()
 		AudioManager.mute_bus("Bullet", false)
 
+# --- Reward Handling Polish ---
+
+func _consume_enemy_reward(enemy: Node2D) -> void:
+	"""Consume enemy reward exactly once, ensuring idempotent reward handling"""
+	var payload = _enemy_reward_payloads.get(enemy.get_instance_id(), {})
+	if payload and not payload.get("is_boss", false):
+		_apply_enemy_rewards(payload)
+		# Notify GameManager for shadow mode charging (matches previous timing)
+		if game_manager and is_instance_valid(enemy):
+			game_manager.notify_enemy_killed(enemy)
+		
+	# Immediately remove the payload to prevent double consumption
+	_enemy_reward_payloads.erase(enemy.get_instance_id())
+
 func _on_enemy_spawned(enemy: Node2D) -> void:
 	if not is_instance_valid(enemy):
 		return
@@ -558,12 +572,8 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 	if debug_mode:
 		print("WaveManager: Enemy killed - enemies_alive: %d, active_enemies: %d, wave_in_progress: %s" % [enemies_alive, active_enemies.size(), wave_in_progress])
 	
-	# Notify GameManager for shadow mode charging (matches previous timing)
-	var payload = _enemy_reward_payloads.get(enemy.get_instance_id(), {})
-	if payload and not payload.get("is_boss", false):
-		if game_manager and is_instance_valid(enemy):
-			game_manager.notify_enemy_killed(enemy)
-	_enemy_reward_payloads.erase(enemy.get_instance_id())
+	# Consume enemy reward exactly once
+	_consume_enemy_reward(enemy)
 	
 	_unregister_enemy(enemy)
 	
@@ -580,8 +590,10 @@ func _on_enemy_died(payload: Dictionary, enemy: Node2D) -> void:
 	if not payload:
 		return
 	_enemy_reward_payloads[enemy.get_instance_id()] = payload
+	# Boss rewards are handled separately, don't consume here
 	if payload.get("is_boss", false):
 		return
+	# Apply rewards immediately for non-boss enemies
 	_apply_enemy_rewards(payload)
 
 func _apply_enemy_rewards(payload: Dictionary) -> void:
@@ -596,9 +608,9 @@ func _apply_enemy_rewards(payload: Dictionary) -> void:
 	game_manager.score += final_score
 
 	# Get current level from GameManager
-	var current_level = 1
+	var game_level = 1
 	if game_manager.level_manager:
-		current_level = game_manager.level_manager.get_current_level()
+		game_level = game_manager.level_manager.get_current_level()
 	
 	# Get reward configuration
 	var reward_config = {}
@@ -612,7 +624,7 @@ func _apply_enemy_rewards(payload: Dictionary) -> void:
 	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
 	
 	# Scale rewards based on level (higher levels give more rewards)
-	var level_multiplier = pow(float(current_level), 0.5)  # Square root scaling
+	var level_multiplier = pow(float(game_level), 0.5)  # Square root scaling
 	var scaled_coins = int(coins_per_enemy * level_multiplier)
 	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
 	
