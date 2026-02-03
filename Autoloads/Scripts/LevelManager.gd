@@ -119,7 +119,7 @@ func _show_shadow_mode_tutorial() -> void:
 		tutorial_layer.add_child(tutorial)
 		current_scene.add_child(tutorial_layer)
 		
-		shadow_mode_tutorial_shown = true
+		gm.set_shadow_mode_tutorial_shown(true, "LevelManager._show_shadow_mode_tutorial")
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 		
@@ -176,16 +176,14 @@ func unlock_next_level(current_level: int) -> void:
 
 func unlock_shadow_mode() -> void:
 	if not shadow_mode_unlocked:
-		shadow_mode_unlocked = true
+		gm.set_shadow_mode_unlocked(true, "LevelManager.unlock_shadow_mode")
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 		update_hud_visibility()
 
 func activate_shadow_mode(duration: float = 2.0) -> void:
 	if shadow_mode_unlocked:
-		shadow_mode_enabled = true
-		gm.shadow_mode_activated.emit()
-		gm.shadow_mode_timer.start(duration)
+		gm.request_shadow_mode_activate(duration, "LevelManager.activate_shadow_mode")
 
 func update_hud_visibility(level_num: int = get_current_level()) -> void:
 	var hud: Node = gm.get_tree().current_scene.get_node_or_null("CanvasLayer/HUD")
@@ -216,15 +214,15 @@ func get_current_level() -> int:
 	return 0
 
 func reset_level_state() -> void:
-	shadow_mode_enabled = false
+	gm.request_shadow_mode_deactivate_silent("LevelManager.reset_level_state")
 	is_level_just_completed = false
 	is_video_playing = false
 	is_game_over_screen_active = false
 
 func reset_level_progress() -> void:
 	unlocked_levels = 1
-	shadow_mode_unlocked = false
-	shadow_mode_tutorial_shown = false
+	gm.set_shadow_mode_unlocked(false, "LevelManager.reset_level_progress")
+	gm.set_shadow_mode_tutorial_shown(false, "LevelManager.reset_level_progress")
 	completed_levels = []
 
 func handle_node_added(node: Node) -> void:

@@ -110,12 +110,12 @@ func load_progress() -> void:
 				file.get_var()  # Skip this value if manager not ready
 				
 			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.shadow_mode_unlocked = file.get_var()
+				gm.set_shadow_mode_unlocked(file.get_var(), "SaveManager.load_progress")
 			else:
 				file.get_var()  # Skip this value if manager not ready
 				
 			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.shadow_mode_tutorial_shown = file.get_var()
+				gm.set_shadow_mode_tutorial_shown(file.get_var(), "SaveManager.load_progress")
 			else:
 				file.get_var()  # Skip this value if manager not ready
 				
@@ -246,12 +246,12 @@ func _load_from_backup() -> void:
 				file.get_var()
 				
 			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.shadow_mode_unlocked = file.get_var()
+				gm.set_shadow_mode_unlocked(file.get_var(), "SaveManager._load_from_backup")
 			else:
 				file.get_var()
 				
 			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.shadow_mode_tutorial_shown = file.get_var()
+				gm.set_shadow_mode_tutorial_shown(file.get_var(), "SaveManager._load_from_backup")
 			else:
 				file.get_var()
 				

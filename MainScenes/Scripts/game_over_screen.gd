@@ -2,11 +2,12 @@ extends Control
 
 # Onready references
 @onready var score_label: Label = $PanelContainer/Panel/ScoreContainer/Score
-@onready var message_label: Label = $PanelContainer/Panel/VBoxContainer/MessageLabel
-@onready var revive_button: Button = $PanelContainer/Panel/HBoxContainer/Revive
+@onready var message_label: Label = $PanelContainer/Panel/ButtonsContainer/MessageLabel
+@onready var revive_button: Button = $PanelContainer/Panel/ButtonsContainer/HBoxContainer/Revive
 
 # Constants
 const MAP_SCENE: String = "res://Map/map.tscn"
+const SHOP_SCENE: String = "res://MainScenes/upgrade_menu.tscn"
 var current_level
 
 # Signals
@@ -170,3 +171,7 @@ func _debug_log(message: String) -> void:
 	var player: Node = get_tree().get_first_node_in_group("Player")
 	if player and player is Player and player.enable_debug_logging:
 		print("[GameOverScreen Debug] " + message)
+
+
+func _on_shop_button_down() -> void:
+	GameManager.change_scene(SHOP_SCENE)

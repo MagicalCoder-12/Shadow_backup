@@ -211,6 +211,33 @@ func request_revive_pending_start(_source: String = "") -> void:
 func request_revive_pending_clear(_source: String = "") -> void:
 	is_revive_pending = false
 
+func set_shadow_mode_enabled(value: bool, _source: String = "") -> void:
+	if level_manager:
+		level_manager.shadow_mode_enabled = value
+
+func set_shadow_mode_unlocked(value: bool, _source: String = "") -> void:
+	if level_manager:
+		level_manager.shadow_mode_unlocked = value
+
+func set_shadow_mode_tutorial_shown(value: bool, _source: String = "") -> void:
+	if level_manager:
+		level_manager.shadow_mode_tutorial_shown = value
+
+func request_shadow_mode_activate(duration: float = 2.0, _source: String = "") -> void:
+	if level_manager and level_manager.shadow_mode_unlocked:
+		level_manager.shadow_mode_enabled = true
+		shadow_mode_activated.emit()
+		shadow_mode_timer.start(duration)
+
+func request_shadow_mode_deactivate(_source: String = "") -> void:
+	if level_manager and level_manager.shadow_mode_enabled:
+		level_manager.shadow_mode_enabled = false
+		shadow_mode_deactivated.emit()
+
+func request_shadow_mode_deactivate_silent(_source: String = "") -> void:
+	if level_manager:
+		level_manager.shadow_mode_enabled = false
+
 func reset_game() -> void:
 	score = 0
 	player_lives = 3
@@ -255,9 +282,7 @@ func complete_level(current_level: int) -> void:
 	level_manager.complete_level(current_level)
 
 func _on_shadow_mode_timer_timeout() -> void:
-	if level_manager.shadow_mode_enabled:
-		level_manager.shadow_mode_enabled = false
-		shadow_mode_deactivated.emit()
+	request_shadow_mode_deactivate("_on_shadow_mode_timer_timeout")
 
 func _on_node_added(node: Node) -> void:
 	level_manager.handle_node_added(node)
@@ -291,7 +316,7 @@ func spawn_player(lives: int) -> void:
 	player_manager.spawn_player(lives)
 
 func activate_shadow_mode(duration: float = 5.0) -> void:
-	level_manager.activate_shadow_mode(duration)
+	request_shadow_mode_activate(duration, "GameManager.activate_shadow_mode")
 
 func unlock_shadow_mode() -> void:
 	level_manager.unlock_shadow_mode()
