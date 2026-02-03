@@ -32,10 +32,10 @@ var wave_in_progress: bool = false
 var waiting_for_next_wave: bool = false
 var has_completed_level: bool = false
 
-# Enemy tracking
+# Enemy tracking - active_enemies is now the single source of truth
 var active_enemies: Array[Node2D] = []
 var _connected_enemies: Array[Node2D] = []
-var enemies_alive: int = 0
+var enemies_alive: int = 0  # Derived from active_enemies.size() - updated only in helper functions
 var current_wave_config: WaveConfig = null
 var _enemy_reward_payloads: Dictionary = {}
 
@@ -352,8 +352,7 @@ func _spawn_boss_wave() -> void:
 	
 	# Track the boss (but don't increment enemies_alive yet—wait for descent)
 	current_boss = boss_instance
-	active_enemies.append(boss_instance)
-	_connected_enemies.append(boss_instance)
+	_register_enemy(boss_instance)
 	enemies_alive = 0  # Defer this until descent completes
 	
 	enemy_spawned.emit(boss_instance)
@@ -415,22 +414,97 @@ func _on_boss_phase_changed(phase, boss: Node2D) -> void:
 			if debug_mode:
 				print("WaveManager: Boss invincibility ended")
 
-func _on_enemy_spawned(enemy: Node2D) -> void:
+# --- Enemy Registration Helpers (Single Source of Truth) ---
+
+func _register_enemy(enemy: Node2D) -> void:
+	"""Centralized enemy addition - ensures no duplicates and proper signal connection"""
 	if not is_instance_valid(enemy):
 		return
 	
+	# Prevent duplicate registration
+	if enemy in active_enemies:
+		if debug_mode:
+			print("WaveManager: Enemy already registered, skipping: %s" % enemy.name)
+		return
+	
+	# Add to tracking arrays
 	active_enemies.append(enemy)
 	_connected_enemies.append(enemy)
 	
-	# Connect enemy death signal
+	# Connect required signals in ONE place
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_killed.bind(enemy))
 	if enemy.has_signal("enemy_died"):
 		enemy.enemy_died.connect(_on_enemy_died.bind(enemy))
 	
-	enemies_alive += 1
+	# Update derived counter
+	enemies_alive = active_enemies.size()
+	
+	# Emit spawn signal and sync state
 	enemy_spawned.emit(enemy)
 	_sync_enemy_shadow_state(enemy)
+
+func _unregister_enemy(enemy: Node2D) -> void:
+	"""Centralized enemy removal - ensures clean up happens exactly once"""
+	if not is_instance_valid(enemy):
+		return
+	
+	# Clean up invalid enemies first to prevent stale references
+	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+	
+	# Remove from active tracking if present
+	if enemy in active_enemies:
+		active_enemies.erase(enemy)
+		enemy_killed.emit(enemy)
+		
+		# Remove from connected enemies list
+		if enemy in _connected_enemies:
+			_connected_enemies.erase(enemy)
+			
+		# If this was the boss, restore audio volumes
+		if enemy == current_boss:
+			_on_boss_defeated()
+	else:
+		if debug_mode:
+			print("WaveManager: Attempted to process killed enemy that is invalid or not in active_enemies")
+	
+	# Update derived counter
+	enemies_alive = max(0, active_enemies.size())
+
+# --- Wave Completion Unification ---
+
+func _check_wave_completion() -> void:
+	"""Single decision point for wave completion - checks all conditions before calling _complete_wave()"""
+	# Prevent double completion
+	if not wave_in_progress or waiting_for_next_wave:
+		return
+	
+	# Primary completion condition: no enemies alive
+	if enemies_alive <= 0:
+		if debug_mode:
+			print("WaveManager: Wave completion conditions met - calling _complete_wave()")
+			print("WaveManager: Calling _complete_wave from _check_wave_completion")
+		_complete_wave()
+		return
+	
+	# Additional validation - ensure we have no valid enemies remaining
+	var valid_enemy_count = 0
+	for enemy in active_enemies:
+		if is_instance_valid(enemy):
+			valid_enemy_count += 1
+	
+	if valid_enemy_count == 0 and enemies_alive > 0:
+		# Clean up discrepancy and complete wave
+		if debug_mode:
+			print("WaveManager: Detected discrepancy - forcing completion with %d tracked but 0 valid enemies" % enemies_alive)
+		enemies_alive = 0
+		_complete_wave()
+
+func _on_enemy_spawned(enemy: Node2D) -> void:
+	if not is_instance_valid(enemy):
+		return
+	
+	_register_enemy(enemy)
 	
 	if debug_mode:
 		print("WaveManager: Enemy spawned - Total alive: %d (Wave: %d, Level: %d)" % [enemies_alive, current_wave + 1, current_level])
@@ -445,8 +519,8 @@ func _on_formation_complete() -> void:
 func _on_all_enemies_destroyed() -> void:
 	if debug_mode:
 		print("WaveManager: All enemies destroyed for wave %d" % (current_wave + 1))
-	print("WaveManager: Calling _complete_wave from _on_all_enemies_destroyed")
-	_complete_wave()
+	# Check for wave completion after all enemies destroyed
+	_check_wave_completion()
 
 func _verify_enemy_count() -> void:
 	# Clean up invalid enemies first
@@ -478,36 +552,16 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 			game_manager.notify_enemy_killed(enemy)
 	_enemy_reward_payloads.erase(enemy.get_instance_id())
 	
-	# Clean up invalid enemies
-	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
+	_unregister_enemy(enemy)
 	
-	if enemy and is_instance_valid(enemy) and enemy in active_enemies:
-		active_enemies.erase(enemy)
-		enemy_killed.emit(enemy)
-		
-		# Remove from connected enemies list
-		if enemy in _connected_enemies:
-			_connected_enemies.erase(enemy)
-			
-		# If this was the boss, restore audio volumes
-		if enemy == current_boss:
-			_on_boss_defeated()
-	else:
-		if debug_mode:
-			print("WaveManager: Attempted to process killed enemy that is invalid or not in active_enemies")
-	
-	enemies_alive = max(0, enemies_alive - 1)
 	if debug_mode:
 		print("WaveManager: Enemy killed, %d remaining (Wave: %d, Level: %d)" % [enemies_alive, current_wave + 1, current_level])
 	
 	# Verify our tracking
 	_verify_enemy_count()
 	
-	if enemies_alive <= 0 and wave_in_progress and not waiting_for_next_wave:
-		if debug_mode:
-			print("WaveManager: Conditions met for wave completion - calling _complete_wave()")
-		print("WaveManager: Calling _complete_wave from _on_enemy_killed")
-		_complete_wave()
+	# Check for wave completion after enemy removal
+	_check_wave_completion()
 
 func _on_enemy_died(payload: Dictionary, enemy: Node2D) -> void:
 	if not payload:
@@ -589,6 +643,8 @@ func _drop_powerup(drop_position: Vector2) -> void:
 func _on_boss_defeated() -> void:
 	if debug_mode:
 		print("WaveManager: Boss defeated, boss music stopped, audio volumes restored")
+	# Check for wave completion after boss defeat
+	_check_wave_completion()
 
 func _complete_wave():
 	if debug_mode:
@@ -634,8 +690,12 @@ func _cleanup_wave():
 		if is_instance_valid(enemy):
 			enemy.queue_free()
 	
+	# Clear all tracking arrays
 	active_enemies.clear()
 	_connected_enemies.clear()
+	
+	# Reset derived counter
+	enemies_alive = 0
 	
 	for formation in active_formations:
 		if is_instance_valid(formation):
@@ -648,7 +708,6 @@ func _cleanup_wave():
 			print("WaveManager: Reset FormationManager for Wave %d" % (current_wave + 1))
 	
 	current_boss = null
-	enemies_alive = 0
 
 # Timer to check for stuck wave periodically instead of every frame
 @onready var stuck_check_timer: Timer = _create_stuck_check_timer()
@@ -684,7 +743,7 @@ func _check_for_stuck_wave():
 			if enemies_alive <= 0:
 				if debug_mode:
 					print("WaveManager: Forcing wave completion due to no valid enemies remaining")
-				_complete_wave()
+				_check_wave_completion()
 
 func _exit_tree():
 	# Clean up timer when node exits tree

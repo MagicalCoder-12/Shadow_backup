@@ -39,17 +39,14 @@ enemy_type = "OblivionTank"
 [node name="Level_2" instance=ExtResource("1_ll1bl")]
 
 [node name="wave_Details" parent="CanvasLayer" index="7"]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -409.0
-offset_top = -416.0
-offset_right = 387.0
-offset_bottom = 43.0
-grow_horizontal = 2
-grow_vertical = 2
+anchor_left = 0.09583333
+anchor_top = 0.371875
+anchor_right = 0.8965279
+anchor_bottom = 0.5815625
+offset_right = -192.16675
+offset_bottom = -111.833374
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="LevelManager" parent="." index="4"]
 level_num = 2
