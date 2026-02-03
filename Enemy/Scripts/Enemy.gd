@@ -9,11 +9,10 @@ const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB = preload("res://Bullet/Ebullet/Bomb.tscn")
 const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")  # Add this line to access bomb script
-const COINS = preload("res://Resources/Coins.tscn")
-const CRYSTAL = preload("res://Resources/Crystal.tscn")
 
 # --- Signals ---
 signal died
+signal enemy_died(payload)
 signal formation_reached
 signal shadow_state_changed(is_shadow: bool)
 
@@ -897,84 +896,20 @@ func die():
 	
 	is_alive = false
 	healthbar.visible = false
-	var final_score = score
-	if is_shadow_enemy:
-		final_score = int(score * shadow_score_multiplier)
+	var payload = {
+		"enemy_type": enemy_type,
+		"is_boss": false,
+		"base_score": score,
+		"is_shadow_enemy": is_shadow_enemy,
+		"shadow_score_multiplier": shadow_score_multiplier,
+		"global_position": global_position
+	}
+	enemy_died.emit(payload)
 	
-	GameManager.score += final_score
-	_drop_resources()
 	_disconnect_all_signals()
 	_play_death_animation()
 	
-	# Notify GameManager for shadow mode charging
-	GameManager.notify_enemy_killed(self)
-	
 	died.emit()
-
-func _drop_resources():
-	# Get current level from GameManager
-	var current_level = 1
-	if GameManager and GameManager.level_manager:
-		current_level = GameManager.level_manager.get_current_level()
-	
-	# Get reward configuration
-	var reward_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		reward_config = ConfigLoader.upgrade_settings.get("enemy_drop_rewards", {})
-	
-	# Default values if config not found
-	var coins_per_enemy = reward_config.get("coins_per_enemy", 15)
-	var coin_drop_chance = reward_config.get("coin_drop_chance", 0.7)
-	var crystal_drop_chance = reward_config.get("crystal_drop_chance", 0.2)
-	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
-	
-	# Scale rewards based on level (higher levels give more rewards)
-	var level_multiplier = pow(float(current_level), 0.5)  # Square root scaling
-	var scaled_coins = int(coins_per_enemy * level_multiplier)
-	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
-	
-	# Determine what to drop - either coins OR crystals, not both
-	var drop_crystal = randf() < crystal_drop_chance
-	var drop_coins = !drop_crystal && (randf() < coin_drop_chance)
-	
-	# Drop coins if selected
-	if drop_coins:
-		# Drop coins - 1-2 coins per enemy with level scaling
-		var coin_count = randi_range(1, 2)
-		for i in range(coin_count):
-			var coin = COINS.instantiate()
-			coin.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-			# Set the coin value based on the scaled reward
-			if coin.has_method("set_value"):
-				coin.set_value(scaled_coins)
-			get_tree().current_scene.call_deferred("add_child", coin)
-	
-	# Drop crystal if selected (instead of coins)
-	elif drop_crystal:
-		var crystal = CRYSTAL.instantiate()
-		crystal.global_position = global_position
-		# Set the crystal value based on the scaled reward
-		if crystal.has_method("set_value"):
-			crystal.set_value(scaled_crystal_reward)
-		get_tree().current_scene.call_deferred("add_child", crystal)
-		
-		# NEW: Drop power-ups occasionally
-		if randf() < 0.3:  # 30% chance to drop a power-up
-			_drop_powerup()
-
-func _drop_powerup():
-	# Instantiate and drop a random power-up
-	var powerup_scenes = [
-		preload("res://Powerups/Attack_boost_powerup.tscn"),
-		preload("res://Powerups/SuperMode.tscn"),
-		preload("res://Powerups/Health.tscn")
-	]
-	
-	# 33% chance for each power-up type
-	var selected_scene = powerup_scenes[randi() % powerup_scenes.size()]
-	var powerup = selected_scene.instantiate()
-	powerup.global_position = global_position
-	get_tree().current_scene.call_deferred("add_child", powerup)
 
 func _play_death_animation():
 	if enemy_explosion:

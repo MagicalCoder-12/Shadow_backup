@@ -3,6 +3,7 @@ extends Area2D
 signal boss_defeated
 signal phase_changed
 signal descent_completed
+signal enemy_died(payload)
 
 enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 
@@ -401,6 +402,15 @@ func take_damage(amount: int) -> void:
 		await get_tree().create_timer(particle_lifetime).timeout
 		if boss_death:
 			await boss_death.finished
+		var payload = {
+			"enemy_type": "Boss3",
+			"is_boss": true,
+			"base_score": 0,
+			"is_shadow_enemy": false,
+			"shadow_score_multiplier": 1.0,
+			"global_position": global_position
+		}
+		enemy_died.emit(payload)
 		boss_defeated.emit()
 		queue_free()
 

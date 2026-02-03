@@ -2,6 +2,13 @@ extends Node2D
 class_name WaveManager
 
 
+const COINS = preload("res://Resources/Coins.tscn")
+const CRYSTAL = preload("res://Resources/Crystal.tscn")
+const POWERUP_SCENES = [
+	preload("res://Powerups/Attack_boost_powerup.tscn"),
+	preload("res://Powerups/SuperMode.tscn"),
+	preload("res://Powerups/Health.tscn")
+]
 
 # Signals for wave progression and events
 signal wave_started(current_wave: int, total_waves: int)
@@ -30,6 +37,7 @@ var active_enemies: Array[Node2D] = []
 var _connected_enemies: Array[Node2D] = []
 var enemies_alive: int = 0
 var current_wave_config: WaveConfig = null
+var _enemy_reward_payloads: Dictionary = {}
 
 # Formation and boss management
 var formation_manager: FormationManager = null
@@ -374,6 +382,8 @@ func _connect_boss_signals(boss: Node2D) -> void:
 		boss.died.connect(_on_enemy_killed.bind(boss))
 	elif boss.has_signal("boss_defeated"):
 		boss.boss_defeated.connect(_on_enemy_killed.bind(boss))
+	if boss.has_signal("enemy_died"):
+		boss.enemy_died.connect(_on_enemy_died.bind(boss))
 	
 	# Connect phase change signal for invincibility
 	if boss.has_signal("phase_changed"):
@@ -415,6 +425,8 @@ func _on_enemy_spawned(enemy: Node2D) -> void:
 	# Connect enemy death signal
 	if enemy.has_signal("died"):
 		enemy.died.connect(_on_enemy_killed.bind(enemy))
+	if enemy.has_signal("enemy_died"):
+		enemy.enemy_died.connect(_on_enemy_died.bind(enemy))
 	
 	enemies_alive += 1
 	enemy_spawned.emit(enemy)
@@ -459,6 +471,13 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 	if debug_mode:
 		print("WaveManager: Enemy killed - enemies_alive: %d, active_enemies: %d, wave_in_progress: %s" % [enemies_alive, active_enemies.size(), wave_in_progress])
 	
+	# Notify GameManager for shadow mode charging (matches previous timing)
+	var payload = _enemy_reward_payloads.get(enemy.get_instance_id(), {})
+	if payload and not payload.get("is_boss", false):
+		if game_manager and is_instance_valid(enemy):
+			game_manager.notify_enemy_killed(enemy)
+	_enemy_reward_payloads.erase(enemy.get_instance_id())
+	
 	# Clean up invalid enemies
 	active_enemies = active_enemies.filter(func(e): return is_instance_valid(e))
 	
@@ -489,6 +508,83 @@ func _on_enemy_killed(enemy: Node2D) -> void:
 			print("WaveManager: Conditions met for wave completion - calling _complete_wave()")
 		print("WaveManager: Calling _complete_wave from _on_enemy_killed")
 		_complete_wave()
+
+func _on_enemy_died(payload: Dictionary, enemy: Node2D) -> void:
+	if not payload:
+		return
+	_enemy_reward_payloads[enemy.get_instance_id()] = payload
+	if payload.get("is_boss", false):
+		return
+	_apply_enemy_rewards(payload)
+
+func _apply_enemy_rewards(payload: Dictionary) -> void:
+	if not game_manager:
+		return
+	var base_score = int(payload.get("base_score", 0))
+	var is_shadow_enemy = bool(payload.get("is_shadow_enemy", false))
+	var shadow_multiplier = float(payload.get("shadow_score_multiplier", 1.0))
+	var final_score = base_score
+	if is_shadow_enemy:
+		final_score = int(base_score * shadow_multiplier)
+	game_manager.score += final_score
+
+	# Get current level from GameManager
+	var current_level = 1
+	if game_manager.level_manager:
+		current_level = game_manager.level_manager.get_current_level()
+	
+	# Get reward configuration
+	var reward_config = {}
+	if ConfigLoader and ConfigLoader.upgrade_settings:
+		reward_config = ConfigLoader.upgrade_settings.get("enemy_drop_rewards", {})
+	
+	# Default values if config not found
+	var coins_per_enemy = reward_config.get("coins_per_enemy", 15)
+	var coin_drop_chance = reward_config.get("coin_drop_chance", 0.7)
+	var crystal_drop_chance = reward_config.get("crystal_drop_chance", 0.2)
+	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
+	
+	# Scale rewards based on level (higher levels give more rewards)
+	var level_multiplier = pow(float(current_level), 0.5)  # Square root scaling
+	var scaled_coins = int(coins_per_enemy * level_multiplier)
+	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
+	
+	# Determine what to drop - either coins OR crystals, not both
+	var drop_crystal = randf() < crystal_drop_chance
+	var drop_coins = !drop_crystal && (randf() < coin_drop_chance)
+	var drop_position = payload.get("global_position", Vector2.ZERO)
+	
+	# Drop coins if selected
+	if drop_coins:
+		# Drop coins - 1-2 coins per enemy with level scaling
+		var coin_count = randi_range(1, 2)
+		for i in range(coin_count):
+			var coin = COINS.instantiate()
+			coin.global_position = drop_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+			# Set the coin value based on the scaled reward
+			if coin.has_method("set_value"):
+				coin.set_value(scaled_coins)
+			get_tree().current_scene.call_deferred("add_child", coin)
+	
+	# Drop crystal if selected (instead of coins)
+	elif drop_crystal:
+		var crystal = CRYSTAL.instantiate()
+		crystal.global_position = drop_position
+		# Set the crystal value based on the scaled reward
+		if crystal.has_method("set_value"):
+			crystal.set_value(scaled_crystal_reward)
+		get_tree().current_scene.call_deferred("add_child", crystal)
+		
+		# Drop power-ups occasionally
+		if randf() < 0.3:  # 30% chance to drop a power-up
+			_drop_powerup(drop_position)
+
+func _drop_powerup(drop_position: Vector2) -> void:
+	# Instantiate and drop a random power-up
+	var selected_scene = POWERUP_SCENES[randi() % POWERUP_SCENES.size()]
+	var powerup = selected_scene.instantiate()
+	powerup.global_position = drop_position
+	get_tree().current_scene.call_deferred("add_child", powerup)
 
 func _on_boss_defeated() -> void:
 	if debug_mode:
