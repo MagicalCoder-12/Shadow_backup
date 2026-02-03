@@ -418,6 +418,7 @@ func _on_enemy_spawned(enemy: Node2D) -> void:
 	
 	enemies_alive += 1
 	enemy_spawned.emit(enemy)
+	_sync_enemy_shadow_state(enemy)
 	
 	if debug_mode:
 		print("WaveManager: Enemy spawned - Total alive: %d (Wave: %d, Level: %d)" % [enemies_alive, current_wave + 1, current_level])
@@ -599,10 +600,32 @@ func _exit_tree():
 func _on_shadow_mode_activated():
 	if debug_mode:
 		print("WaveManager: Shadow mode activated")
+	_notify_enemies_shadow_mode(true)
 
 func _on_shadow_mode_deactivated():
 	if debug_mode:
 		print("WaveManager: Shadow mode deactivated")
+	_notify_enemies_shadow_mode(false)
+
+func _notify_enemies_shadow_mode(active: bool) -> void:
+	for enemy in active_enemies:
+		if not is_instance_valid(enemy):
+			continue
+		if enemy.has_method("on_shadow_mode_changed"):
+			if enemy.get("is_alive") == false:
+				continue
+			enemy.on_shadow_mode_changed(active)
+
+func _sync_enemy_shadow_state(enemy: Node2D) -> void:
+	if not game_manager or not game_manager.level_manager:
+		return
+	if not is_instance_valid(enemy):
+		return
+	if enemy.has_method("on_shadow_mode_unlocked_changed"):
+		enemy.on_shadow_mode_unlocked_changed(game_manager.level_manager.shadow_mode_unlocked)
+	if enemy.has_method("on_shadow_mode_changed"):
+		# Sync state without triggering activation effects
+		enemy.is_shadow_mode_active = game_manager.level_manager.shadow_mode_enabled
 
 
 func _on_boss_music_finished() -> void:

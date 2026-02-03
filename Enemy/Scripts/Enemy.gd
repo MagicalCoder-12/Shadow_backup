@@ -130,6 +130,8 @@ var entry_path: Array[Vector2] = []
 var entry_path_index: int = 0
 var is_in_entry_phase: bool = true
 var is_shadow_enemy: bool = false
+var is_shadow_mode_active: bool = false
+var shadow_mode_unlocked: bool = false
 var shadow_tween: Tween
 var original_modulate: Color
 var original_texture: Texture2D
@@ -288,14 +290,8 @@ func _connect_signals():
 			if debug_mode:
 				print("Boss: Skipped connecting screen_exited signal - already connected")
 	
-	# Connect shadow mode signals
-	_connect_shadow_signals()
 
 func _disconnect_all_signals():
-	if GameManager and GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
-		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
-	if GameManager and GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
-		GameManager.shadow_mode_deactivated.disconnect(_on_shadow_mode_deactivated)
 	if shadow_tween:
 		shadow_tween.kill()
 		shadow_tween = null
@@ -624,7 +620,7 @@ func _apply_shooting_cooldown():
 
 func _is_shadow_mode_active() -> bool:
 	"""Check if shadow mode is currently active"""
-	return GameManager and GameManager.level_manager and GameManager.level_manager.shadow_mode_enabled
+	return is_shadow_mode_active
 
 func _fire_at_player():
 	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
@@ -760,7 +756,7 @@ func _apply_difficulty_multipliers(difficulty: formation_enums.DifficultyLevel):
 	shadow_spawn_probability = multipliers["shadow_chance"]
 
 func _initialize_shadow_state():
-	if GameManager and GameManager.level_manager and GameManager.level_manager.shadow_mode_unlocked:
+	if shadow_mode_unlocked:
 		if randf() < shadow_spawn_probability:
 			_make_shadow_enemy()
 
@@ -1015,13 +1011,16 @@ func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
 	
 	queue_free()
 
-# --- Signal Connections ---
-func _connect_shadow_signals():
-	if GameManager:
-		if not GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
-			GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-		if not GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
-			GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
+# --- Shadow Mode Updates ---
+func on_shadow_mode_changed(active: bool) -> void:
+	is_shadow_mode_active = active
+	if active:
+		_on_shadow_mode_activated()
+	else:
+		_on_shadow_mode_deactivated()
+
+func on_shadow_mode_unlocked_changed(unlocked: bool) -> void:
+	shadow_mode_unlocked = unlocked
 
 
 func _on_area_entered(area: Area2D) -> void:

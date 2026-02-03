@@ -67,7 +67,7 @@ var defeated: bool = false
 var is_invincible: bool = false
 var dash_cooldown: float = 0.0
 var effects_layer: Node
-var shadow_mode_active: bool = false
+var is_shadow_mode_active: bool = false
 var tractor_beam_active: bool = false
 var tractor_beam: Node
 
@@ -158,10 +158,6 @@ func _ready() -> void:
 	movement_pattern_timer.timeout.connect(_on_movement_pattern_timeout)
 	add_child(movement_pattern_timer)
 
-	# Connect signals
-	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
-
 	start_movement()
 	# Play boss music when boss is ready
 	_play_boss_music()
@@ -197,7 +193,7 @@ func update_tractor_beam() -> void:
 	if player and tractor_beam:
 		# Update beam position to follow player
 		tractor_beam.global_position = player.global_position
-		var pull_strength = 200.0 if shadow_mode_active else 100.0
+		var pull_strength = 200.0 if is_shadow_mode_active else 100.0
 		var direction = (global_position - player.global_position).normalized()
 		player.global_position += direction * pull_strength * get_process_delta_time()
 		
@@ -264,7 +260,7 @@ func _physics_process(delta: float) -> void:
 		phase_speed_multiplier = 1.3
 	elif current_phase == BossPhase.ENRAGED:
 		phase_speed_multiplier = 1.6
-	var shadow_speed_multiplier = 1.5 if shadow_mode_active else 1.0
+	var shadow_speed_multiplier = 1.5 if is_shadow_mode_active else 1.0
 	movement_speed_multiplier = phase_speed_multiplier * shadow_speed_multiplier
 	
 	# Update timers
@@ -462,7 +458,7 @@ func enter_phase(phase: BossPhase) -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale * 1.2, 0.3).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale, 0.3).set_trans(Tween.TRANS_SINE)
-	attack_timer.start(attack_interval * phase_multiplier * (0.7 if shadow_mode_active else 1.0))
+	attack_timer.start(attack_interval * phase_multiplier * (0.7 if is_shadow_mode_active else 1.0))
 	print("Entered phase: %s" % BossPhase.keys()[phase])
 
 func _adjust_minion_spawn_rate() -> void:
@@ -475,7 +471,7 @@ func _adjust_minion_spawn_rate() -> void:
 		BossPhase.ENRAGED:
 			spawn_rate_multiplier = 0.6
 	
-	if shadow_mode_active:
+	if is_shadow_mode_active:
 		spawn_rate_multiplier *= 0.7
 	
 	minion_spawn_timer.wait_time = minion_spawn_interval * spawn_rate_multiplier
@@ -645,7 +641,7 @@ func _on_attack_timer_timeout() -> void:
 			phase_multiplier = 0.5
 			
 	var shadow_multiplier = 1.0
-	if shadow_mode_active:
+	if is_shadow_mode_active:
 		shadow_multiplier = 0.7
 		
 	attack_timer.start(attack_interval * phase_multiplier * shadow_multiplier)
@@ -820,7 +816,7 @@ func fire_energy_ball() -> void:
 			print("Error: Failed to instantiate energy ball")
 
 func _on_shadow_mode_activated() -> void:
-	shadow_mode_active = true
+	is_shadow_mode_active = true
 	attack_timer.wait_time = attack_timer.wait_time * 0.7
 	attack_timer.start()
 	
@@ -833,7 +829,13 @@ func _on_shadow_mode_activated() -> void:
 			minion._make_shadow_enemy()
 
 func _on_shadow_mode_deactivated() -> void:
-	shadow_mode_active = false
+	is_shadow_mode_active = false
+
+func on_shadow_mode_changed(active: bool) -> void:
+	if active:
+		_on_shadow_mode_activated()
+	else:
+		_on_shadow_mode_deactivated()
 	var phase_multiplier = 1.0
 	if current_phase == BossPhase.PHASE2:
 		phase_multiplier = 0.7
