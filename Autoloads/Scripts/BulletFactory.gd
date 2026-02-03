@@ -75,6 +75,9 @@ func _get_bullet_from_pool(bullet_scene: PackedScene) -> Node:
 		var bullet = bullet_pool[pool_key].pop_back()
 		# Check if the bullet is still valid (not freed)
 		if is_instance_valid(bullet):
+			# Ensure the bullet is not in the scene tree before returning
+			if bullet.get_parent():
+				bullet.get_parent().remove_child(bullet)
 			return bullet
 		else:
 			return null
