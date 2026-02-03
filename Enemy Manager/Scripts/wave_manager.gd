@@ -366,8 +366,7 @@ func _play_boss_music() -> void:
 		
 		# Reduce volume of other buses except Boss bus
 	if AudioManager:
-		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
-		AudioManager.mute_bus("Bullet",true)
+		_start_boss_audio()
 		print("Boss music started by WaveManager")
 	else:
 		print("Error: Boss music player or file not found")
@@ -499,6 +498,20 @@ func _check_wave_completion() -> void:
 			print("WaveManager: Detected discrepancy - forcing completion with %d tracked but 0 valid enemies" % enemies_alive)
 		enemies_alive = 0
 		_complete_wave()
+
+# --- Audio Isolation ---
+
+func _start_boss_audio() -> void:
+	"""Helper to start boss audio with proper volume adjustments"""
+	if AudioManager:
+		AudioManager.lower_bus_volumes_except(["Boss", "Master"], -20.0)
+		AudioManager.mute_bus("Bullet", true)
+
+func _stop_boss_audio() -> void:
+	"""Helper to stop boss audio and restore normal volumes"""
+	if AudioManager:
+		AudioManager.restore_bus_volumes()
+		AudioManager.mute_bus("Bullet", false)
 
 func _on_enemy_spawned(enemy: Node2D) -> void:
 	if not is_instance_valid(enemy):
@@ -643,6 +656,9 @@ func _drop_powerup(drop_position: Vector2) -> void:
 func _on_boss_defeated() -> void:
 	if debug_mode:
 		print("WaveManager: Boss defeated, boss music stopped, audio volumes restored")
+	
+	_stop_boss_audio()
+	
 	# Check for wave completion after boss defeat
 	_check_wave_completion()
 
@@ -784,6 +800,4 @@ func _sync_enemy_shadow_state(enemy: Node2D) -> void:
 
 
 func _on_boss_music_finished() -> void:
-	if AudioManager:
-		AudioManager.restore_bus_volumes()
-		AudioManager.mute_bus("Bullet",false)
+	_stop_boss_audio()
