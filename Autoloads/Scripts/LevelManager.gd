@@ -3,9 +3,26 @@ extends Node
 var gm: Node
 var unlocked_levels: int = 1
 var completed_levels: Array = []
-var shadow_mode_unlocked: bool = false
-var shadow_mode_enabled: bool = false
-var shadow_mode_tutorial_shown: bool = false
+var shadow_mode_unlocked: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_unlocked if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_unlocked(value, "LevelManager.shadow_mode_unlocked")
+
+var shadow_mode_enabled: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_enabled if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_enabled(value, "LevelManager.shadow_mode_enabled")
+
+var shadow_mode_tutorial_shown: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_tutorial_shown if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_tutorial_shown(value, "LevelManager.shadow_mode_tutorial_shown")
 var is_level_just_completed: bool = false
 var is_video_playing: bool = false
 var is_game_over_screen_active: bool = false

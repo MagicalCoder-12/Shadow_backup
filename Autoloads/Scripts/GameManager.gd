@@ -138,6 +138,7 @@ var void_shards_count: int:
 var upgrade_menu_ref: Node = null
 
 var shadow_mode_timer: Timer = Timer.new()
+var shadow_mode_state: ShadowModeState = ShadowModeState.new()
 
 var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
 
@@ -212,31 +213,31 @@ func request_revive_pending_clear(_source: String = "") -> void:
 	is_revive_pending = false
 
 func set_shadow_mode_enabled(value: bool, _source: String = "") -> void:
-	if level_manager:
-		level_manager.shadow_mode_enabled = value
+	shadow_mode_state.shadow_mode_enabled = value
 
 func set_shadow_mode_unlocked(value: bool, _source: String = "") -> void:
-	if level_manager:
-		level_manager.shadow_mode_unlocked = value
+	shadow_mode_state.shadow_mode_unlocked = value
 
 func set_shadow_mode_tutorial_shown(value: bool, _source: String = "") -> void:
-	if level_manager:
-		level_manager.shadow_mode_tutorial_shown = value
+	shadow_mode_state.shadow_mode_tutorial_shown = value
 
 func request_shadow_mode_activate(duration: float = 2.0, _source: String = "") -> void:
-	if level_manager and level_manager.shadow_mode_unlocked:
-		level_manager.shadow_mode_enabled = true
+	if level_manager and shadow_mode_state.shadow_mode_unlocked:
+		shadow_mode_state.shadow_mode_enabled = true
+		shadow_mode_state.shadow_mode_remaining_time = duration
 		shadow_mode_activated.emit()
 		shadow_mode_timer.start(duration)
 
 func request_shadow_mode_deactivate(_source: String = "") -> void:
-	if level_manager and level_manager.shadow_mode_enabled:
-		level_manager.shadow_mode_enabled = false
+	if level_manager and shadow_mode_state.shadow_mode_enabled:
+		shadow_mode_state.shadow_mode_enabled = false
+		shadow_mode_state.shadow_mode_remaining_time = 0.0
 		shadow_mode_deactivated.emit()
 
 func request_shadow_mode_deactivate_silent(_source: String = "") -> void:
 	if level_manager:
-		level_manager.shadow_mode_enabled = false
+		shadow_mode_state.shadow_mode_enabled = false
+		shadow_mode_state.shadow_mode_remaining_time = 0.0
 
 func reset_game() -> void:
 	score = 0
