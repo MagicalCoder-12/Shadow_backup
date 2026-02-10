@@ -10,7 +10,7 @@ var is_ad_showing: bool = false
 var ad_retry_count: int = 0
 var max_ad_retries: int = 3
 var revive_type: String = "none"
-var is_revive_pending: bool = false
+var ad_revive_pending: bool = false
 var revive_timeout_timer: Timer
 var is_banner_showing: bool = false
 var enable_debug_logging: bool = true  # Toggle for debug messages
@@ -211,9 +211,9 @@ func request_ad_revive() -> void:
 	# Reset rewarded ad shown flag when requesting a new revive
 	_rewarded_ad_shown = false
 
-	gm.is_revive_pending = true
+	gm.request_revive_pending_start("AdManager.request_ad_revive")
 	revive_type = "ad"
-	is_revive_pending = true
+	ad_revive_pending = true
 	ad_retry_count = 0
 	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
 	
@@ -256,10 +256,10 @@ func complete_ad_revive() -> void:
 		_debug_log("Stopped revive timeout timer")
 
 	is_ad_showing = false
-	gm.is_revive_pending = false
+	gm.request_revive_pending_clear("AdManager.complete_ad_revive")
 	revive_type = "none"
 	selected_ad_type = ""
-	is_revive_pending = false  # Make sure this is set to false
+	ad_revive_pending = false  # Make sure this is set to false
 	_rewarded_ad_shown = false  # Reset rewarded ad shown flag
 
 	_debug_log("Calling GameManager.revive_player")
@@ -269,7 +269,7 @@ func complete_ad_revive() -> void:
 
 func reset_ad_state() -> void:
 	is_ad_showing = false
-	is_revive_pending = false
+	ad_revive_pending = false
 	is_reward_ad_pending = false
 	current_reward_type = ""
 	revive_type = "none"
@@ -284,12 +284,12 @@ func reset_ad_state() -> void:
 
 func show_banner_ad() -> void:
 	# Check if we should show banner ads (not after rewarded ads and not during game over)
-	if is_initialized and not is_ad_showing and not is_revive_pending and not _rewarded_ad_shown and not is_game_over_screen_active():
+	if is_initialized and not is_ad_showing and not ad_revive_pending and not _rewarded_ad_shown and not is_game_over_screen_active():
 		admob.show_banner_ad()
 		is_banner_showing = true
 		_debug_log("Banner ad shown")
 	elif is_initialized:
-		_debug_log("Banner ad not shown: ad showing (%s), revive pending (%s), rewarded ad shown (%s), or game over screen active" % [str(is_ad_showing), str(is_revive_pending), str(_rewarded_ad_shown)])
+		_debug_log("Banner ad not shown: ad showing (%s), revive pending (%s), rewarded ad shown (%s), or game over screen active" % [str(is_ad_showing), str(ad_revive_pending), str(_rewarded_ad_shown)])
 
 func hide_banner_ad() -> void:
 	if is_initialized:
@@ -327,7 +327,7 @@ func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> 
 
 func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
 	_debug_log("Rewarded video ad loaded")
-	if is_revive_pending and selected_ad_type == "video" and not is_ad_showing:
+	if ad_revive_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_ad()
@@ -340,7 +340,7 @@ func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
 
 func _on_admob_rewarded_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
 	_debug_log("Rewarded video ad failed to load: %s" % error_data.get("message", "Unknown error"))
-	if is_revive_pending and selected_ad_type == "video":
+	if ad_revive_pending and selected_ad_type == "video":
 		gm.ad_failed_to_load.emit("video", error_data)
 		if ad_retry_count < max_ad_retries:
 			ad_retry_count += 1
@@ -364,17 +364,17 @@ func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
 
 func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void:
 	_debug_log("Rewarded video ad dismissed")
-	if is_revive_pending and selected_ad_type == "video":
+	if ad_revive_pending and selected_ad_type == "video":
 		# Only reset state on dismiss, actual revive happens on earned reward
 		_debug_log("Video ad dismissed during revive - waiting for earned reward signal")
 		# Add a safety fallback with a 3-second delay
 		await gm.get_tree().create_timer(3.0).timeout
-		if is_revive_pending:  # If still pending after 3 seconds, force complete
+		if ad_revive_pending:  # If still pending after 3 seconds, force complete
 			_debug_log("No earned reward signal received, forcing revive completion")
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
-		is_revive_pending = false  # Make sure this is set to false
+		ad_revive_pending = false  # Make sure this is set to false
 		# Do not show banner ad again after rewarded ad is dismissed to prevent conflicts
 		_debug_log("Rewarded video ad dismissed, banner ad will not be shown")
 		if is_initialized:
@@ -383,7 +383,7 @@ func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void
 
 func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for video ad")
-	if is_revive_pending and selected_ad_type == "video":
+	if ad_revive_pending and selected_ad_type == "video":
 		gm.ad_reward_granted.emit("video")
 		complete_ad_revive()
 	elif is_reward_ad_pending and selected_ad_type == "video":
@@ -395,7 +395,7 @@ func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data) -> v
 
 func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
 	_debug_log("Rewarded interstitial ad loaded")
-	if is_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
+	if ad_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_interstitial_ad()
@@ -408,7 +408,7 @@ func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
 
 func _on_admob_rewarded_interstitial_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
 	_debug_log("Rewarded interstitial ad failed to load: %s" % error_data.get("message", "Unknown error"))
-	if is_revive_pending and selected_ad_type == "interstitial":
+	if ad_revive_pending and selected_ad_type == "interstitial":
 		gm.ad_failed_to_load.emit("interstitial", error_data)
 		if ad_retry_count < max_ad_retries:
 			ad_retry_count += 1
@@ -432,17 +432,17 @@ func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: Strin
 
 func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: String) -> void:
 	_debug_log("Rewarded interstitial ad dismissed")
-	if is_revive_pending and selected_ad_type == "interstitial":
+	if ad_revive_pending and selected_ad_type == "interstitial":
 		# Only reset state on dismiss, actual revive happens on earned reward
 		_debug_log("Interstitial ad dismissed during revive - waiting for earned reward signal")
 		# Add a safety fallback with a 3-second delay
 		await gm.get_tree().create_timer(3.0).timeout
-		if is_revive_pending:  # If still pending after 3 seconds, force complete
+		if ad_revive_pending:  # If still pending after 3 seconds, force complete
 			_debug_log("No earned reward signal received, forcing revive completion")
 			complete_ad_revive()
 	else:
 		is_ad_showing = false
-		is_revive_pending = false  # Make sure this is set to false
+		ad_revive_pending = false  # Make sure this is set to false
 		# Do not show banner ad again after rewarded ad is dismissed to prevent conflicts
 		_debug_log("Rewarded interstitial ad dismissed, banner ad will not be shown")
 		if is_initialized:
@@ -451,7 +451,7 @@ func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: St
 
 func _on_admob_rewarded_interstitial_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for interstitial ad")
-	if is_revive_pending and selected_ad_type == "interstitial":
+	if ad_revive_pending and selected_ad_type == "interstitial":
 		gm.ad_reward_granted.emit("interstitial")
 		complete_ad_revive()
 	elif is_reward_ad_pending and selected_ad_type == "interstitial":
@@ -463,7 +463,7 @@ func _on_admob_rewarded_interstitial_ad_user_earned_reward(_ad_id: String, _rewa
 
 func _fallback_to_map() -> void:
 	is_ad_showing = false
-	is_revive_pending = false
+	ad_revive_pending = false
 	revive_type = "none"
 	selected_ad_type = ""
 	ad_retry_count = 0
@@ -496,7 +496,7 @@ func handle_node_added(_node: Node) -> void:
 
 func _on_revive_timeout() -> void:
 	_debug_log("Revive timeout triggered - ad took too long to complete")
-	if is_revive_pending:
+	if ad_revive_pending:
 		_debug_log("Forcing revive completion due to timeout")
 		# Do not show banner ad when timeout occurs to prevent conflicts
 		_debug_log("Revive timeout occurred, banner ad will not be shown")

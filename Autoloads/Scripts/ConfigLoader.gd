@@ -3,6 +3,7 @@ extends Node
 # Configuration data
 var game_settings: Dictionary = {}
 var ships_data: Array = []
+var satellites_data: Array = []
 var upgrade_settings: Dictionary = {}
 var hud_settings: Dictionary = {}
 var level_waves: Dictionary = {} # Key: level number (int), Value: Array of wave configs
@@ -11,6 +12,7 @@ var player_settings: Dictionary = {} # Add this line to declare the player_setti
 # File paths
 const GAME_SETTINGS_PATH = "res://data/game_settings.json"
 const SHIPS_PATH = "res://data/ships.json"
+const SATELLITES_PATH = "res://data/satellites.json"
 const UPGRADE_SETTINGS_PATH = "res://data/upgrade_settings.json"
 const PLAYER_SETTINGS_PATH = "res://data/player_settings.json"
 const HUD_SETTINGS_PATH = "res://data/hud_settings.json"
@@ -33,6 +35,19 @@ func _ready() -> void:
 	if ships_data.is_empty():
 		push_error("Failed to load ships data. Using fallback default ships.")
 		ships_data = _get_default_ships_data()
+
+	# Load satellites data
+	satellites_data = _load_json_file(SATELLITES_PATH, _get_default_satellites_data())
+	if satellites_data.is_empty():
+		push_error("Failed to load satellites data. Using fallback default satellites.")
+		satellites_data = _get_default_satellites_data()
+	# Validate satellite textures
+	for satellite in satellites_data:
+		if satellite.has("texture"):
+			var texture_path = satellite["texture"]
+			if not ResourceLoader.exists(texture_path, "Texture2D"):
+				push_warning("Invalid satellite texture path %s for %s, using fallback" % [texture_path, satellite.get("display_name", "Unknown")])
+				satellite["texture"] = "res://Textures/Satellite/Sat_textures/Sat1.png"
 
 	# Load upgrade settings
 	upgrade_settings = _load_json_file(UPGRADE_SETTINGS_PATH, _get_default_upgrade_settings())
@@ -248,6 +263,26 @@ func _get_default_ships_data() -> Array:
 			"upgrade_4": "res://Textures/player/ship_textures/ship_08_lvl4.png",
 			"upgrade_5": "res://Textures/player/ship_textures/ship_08_lvl5.png"
 			}
+		}
+	]
+	return defaults
+
+func _get_default_satellites_data() -> Array:
+	var defaults = [
+		{
+			"id": "Satellite1",
+			"display_name": "Guardian Drone",
+			"rank": "R",
+			"max_evolution_stage": 2,
+			"final_rank": "LR",
+			"damage_bonus": 5,
+			"upgrade_count": 0,
+			"ascend_count": 0,
+			"can_ascend": false,
+			"unlocked": true,
+			"description": "A basic but reliable orbital companion",
+			"texture": "res://Textures/player/Sat_textures/Sat1.png",
+			"purchase_cost": 0
 		}
 	]
 	return defaults

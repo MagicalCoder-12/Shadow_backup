@@ -1,7 +1,7 @@
 [gd_scene load_steps=17 format=3 uid="uid://bebhlpmqnhck0"]
 
 [ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="1_20aeh"]
-[ext_resource type="Script" path="res://Resources/coins.gd" id="1_eec7n"]
+[ext_resource type="Script" uid="uid://xb8b1y3ho0vw" path="res://Resources/coins.gd" id="1_eec7n"]
 [ext_resource type="Texture2D" uid="uid://r3mjhlpfuxn7" path="res://Textures/Explosion1/Explosion1_1.png" id="3_gpyut"]
 [ext_resource type="Texture2D" uid="uid://cg8huobgbc4hu" path="res://Textures/Explosion1/Explosion1_2.png" id="4_pl0od"]
 [ext_resource type="Texture2D" uid="uid://1wn43rche10p" path="res://Textures/Explosion1/Explosion1_3.png" id="5_0u16d"]
@@ -60,6 +60,7 @@ animations = [{
 }]
 
 [node name="Coins" type="Area2D" groups=["Coins"]]
+scale = Vector2(1.5, 1.5)
 audio_bus_name = &"Collectables"
 script = ExtResource("1_eec7n")
 

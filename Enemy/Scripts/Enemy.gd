@@ -9,11 +9,10 @@ const EBULLET = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB = preload("res://Bullet/Ebullet/Bomb.tscn")
 const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")  # Add this line to access bomb script
-const COINS = preload("res://Resources/Coins.tscn")
-const CRYSTAL = preload("res://Resources/Crystal.tscn")
 
 # --- Signals ---
 signal died
+signal enemy_died(payload)
 signal formation_reached
 signal shadow_state_changed(is_shadow: bool)
 
@@ -47,9 +46,34 @@ signal shadow_state_changed(is_shadow: bool)
 
 # --- Bomber Enemy Properties ---
 var last_bomb_drop_time: float = 0.0
-const BOMB_DROP_COOLDOWN: float = 2.0  # Minimum time between bomb drops (in seconds)
+const BOMB_DROP_COOLDOWN: float = 3.0  # Increased from 2.0 to 3.0 seconds (minimum time between bomb drops)
 var bombs_dropped: int = 0
-const MAX_BOMBS_PER_ENEMY: int = 5  # Maximum bombs a single bomber can drop
+const MAX_BOMBS_PER_ENEMY: int = 3  # Reduced from 5 to 3 (maximum bombs a single bomber can drop)
+
+# --- Optimized Attack Pattern System ---
+enum AttackPattern { SINGLE_SHOT, SPREAD_SHOT, BURST_SHOT, AIMED_SHOT }
+
+# Pattern weights (configurable per difficulty/mode)
+var normal_pattern_weights: Dictionary = {
+	AttackPattern.SINGLE_SHOT: 60,    # 60% - most common
+	AttackPattern.AIMED_SHOT: 25,     # 25% - aimed at player
+	AttackPattern.SPREAD_SHOT: 10,    # 10% - 2 bullet spread
+	AttackPattern.BURST_SHOT: 5       # 5% - quick burst
+}
+
+var shadow_pattern_weights: Dictionary = {
+	AttackPattern.SINGLE_SHOT: 40,    # 40% - still common but reduced
+	AttackPattern.AIMED_SHOT: 30,     # 30% - more aimed shots
+	AttackPattern.SPREAD_SHOT: 20,    # 20% - more spread
+	AttackPattern.BURST_SHOT: 10      # 10% - more burst
+}
+
+# Shooting cooldown management
+var can_shoot: bool = true
+var shoot_cooldown: float = 0.0
+var base_shoot_cooldown: float = 1.5  # Base time between shots
+var min_shoot_cooldown: float = 0.8   # Minimum time between shots
+var max_shoot_cooldown: float = 2.5   # Maximum time between shots
 
 # --- Shadow Visual Properties ---
 var shadow_pulse_speed: float = 2.0
@@ -105,6 +129,8 @@ var entry_path: Array[Vector2] = []
 var entry_path_index: int = 0
 var is_in_entry_phase: bool = true
 var is_shadow_enemy: bool = false
+var is_shadow_mode_active: bool = false
+var shadow_mode_unlocked: bool = false
 var shadow_tween: Tween
 var original_modulate: Color
 var original_texture: Texture2D
@@ -167,13 +193,65 @@ func _ready():
 		print("Enemy spawned: ", enemy_type)
 
 func _init_movement_patterns():
-	# Initialize variables for new movement patterns
+	"""Initialize movement pattern variables and load config settings"""
+	# Load settings from config
+	_load_attack_settings_from_config()
+	_load_movement_settings_from_config()
+	
+	# Initialize variables for movement patterns
 	should_dive_bomb = randf() < dive_bomb_probability
 	is_diving = false
 	dive_target = Vector2.ZERO
-	swarm_center = Vector2.ZERO
+	swarm_center = formation_position if formation_position != Vector2.ZERO else global_position
 	ambush_position = Vector2.ZERO
 	is_ambushing = false
+	
+	# Initialize shooting cooldown
+	can_shoot = true
+	shoot_cooldown = 0.0
+
+func _load_attack_settings_from_config():
+	"""Load attack settings from game_settings.json"""
+	if not ConfigLoader or not ConfigLoader.game_settings:
+		return
+	
+	var attack_settings = ConfigLoader.game_settings.get("enemy_attack_settings", {})
+	if attack_settings.is_empty():
+		return
+	
+	# Load cooldown settings
+	base_shoot_cooldown = attack_settings.get("base_shoot_cooldown", base_shoot_cooldown)
+	min_shoot_cooldown = attack_settings.get("min_shoot_cooldown", min_shoot_cooldown)
+	max_shoot_cooldown = attack_settings.get("max_shoot_cooldown", max_shoot_cooldown)
+	
+	# Load pattern weights
+	var normal_weights = attack_settings.get("normal_pattern_weights", {})
+	if not normal_weights.is_empty():
+		normal_pattern_weights[AttackPattern.SINGLE_SHOT] = normal_weights.get("single_shot", 60)
+		normal_pattern_weights[AttackPattern.AIMED_SHOT] = normal_weights.get("aimed_shot", 25)
+		normal_pattern_weights[AttackPattern.SPREAD_SHOT] = normal_weights.get("spread_shot", 10)
+		normal_pattern_weights[AttackPattern.BURST_SHOT] = normal_weights.get("burst_shot", 5)
+	
+	var shadow_weights = attack_settings.get("shadow_pattern_weights", {})
+	if not shadow_weights.is_empty():
+		shadow_pattern_weights[AttackPattern.SINGLE_SHOT] = shadow_weights.get("single_shot", 40)
+		shadow_pattern_weights[AttackPattern.AIMED_SHOT] = shadow_weights.get("aimed_shot", 30)
+		shadow_pattern_weights[AttackPattern.SPREAD_SHOT] = shadow_weights.get("spread_shot", 20)
+		shadow_pattern_weights[AttackPattern.BURST_SHOT] = shadow_weights.get("burst_shot", 10)
+
+func _load_movement_settings_from_config():
+	"""Load movement settings from game_settings.json"""
+	if not ConfigLoader or not ConfigLoader.game_settings:
+		return
+	
+	var movement_settings = ConfigLoader.game_settings.get("movement_settings", {})
+	if movement_settings.is_empty():
+		return
+	
+	swarm_coherence = movement_settings.get("swarm_coherence", swarm_coherence)
+	dive_bomb_probability = movement_settings.get("dive_bomb_probability", dive_bomb_probability)
+	ambush_probability = movement_settings.get("ambush_probability", ambush_probability)
+	circle_radius = movement_settings.get("circle_radius", circle_radius)
 
 func _on_tree_exiting():
 	if debug_mode:
@@ -211,14 +289,8 @@ func _connect_signals():
 			if debug_mode:
 				print("Boss: Skipped connecting screen_exited signal - already connected")
 	
-	# Connect shadow mode signals
-	_connect_shadow_signals()
 
 func _disconnect_all_signals():
-	if GameManager and GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
-		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
-	if GameManager and GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
-		GameManager.shadow_mode_deactivated.disconnect(_on_shadow_mode_deactivated)
 	if shadow_tween:
 		shadow_tween.kill()
 		shadow_tween = null
@@ -235,7 +307,7 @@ func _physics_process(delta: float) -> void:
 	_handle_shooting(delta)
 	
 	# Keep enemy within screen bounds with buffer
-	global_position.x = clamp(global_position.x, -50, viewport_size.x + 50)
+	position.x = clamp(position.x, -50, viewport_size.x + 50)
 
 func _update_player_reference():
 	if not is_instance_valid(player_reference):
@@ -268,10 +340,10 @@ func _follow_entry_path(delta: float):
 		return
 	
 	var target_pos = entry_path[entry_path_index]
-	var direction = (target_pos - global_position).normalized()
+	var direction = (target_pos - global_position).normalized()  # Still need to use global_position for path calculations
 	var move_speed = speed * entry_speed_multiplier
 	
-	global_position += direction * move_speed * delta
+	position += direction * move_speed * delta
 	
 	# Check if we're close enough to the next waypoint
 	if global_position.distance_to(target_pos) < 20.0:
@@ -280,48 +352,68 @@ func _follow_entry_path(delta: float):
 func _reach_formation():
 	is_in_entry_phase = false
 	arrived_at_formation = true
-	global_position = formation_position
+	position = formation_position
 	formation_reached.emit()
 	
 	if debug_mode:
 		print("Enemy reached formation position")
 
 func _perform_formation_movement(delta: float):
+	"""Handle movement after reaching formation position"""
 	match movement_pattern:
 		MovementPattern.FORMATION_HOLD:
-			# Stay at formation position
-			global_position = global_position.lerp(formation_position, 2.0 * delta)
-			
+			_handle_formation_hold(delta)
 		MovementPattern.SIDE_TO_SIDE:
-			# Move side to side around formation position
-			var side_offset = sin(time_since_spawn * 2.0) * 50.0
-			var target_pos = formation_position + Vector2(side_offset, 0)
-			global_position = global_position.lerp(target_pos, 3.0 * delta)
-			
+			_handle_side_to_side(delta)
 		MovementPattern.CIRCLE:
-			# Circle around formation position
-			circle_angle += delta * 2.0
-			var circle_offset = Vector2(cos(circle_angle), sin(circle_angle)) * circle_radius
-			global_position = formation_position + circle_offset
-			
+			_handle_circle_movement(delta)
 		MovementPattern.DIVE:
-			# Occasional dive towards player
-			if is_instance_valid(player_reference) and randf() < 0.001:
-				var dive_direction = (player_reference.global_position - global_position).normalized()
-				global_position += dive_direction * speed * 2.0 * delta
-			else:
-				# Return to formation
-				global_position = global_position.lerp(formation_position, 2.0 * delta)
-				
-		# New movement patterns
+			_handle_dive_pattern(delta)
 		MovementPattern.DIVE_BOMB_PATTERN:
 			_handle_dive_bomb_pattern(delta)
-			
 		MovementPattern.SWARM_PATTERN:
 			_handle_swarm_pattern(delta)
-			
 		MovementPattern.AMBUSH_PATTERN:
 			_handle_ambush_pattern(delta)
+
+func _handle_formation_hold(delta: float):
+	"""Stay at formation position with slight drift"""
+	var drift = Vector2(
+		sin(time_since_spawn * 0.5 + formation_index) * 5.0,
+		cos(time_since_spawn * 0.3) * 3.0
+	)
+	var target = formation_position + drift
+	position = position.lerp(target, 2.0 * delta)
+
+func _handle_side_to_side(delta: float):
+	"""Move side to side around formation position with smooth easing"""
+	var amplitude = 50.0
+	if ConfigLoader and ConfigLoader.game_settings:
+		var movement_settings = ConfigLoader.game_settings.get("movement_settings", {})
+		amplitude = movement_settings.get("side_to_side_amplitude", amplitude)
+	
+	# Use unique offset per enemy for variety
+	var phase_offset = formation_index * 0.5
+	var side_offset = sin(time_since_spawn * 2.0 + phase_offset) * amplitude
+	var target_pos = formation_position + Vector2(side_offset, 0)
+	position = position.lerp(target_pos, 3.0 * delta)
+
+func _handle_circle_movement(delta: float):
+	"""Circle around formation position"""
+	# Vary rotation speed per enemy
+	var rotation_speed = 2.0 + (formation_index % 3) * 0.3
+	circle_angle += delta * rotation_speed
+	var circle_offset = Vector2(cos(circle_angle), sin(circle_angle)) * circle_radius
+	position = formation_position + circle_offset
+
+func _handle_dive_pattern(delta: float):
+	"""Occasional dive towards player with smooth recovery"""
+	if is_instance_valid(player_reference) and randf() < 0.002:  # Less frequent dives
+		var dive_direction = (player_reference.global_position - global_position).normalized()
+		position += dive_direction * speed * 2.0 * delta
+	else:
+		# Smooth return to formation
+		position = position.lerp(formation_position, 3.0 * delta)
 
 # --- New Movement Pattern Implementations ---
 
@@ -333,109 +425,201 @@ func _handle_dive_bomb_pattern(delta: float):
 		is_diving = false  # Reset dive state immediately
 	
 	# Return to formation when not diving
-	global_position = global_position.lerp(formation_position, 2.0 * delta)
+	position = position.lerp(formation_position, 2.0 * delta)
 
 func _handle_swarm_pattern(delta: float):
-	# Move in coordination with nearby enemies
-	# For simplicity, we'll simulate swarm behavior by moving in a pattern around the formation position
-	# In a full implementation, this would communicate with nearby enemies
-	var swarm_offset = Vector2(
-		sin(time_since_spawn * swarm_coherence) * 30.0,
-		cos(time_since_spawn * swarm_coherence) * 20.0
+	"""Move in coordinated swarm behavior with nearby enemies"""
+	# Calculate swarm offset based on multiple factors for more organic movement
+	var time_factor = time_since_spawn * swarm_coherence
+	
+	# Layer multiple sine waves for complex movement
+	var primary_wave = Vector2(
+		sin(time_factor) * 35.0,
+		cos(time_factor * 0.7) * 25.0
 	)
+	
+	# Secondary wave offset by formation index for variety
+	var secondary_wave = Vector2(
+		sin(time_factor * 1.5 + formation_index * 0.8) * 15.0,
+		cos(time_factor * 1.2 + formation_index * 0.6) * 10.0
+	)
+	
+	# Combine waves with formation position
+	var swarm_offset = primary_wave + secondary_wave
+	
+	# Add slight attraction to center of formation for cohesion
+	var center_attraction = (swarm_center - position) * 0.02
+	swarm_offset += center_attraction
+	
 	var target_pos = formation_position + swarm_offset
-	global_position = global_position.lerp(target_pos, 2.0 * delta)
+	
+	# Smooth lerp with slightly faster response
+	position = position.lerp(target_pos, 2.5 * delta)
 
 func _handle_ambush_pattern(delta: float):
-	# Hide at screen edges and ambush the player
+	"""Hide at screen edges and ambush the player with improved behavior"""
 	if not is_ambushing:
-		# Position at screen edge
-		if randf() < 0.5:
-			# Left edge
-			ambush_position = Vector2(-30, randf_range(50, viewport_size.y - 50))
-		else:
-			# Right edge
-			ambush_position = Vector2(viewport_size.x + 30, randf_range(50, viewport_size.y - 50))
-		
-		global_position = ambush_position
+		# Set up initial ambush position at screen edge
+		_setup_ambush_position()
 		is_ambushing = true
 	else:
-		# Check if player is near, then attack
-		if is_instance_valid(player_reference):
-			var distance_to_player = global_position.distance_to(player_reference.global_position)
-			if distance_to_player < 300:  # Attack when player is close
-				var direction = (player_reference.global_position - global_position).normalized()
-				global_position += direction * speed * 1.5 * delta
-			# Otherwise stay in ambush position
-			else:
-				global_position = global_position.lerp(ambush_position, 1.0 * delta)
+		_execute_ambush_behavior(delta)
 
-func _handle_shooting(_delta: float):
+func _setup_ambush_position():
+	"""Set up the initial ambush position"""
+	# Use formation index to distribute enemies on different sides
+	if formation_index % 2 == 0:
+		# Left edge
+		ambush_position = Vector2(-30, randf_range(100, viewport_size.y - 100))
+	else:
+		# Right edge
+		ambush_position = Vector2(viewport_size.x + 30, randf_range(100, viewport_size.y - 100))
+	
+	position = ambush_position
+
+func _execute_ambush_behavior(delta: float):
+	"""Execute the ambush behavior - wait and attack"""
+	if not is_instance_valid(player_reference):
+		return
+	
+	var distance_to_player = position.distance_to(player_reference.global_position)
+	
+	# Attack when player comes close enough
+	if distance_to_player < 350:
+		# Rush towards player
+		var direction = (player_reference.global_position - global_position).normalized()
+		position += direction * speed * 1.8 * delta
+		
+		# Check if we've passed the player, then retreat
+		if position.y > player_reference.global_position.y + 100:
+			is_ambushing = false  # Reset to set up new ambush
+	else:
+		# Slowly creep towards center while waiting
+		var creep_target = ambush_position.lerp(Vector2(viewport_size.x / 2, ambush_position.y), 0.15)
+		position = position.lerp(creep_target, 0.5 * delta)
+
+func _handle_shooting(delta: float):
 	if not arrived_at_formation or not is_instance_valid(player_reference):
+		return
+	
+	# Manage shooting cooldown
+	if not can_shoot:
+		shoot_cooldown -= delta
+		if shoot_cooldown <= 0:
+			can_shoot = true
 		return
 	
 	# Bomber enemies drop bombs instead of shooting
 	if enemy_type == "Bomber":
-		# Check if we haven't exceeded the maximum bombs per enemy
-		if bombs_dropped < MAX_BOMBS_PER_ENEMY:
-			# Use time-based cooldown instead of random chance per frame
-			if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
-				# 50% chance to drop a bomb when cooldown is ready
-				if randf() < 0.5:
-					_drop_bomb()
-					bombs_dropped += 1
-					last_bomb_drop_time = time_since_spawn
+		_handle_bomber_shooting()
 		return
 	
-	# Enhanced shooting logic based on enemy type or special conditions
-	# In shadow mode, enemies shoot more aggressively
-	if GameManager.level_manager.shadow_mode_enabled:
-		# In shadow mode, increase the chance of using advanced shooting patterns, but not too frequently
-		if randf() < 0.25:  # Reduced from 0.15 to 0.1 (10% chance)
-			var advanced_pattern = randi() % 2  # Choose between spread shot and burst shot
-			match advanced_pattern:
-				0:
-					_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
-				1:
-					_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
-			return
-	
-	# Standard shooting logic
+	# Standard shooting is now handled entirely by the timer
 	pass
 
+func _handle_bomber_shooting():
+	"""Handle bomber-specific shooting behavior with bombs"""
+	if bombs_dropped >= MAX_BOMBS_PER_ENEMY:
+		return
+	
+	# Use time-based cooldown instead of random chance per frame
+	if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
+		# 30% chance to drop a bomb when cooldown is ready
+		if randf() < 0.3:
+			_drop_bomb()
+			bombs_dropped += 1
+			last_bomb_drop_time = time_since_spawn
+
 func _on_fire_timer_timeout():
+	"""Optimized timer-based shooting with weighted pattern selection"""
 	if not is_alive or not arrived_at_formation or not is_instance_valid(player_reference):
 		return
 	
-	# In shadow mode, enemies shoot more aggressively but with reasonable limits
-	if GameManager.level_manager.shadow_mode_enabled:
-		# Higher chance of using advanced shooting patterns in shadow mode, but controlled
-		# Add a cooldown to prevent continuous shooting
-		if randf() < 0.02:  # 2% chance per frame to shoot (creates gaps)
-			@warning_ignore("confusable_local_declaration")
-			var shooting_pattern = randi() % 5  # Increased from 4 to 5 for more standard shots
-			
-			match shooting_pattern:
-				0, 1, 2:  # 60% chance of standard shooting
-					_fire_at_player()  # Standard aimed shooting (most common)
-				3:
-					_fire_spread_shot(2, PI/6)  # Reduced from 3 to 2 bullets, narrower spread
-				4:
-					_fire_burst_shot(2, 0.15)  # Reduced from 3 to 2 bullets, slower burst
+	if not can_shoot:
 		return
 	
-	# Standard shooting logic - even in normal mode, reduce frequency of advanced patterns
-	# Add a cooldown to prevent continuous shooting
-	if randf() < 0.015:  # 1.5% chance per frame to shoot (creates gaps)
-		var shooting_pattern = randi() % 4  # Randomly choose between 0, 1, 2, 3
-		
-		match shooting_pattern:
-			0, 1, 2:  # 75% chance of standard shooting
-				_fire_at_player()  # Standard aimed shooting
-			3:
-				_fire_spread_shot(2, PI/6)  # 2 bullets in a spread
-			_:
-				_fire_at_player()  # Fallback to standard shooting
+	# Select attack pattern based on weighted probability
+	var pattern = _select_weighted_attack_pattern()
+	
+	# Execute the selected pattern
+	_execute_attack_pattern(pattern)
+	
+	# Apply cooldown with variation for more natural shooting
+	_apply_shooting_cooldown()
+
+func _select_weighted_attack_pattern() -> AttackPattern:
+	"""Select an attack pattern based on weighted probabilities"""
+	var weights = shadow_pattern_weights if _is_shadow_mode_active() else normal_pattern_weights
+	
+	# Calculate total weight
+	var total_weight = 0
+	for weight in weights.values():
+		total_weight += weight
+	
+	# Random selection based on weights
+	var roll = randi() % int(total_weight)
+	var cumulative = 0
+	
+	for pattern in weights.keys():
+		cumulative += weights[pattern]
+		if roll < cumulative:
+			return pattern
+	
+	return AttackPattern.SINGLE_SHOT  # Fallback
+
+func _execute_attack_pattern(pattern: AttackPattern):
+	"""Execute the selected attack pattern"""
+	match pattern:
+		AttackPattern.SINGLE_SHOT:
+			_fire_single_shot()
+		AttackPattern.AIMED_SHOT:
+			_fire_at_player()
+		AttackPattern.SPREAD_SHOT:
+			_fire_spread_shot(2, PI/8)  # 2 bullets, 22.5 degree spread
+		AttackPattern.BURST_SHOT:
+			_fire_burst_shot(2, 0.12)  # 2 bullets, 0.12s delay
+		_:
+			_fire_at_player()  # Fallback
+
+func _fire_single_shot():
+	"""Fire a single bullet straight down - simple and predictable"""
+	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
+	var bullet = bullet_scene.instantiate()
+	
+	if not bullet:
+		return
+	
+	bullet.global_position = position
+	bullet.rotation = PI/2  # Straight down
+	get_tree().current_scene.add_child(bullet)
+
+func _apply_shooting_cooldown():
+	"""Apply a variable cooldown between shots for natural shooting rhythm"""
+	can_shoot = false
+	
+	# Base cooldown with difficulty scaling
+	var difficulty_modifier = 1.0
+	match current_difficulty:
+		formation_enums.DifficultyLevel.EASY:
+			difficulty_modifier = 1.3  # Slower shooting
+		formation_enums.DifficultyLevel.NORMAL:
+			difficulty_modifier = 1.0
+		formation_enums.DifficultyLevel.HARD:
+			difficulty_modifier = 0.85
+		formation_enums.DifficultyLevel.NIGHTMARE:
+			difficulty_modifier = 0.7  # Faster shooting
+	
+	# Shadow mode reduces cooldown slightly
+	if _is_shadow_mode_active():
+		difficulty_modifier *= 0.9
+	
+	# Calculate cooldown with some randomness for variety
+	var cooldown_range = max_shoot_cooldown - min_shoot_cooldown
+	shoot_cooldown = (min_shoot_cooldown + randf() * cooldown_range) * difficulty_modifier
+
+func _is_shadow_mode_active() -> bool:
+	"""Check if shadow mode is currently active"""
+	return is_shadow_mode_active
 
 func _fire_at_player():
 	var bullet_scene = SHADOW_EBULLET if is_shadow_enemy else EBULLET
@@ -445,10 +629,10 @@ func _fire_at_player():
 		return
 	
 	# Position bullet at enemy center
-	bullet.global_position = global_position
+	bullet.global_position = position
 	
 	# Calculate direction to player
-	var direction = (player_reference.global_position - global_position).normalized()
+	var direction = (player_reference.global_position - position).normalized()
 	bullet.rotation = direction.angle() + PI/2
 	
 	# Add to scene
@@ -471,13 +655,13 @@ func _fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI/6):  # Re
 		var angle_offset = spread_angle * (i - (bullet_count-1)/2.0) / (bullet_count-1)
 		var direction = Vector2.ZERO
 		if is_instance_valid(player_reference):
-			direction = (player_reference.global_position - global_position).normalized()
+			direction = (player_reference.global_position - position).normalized()
 		else:
 			direction = Vector2(0, 1)  # Default downward direction
 		
 		direction = direction.rotated(angle_offset)
 		
-		bullet.global_position = global_position
+		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
 
@@ -493,7 +677,7 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		# Calculate direction to player with slight variation for each burst
 		var direction = Vector2.ZERO
 		if is_instance_valid(player_reference):
-			direction = (player_reference.global_position - global_position).normalized()
+			direction = (player_reference.global_position - position).normalized()
 		else:
 			direction = Vector2(0, 1)  # Default downward direction
 		
@@ -501,7 +685,7 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		var angle_variation = (i - (burst_count-1)/2.0) * 0.05  # Reduced from 0.1 to 0.05
 		direction = direction.rotated(angle_variation)
 		
-		bullet.global_position = global_position
+		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
 		get_tree().current_scene.add_child(bullet)
 
@@ -520,7 +704,7 @@ func _drop_bomb():
 	var bomb_instance = BOMB.instantiate()
 	if bomb_instance:
 		# Position the bomb at the enemy's position
-		bomb_instance.global_position = global_position
+		bomb_instance.global_position = position
 		# Add the bomb to the scene
 		get_tree().current_scene.add_child(bomb_instance)
 
@@ -545,7 +729,7 @@ func setup_formation_entry(config: WaveConfig, index: int, formation_pos: Vector
 	if fire_timer:
 		fire_timer.wait_time = 1.0 / fire_rate
 	
-	spawn_position = global_position
+	spawn_position = position
 	
 	if debug_mode:
 		print("Enemy formation setup complete")
@@ -556,6 +740,16 @@ func set_entry_path(path: Array[Vector2]):
 	
 	if debug_mode:
 		print("Entry path set with ", path.size(), " waypoints")
+
+func assign_formation_slot(data: Dictionary) -> void:
+	# TEMP SHIM - behavior must remain identical
+	setup_formation_entry(
+		data.wave_config,
+		data.formation_index,
+		data.formation_position,
+		data.start_delay
+	)
+	set_entry_path(data.entry_path)
 
 func _apply_difficulty_multipliers(difficulty: formation_enums.DifficultyLevel):
 	var multipliers = difficulty_multipliers.get(difficulty, difficulty_multipliers[formation_enums.DifficultyLevel.NORMAL])
@@ -571,7 +765,7 @@ func _apply_difficulty_multipliers(difficulty: formation_enums.DifficultyLevel):
 	shadow_spawn_probability = multipliers["shadow_chance"]
 
 func _initialize_shadow_state():
-	if GameManager and GameManager.level_manager and GameManager.level_manager.shadow_mode_unlocked:
+	if shadow_mode_unlocked:
 		if randf() < shadow_spawn_probability:
 			_make_shadow_enemy()
 
@@ -712,84 +906,20 @@ func die():
 	
 	is_alive = false
 	healthbar.visible = false
-	var final_score = score
-	if is_shadow_enemy:
-		final_score = int(score * shadow_score_multiplier)
+	var payload = {
+		"enemy_type": enemy_type,
+		"is_boss": false,
+		"base_score": score,
+		"is_shadow_enemy": is_shadow_enemy,
+		"shadow_score_multiplier": shadow_score_multiplier,
+		"global_position": global_position
+	}
+	enemy_died.emit(payload)
 	
-	GameManager.score += final_score
-	_drop_resources()
 	_disconnect_all_signals()
 	_play_death_animation()
 	
-	# Notify GameManager for shadow mode charging
-	GameManager.notify_enemy_killed(self)
-	
 	died.emit()
-
-func _drop_resources():
-	# Get current level from GameManager
-	var current_level = 1
-	if GameManager and GameManager.level_manager:
-		current_level = GameManager.level_manager.get_current_level()
-	
-	# Get reward configuration
-	var reward_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		reward_config = ConfigLoader.upgrade_settings.get("enemy_drop_rewards", {})
-	
-	# Default values if config not found
-	var coins_per_enemy = reward_config.get("coins_per_enemy", 15)
-	var coin_drop_chance = reward_config.get("coin_drop_chance", 0.7)
-	var crystal_drop_chance = reward_config.get("crystal_drop_chance", 0.2)
-	var crystal_reward_per_drop = reward_config.get("crystal_reward_per_drop", 5)
-	
-	# Scale rewards based on level (higher levels give more rewards)
-	var level_multiplier = pow(float(current_level), 0.5)  # Square root scaling
-	var scaled_coins = int(coins_per_enemy * level_multiplier)
-	var scaled_crystal_reward = int(crystal_reward_per_drop * level_multiplier)
-	
-	# Determine what to drop - either coins OR crystals, not both
-	var drop_crystal = randf() < crystal_drop_chance
-	var drop_coins = !drop_crystal && (randf() < coin_drop_chance)
-	
-	# Drop coins if selected
-	if drop_coins:
-		# Drop coins - 1-2 coins per enemy with level scaling
-		var coin_count = randi_range(1, 2)
-		for i in range(coin_count):
-			var coin = COINS.instantiate()
-			coin.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
-			# Set the coin value based on the scaled reward
-			if coin.has_method("set_value"):
-				coin.set_value(scaled_coins)
-			get_tree().current_scene.call_deferred("add_child", coin)
-	
-	# Drop crystal if selected (instead of coins)
-	elif drop_crystal:
-		var crystal = CRYSTAL.instantiate()
-		crystal.global_position = global_position
-		# Set the crystal value based on the scaled reward
-		if crystal.has_method("set_value"):
-			crystal.set_value(scaled_crystal_reward)
-		get_tree().current_scene.call_deferred("add_child", crystal)
-		
-		# NEW: Drop power-ups occasionally
-		if randf() < 0.3:  # 30% chance to drop a power-up
-			_drop_powerup()
-
-func _drop_powerup():
-	# Instantiate and drop a random power-up
-	var powerup_scenes = [
-		preload("res://Powerups/Attack_boost_powerup.tscn"),
-		preload("res://Powerups/SuperMode.tscn"),
-		preload("res://Powerups/Health.tscn")
-	]
-	
-	# 33% chance for each power-up type
-	var selected_scene = powerup_scenes[randi() % powerup_scenes.size()]
-	var powerup = selected_scene.instantiate()
-	powerup.global_position = global_position
-	get_tree().current_scene.call_deferred("add_child", powerup)
 
 func _play_death_animation():
 	if enemy_explosion:
@@ -826,13 +956,16 @@ func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
 	
 	queue_free()
 
-# --- Signal Connections ---
-func _connect_shadow_signals():
-	if GameManager:
-		if not GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
-			GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-		if not GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
-			GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
+# --- Shadow Mode Updates ---
+func on_shadow_mode_changed(active: bool) -> void:
+	is_shadow_mode_active = active
+	if active:
+		_on_shadow_mode_activated()
+	else:
+		_on_shadow_mode_deactivated()
+
+func on_shadow_mode_unlocked_changed(unlocked: bool) -> void:
+	shadow_mode_unlocked = unlocked
 
 
 func _on_area_entered(area: Area2D) -> void:

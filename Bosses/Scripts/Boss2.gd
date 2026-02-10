@@ -3,6 +3,7 @@ extends Area2D
 signal boss_defeated
 signal phase_changed
 signal descent_completed
+signal enemy_died(payload)
 
 enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 
@@ -55,7 +56,7 @@ var defeated: bool = false
 var is_invincible: bool = false
 var dash_cooldown: float = 0.0
 var effects_layer: Node
-var shadow_mode_active: bool = false
+var is_shadow_mode_active: bool = false
 
 # Minion management
 var active_minions: Array[Node] = []
@@ -133,10 +134,6 @@ func _ready() -> void:
 	_setup_minion_spawn_timer()
 	_initialize_minion_spawn_positions()
 
-	# Connect signals
-	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
-
 	start_movement()
 	# Play boss music when boss is ready
 	_play_boss_music()
@@ -182,7 +179,7 @@ func _physics_process(delta: float) -> void:
 		phase_speed_multiplier = 1.3
 	elif current_phase == BossPhase.ENRAGED:
 		phase_speed_multiplier = 1.6
-	var shadow_speed_multiplier = 1.5 if shadow_mode_active else 1.0
+	var shadow_speed_multiplier = 1.5 if is_shadow_mode_active else 1.0
 	var current_speed = move_speed * phase_speed_multiplier * shadow_speed_multiplier
 	var center_x = get_viewport().get_visible_rect().size.x / 2
 	var t = Time.get_ticks_msec() / 1000.0
@@ -250,7 +247,23 @@ func take_damage(amount: int) -> void:
 	current_health -= amount
 	health_bar.value = current_health
 
-	if current_health <= 0:
+	# Phase transition logic
+	if current_phase == BossPhase.PHASE1 and current_health <= max_health * 0.3:
+		is_invincible = true
+		phase_change.play()
+		await phase_change.finished
+		enter_phase(BossPhase.PHASE2)
+		await get_tree().create_timer(invincibility_duration).timeout
+		is_invincible = false
+	elif current_phase == BossPhase.PHASE2 and current_health <= stage_2_max_health * 0.3:
+		is_invincible = true
+		phase_change.play()
+		await phase_change.finished
+		enter_phase(BossPhase.ENRAGED)
+		await get_tree().create_timer(invincibility_duration).timeout
+		is_invincible = false
+
+	if current_health <= 0 and current_phase != BossPhase.PHASE1:
 		defeated = true
 		attack_timer.stop()
 		phase_timer.stop()
@@ -267,6 +280,15 @@ func take_damage(amount: int) -> void:
 		await get_tree().create_timer(particle_lifetime).timeout
 		if boss_death:
 			await boss_death.finished
+		var payload = {
+			"enemy_type": "Boss2",
+			"is_boss": true,
+			"base_score": 0,
+			"is_shadow_enemy": false,
+			"shadow_score_multiplier": 1.0,
+			"global_position": global_position
+		}
+		enemy_died.emit(payload)
 		boss_defeated.emit()
 		queue_free()
 
@@ -326,7 +348,7 @@ func enter_phase(phase: BossPhase) -> void:
 	var tween = create_tween()
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale * 1.2, 0.3).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(sprite_2d, "scale", sprite_2d.scale, 0.3).set_trans(Tween.TRANS_SINE)
-	attack_timer.start(attack_interval * phase_multiplier * (0.7 if shadow_mode_active else 1.0))
+	attack_timer.start(attack_interval * phase_multiplier * (0.7 if is_shadow_mode_active else 1.0))
 	print("Entered phase: %s" % BossPhase.keys()[phase])
 
 func _adjust_minion_spawn_rate() -> void:
@@ -339,7 +361,7 @@ func _adjust_minion_spawn_rate() -> void:
 		BossPhase.ENRAGED:
 			spawn_rate_multiplier = 0.6
 	
-	if shadow_mode_active:
+	if is_shadow_mode_active:
 		spawn_rate_multiplier *= 0.7
 	
 	minion_spawn_timer.wait_time = minion_spawn_interval * spawn_rate_multiplier
@@ -485,7 +507,7 @@ func _on_attack_timer_timeout() -> void:
 			phase_multiplier = 0.5
 			
 	var shadow_multiplier = 1.0
-	if shadow_mode_active:
+	if is_shadow_mode_active:
 		shadow_multiplier = 0.7
 		
 	attack_timer.start(attack_interval * phase_multiplier * shadow_multiplier)
@@ -624,7 +646,7 @@ func fire_laser_burst() -> void:
 
 
 func _on_shadow_mode_activated() -> void:
-	shadow_mode_active = true
+	is_shadow_mode_active = true
 	attack_timer.wait_time = attack_timer.wait_time * 0.7
 	attack_timer.start()
 	
@@ -637,7 +659,7 @@ func _on_shadow_mode_activated() -> void:
 			minion._make_shadow_enemy()
 
 func _on_shadow_mode_deactivated() -> void:
-	shadow_mode_active = false
+	is_shadow_mode_active = false
 	var phase_multiplier = 1.0
 	if current_phase == BossPhase.PHASE2:
 		phase_multiplier = 0.7
@@ -648,6 +670,12 @@ func _on_shadow_mode_deactivated() -> void:
 	
 	# Adjust minion spawning back to normal
 	_adjust_minion_spawn_rate()
+
+func on_shadow_mode_changed(active: bool) -> void:
+	if active:
+		_on_shadow_mode_activated()
+	else:
+		_on_shadow_mode_deactivated()
 
 func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
 	# Create a small visual effect when bullets are fired

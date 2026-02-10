@@ -2,11 +2,12 @@ extends Control
 
 # Onready references
 @onready var score_label: Label = $PanelContainer/Panel/ScoreContainer/Score
-@onready var message_label: Label = $PanelContainer/Panel/VBoxContainer/MessageLabel
-@onready var revive_button: Button = $PanelContainer/Panel/HBoxContainer/Revive
+@onready var message_label: Label = $PanelContainer/Panel/ButtonsContainer/MessageLabel
+@onready var revive_button: Button = $PanelContainer/Panel/ButtonsContainer/HBoxContainer/Revive
 
 # Constants
 const MAP_SCENE: String = "res://Map/map.tscn"
+const SHOP_SCENE: String = "res://MainScenes/upgrade_menu.tscn"
 var current_level
 
 # Signals
@@ -67,9 +68,10 @@ func _on_game_over_triggered() -> void:
 func _award_half_collected_currency() -> void:
 	if GameManager:
 		# Calculate half of collected coins and crystals (rounded down)
-		var half_coins = int(GameManager.coins_collected_this_level / 2)
-		var half_crystals = int(GameManager.crystals_collected_this_level / 2)
-		
+		var half_coins = roundi(GameManager.coins_collected_this_level / 2.0)
+		var half_crystals = roundi(GameManager.crystals_collected_this_level / 2.0)
+
+
 		# Award the half amounts to the player's total
 		if half_coins > 0:
 			GameManager.add_currency("coins", half_coins)
@@ -104,7 +106,7 @@ func _on_ad_reward_granted(_ad_type: String) -> void:
 	message_label.visible = false
 	if GameManager and GameManager.game_over:
 		_debug_log("Warning: Game over still true after ad revive! Forcing to false.")
-		GameManager.game_over = false
+		GameManager.request_game_over_clear("GameOverScreen._on_ad_reward_granted")
 	_debug_log("Ad reward granted, player revived like a cosmic phoenix!")
 
 func _on_ad_failed(_ad_type: String, _error_code: Variant) -> void:
@@ -119,7 +121,7 @@ func _on_revive_completed(success: bool) -> void:
 	if success:
 		if GameManager and GameManager.game_over:
 			_debug_log("Warning: Game over still true after successful revive! Forcing to false.")
-			GameManager.game_over = false
+			GameManager.request_game_over_clear("GameOverScreen._on_revive_completed")
 		visible = false
 		message_label.visible = false
 		_debug_log("Revive completed successfully! Player's back in the galaxy!")
@@ -169,3 +171,7 @@ func _debug_log(message: String) -> void:
 	var player: Node = get_tree().get_first_node_in_group("Player")
 	if player and player is Player and player.enable_debug_logging:
 		print("[GameOverScreen Debug] " + message)
+
+
+func _on_shop_button_down() -> void:
+	GameManager.change_scene(SHOP_SCENE)

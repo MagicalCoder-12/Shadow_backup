@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://dula0etnafhc4"]
 
-[ext_resource type="Script" path="res://MainScenes/Scripts/shop.gd" id="1_q5gon"]
+[ext_resource type="Script" uid="uid://cubfji48ol10x" path="res://MainScenes/Scripts/shop.gd" id="1_q5gon"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vc4pe"]
 [ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="2_xiv02"]
 [ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="3_2la7e"]
@@ -36,10 +36,11 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.490196)
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
-offset_left = 153.0
-offset_top = 545.0
-offset_right = 953.0
-offset_bottom = 1577.0
+layout_mode = 0
+offset_left = 334.0
+offset_top = 1093.0
+offset_right = 1134.0
+offset_bottom = 2125.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_t3pkw")
 
 [node name="Panel" type="Panel" parent="PanelContainer"]
@@ -80,10 +81,10 @@ autowrap_mode = 2
 
 [node name="Back" type="TextureButton" parent="."]
 layout_mode = 0
-offset_left = 393.0
-offset_top = 1253.0
-offset_right = 688.0
-offset_bottom = 1516.0
+offset_left = 570.0
+offset_top = 1767.0
+offset_right = 865.0
+offset_bottom = 2030.0
 texture_normal = ExtResource("3_2la7e")
 texture_pressed = ExtResource("4_b3jih")
 texture_hover = ExtResource("4_b3jih")

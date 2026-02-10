@@ -209,10 +209,10 @@ func _on_auto_unlock_timeout():
 	
 func _on_next_pressed() -> void:
 	if GameManager and GameManager.level_manager:
-		# Complete the level properly before unlocking the next one
+		# Complete the level properly before going to map
 		GameManager.level_manager.complete_level(current_level)
-		# Then unlock the next level
-		GameManager.level_manager.unlock_next_level(current_level)
+		# Navigate to map
+		GameManager.change_scene(Map)
 
 
 func _on_map_pressed() -> void:

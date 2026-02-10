@@ -22,20 +22,20 @@
 [ext_resource type="Texture2D" uid="uid://ekui6ko7t814" path="res://Textures/player/ship_textures/ship_06_lvl0.png" id="19_xi3qs"]
 [ext_resource type="Texture2D" uid="uid://n3xkkipbaqqw" path="res://Textures/player/ship_textures/ship_07_lvl0.png" id="20_symq1"]
 [ext_resource type="Texture2D" uid="uid://djxdxx523tjm2" path="res://Textures/player/ship_textures/ship_08_lvl0.png" id="21_wxflo"]
-[ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/player/Sat_textures/Sat1.png" id="23_vkili"]
-[ext_resource type="Texture2D" uid="uid://bsxh7ep1ao0tr" path="res://Textures/player/Sat_textures/Sat2.png" id="24_868fn"]
-[ext_resource type="Texture2D" uid="uid://py6eihk45hm2" path="res://Textures/player/Sat_textures/Sat3.png" id="25_lybpu"]
-[ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/player/Sat_textures/Sat4.png" id="26_irsms"]
-[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/player/Sat_textures/Sat5.png" id="27_y7qod"]
-[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/player/Sat_textures/Sat6.png" id="28_l34vq"]
+[ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/Satellite/Sat_textures/Sat1.png" id="23_vkili"]
+[ext_resource type="Texture2D" uid="uid://bsxh7ep1ao0tr" path="res://Textures/Satellite/Sat_textures/Sat2.png" id="24_868fn"]
+[ext_resource type="Texture2D" uid="uid://py6eihk45hm2" path="res://Textures/Satellite/Sat_textures/Sat3.png" id="25_lybpu"]
+[ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/Satellite/Sat_textures/Sat4.png" id="26_irsms"]
+[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="27_y7qod"]
+[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/Satellite/Sat_textures/Sat6.png" id="28_l34vq"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gmmlx"]
 font = ExtResource("13_n170t")
-font_size = 35
+font_size = 45
 
 [sub_resource type="LabelSettings" id="LabelSettings_n5e6d"]
 font = ExtResource("1_mddtv")
-font_size = 35
+font_size = 45
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nr62u"]
 
@@ -48,17 +48,11 @@ expand_margin_bottom = 10.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_ytpva"]
 font = ExtResource("1_mddtv")
-font_size = 40
+font_size = 50
 
 [sub_resource type="LabelSettings" id="LabelSettings_7w585"]
 font = ExtResource("1_mddtv")
-font_size = 40
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q8bu7"]
-bg_color = Color(0, 1, 0.6, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i47je"]
-bg_color = Color(0, 1, 0.6, 1)
+font_size = 50
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5osyu"]
 bg_color = Color(0, 1, 0.6, 1)
@@ -79,7 +73,13 @@ outline_color = Color(1, 0, 1, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_i67n4"]
 font = ExtResource("13_n170t")
-font_size = 45
+font_size = 50
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q8bu7"]
+bg_color = Color(0, 1, 0.6, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i47je"]
+bg_color = Color(0, 1, 0.6, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_68fc6"]
 font = ExtResource("1_mddtv")
@@ -547,7 +547,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -17.0
 offset_top = 5.0
-offset_right = 217.0
+offset_right = 280.0
 offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -555,32 +555,33 @@ script = ExtResource("1_uf2vc")
 
 [node name="Outline" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -18.0
-offset_top = -4.0
-offset_right = -174.0
+anchors_preset = -1
+anchor_left = 0.009786989
+anchor_top = -0.011029412
+anchor_right = 0.8313184
+anchor_bottom = 0.9739583
 grow_horizontal = 2
 grow_vertical = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="Heading" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.310189
-anchor_top = 0.0104167
-anchor_right = 0.656447
-anchor_bottom = 0.0479167
+anchor_left = 0.2723086
+anchor_top = 0.02879902
+anchor_right = 0.61856663
+anchor_bottom = 0.06629902
 grow_horizontal = 2
 texture = ExtResource("6_64fx3")
 metadata/_edit_use_anchors_ = true
 
 [node name="Resources" type="HBoxContainer" parent="."]
-layout_mode = 0
-anchor_left = 0.0166667
-anchor_top = 0.0494373
-anchor_right = 0.825758
-anchor_bottom = 0.0932476
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.027633851
+anchor_top = 0.08118872
+anchor_right = 0.82153136
+anchor_bottom = 0.12928921
 theme_override_constants/separation = 30
 metadata/_edit_use_anchors_ = true
 
@@ -590,7 +591,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Void_Shards_display" type="Label" parent="Resources/VoidCrystal"]
 layout_mode = 2
-text = "Void_Crystals: 100"
+text = "Void_Crystals: 100k"
 label_settings = SubResource("LabelSettings_gmmlx")
 vertical_alignment = 2
 
@@ -598,7 +599,6 @@ vertical_alignment = 2
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 texture = ExtResource("9_8sam1")
-expand_mode = 5
 stretch_mode = 5
 
 [node name="Crystal" type="HBoxContainer" parent="Resources"]
@@ -607,7 +607,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Crystals_display" type="Label" parent="Resources/Crystal"]
 layout_mode = 2
-text = "Crystals: 100"
+text = "Crystals: 100k"
 label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
@@ -616,7 +616,6 @@ metadata/_edit_use_anchors_ = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 texture = ExtResource("12_hj2yo")
-expand_mode = 4
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
@@ -627,7 +626,7 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Coins_display" type="Label" parent="Resources/Money"]
 layout_mode = 2
-text = "Coins: 100"
+text = "Coins: 100k"
 label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
@@ -636,7 +635,6 @@ metadata/_edit_use_anchors_ = true
 custom_minimum_size = Vector2(45, 45)
 layout_mode = 2
 texture = ExtResource("10_yijgs")
-expand_mode = 4
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
@@ -644,11 +642,17 @@ metadata/_edit_use_anchors_ = true
 layer = 0
 
 [node name="Bottom_ui" type="PanelContainer" parent="UI"]
-offset_left = 3.0
-offset_top = 2033.0
-offset_right = 1071.0
-offset_bottom = 2258.0
+anchors_preset = -1
+anchor_left = 0.036805555
+anchor_top = 0.879375
+anchor_right = 0.9875
+anchor_bottom = 0.9496875
+offset_left = -9.0
+offset_top = -107.0
+offset_right = -9.0
+offset_bottom = -107.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_nr62u")
+metadata/_edit_use_anchors_ = true
 
 [node name="Bottom" type="Panel" parent="UI/Bottom_ui"]
 layout_mode = 2
@@ -656,8 +660,9 @@ theme_override_styles/panel = SubResource("StyleBoxTexture_x1ydf")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI/Bottom_ui/Bottom"]
 layout_mode = 0
+offset_left = 20.0
 offset_top = 10.0
-offset_right = 1053.0
+offset_right = 1341.0
 offset_bottom = 220.0
 
 [node name="Back" type="TextureButton" parent="UI/Bottom_ui/Bottom/HBoxContainer"]
@@ -687,11 +692,11 @@ theme_override_font_sizes/font_size = 75
 text = "Shop"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI"]
-offset_left = 14.0
-offset_top = 879.0
-offset_right = 1074.0
-offset_bottom = 1208.0
-theme_override_constants/separation = 120
+offset_left = 55.0
+offset_top = 1252.0
+offset_right = 1471.0
+offset_bottom = 1633.0
+theme_override_constants/separation = 150
 
 [node name="Upgrade_coins" type="TextureButton" parent="UI/HBoxContainer"]
 layout_mode = 2
@@ -702,9 +707,9 @@ texture_hover = ExtResource("7_8wbq3")
 [node name="HBoxContainer" type="HBoxContainer" parent="UI/HBoxContainer/Upgrade_coins"]
 layout_mode = 0
 offset_left = -3.0
-offset_top = 229.0
+offset_top = 270.0
 offset_right = 296.0
-offset_bottom = 293.0
+offset_bottom = 334.0
 
 [node name="Coins2" type="TextureRect" parent="UI/HBoxContainer/Upgrade_coins/HBoxContainer"]
 custom_minimum_size = Vector2(30, 0)
@@ -746,39 +751,12 @@ text = " 50"
 label_settings = SubResource("LabelSettings_7w585")
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/HBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 25
-
-[node name="Ads_crystal" type="Button" parent="UI/HBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(400, 0)
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 35
-theme_override_styles/pressed = SubResource("StyleBoxFlat_q8bu7")
-text = "Watch Ads for
-crystals"
-text_overrun_behavior = 2
-
-[node name="Ads_Coins" type="Button" parent="UI/HBoxContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/font_size = 40
-theme_override_styles/pressed = SubResource("StyleBoxFlat_i47je")
-text = "Watch Ads for
-Money"
-text_overrun_behavior = 2
-
 [node name="Buy_Ascend" type="HBoxContainer" parent="UI"]
 anchors_preset = -1
-anchor_left = 0.0287037
-anchor_top = 0.3725
-anchor_right = 1.03796
-anchor_bottom = 0.410417
-offset_left = -8.999996
-offset_top = 380.0
-offset_right = -9.0
-offset_bottom = 379.99994
+anchor_left = 0.025
+anchor_top = 0.5409375
+anchor_right = 0.9652778
+anchor_bottom = 0.57885444
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
@@ -794,8 +772,26 @@ text = "Buy"
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 60
-text = "Select
+text = " Select 
 "
+autowrap_trim_flags = 0
+
+[node name="Sat_left_select" type="Button" parent="UI/Buy_Ascend"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 60
+text = " Select Left 
+"
+autowrap_trim_flags = 0
+
+[node name="Sat_right_select" type="Button" parent="UI/Buy_Ascend"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 60
+text = " Select Right "
+autowrap_trim_flags = 0
 
 [node name="Ascend" type="Button" parent="UI/Buy_Ascend"]
 layout_mode = 2
@@ -857,10 +853,11 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Msg_panel" type="Panel" parent="UI"]
 visible = false
-offset_left = 182.0
-offset_top = 760.0
-offset_right = 925.0
-offset_bottom = 1169.0
+z_index = 10
+offset_left = 316.0
+offset_top = 1328.0
+offset_right = 1192.0
+offset_bottom = 1737.0
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
@@ -880,42 +877,72 @@ vertical_alignment = 1
 autowrap_mode = 3
 metadata/_edit_use_anchors_ = true
 
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+offset_left = 800.0
+offset_top = 1151.0
+offset_right = 1368.0
+offset_bottom = 1633.0
+theme_override_constants/separation = 50
+
+[node name="Ads_crystal" type="Button" parent="UI/VBoxContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 50
+theme_override_styles/pressed = SubResource("StyleBoxFlat_q8bu7")
+text = "Watch Ads for
+crystals"
+text_overrun_behavior = 2
+
+[node name="Ads_Coins" type="Button" parent="UI/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 50
+theme_override_styles/pressed = SubResource("StyleBoxFlat_i47je")
+text = "Watch Ads for
+Money"
+text_overrun_behavior = 2
+
 [node name="SelectedShipDisplay" type="Control" parent="."]
 layout_mode = 1
 anchor_left = 0.0318182
-anchor_top = 0.101688
-anchor_right = 0.456818
-anchor_bottom = 0.344051
+anchor_top = 0.11856618
+anchor_right = 0.45710996
+anchor_bottom = 0.34742647
 grow_horizontal = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="SelectedShip" type="TextureRect" parent="SelectedShipDisplay"]
+[node name="HBoxContainer" type="HBoxContainer" parent="SelectedShipDisplay"]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.00323953
-anchor_top = -0.00165793
-anchor_right = 1.03893
-anchor_bottom = 1.00663
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -338.63412
+offset_top = -297.5
+offset_right = 963.8659
+offset_bottom = 263.5
 grow_horizontal = 2
 grow_vertical = 2
-expand_mode = 1
-stretch_mode = 4
-metadata/_edit_use_anchors_ = true
+theme_override_constants/separation = 20
 
-[node name="MarginContainer" type="MarginContainer" parent="SelectedShipDisplay"]
-layout_mode = 0
-offset_left = 595.191
-offset_top = 11.0003
-offset_right = 1080.19
-offset_bottom = 542.0
+[node name="SelectedShip" type="TextureRect" parent="SelectedShipDisplay/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+stretch_mode = 5
+
+[node name="DetailsContainer" type="MarginContainer" parent="SelectedShipDisplay/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/margin_right = 20
 
-[node name="Panel" type="Panel" parent="SelectedShipDisplay/MarginContainer"]
+[node name="Panel" type="Panel" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer"]
 layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Details_panel"
 
-[node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel"]
+[node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel"]
 layout_mode = 0
 anchor_left = 0.0817204
 anchor_top = 0.271186
@@ -925,16 +952,16 @@ grow_vertical = 2
 theme = ExtResource("7_462bn")
 metadata/_edit_use_anchors_ = true
 
-[node name="Stats" type="VBoxContainer" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails"]
+[node name="Stats" type="VBoxContainer" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails"]
 layout_mode = 2
 
-[node name="Damage" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+[node name="Damage" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats"]
 layout_mode = 2
 text = "Damage: 20"
 label_settings = SubResource("LabelSettings_68fc6")
 vertical_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel/ShipDetails/Stats"]
+[node name="StatusLabel" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 text = "Upgrades to next ascension: %d\" % next_requirements[\"upgrades_needed\"]"
@@ -942,26 +969,28 @@ label_settings = SubResource("LabelSettings_4xt2x")
 autowrap_mode = 3
 metadata/_edit_use_anchors_ = true
 
-[node name="ShipName" type="Label" parent="SelectedShipDisplay/MarginContainer/Panel"]
+[node name="ShipName" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 0
-offset_left = 2.0
-offset_top = 17.0
-offset_right = 462.0
-offset_bottom = 117.0
+anchor_left = 0.102819234
+anchor_top = 0.058631923
+anchor_right = 0.86567163
+anchor_bottom = 0.22149837
 text = "Ship Name"
 label_settings = SubResource("LabelSettings_68fc6")
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 text_overrun_behavior = 2
+metadata/_edit_use_anchors_ = true
 
 [node name="ShipContainer" type="ScrollContainer" parent="."]
 layout_mode = 0
-offset_left = 19.0
-offset_top = 1477.0
-offset_right = 1080.0
-offset_bottom = 2018.0
+offset_left = 86.0
+offset_top = 1945.0001
+offset_right = 1147.0
+offset_bottom = 2486.0
+scale = Vector2(1.2, 1.2)
 
 [node name="GridContainer" type="GridContainer" parent="ShipContainer"]
 layout_mode = 2
@@ -1277,10 +1306,11 @@ stream = ExtResource("19_gsk1l")
 [node name="Satcontainer" type="ScrollContainer" parent="."]
 visible = false
 layout_mode = 0
-offset_left = 21.0
-offset_top = 1482.0
-offset_right = 1096.0
-offset_bottom = 2027.0
+offset_left = 83.0
+offset_top = 1948.0
+offset_right = 1158.0
+offset_bottom = 2493.0
+scale = Vector2(1.2, 1.2)
 
 [node name="GridContainer" type="GridContainer" parent="Satcontainer"]
 layout_mode = 2
@@ -1296,7 +1326,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat1"]
+[node name="Sat1Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat1"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1322,7 +1352,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat2"]
+[node name="Sat2Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat2"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1348,7 +1378,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat3"]
+[node name="Sat3Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat3"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1374,7 +1404,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat4"]
+[node name="Sat4Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat4"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1400,7 +1430,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat5"]
+[node name="Sat5Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat5"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1426,7 +1456,7 @@ layout_mode = 2
 theme = ExtResource("7_462bn")
 theme_type_variation = &"Ship_panel"
 
-[node name="TextureRect" type="TextureRect" parent="Satcontainer/GridContainer/sat6"]
+[node name="Sat6Texture" type="TextureRect" parent="Satcontainer/GridContainer/sat6"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1548,11 +1578,14 @@ metadata/_edit_use_anchors_ = true
 [connection signal="pressed" from="UI/Bottom_ui/Bottom/HBoxContainer/Shop" to="." method="_on_shop_pressed"]
 [connection signal="pressed" from="UI/HBoxContainer/Upgrade_coins" to="." method="_on_upgrade_coins_pressed"]
 [connection signal="pressed" from="UI/HBoxContainer/Upgrade_Crystals" to="." method="_on_upgrade_crystals_pressed"]
-[connection signal="pressed" from="UI/HBoxContainer/VBoxContainer/Ads_crystal" to="." method="_on_ad_crystals_pressed"]
-[connection signal="pressed" from="UI/HBoxContainer/VBoxContainer/Ads_Coins" to="." method="_on_ad_coins_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Buy" to="." method="_on_buy_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Selected" to="." method="_on_selected_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Sat_left_select" to="." method="_on_sat_left_select_pressed"]
+[connection signal="pressed" from="UI/Buy_Ascend/Sat_right_select" to="." method="_on_sat_right_select_pressed"]
 [connection signal="pressed" from="UI/Buy_Ascend/Ascend" to="." method="_on_ascend_pressed"]
+[connection signal="pressed" from="UI/VBoxContainer/Ads_crystal" to="." method="_on_ad_crystals_pressed"]
+[connection signal="pressed" from="UI/VBoxContainer/Ads_Coins" to="." method="_on_ad_coins_pressed"]
+[connection signal="gui_input" from="SelectedShipDisplay/HBoxContainer/SelectedShip" to="." method="_on_selected_ship_gui_input"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship1" to="." method="_on_ship1_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship2" to="." method="_on_ship2_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship3" to="." method="_on_ship3_selected"]
@@ -1561,3 +1594,9 @@ metadata/_edit_use_anchors_ = true
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship6" to="." method="_on_ship6_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship7" to="." method="_on_ship7_selected"]
 [connection signal="gui_input" from="ShipContainer/GridContainer/Ship8" to="." method="_on_ship8_selected"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat1" to="." method="_on_sat_1_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat2" to="." method="_on_sat_2_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat3" to="." method="_on_sat_3_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat4" to="." method="_on_sat_4_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat5" to="." method="_on_sat_5_gui_input"]
+[connection signal="gui_input" from="Satcontainer/GridContainer/sat6" to="." method="_on_sat_6_gui_input"]

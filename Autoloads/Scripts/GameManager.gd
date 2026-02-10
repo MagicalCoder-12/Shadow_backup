@@ -33,9 +33,13 @@ signal revive_completed(success: bool)
 @warning_ignore("unused_signal")
 signal ship_stats_updated(ship_id: String, new_damage: int)
 @warning_ignore("unused_signal")
+signal satellite_stats_updated(satellite_id: String, new_damage_bonus: int)
+@warning_ignore("unused_signal")
 signal enemy_killed(enemy: Node)
 @warning_ignore("unused_signal")
 signal prepare_map_scene()
+@warning_ignore("unused_signal")
+signal player_manager_satellites_changed()
 
 # 🔒 CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"
@@ -54,6 +58,20 @@ const ASCENSION_THRESHOLDS: Dictionary = {
 	"Ship7": [4, 8, 12, 16, 20, 24],
 	"Ship8": [4, 8, 12, 16, 20, 24]
 }
+
+# Ascension thresholds for satellites (mirroring upgrade_settings.json)
+const SATELLITE_ASCENSION_THRESHOLDS: Dictionary = {
+	"Satellite1": [3, 6],
+	"Satellite2": [3, 6],
+	"Satellite3": [3, 6, 9],
+	"Satellite4": [3, 6, 9],
+	"Satellite5": [3, 6, 9, 12],
+	"Satellite6": [3, 6, 9, 12, 15]
+}
+
+# Bullet constants for compatibility
+const DEFAULT_BULLET_SPEED: float = 600.0
+const DEFAULT_BULLET_DAMAGE: int = 10
 
 # 🧠 MANAGERS - Now using autoload references
 var save_manager: SaveManager
@@ -96,6 +114,7 @@ var game_won: bool = false
 
 # SHIP AND CURRENCY DATA
 var ships: Array = []
+var satellites: Array = []
 var _crystal_count: int = 0
 var crystal_count: int:
 	get: return _crystal_count
@@ -116,9 +135,12 @@ var void_shards_count: int:
 		currency_updated.emit("void_shards", _void_shards_count)
 
 # UPGRADE MENU REFERENCE
-var upgrade_menu_ref: Node = null
+@export var upgrade_menu_scene: PackedScene
 
 var shadow_mode_timer: Timer = Timer.new()
+var shadow_mode_state: ShadowModeState = ShadowModeState.new()
+
+var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
 
 func _ready() -> void:
 	# Reference autoload managers instead of instantiating them
@@ -150,6 +172,26 @@ func _ready() -> void:
 	if not revive_completed.is_connected(_on_revive_completed):
 		revive_completed.connect(_on_revive_completed)
 
+func _exit_tree() -> void:
+	# Clean up the timer to prevent memory leaks
+	if shadow_mode_timer and shadow_mode_timer.is_inside_tree():
+		if shadow_mode_timer.timeout.is_connected(_on_shadow_mode_timer_timeout):
+			shadow_mode_timer.timeout.disconnect(_on_shadow_mode_timer_timeout)
+		shadow_mode_timer.stop()
+		shadow_mode_timer.queue_free()
+	
+	# Disconnect node_added signal
+	if get_tree().node_added.is_connected(_on_node_added):
+		get_tree().node_added.disconnect(_on_node_added)
+	
+	# Disconnect prepare_map_scene signal
+	if prepare_map_scene.is_connected(_on_prepare_map_scene):
+		prepare_map_scene.disconnect(_on_prepare_map_scene)
+	
+	# Disconnect revive_completed signal
+	if revive_completed.is_connected(_on_revive_completed):
+		revive_completed.disconnect(_on_revive_completed)
+
 func trigger_game_over() -> void:
 	AudioManager.mute_bus("Bullet", true)
 	AudioManager.mute_bus("Explosion", true)
@@ -158,11 +200,50 @@ func trigger_game_over() -> void:
 	# 	ad_manager.show_banner_ad()
 	game_over_triggered.emit()
 
+func request_game_over(_source: String = "") -> void:
+	game_over = true
+
+func request_game_over_clear(_source: String = "") -> void:
+	game_over = false
+
+func request_revive_pending_start(_source: String = "") -> void:
+	is_revive_pending = true
+
+func request_revive_pending_clear(_source: String = "") -> void:
+	is_revive_pending = false
+
+func set_shadow_mode_enabled(value: bool, _source: String = "") -> void:
+	shadow_mode_state.shadow_mode_enabled = value
+
+func set_shadow_mode_unlocked(value: bool, _source: String = "") -> void:
+	shadow_mode_state.shadow_mode_unlocked = value
+
+func set_shadow_mode_tutorial_shown(value: bool, _source: String = "") -> void:
+	shadow_mode_state.shadow_mode_tutorial_shown = value
+
+func request_shadow_mode_activate(duration: float = 2.0, _source: String = "") -> void:
+	if level_manager and shadow_mode_state.shadow_mode_unlocked:
+		shadow_mode_state.shadow_mode_enabled = true
+		shadow_mode_state.shadow_mode_remaining_time = duration
+		shadow_mode_activated.emit()
+		shadow_mode_timer.start(duration)
+
+func request_shadow_mode_deactivate(_source: String = "") -> void:
+	if level_manager and shadow_mode_state.shadow_mode_enabled:
+		shadow_mode_state.shadow_mode_enabled = false
+		shadow_mode_state.shadow_mode_remaining_time = 0.0
+		shadow_mode_deactivated.emit()
+
+func request_shadow_mode_deactivate_silent(_source: String = "") -> void:
+	if level_manager:
+		shadow_mode_state.shadow_mode_enabled = false
+		shadow_mode_state.shadow_mode_remaining_time = 0.0
+
 func reset_game() -> void:
 	score = 0
 	player_lives = 3
 	is_paused = false
-	game_over = false
+	request_game_over_clear("reset_game")
 	game_ended = false
 	game_won = false
 	coins_collected_this_level = 0
@@ -202,9 +283,7 @@ func complete_level(current_level: int) -> void:
 	level_manager.complete_level(current_level)
 
 func _on_shadow_mode_timer_timeout() -> void:
-	if level_manager.shadow_mode_enabled:
-		level_manager.shadow_mode_enabled = false
-		shadow_mode_deactivated.emit()
+	request_shadow_mode_deactivate("_on_shadow_mode_timer_timeout")
 
 func _on_node_added(node: Node) -> void:
 	level_manager.handle_node_added(node)
@@ -217,6 +296,8 @@ func connect_score_signals(target_node: Node) -> void:
 
 # Public API methods
 func change_scene(scene_path: String) -> void:
+	# Clear bullet pools before changing scenes to prevent memory leaks
+	BulletFactory.clear_pools()
 	scene_manager.change_scene(scene_path)
 
 func load_level(level_num: int) -> void:
@@ -236,7 +317,7 @@ func spawn_player(lives: int) -> void:
 	player_manager.spawn_player(lives)
 
 func activate_shadow_mode(duration: float = 5.0) -> void:
-	level_manager.activate_shadow_mode(duration)
+	request_shadow_mode_activate(duration, "GameManager.activate_shadow_mode")
 
 func unlock_shadow_mode() -> void:
 	level_manager.unlock_shadow_mode()
@@ -251,9 +332,6 @@ func get_current_level() -> int:
 	if level_manager:
 		return level_manager.get_current_level()
 	return 0
-
-func set_upgrade_menu_ref(menu: Node) -> void:
-	upgrade_menu_ref = menu
 
 func can_afford(currency_type: String, cost: int) -> bool:
 	match currency_type:
@@ -275,8 +353,15 @@ func deduct_currency(currency_type: String, amount: int) -> void:
 			void_shards_count -= amount
 	save_manager.save_progress()
 
-var coins_collected_this_level: int = 0
-var crystals_collected_this_level: int = 0
+var coins_collected_this_level: int:
+	get: return level_currency_state.coins_collected_this_level
+	set(value):
+		level_currency_state.coins_collected_this_level = value
+
+var crystals_collected_this_level: int:
+	get: return level_currency_state.crystals_collected_this_level
+	set(value):
+		level_currency_state.crystals_collected_this_level = value
 
 func add_currency(currency_type: String, amount: int) -> void:
 	match currency_type:
@@ -329,6 +414,10 @@ func notify_ship_stats_updated(ship_id: String, new_damage: int) -> void:
 	# Update PlayerManager's base damage for the current ship
 	if player_manager.selected_ship_id == ship_id:
 		player_manager.update_current_ship_damage(new_damage)
+
+# Notify when satellite stats are updated
+func notify_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void:
+	satellite_stats_updated.emit(satellite_id, damage_bonus)
 
 # Notify when enemy is killed for shadow mode charging
 func notify_enemy_killed(enemy: Node) -> void:

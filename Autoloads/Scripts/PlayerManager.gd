@@ -4,6 +4,7 @@ extends Node
 var gm: Node
 var default_ship_id: String = "Ship1"
 var selected_ship_id: String
+var selected_satellite_ids: Array[String] = []  # Array of selected satellite IDs
 var player_spawn_position: Vector2 = Vector2.ZERO
 var default_bullet_speed: float = 3000.0
 var default_bullet_damage: int = 20
@@ -52,6 +53,11 @@ func _initialize_player_stats() -> void:
 		"is_shadow_mode_active": false,
 		"is_super_mode_active": false
 	}
+	# Initialize satellite selection - default to first two available satellites
+	if selected_satellite_ids.is_empty():
+		selected_satellite_ids.resize(2)
+		selected_satellite_ids[0] = "Satellite1"  # Default left satellite
+		selected_satellite_ids[1] = "Satellite2"  # Default right satellite
 
 func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool, is_super_mode_active: bool = false) -> void:
 	player_stats["attack_level"] = attack_level
@@ -97,12 +103,12 @@ func spawn_player(lives: int) -> void:
 
 func revive_player(lives: int = 2) -> void:
 	# Always reset the ad manager's revive pending state to prevent double revives
-	gm.ad_manager.is_revive_pending = false
+	gm.ad_manager.ad_revive_pending = false
 	gm.ad_manager.revive_type = "none"
 	gm.ad_manager.selected_ad_type = ""
 	gm.ad_manager.is_ad_showing = false
 
-	gm.game_over = false
+	gm.request_game_over_clear("PlayerManager.revive_player")
 	gm.is_paused = false
 	gm.get_tree().paused = false
 
@@ -179,3 +185,28 @@ func update_current_ship_damage(new_damage: int) -> void:
 	# If not in shadow mode or super mode, also update current bullet damage
 	if not player_stats.get("is_shadow_mode_active", false) and not player_stats.get("is_super_mode_active", false):
 		player_stats["bullet_damage"] = new_damage
+
+
+# Update satellite selection and textures in the current scene
+func update_selected_satellites() -> void:
+	# Find the current player in the scene and update its satellites
+	var players = gm.get_tree().get_nodes_in_group("Player")
+	if players.size() > 0:
+		var player = players[0]
+		
+		# Call the player's method to update satellites from selection
+		if player and player.has_method("update_satellites_from_selection"):
+			player.update_satellites_from_selection()
+	
+	# Also emit a signal so all players can update their satellites if needed
+	gm.player_manager_satellites_changed.emit()
+
+
+# Signal handler for when satellite selections change
+func _on_player_manager_satellites_changed() -> void:
+	# This method will be called when satellite selections change
+	# Find all players and update their satellites
+	var players = gm.get_tree().get_nodes_in_group("Player")
+	for player in players:
+		if player and player.has_method("update_satellites_from_selection"):
+			player.update_satellites_from_selection()

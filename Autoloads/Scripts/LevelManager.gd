@@ -3,9 +3,26 @@ extends Node
 var gm: Node
 var unlocked_levels: int = 1
 var completed_levels: Array = []
-var shadow_mode_unlocked: bool = false
-var shadow_mode_enabled: bool = false
-var shadow_mode_tutorial_shown: bool = false
+var shadow_mode_unlocked: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_unlocked if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_unlocked(value, "LevelManager.shadow_mode_unlocked")
+
+var shadow_mode_enabled: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_enabled if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_enabled(value, "LevelManager.shadow_mode_enabled")
+
+var shadow_mode_tutorial_shown: bool:
+	get:
+		return gm.shadow_mode_state.shadow_mode_tutorial_shown if gm else false
+	set(value):
+		if gm:
+			gm.set_shadow_mode_tutorial_shown(value, "LevelManager.shadow_mode_tutorial_shown")
 var is_level_just_completed: bool = false
 var is_video_playing: bool = false
 var is_game_over_screen_active: bool = false
@@ -58,7 +75,7 @@ func load_level(level_num: int) -> void:
 		push_error("LevelManager: Failed to load level %d, no current scene" % level_num)
 
 func complete_level(current_level: int) -> void:
-	if gm.game_over and not gm.ad_manager.is_revive_pending:
+	if gm.game_over and not gm.ad_manager.ad_revive_pending:
 		return
 	
 	is_level_just_completed = true
@@ -79,9 +96,9 @@ func complete_level(current_level: int) -> void:
 		_show_shadow_mode_tutorial()
 		should_transition_to_next_level = false
 		#Don't set is_level_just_completed = false here, it interferes with level unlocking
-	elif current_level == 20 and not is_video_playing:
-		_play_ending_video()
-		should_transition_to_next_level = false
+	#elif current_level == 20 and not is_video_playing:
+	#	_play_ending_video()
+	#	should_transition_to_next_level = false
 	
 	# Only add to completed levels if not already completed
 	if not completed_levels.has(current_level):
@@ -119,7 +136,7 @@ func _show_shadow_mode_tutorial() -> void:
 		tutorial_layer.add_child(tutorial)
 		current_scene.add_child(tutorial_layer)
 		
-		shadow_mode_tutorial_shown = true
+		gm.set_shadow_mode_tutorial_shown(true, "LevelManager._show_shadow_mode_tutorial")
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 		
@@ -128,34 +145,34 @@ func _show_shadow_mode_tutorial() -> void:
 	else:
 		push_error("LevelManager: Cannot add tutorial: No current scene available")
 
-func _play_ending_video() -> void:
-	var current_scene = gm.get_tree().current_scene
-	if current_scene and ResourceLoader.exists(gm.scene_manager.VIDEO_SCENE):
-		is_video_playing = true
-		AudioManager.lower_bus_volumes_except(["Video", "Master"], -10.0)
-		
-		var video_layer = CanvasLayer.new()
-		video_layer.name = "VideoPlaybackLayer"
-		video_layer.layer = 10
-		
-		var video_scene: Node = load(gm.scene_manager.VIDEO_SCENE).instantiate()
-		video_layer.add_child(video_scene)
-		current_scene.add_child(video_layer)
-		
-		if video_scene.has_signal("finished"):
-			video_scene.finished.connect(_on_video_finished.bind(video_layer))
-		else:
-			await gm.get_tree().create_timer(10.0).timeout
-			_on_video_finished(video_layer)
-	else:
-		push_error("LevelManager: Cannot play video: No current scene or VideoPlayback.tscn missing")
+#func _play_ending_video() -> void:
+#	var current_scene = gm.get_tree().current_scene
+#	if current_scene and ResourceLoader.exists(gm.scene_manager.VIDEO_SCENE):
+#		is_video_playing = true
+#		AudioManager.lower_bus_volumes_except(["Video", "Master"], -10.0)
+#		
+#		var video_layer = CanvasLayer.new()
+#		video_layer.name = "VideoPlaybackLayer"
+#		video_layer.layer = 10
+#		
+#		var video_scene: Node = load(gm.scene_manager.VIDEO_SCENE).instantiate()
+#		video_layer.add_child(video_scene)
+#		current_scene.add_child(video_layer)
+#		
+#		if video_scene.has_signal("finished"):
+#			video_scene.finished.connect(_on_video_finished.bind(video_layer))
+#		else:
+#			await gm.get_tree().create_timer(10.0).timeout
+#			_on_video_finished(video_layer)
+#	else:
+#		push_error("LevelManager: Cannot play video: No current scene or VideoPlayback.tscn missing")
 
-func _on_video_finished(video_layer: CanvasLayer) -> void:
-	AudioManager.restore_bus_volumes()
-	video_layer.queue_free()
-	is_video_playing = false
-	gm.change_scene(gm.scene_manager.START_SCREEN_SCENE)
-	is_level_just_completed = false
+#func _on_video_finished(video_layer: CanvasLayer) -> void:
+#	AudioManager.restore_bus_volumes()
+#	video_layer.queue_free()
+#	is_video_playing = false
+#	gm.change_scene(gm.scene_manager.START_SCREEN_SCENE)
+#	is_level_just_completed = false
 
 func unlock_next_level(current_level: int) -> void:
 	var next_level: int = current_level + 1
@@ -176,16 +193,14 @@ func unlock_next_level(current_level: int) -> void:
 
 func unlock_shadow_mode() -> void:
 	if not shadow_mode_unlocked:
-		shadow_mode_unlocked = true
+		gm.set_shadow_mode_unlocked(true, "LevelManager.unlock_shadow_mode")
 		if gm.save_manager.autosave_progress:
 			gm.save_manager.save_progress()
 		update_hud_visibility()
 
 func activate_shadow_mode(duration: float = 2.0) -> void:
 	if shadow_mode_unlocked:
-		shadow_mode_enabled = true
-		gm.shadow_mode_activated.emit()
-		gm.shadow_mode_timer.start(duration)
+		gm.request_shadow_mode_activate(duration, "LevelManager.activate_shadow_mode")
 
 func update_hud_visibility(level_num: int = get_current_level()) -> void:
 	var hud: Node = gm.get_tree().current_scene.get_node_or_null("CanvasLayer/HUD")
@@ -216,23 +231,24 @@ func get_current_level() -> int:
 	return 0
 
 func reset_level_state() -> void:
-	shadow_mode_enabled = false
+	gm.request_shadow_mode_deactivate_silent("LevelManager.reset_level_state")
 	is_level_just_completed = false
 	is_video_playing = false
 	is_game_over_screen_active = false
 
 func reset_level_progress() -> void:
 	unlocked_levels = 1
-	shadow_mode_unlocked = false
-	shadow_mode_tutorial_shown = false
+	gm.set_shadow_mode_unlocked(false, "LevelManager.reset_level_progress")
+	gm.set_shadow_mode_tutorial_shown(false, "LevelManager.reset_level_progress")
 	completed_levels = []
 
 func handle_node_added(node: Node) -> void:
 	if node is WaveManager:
-		if not node.wave_started.is_connected(_on_wave_started):
+		# Safely connect to WaveManager signals
+		if node.has_signal("wave_started") and not node.wave_started.is_connected(_on_wave_started):
 			node.wave_started.connect(_on_wave_started)
 			
-		if not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
+		if node.has_signal("all_waves_cleared") and not node.all_waves_cleared.is_connected(_on_all_waves_cleared):
 			node.all_waves_cleared.connect(_on_all_waves_cleared)
 	
 	if node.is_in_group(gm.GROUP_BOSS):
@@ -243,6 +259,15 @@ func handle_node_added(node: Node) -> void:
 		if node.has_signal("unlock_shadow_mode"):
 			if not node.unlock_shadow_mode.is_connected(_on_unlock_shadow_mode):
 				node.unlock_shadow_mode.connect(_on_unlock_shadow_mode)
+
+	# Additional safety check for other node types
+	if node.has_signal("level_completed"):
+		if not node.level_completed.is_connected(_on_level_completed):
+			node.level_completed.connect(_on_level_completed)
+
+func _on_level_completed(_level_num: int) -> void:
+	# Default implementation - can be overridden
+	pass
 
 
 func _on_wave_started(current_wave: int, total_waves: int) -> void:
@@ -266,6 +291,11 @@ func _on_boss_defeated() -> void:
 
 func _on_unlock_shadow_mode() -> void:
 	unlock_shadow_mode()
+
+func _exit_tree() -> void:
+	# Disconnect any connected signals to prevent memory leaks
+	# Note: In autoloads, this is rarely called, but good practice
+	pass
 
 func _on_level_selected(level_num: int) -> void:
 	if is_level_unlocked(level_num):

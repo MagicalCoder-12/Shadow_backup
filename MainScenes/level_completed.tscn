@@ -15,21 +15,25 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_syrab"]
 font = ExtResource("1_vwgn2")
-font_size = 60
+font_size = 90
+font_color = Color(0, 1, 0, 1)
 outline_size = 10
+outline_color = Color(1, 1, 0, 1)
+shadow_size = 20
+shadow_color = Color(0, 0.45882353, 1, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_mjsg3"]
 font = ExtResource("3_vwgn2")
-font_size = 52
+font_size = 95
 
 [sub_resource type="LabelSettings" id="LabelSettings_exqyw"]
 font = ExtResource("3_vwgn2")
-font_size = 52
+font_size = 90
 
 [sub_resource type="LabelSettings" id="LabelSettings_3ol6k"]
 line_spacing = 0.0
 font = ExtResource("3_vwgn2")
-font_size = 52
+font_size = 90
 
 [node name="LevelCompleted" type="Control"]
 process_mode = 3
@@ -54,20 +58,20 @@ color = Color(0, 0, 0, 0.490196)
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0861111
-anchor_top = 0.259583
-anchor_right = 0.887037
-anchor_bottom = 0.63875
+anchor_left = 0.06666666
+anchor_top = 0.2325
+anchor_right = 0.9048611
+anchor_bottom = 0.6321875
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
 
 [node name="LevelCompleted" type="Label" parent="Panel"]
 layout_mode = 0
-offset_left = 31.0
-offset_top = 25.0
-offset_right = 841.0
-offset_bottom = 105.0
+offset_left = 33.0
+offset_top = 36.0
+offset_right = 1175.0
+offset_bottom = 138.0
 text = "Level Completed"
 label_settings = SubResource("LabelSettings_syrab")
 horizontal_alignment = 1
@@ -76,61 +80,64 @@ vertical_alignment = 1
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0462428
-anchor_top = 0.167033
-anchor_right = 0.965318
-anchor_bottom = 1.01099
-offset_bottom = -46.0
-theme_override_constants/separation = 60
+anchor_left = 0.031400237
+anchor_top = 0.1556962
+anchor_right = 0.9941178
+anchor_bottom = 0.9607596
+theme_override_constants/separation = 100
 metadata/_edit_use_anchors_ = true
 
 [node name="Score" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
 text = "Score: 000000000"
 label_settings = SubResource("LabelSettings_mjsg3")
+vertical_alignment = 1
 
-[node name="Coin_texture" type="TextureRect" parent="Panel/VBoxContainer"]
+[node name="Coins" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
-texture = ExtResource("4_20gqo")
-stretch_mode = 2
+theme_override_constants/separation = 20
 
-[node name="Coins" type="Label" parent="Panel/VBoxContainer/Coin_texture"]
+[node name="Coin_texture" type="TextureRect" parent="Panel/VBoxContainer/Coins"]
 custom_minimum_size = Vector2(100, 0)
-layout_mode = 0
-offset_left = 77.0
-offset_top = 1.0
-offset_right = 781.0
-offset_bottom = 60.0
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.0
+texture = ExtResource("4_20gqo")
+
+[node name="Coins" type="Label" parent="Panel/VBoxContainer/Coins"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Coins: 0"
 label_settings = SubResource("LabelSettings_exqyw")
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Crystal_texture" type="TextureRect" parent="Panel/VBoxContainer"]
+[node name="Crystals" type="HBoxContainer" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Crystal_texture" type="TextureRect" parent="Panel/VBoxContainer/Crystals"]
 custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 texture = ExtResource("5_qo8e3")
-stretch_mode = 2
 
-[node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystal_texture"]
+[node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystals"]
 custom_minimum_size = Vector2(10, 0)
-layout_mode = 0
-offset_left = 87.0
-offset_top = 27.0008
-offset_right = 712.0
-offset_bottom = 86.0008
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Crystals: 0"
 label_settings = SubResource("LabelSettings_3ol6k")
 autowrap_mode = 2
 
 [node name="Gap" type="Control" parent="Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 8
-theme_override_constants/separation = 50
+theme_override_constants/separation = 200
 metadata/_edit_use_anchors_ = true
 
 [node name="Map" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]

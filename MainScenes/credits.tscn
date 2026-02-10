@@ -1,20 +1,24 @@
 [gd_scene load_steps=7 format=3 uid="uid://cw34uxlcidovp"]
 
 [ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="1_iyifa"]
-[ext_resource type="Script" path="res://MainScenes/Scripts/credits.gd" id="1_yoknb"]
+[ext_resource type="Script" uid="uid://bqkg4ldou0mvy" path="res://MainScenes/Scripts/credits.gd" id="1_yoknb"]
 [ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="2_170o4"]
 [ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="2_ukugg"]
 [ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="3_vf16b"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_fu1wj"]
 font = ExtResource("1_iyifa")
-font_size = 100
+font_size = 120
 
 [node name="Credits" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 51.0
+offset_right = 16.0
+offset_bottom = 51.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_yoknb")
@@ -24,6 +28,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -29.0
+offset_top = -110.0
+offset_right = -29.0
+offset_bottom = 48.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_170o4")
@@ -32,24 +40,28 @@ theme = ExtResource("2_170o4")
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/Panel"]
-layout_mode = 2
-offset_left = 39.0
-offset_top = 217.0
-offset_right = 1055.0
-offset_bottom = 2303.0
+clip_contents = false
+layout_mode = 0
+offset_left = 108.0
+offset_top = 347.0
+offset_right = 1371.0
+offset_bottom = 2796.0
+horizontal_scroll_mode = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/Panel/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 alignment = 1
 
 [node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer/Panel/ScrollContainer/VBoxContainer"]
+clip_contents = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_fonts/normal_font = ExtResource("1_iyifa")
 theme_override_fonts/bold_font = ExtResource("1_iyifa")
-theme_override_font_sizes/normal_font_size = 30
-theme_override_font_sizes/bold_font_size = 50
+theme_override_font_sizes/normal_font_size = 45
+theme_override_font_sizes/bold_font_size = 70
 bbcode_enabled = true
 text = "[center][b]Shadow Avengers[/b][/center]
 [center]Created by Ajith, 2025[/center]
@@ -107,27 +119,28 @@ Coin pickup by gobbe57 -- https://freesound.org/s/794489/ -- License: Attributio
 
 [b]Special Thanks[/b]
 The open source community, OpenGameArt.org, and the Godot Engine team."
-fit_content = true
-scroll_active = false
 
 [node name="Back" type="TextureButton" parent="."]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.0574074
-anchor_top = 0.00333333
-anchor_right = 0.251852
-anchor_bottom = 0.0908334
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -316.0
+offset_right = 238.0
+offset_bottom = -106.0
+grow_vertical = 0
+scale = Vector2(1.2, 1.2)
 texture_normal = ExtResource("2_ukugg")
 texture_pressed = ExtResource("3_vf16b")
 texture_hover = ExtResource("3_vf16b")
-metadata/_edit_use_anchors_ = true
 
 [node name="Title" type="Label" parent="."]
-layout_mode = 2
-offset_left = -1.0
-offset_top = 11.0
-offset_right = 1079.0
-offset_bottom = 237.0
+layout_mode = 0
+offset_left = 190.0
+offset_top = 21.0
+offset_right = 1270.0
+offset_bottom = 247.0
 text = "Credits"
 label_settings = SubResource("LabelSettings_fu1wj")
 horizontal_alignment = 1

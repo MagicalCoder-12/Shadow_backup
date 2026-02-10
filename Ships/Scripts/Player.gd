@@ -16,8 +16,6 @@ var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  
 @onready var invincibility_timer: Timer = $InvincibilityTimer
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var death_animation: CPUParticles2D = $DeathAnimation
-@onready var satellite: Node2D = $Sprite2D/Satellite
-@onready var satellite_2: Node2D = $Sprite2D/Satellite2
 @onready var power_up_notification: Label = $PowerUpNotification
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
@@ -57,11 +55,33 @@ var super_mode_timer: Timer
 var super_mode_spawn_points: Array[Marker2D] = []
 var input_enabled: bool = true
 
+# Satellite management variables
+var satellites: Array[Node2D] = []
+var satellite_scenes: Dictionary = {}
+
+func _remove_all_satellites() -> void:
+	# Remove all current satellites
+	for satellite in satellites:
+		if satellite and is_instance_valid(satellite):
+			# Stop the satellite from shooting before removing it to prevent
+			# any remaining timers from firing and adding bullets to the scene
+			if satellite.has_method("set_shooting_active"):
+				satellite.set_shooting_active(false)
+			# Remove the satellite from its parent (the player) before queue_free
+			if satellite.get_parent() == self:
+				remove_child(satellite)
+			satellite.queue_free()
+
+	# Clear the satellites array
+	satellites.clear()
+	_debug_log("Removed all satellites")
+
 func _ready() -> void:
 	_initialize_player()
 	_setup_references()
 	_connect_signals()
 	_apply_initial_state()
+	_initialize_satellites()
 
 func _initialize_player() -> void:
 	# Sync lives with GameManager
@@ -165,15 +185,103 @@ func _connect_signals() -> void:
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 	GameManager.level_completed.connect(_on_level_completed)
 	GameManager.ship_stats_updated.connect(_on_ship_stats_updated)
+	GameManager.satellite_stats_updated.connect(_on_satellite_stats_updated)
+	GameManager.player_manager_satellites_changed.connect(_on_player_manager_satellites_changed)
 
 func _apply_initial_state() -> void:
 	# Apply shadow mode if enabled
 	if GameManager.level_manager.shadow_mode_enabled:
 		_on_shadow_mode_activated()
 
+func _initialize_satellites() -> void:
+	# Initialize satellite scenes mapping
+	_load_satellite_scenes()
+	# Add satellites based on player manager selection
+	_add_satellites_from_selection()
+
+func _load_satellite_scenes() -> void:
+	# Preload all satellite scenes for quick instantiation
+	var satellite_files = ["Satellite1", "Satellite2", "Satellite3", "Satellite4", "Satellite5", "Satellite6"]
+	for satellite_id in satellite_files:
+		var scene_path = "res://Satellites/%s.tscn" % satellite_id
+		if ResourceLoader.exists(scene_path):
+			satellite_scenes[satellite_id] = load(scene_path)
+		else:
+			push_warning("Satellite scene not found: " + scene_path)
+
+func _add_satellites_from_selection() -> void:
+	# Wait for the node to be inside the scene tree before adding satellites
+	if not is_inside_tree():
+		await tree_entered
+	
+	# Add satellites based on PlayerManager selection
+	for i in range(2):  # Add two satellites (left and right)
+		var satellite_id = "Satellite1"  # Default satellite
+		if i < GameManager.player_manager.selected_satellite_ids.size():
+			satellite_id = GameManager.player_manager.selected_satellite_ids[i]
+		
+		# Get the satellite scene
+		var satellite_scene = satellite_scenes.get(satellite_id)
+		if satellite_scene:
+			_add_satellite(satellite_scene, i)
+		else:
+			push_warning("Satellite scene not loaded for: " + satellite_id)
+
+func _add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
+	if not satellite_scene or not satellite_scene.can_instantiate():
+		push_error("Invalid satellite scene")
+		return
+	
+	# Get the satellite ID based on the position index
+	var satellite_id = "Satellite1"  # Default
+	if position_index < GameManager.player_manager.selected_satellite_ids.size():
+		satellite_id = GameManager.player_manager.selected_satellite_ids[position_index]
+	
+	# Instantiate the satellite
+	var satellite = satellite_scene.instantiate() as Node2D
+	if not satellite:
+		push_error("Failed to instantiate satellite")
+		return
+	
+	# Set satellite name to identify it later
+	satellite.name = "Satellite%d" % position_index
+	
+	# Position the satellite relative to the player using dynamic calculation based on sprite bounds
+	var offset = _calculate_satellite_offset(position_index)
+	satellite.position = offset
+	
+	# Add satellite as child of player
+	add_child(satellite)
+	
+	# Add to our satellites array for tracking
+	satellites.append(satellite)
+	
+	# Set the satellite ID as a custom property so the satellite can identify itself
+	if satellite.has_method("set_satellite_id"):
+		satellite.set_satellite_id(satellite_id)
+	elif satellite.has_signal("satellite_id_set"):
+		satellite.set("satellite_id", satellite_id)
+	else:
+		# Store satellite ID as a custom property
+		satellite.set_meta("satellite_id", satellite_id)
+	
+	_debug_log("Added satellite %s at offset %s" % [satellite.name, str(offset)])
+
 func _debug_log(message: String) -> void:
 	if enable_debug_logging:
 		print("[Player Debug] " + message)
+
+func update_satellites_from_selection() -> void:
+	# Remove existing satellites and add new ones based on updated selection
+	_remove_all_satellites()
+	_add_satellites_from_selection()
+
+func _on_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void:
+	# Update any satellites of this type with new stats
+	for satellite in satellites:
+		if satellite and is_instance_valid(satellite) and satellite.has_method("apply_damage_bonus"):
+			satellite.apply_damage_bonus(damage_bonus)
+	_debug_log("Updated damage bonus for satellites of type %s: +%d" % [satellite_id, damage_bonus])
 
 func _process(_delta: float) -> void:
 	if is_alive and fire_delay_timer.is_stopped():
@@ -338,7 +446,9 @@ func _shoot_shadow_bullets(bullet_scene: PackedScene, bullet_speed: float, bulle
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			# Only add to scene if not already in the scene tree
+			if not bullet.is_inside_tree():
+				get_tree().current_scene.call_deferred("add_child", bullet)
 
 func _shoot_normal_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	for child in firing_positions.get_children():
@@ -350,7 +460,9 @@ func _shoot_normal_bullets(bullet_scene: PackedScene, bullet_speed: float, bulle
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			# Only add to scene if not already in the scene tree
+			if not bullet.is_inside_tree():
+				get_tree().current_scene.call_deferred("add_child", bullet)
 
 func handle_keyboard_movement(delta: float) -> void:
 	var dir := Vector2.ZERO
@@ -386,7 +498,6 @@ func damage(amount: int) -> void:
 
 	_save_current_stats()
 	_update_lives_after_damage(amount)
-	_disable_satellites()
 	_setup_damage_collision()
 	_start_invincibility()
 	
@@ -413,9 +524,6 @@ func _update_lives_after_damage(amount: int) -> void:
 	if GameManager.save_manager.autosave_progress:
 		GameManager.save_manager.save_progress()
 
-func _disable_satellites() -> void:
-	satellite.set_shooting_active(false)
-	satellite_2.set_shooting_active(false)
 
 func _setup_damage_collision() -> void:
 	# Set collision mask to layer 2 (power-ups only)
@@ -434,8 +542,7 @@ func _handle_survival() -> void:
 	is_alive = true
 	set_collision_layer_value(1, true)
 	set_collision_layer_value(2, false)
-	satellite.set_shooting_active(true)
-	satellite_2.set_shooting_active(true)
+
 	
 	var cam := get_tree().current_scene.get_node_or_null("Cam")
 	if cam and cam.has_method("shake"):
@@ -451,6 +558,7 @@ func _handle_death() -> void:
 	is_alive = false
 	await get_tree().create_timer(death_animation.lifetime if death_animation else 1.0).timeout
 	GameManager.game_over_triggered.emit()
+	_remove_all_satellites()
 	queue_free()
 
 func revive(Player_lives: int) -> void:
@@ -493,9 +601,7 @@ func _setup_revival_state() -> void:
 	
 	blinking(true)
 	is_alive = true
-	GameManager.game_over = false
-	satellite.set_shooting_active(true)
-	satellite_2.set_shooting_active(true)
+	GameManager.request_game_over_clear("Player._setup_revival_state")
 	_debug_log("Revival state setup complete, invincibility timer started, just_revived set to true")
 
 func set_lives(new_lives: int) -> void:
@@ -769,6 +875,7 @@ func increase_life(amount: int) -> void:
 
 func _on_game_over_triggered() -> void:
 	is_alive = false
+	_remove_all_satellites()
 	queue_free()
 	
 func _on_victory_pose():
@@ -784,6 +891,9 @@ func _on_level_completed(_level_num):
 	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.default_bullet_damage
 	if GameManager.save_manager.autosave_progress:
 		GameManager.save_manager.save_progress()
+	
+	# When level is completed, update satellites to reflect any changes made in the upgrade menu
+	update_satellites_from_selection()
 
 func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:
 	"""Handle ship stat updates from upgrade system"""
@@ -796,6 +906,41 @@ func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:
 		if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
 			GameManager.player_manager.player_stats["bullet_damage"] = new_damage
 		_debug_log("Ship stats updated: damage is now %d for ship %s" % [new_damage, ship_id])
+
+func _on_player_manager_satellites_changed() -> void:
+	"""Handle when PlayerManager's selected satellites are changed"""
+	update_satellites_from_selection()
+	_debug_log("Satellite selection updated from PlayerManager")
+
+
+func _calculate_satellite_offset(position_index: int) -> Vector2:
+	"""Calculate satellite position based on the player sprite's visual bounds and scale"""
+	if not sprite_2d:
+		push_warning("Sprite2D not found, using default offset")
+		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	
+	# Get the texture size if available
+	var texture_size: Vector2 = Vector2.ZERO
+	if sprite_2d.texture:
+		texture_size = sprite_2d.texture.get_size()
+	else:
+		push_warning("No texture found on player sprite, using default offset")
+		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	
+	# Apply the current scale of the sprite
+	var scaled_size = texture_size * sprite_2d.scale
+	
+	# Calculate offset based on half of the scaled width plus some padding
+	# Position index 0 = left satellite, position index 1 = right satellite
+	var padding: float = 10.0  # Additional padding to prevent overlap
+	var offset_x = (scaled_size.x / 2.0) + padding
+	
+	if position_index == 0:
+		# Left satellite
+		return Vector2(-offset_x, 0)
+	else:
+		# Right satellite
+		return Vector2(offset_x, 0)
 
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == "Player_sweep":

@@ -10,6 +10,12 @@ extends Node
 @onready var pause_button: Button = $"../CanvasLayer/Pause"
 @onready var wave_manager: WaveManager = $"../WaveManager"
 
+# Wave Details UI
+@onready var wave_details: Panel = $"../CanvasLayer/wave_Details"
+@onready var wave_details_container: VBoxContainer = $"../CanvasLayer/wave_Details/VBoxContainer"
+@onready var level_label: Label = $"../CanvasLayer/wave_Details/VBoxContainer/Level"
+@onready var total_waves_label: Label = $"../CanvasLayer/wave_Details/VBoxContainer/Total_waves"
+
 # === EXPORTED ===
 @export var level_num: int = 1
 # Array of WaveConfig resources defining the waves for this level
@@ -20,11 +26,16 @@ extends Node
 
 # === VARIABLES ===
 var has_completed_level: bool = false
-var game_over: bool = false
+var level_game_over: bool = false
 var waves_initialized: bool = false
 var saved_shadow_charge: float = 0.0
 var player_scene: PackedScene = preload("res://Ships/Player_Ship1.tscn")
 var has_spawned_player: bool = false
+var wave_details_tween: Tween = null
+
+# Wave details display settings
+const WAVE_DETAILS_DISPLAY_DURATION: float = 2.5
+const WAVE_DETAILS_FADE_DURATION: float = 0.4
 
 # Signals 
 @warning_ignore("unused_signal")
@@ -37,7 +48,7 @@ func _ready():
 	pause_menu.hide()
 	level_completed.hide()
 	boss_clear.hide()
-	game_over = GameManager.game_over
+	level_game_over = GameManager.game_over
 
 	# Hide banner ad when entering a level
 	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
@@ -81,6 +92,10 @@ func _ready():
 	if not wave_manager.wave_started.is_connected(hud._on_wave_started):
 		wave_manager.wave_started.connect(hud._on_wave_started)
 
+	# Connect wave_started signal to show wave details UI
+	if not wave_manager.wave_started.is_connected(_on_wave_started):
+		wave_manager.wave_started.connect(_on_wave_started)
+
 		
 	if not wave_manager.all_waves_cleared.is_connected(_on_wave_manager_all_waves_cleared):
 		wave_manager.all_waves_cleared.connect(_on_wave_manager_all_waves_cleared)
@@ -94,6 +109,9 @@ func _ready():
 	if not GameManager.level_manager.level_loaded.is_connected(_on_level_loaded):
 		GameManager.level_manager.level_loaded.connect(_on_level_loaded)
 
+	
+	# Hide wave details initially
+	_hide_wave_details_instant()
 	
 	# Initialize waves
 	_initialize_waves()
@@ -245,7 +263,7 @@ func _on_pause_pressed():
 	_toggle_pause_menu()
 
 func _on_game_paused(paused: bool):
-	if game_over or has_completed_level:
+	if level_game_over or has_completed_level:
 		_hide_pause_menu()
 		get_tree().paused = false
 		GameManager.is_paused = false
@@ -261,8 +279,8 @@ func _on_game_paused(paused: bool):
 func _game_over_triggered():
 	if GameManager.level_manager.is_level_just_completed:
 		return
-	game_over = true
-	GameManager.game_over = true
+	level_game_over = true
+	GameManager.request_game_over("Level._game_over_triggered")
 	# Set the game over screen active flag in LevelManager
 	if GameManager.level_manager:
 		GameManager.level_manager.is_game_over_screen_active = true
@@ -286,8 +304,8 @@ func _game_over_triggered():
 func _on_player_revived():
 	if not GameManager.is_revive_pending:
 		return
-	game_over = false
-	GameManager.game_over = false
+	level_game_over = false
+	GameManager.request_game_over_clear("Level._on_player_revived")
 	# Reset the game over screen active flag in LevelManager
 	if GameManager.level_manager:
 		GameManager.level_manager.is_game_over_screen_active = false
@@ -487,6 +505,56 @@ func _on_shadow_mode_activated():
 
 func _on_shadow_mode_deactivated():
 	wave_manager._on_shadow_mode_deactivated()
+
+# === WAVE DETAILS UI ===
+func _on_wave_started(current_wave: int, total_waves_count: int) -> void:
+	"""Show wave details UI when a new wave starts"""
+	if debug_mode:
+		print("Level: Wave started - %d/%d" % [current_wave, total_waves_count])
+	
+	_show_wave_details(current_wave, total_waves_count)
+
+func _show_wave_details(current_wave: int, total_waves_count: int) -> void:
+	"""Display wave details with fade-in animation and auto-hide after duration"""
+	if not wave_details or not level_label or not total_waves_label:
+		if debug_mode:
+			print("Level: Wave details UI nodes not found")
+		return
+	
+	# Kill any existing tween
+	if wave_details_tween and wave_details_tween.is_valid():
+		wave_details_tween.kill()
+	
+	# Update labels with wave info
+	level_label.text = "Level %d" % [level_num]
+	total_waves_label.text = "%d/%d" % [current_wave, total_waves_count]
+	
+	# Show and animate
+	wave_details.visible = true
+	wave_details_container.modulate.a = 0.0
+	
+	# Create animation tween
+	wave_details_tween = create_tween()
+	wave_details_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)  # Continue during pause
+	
+	# Fade in
+	wave_details_tween.tween_property(wave_details_container, "modulate:a", 1.0, WAVE_DETAILS_FADE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# Wait
+	wave_details_tween.tween_interval(WAVE_DETAILS_DISPLAY_DURATION)
+	
+	# Fade out
+	wave_details_tween.tween_property(wave_details_container, "modulate:a", 0.0, WAVE_DETAILS_FADE_DURATION).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	
+	# Hide after fade out
+	wave_details_tween.tween_callback(_hide_wave_details_instant)
+
+func _hide_wave_details_instant() -> void:
+	"""Instantly hide wave details UI"""
+	if wave_details:
+		wave_details.visible = false
+	if wave_details_container:
+		wave_details_container.modulate.a = 0.0
 
 func handle_node_added(node: Node) -> void:
 	print("Level.gd: handle_node_added called for node: %s" % node.name)

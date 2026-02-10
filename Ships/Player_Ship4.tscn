@@ -13,7 +13,7 @@ radius = 105.0
 height = 226.0
 
 [node name="Player_Ship4" instance=ExtResource("1_uurdh")]
-scale = Vector2(1, 1)
+scale = Vector2(0.5, 0.5)
 ship_id = "Ship4"
 shadow_texture = ExtResource("2_w3ehj")
 evolution_textures = Array[Texture2D]([ExtResource("2_dum23"), ExtResource("3_mh31l"), ExtResource("4_xcc6m"), ExtResource("5_28iej"), ExtResource("6_g7hh6")])
@@ -30,14 +30,6 @@ position = Vector2(-132, -43.2)
 
 [node name="RightGun" parent="Sprite2D/FiringPositions" index="1"]
 position = Vector2(126, -43.2)
-
-[node name="Satellite" parent="Sprite2D" index="2"]
-position = Vector2(-174.8, 30)
-scale = Vector2(1, 1)
-
-[node name="Satellite2" parent="Sprite2D" index="3"]
-position = Vector2(169.6, 28)
-scale = Vector2(1, 1)
 
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0, 34)
