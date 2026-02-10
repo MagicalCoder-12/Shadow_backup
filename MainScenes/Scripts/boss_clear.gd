@@ -76,30 +76,12 @@ func _show_boss_rewards() -> void:
 		print("[BossClear Debug] Displaying boss rewards: %d void shards, %d coins, %d crystals" % [rewards.void_shards, rewards.coins, rewards.crystals])
 
 func _calculate_boss_rewards() -> Dictionary:
-	# Get reward configuration
-	var boss_rewards_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		boss_rewards_config = ConfigLoader.upgrade_settings.get("boss_level_rewards", {})
-	
-	# Default rewards if config not found
-	var _default_rewards = {
+	if GameManager:
+		return GameManager.get_boss_reward_for_level(current_level)
+	return {
 		"coins": 1000,
 		"crystals": 60,
 		"void_shards": 50
-	}
-	
-	# Check if we have specific rewards for this level
-	if boss_rewards_config.has(str(current_level)):
-		return boss_rewards_config[str(current_level)]
-	
-	# Calculate rewards based on level number (boss levels are 5, 10, 15, 20, etc.)
-	@warning_ignore("integer_division")
-	var level_multiplier = current_level / 5  # 1 for level 5, 2 for level 10, etc.
-	
-	return {
-		"coins": int(1000 * level_multiplier),
-		"crystals": int(60 * level_multiplier),
-		"void_shards": int(50 * level_multiplier)
 	}
 
 func _apply_boss_rewards() -> void:

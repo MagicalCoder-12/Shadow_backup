@@ -614,7 +614,7 @@ label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Crstal" type="TextureRect" parent="Resources/Crystal"]
+[node name="Crystal" type="TextureRect" parent="Resources/Crystal"]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 texture = ExtResource("12_hj2yo")

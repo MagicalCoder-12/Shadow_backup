@@ -4,6 +4,8 @@ var gm: Node
 var progress_file_path: String = "user://game_progress.dat"
 var backup_progress_file_path: String = "user://game_progress_backup.dat"
 var autosave_progress: bool = true
+const SAVE_FORMAT_MAGIC: String = "shadow_avenger_save"
+const SAVE_SCHEMA_VERSION: int = 2
 
 # Default resource values for new or reset progress
 const DEFAULT_RESOURCES: Dictionary = {
@@ -32,47 +34,27 @@ func initialize() -> void:
 	load_progress()
 
 func _load_settings_from_config() -> void:
-	if is_instance_valid(ConfigLoader):
-		progress_file_path = ConfigLoader.game_settings.get("progress_file_path", "user://game_progress.dat")
+	if gm:
+		progress_file_path = gm.get_game_setting("progress_file_path", "user://game_progress.dat")
 	else:
-		push_warning("ConfigLoader not available. Using default file paths.")
+		push_warning("GameManager not available. Using default file paths.")
 
 func save_progress() -> void:
 	if not autosave_progress:
 		return
 	
 	#Check if managers are ready before saving
-	if not gm or not gm.level_manager or not gm.player_manager:
+	if not gm or not gm.can_persist_progress():
 		push_warning("SaveManager: Cannot save progress, managers not ready yet")
 		return
-		
+	
 	var file: FileAccess = FileAccess.open(progress_file_path, FileAccess.WRITE)
 	if not file:
 		push_error("Failed to save progress: Unable to open file at %s, error: %s" % [progress_file_path, FileAccess.get_open_error()])
 		return
 	
-	# Safely store all data
-	file.store_var(gm.SAVE_VERSION)
-	file.store_var(gm.level_manager.unlocked_levels if gm.level_manager else 1)
-	file.store_var(gm.level_manager.shadow_mode_unlocked if gm.level_manager else false)
-	file.store_var(gm.level_manager.shadow_mode_tutorial_shown if gm.level_manager else false)
-	file.store_var(gm.level_manager.completed_levels if gm.level_manager else [])
-	file.store_var(gm.player_lives)
-	file.store_var(gm.player_manager.selected_ship_id if gm.player_manager else "Ship1")
-	file.store_var(gm.ships)
-	file.store_var(gm.satellites)
-	file.store_var(gm.crystal_count)
-	file.store_var(gm.coin_count)
-	file.store_var(gm.void_shards_count)
-
-	file.store_var(level_scores)
-	file.store_var(level_lives)
-	# Save boss_levels_completed data
-	file.store_var(boss_levels_completed)
-	
-	# Added: Save ad usage data
-	file.store_var(ad_usage_count)
-	file.store_var(ad_last_used_time)
+	# Store keyed payload so load order changes do not break compatibility.
+	file.store_var(_build_save_payload())
 	
 	file.close()
 	
@@ -87,242 +69,197 @@ func save_progress() -> void:
 		push_error("Save file was not created successfully at %s" % progress_file_path)
 
 func load_progress() -> void:
-	if FileAccess.file_exists(progress_file_path):
-		var file: FileAccess = FileAccess.open(progress_file_path, FileAccess.READ)
-		if file:
-			if file.get_length() == 0:
-				push_warning("Save file is empty, resetting to defaults.")
-				reset_progress()
-				file.close()
-				return
-			
-			var version: int = file.get_var()
-			if version != gm.SAVE_VERSION:
-				push_error("Save file version mismatch. Resetting to defaults.")
-				reset_progress()
-				file.close()
-				return
-			
-			# Load data with null checks for managers
-			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.unlocked_levels = file.get_var()
-			else:
-				file.get_var()  # Skip this value if manager not ready
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.set_shadow_mode_unlocked(file.get_var(), "SaveManager.load_progress")
-			else:
-				file.get_var()  # Skip this value if manager not ready
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.set_shadow_mode_tutorial_shown(file.get_var(), "SaveManager.load_progress")
-			else:
-				file.get_var()  # Skip this value if manager not ready
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.completed_levels = file.get_var()
-			else:
-				file.get_var()  # Skip this value if manager not ready
-				
-			if !file.eof_reached():
-				gm.player_lives = file.get_var()
-			if !file.eof_reached() and gm.player_manager:
-				gm.player_manager.selected_ship_id = file.get_var()
-			else:
-				file.get_var()  # Skip this value if manager not ready
-				
-			if !file.eof_reached():
-				gm.ships = file.get_var()
-			if !file.eof_reached():
-				gm.satellites = file.get_var()
-			else:
-				gm.satellites = _get_default_satellites()
-			if !file.eof_reached():
-				gm.crystal_count = file.get_var()
-			if !file.eof_reached():
-				gm.coin_count = file.get_var()
-			if !file.eof_reached():
-				gm.void_shards_count = file.get_var()
-			
+	if _load_progress_from_path(progress_file_path):
+		return
+	
+	# Try backup when primary file is missing/corrupt.
+	if _load_progress_from_path(backup_progress_file_path):
+		push_warning("Loaded progress from backup file and restoring primary save file.")
+		save_progress()
+		return
+	
+	reset_progress()
 
-			if !file.eof_reached():
-				level_scores = file.get_var()
-			else:
-				level_scores = {}
-				
-			if !file.eof_reached():
-				level_lives = file.get_var()
-			else:
-				level_lives = {}
-			
-			# Load boss_levels_completed data
-			if !file.eof_reached():
-				boss_levels_completed = file.get_var()
-			else:
-				boss_levels_completed = []
-			
-			# Added: Load ad usage data
-			if !file.eof_reached():
-				ad_usage_count = file.get_var()
-			else:
-				ad_usage_count = 0
-				
-			if !file.eof_reached():
-				ad_last_used_time = file.get_var()
-			else:
-				ad_last_used_time = 0
-			
-			# Validate ships data
-			if gm.ships.is_empty() or not gm.ships is Array:
-				gm.ships = _get_default_ships()
-				push_warning("Loaded ships data was invalid. Using default data.")
-			
-			# Validate satellites data
-			if gm.satellites.is_empty() or not gm.satellites is Array:
-				gm.satellites = _get_default_satellites()
-				push_warning("Loaded satellites data was invalid. Using default data.")
-			
-			# Ensure all ships have required fields and valid textures
-			for ship in gm.ships:
-				if not ship.has("unlocked"):
-					ship["unlocked"] = false
-				if not ship.has("ascend_count"):
-					ship["ascend_count"] = 0
-				if not ship.has("can_ascend"):
-					ship["can_ascend"] = false
-				if ship.has("textures"):
-					for key in ship["textures"]:
-						var path = ship["textures"][key]
-						if not ResourceLoader.exists(path, "Texture2D"):
-							push_warning("Invalid texture path %s for ship %s, using fallback" % [path, ship.get("display_name", "Unknown")])
-							ship["textures"][key] = "res://Textures/player/ship_textures/ship_01_lvl0.png"
-			
-			# Ensure all satellites have required fields and valid texture
-			for satellite in gm.satellites:
-				if not satellite.has("unlocked"):
-					satellite["unlocked"] = false
-				if not satellite.has("ascend_count"):
-					satellite["ascend_count"] = 0
-				if not satellite.has("can_ascend"):
-					satellite["can_ascend"] = false
-				if satellite.has("texture"):
-					var path = satellite["texture"]
-					if not ResourceLoader.exists(path, "Texture2D"):
-						push_warning("Invalid satellite texture path %s for %s, using fallback" % [path, satellite.get("display_name", "Unknown")])
-						satellite["texture"] = "res://Textures/Satellite/Sat_textures/Sat1.png"
-			
-			file.close()
-		else:
-			push_error("Failed to load progress: Unable to open file at %s, error: %s" % [progress_file_path, FileAccess.get_open_error()])
-			# Try to load from backup if main file fails
-			if FileAccess.file_exists(backup_progress_file_path):
-				push_warning("Attempting to load from backup file")
-				_load_from_backup()
-			else:
-				reset_progress()
-	else:
-		# Try to load from backup if main file doesn't exist
-		if FileAccess.file_exists(backup_progress_file_path):
-			push_warning("Main save file not found, attempting to load from backup")
-			_load_from_backup()
-		else:
-			reset_progress()
+func _build_save_payload() -> Dictionary:
+	var payload: Dictionary = {
+		"format": SAVE_FORMAT_MAGIC,
+		"schema_version": SAVE_SCHEMA_VERSION,
+		"game_save_version": int(gm.SAVE_VERSION),
+		"progress": {
+			"unlocked_levels": gm.get_unlocked_levels_for_save(),
+			"shadow_mode_unlocked": gm.get_shadow_mode_unlocked_for_save(),
+			"shadow_mode_tutorial_shown": gm.get_shadow_mode_tutorial_shown_for_save(),
+			"completed_levels": gm.get_completed_levels_for_save(),
+			"level_scores": level_scores.duplicate(true),
+			"level_lives": level_lives.duplicate(true),
+			"boss_levels_completed": boss_levels_completed.duplicate(true)
+		},
+		"player": {
+			"lives": gm.player_lives,
+			"selected_ship_id": gm.get_selected_ship_id_for_save(),
+			"ships": gm.ships.duplicate(true),
+			"satellites": gm.satellites.duplicate(true)
+		},
+		"resources": {
+			"crystals": gm.crystal_count,
+			"coins": gm.coin_count,
+			"void_shards": gm.void_shards_count
+		},
+		"ads": {
+			"usage_count": ad_usage_count,
+			"last_used_time": ad_last_used_time
+		}
+	}
+	return payload
 
-# Helper function to load from backup file
-func _load_from_backup() -> void:
-	var file: FileAccess = FileAccess.open(backup_progress_file_path, FileAccess.READ)
-	if file:
-		var version: int = file.get_var()
-		if version != gm.SAVE_VERSION:
-			push_error("Backup save file version mismatch. Resetting to defaults.")
-			reset_progress()
-			file.close()
-			return
-		else:
-			# Load data from backup with null checks
-			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.unlocked_levels = file.get_var()
-			else:
-				file.get_var()
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.set_shadow_mode_unlocked(file.get_var(), "SaveManager._load_from_backup")
-			else:
-				file.get_var()
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.set_shadow_mode_tutorial_shown(file.get_var(), "SaveManager._load_from_backup")
-			else:
-				file.get_var()
-				
-			if !file.eof_reached() and gm.level_manager:
-				gm.level_manager.completed_levels = file.get_var()
-			else:
-				file.get_var()
-				
-			if !file.eof_reached():
-				gm.player_lives = file.get_var()
-			if !file.eof_reached() and gm.player_manager:
-				gm.player_manager.selected_ship_id = file.get_var()
-			else:
-				file.get_var()
-				
-			if !file.eof_reached():
-				gm.ships = file.get_var()
-			if !file.eof_reached():
-				gm.satellites = file.get_var()
-			else:
-				gm.satellites = _get_default_satellites()
-			if !file.eof_reached():
-				gm.crystal_count = file.get_var()
-			if !file.eof_reached():
-				gm.coin_count = file.get_var()
-			if !file.eof_reached():
-				gm.void_shards_count = file.get_var()
-			
-			if !file.eof_reached():
-				level_scores = file.get_var()
-			else:
-				level_scores = {}
-				
-			if !file.eof_reached():
-				level_lives = file.get_var()
-			else:
-				level_lives = {}
-			
-			# Load boss_levels_completed data
-			if !file.eof_reached():
-				boss_levels_completed = file.get_var()
-			else:
-				boss_levels_completed = []
-			
-			# Added: Load ad usage data
-			if !file.eof_reached():
-				ad_usage_count = file.get_var()
-			else:
-				ad_usage_count = 0
-				
-			if !file.eof_reached():
-				ad_last_used_time = file.get_var()
-			else:
-				ad_last_used_time = 0
-			
-			# Validate ships and satellites data
-			if gm.ships.is_empty() or not gm.ships is Array:
-				gm.ships = _get_default_ships()
-			
-			if gm.satellites.is_empty() or not gm.satellites is Array:
-				gm.satellites = _get_default_satellites()
-			
-			# Apply validation
-			_apply_data_validation()
-			
-			file.close()
-			# Save the loaded backup data to main file to restore it
-			save_progress()
+func _load_progress_from_path(path: String) -> bool:
+	if not FileAccess.file_exists(path):
+		return false
+	
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		push_error("Failed to load progress from %s, error: %s" % [path, FileAccess.get_open_error()])
+		return false
+	
+	if file.get_length() == 0:
+		file.close()
+		push_warning("Save file is empty: %s" % path)
+		return false
+	
+	var root_value: Variant = file.get_var()
+	var loaded_ok: bool = false
+	
+	if root_value is Dictionary:
+		loaded_ok = _load_schema_payload(root_value)
+	elif root_value is int:
+		loaded_ok = _load_legacy_payload(file, int(root_value))
 	else:
-		push_error("Failed to load from backup file, resetting to defaults")
-		reset_progress()
+		push_warning("Unsupported save payload root type: %s" % typeof(root_value))
+	
+	file.close()
+	return loaded_ok
+
+func _load_schema_payload(payload: Dictionary) -> bool:
+	if not gm:
+		return false
+	
+	var format_tag: String = str(payload.get("format", ""))
+	if not format_tag.is_empty() and format_tag != SAVE_FORMAT_MAGIC:
+		push_warning("Unknown save format: %s" % format_tag)
+		return false
+	
+	var schema_version: int = int(payload.get("schema_version", 0))
+	if schema_version <= 0:
+		push_warning("Invalid schema version in save payload")
+		return false
+	
+	var progress_data: Dictionary = _dictionary_or_default(payload.get("progress", {}), {})
+	var player_data: Dictionary = _dictionary_or_default(payload.get("player", {}), {})
+	var resources_data: Dictionary = _dictionary_or_default(payload.get("resources", {}), {})
+	var ads_data: Dictionary = _dictionary_or_default(payload.get("ads", {}), {})
+	
+	if gm.has_level_state():
+		gm.set_unlocked_levels_from_save(int(progress_data.get("unlocked_levels", 1)))
+		gm.set_shadow_mode_unlocked(bool(progress_data.get("shadow_mode_unlocked", false)), "SaveManager._load_schema_payload")
+		gm.set_shadow_mode_tutorial_shown(bool(progress_data.get("shadow_mode_tutorial_shown", false)), "SaveManager._load_schema_payload")
+		gm.set_completed_levels_from_save(_array_or_default(progress_data.get("completed_levels", []), []))
+	
+	gm.player_lives = max(1, int(player_data.get("lives", 3)))
+	if gm.has_player_state():
+		gm.set_selected_ship_id_from_save(str(player_data.get("selected_ship_id", "Ship1")))
+	
+	gm.ships = _array_or_default(player_data.get("ships", _get_default_ships()), _get_default_ships())
+	gm.satellites = _array_or_default(player_data.get("satellites", _get_default_satellites()), _get_default_satellites())
+	gm.crystal_count = max(0, int(resources_data.get("crystals", DEFAULT_RESOURCES["crystal_count"])))
+	gm.coin_count = max(0, int(resources_data.get("coins", DEFAULT_RESOURCES["coin_count"])))
+	gm.void_shards_count = max(0, int(resources_data.get("void_shards", DEFAULT_RESOURCES["void_shards_count"])))
+	
+	level_scores = _dictionary_or_default(progress_data.get("level_scores", {}), {})
+	level_lives = _dictionary_or_default(progress_data.get("level_lives", {}), {})
+	boss_levels_completed = _array_or_default(progress_data.get("boss_levels_completed", []), [])
+	ad_usage_count = max(0, int(ads_data.get("usage_count", 0)))
+	ad_last_used_time = max(0, int(ads_data.get("last_used_time", 0)))
+	
+	_normalize_loaded_state()
+	return true
+
+func _load_legacy_payload(file: FileAccess, version: int) -> bool:
+	if not gm:
+		return false
+	if version != gm.SAVE_VERSION:
+		push_warning("Legacy save file version mismatch. Expected %d, got %d" % [gm.SAVE_VERSION, version])
+		return false
+	
+	var unlocked_levels: Variant = _read_legacy_value(file, 1)
+	var shadow_mode_unlocked: Variant = _read_legacy_value(file, false)
+	var shadow_mode_tutorial_shown: Variant = _read_legacy_value(file, false)
+	var completed_levels: Variant = _read_legacy_value(file, [])
+	var player_lives_value: Variant = _read_legacy_value(file, 3)
+	var selected_ship_id: Variant = _read_legacy_value(file, "Ship1")
+	var ships_data: Variant = _read_legacy_value(file, _get_default_ships())
+	var satellites_data: Variant = _read_legacy_value(file, _get_default_satellites())
+	var crystals: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["crystal_count"])
+	var coins: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["coin_count"])
+	var void_shards: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["void_shards_count"])
+	var loaded_level_scores: Variant = _read_legacy_value(file, {})
+	var loaded_level_lives: Variant = _read_legacy_value(file, {})
+	var loaded_boss_levels: Variant = _read_legacy_value(file, [])
+	var loaded_ad_usage_count: Variant = _read_legacy_value(file, 0)
+	var loaded_ad_last_used_time: Variant = _read_legacy_value(file, 0)
+	
+	if gm.has_level_state():
+		gm.set_unlocked_levels_from_save(int(unlocked_levels))
+		gm.set_shadow_mode_unlocked(bool(shadow_mode_unlocked), "SaveManager._load_legacy_payload")
+		gm.set_shadow_mode_tutorial_shown(bool(shadow_mode_tutorial_shown), "SaveManager._load_legacy_payload")
+		gm.set_completed_levels_from_save(completed_levels)
+	
+	gm.player_lives = max(1, int(player_lives_value))
+	if gm.has_player_state():
+		gm.set_selected_ship_id_from_save(str(selected_ship_id))
+	
+	gm.ships = ships_data
+	gm.satellites = satellites_data
+	gm.crystal_count = max(0, int(crystals))
+	gm.coin_count = max(0, int(coins))
+	gm.void_shards_count = max(0, int(void_shards))
+	
+	level_scores = loaded_level_scores
+	level_lives = loaded_level_lives
+	boss_levels_completed = loaded_boss_levels
+	ad_usage_count = max(0, int(loaded_ad_usage_count))
+	ad_last_used_time = max(0, int(loaded_ad_last_used_time))
+	
+	_normalize_loaded_state()
+	return true
+
+func _read_legacy_value(file: FileAccess, default_value: Variant) -> Variant:
+	if file.eof_reached():
+		return default_value
+	return file.get_var()
+
+func _dictionary_or_default(value: Variant, default_value: Dictionary) -> Dictionary:
+	return value if value is Dictionary else default_value
+
+func _array_or_default(value: Variant, default_value: Array) -> Array:
+	return value if value is Array else default_value
+
+func _normalize_loaded_state() -> void:
+	if gm.ships.is_empty() or not (gm.ships is Array):
+		gm.ships = _get_default_ships()
+		push_warning("Loaded ships data was invalid. Using default data.")
+	
+	if gm.satellites.is_empty() or not (gm.satellites is Array):
+		gm.satellites = _get_default_satellites()
+		push_warning("Loaded satellites data was invalid. Using default data.")
+	
+	if not (level_scores is Dictionary):
+		level_scores = {}
+	if not (level_lives is Dictionary):
+		level_lives = {}
+	if not (boss_levels_completed is Array):
+		boss_levels_completed = []
+	
+	_apply_data_validation()
 
 # Helper function to apply validation to loaded data
 func _apply_data_validation() -> void:
@@ -357,10 +294,8 @@ func _apply_data_validation() -> void:
 
 func reset_progress() -> void:
 	gm.player_lives = 3
-	if gm.player_manager:
-		gm.player_manager.reset_player_stats()
-	if gm.level_manager:
-		gm.level_manager.reset_level_progress()
+	gm.reset_player_stats()
+	gm.reset_level_progress()
 	gm.ships = _get_default_ships()
 	gm.satellites = _get_default_satellites()
 	gm.crystal_count = DEFAULT_RESOURCES["crystal_count"]
@@ -370,6 +305,8 @@ func reset_progress() -> void:
 	level_lives = {}
 	# Reset boss_levels_completed data
 	boss_levels_completed = []
+	ad_usage_count = 0
+	ad_last_used_time = 0
 	if autosave_progress:
 		save_progress()
 
@@ -384,8 +321,9 @@ func get_level_lives(_level_num: int) -> int:
 	return 3
 
 func _get_default_ships() -> Array:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.ships_data and ConfigLoader.ships_data is Array:
-		return ConfigLoader.ships_data.duplicate(true)
+	var ships = gm.get_config_ships_data() if gm else []
+	if not ships.is_empty():
+		return ships
 	return [{
 		"id": "Ship1",
 		"display_name": "NoctiSol",
@@ -409,8 +347,9 @@ func _get_default_ships() -> Array:
 	}]
 
 func _get_default_satellites() -> Array:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.satellites_data and ConfigLoader.satellites_data is Array:
-		return ConfigLoader.satellites_data.duplicate(true)
+	var satellites = gm.get_config_satellites_data() if gm else []
+	if not satellites.is_empty():
+		return satellites
 	return [{
 		"id": "Satellite1",
 		"display_name": "Guardian Drone",

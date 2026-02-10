@@ -141,17 +141,12 @@ func _connect_gamemanager_signals() -> void:
 	else:
 		push_error("currency_updated signal not found in GameManager")
 	
-	# Also connect to AdManager signals
-	_connect_ad_signals()
-
-func _connect_ad_signals() -> void:
-	if GameManager.ad_manager:
-		if GameManager.ad_manager.has_signal("ad_reward_granted"):
-			if not GameManager.ad_manager.ad_reward_granted.is_connected(_on_ad_reward_granted):
-				GameManager.ad_manager.ad_reward_granted.connect(_on_ad_reward_granted)
-		if GameManager.ad_manager.has_signal("ad_failed_to_load"):
-			if not GameManager.ad_manager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
-				GameManager.ad_manager.ad_failed_to_load.connect(_on_ad_failed_to_load)
+	# Connect to ad_failed_to_load for reward-ad error handling
+	if GameManager.has_signal("ad_failed_to_load"):
+		if not GameManager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
+			var failed_result = GameManager.ad_failed_to_load.connect(_on_ad_failed_to_load)
+			if failed_result != OK:
+				push_error("Failed to connect ad_failed_to_load signal, error code: %d" % failed_result)
 
 
 
@@ -1238,13 +1233,8 @@ func _cleanup_signals() -> void:
 	if GameManager.has_signal("ad_reward_granted") and GameManager.ad_reward_granted.is_connected(_on_ad_reward_granted):
 		GameManager.ad_reward_granted.disconnect(_on_ad_reward_granted)
 	
-	if GameManager.ad_manager and GameManager.ad_manager.has_signal("ad_reward_granted"):
-		if GameManager.ad_manager.ad_reward_granted.is_connected(_on_ad_reward_granted):
-			GameManager.ad_manager.ad_reward_granted.disconnect(_on_ad_reward_granted)
-	
-	if GameManager.ad_manager and GameManager.ad_manager.has_signal("ad_failed_to_load"):
-		if GameManager.ad_manager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
-			GameManager.ad_manager.ad_failed_to_load.disconnect(_on_ad_failed_to_load)
+	if GameManager.has_signal("ad_failed_to_load") and GameManager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
+		GameManager.ad_failed_to_load.disconnect(_on_ad_failed_to_load)
 	
 	# Disconnect visibility changed signal
 	if is_connected("visibility_changed", _on_visibility_changed):

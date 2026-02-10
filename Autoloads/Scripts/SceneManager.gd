@@ -2,6 +2,7 @@ extends Node
 
 
 var gm: Node
+var _initialized: bool = false
 const LOADER_SCENE: PackedScene = preload("res://Autoloads/screen_loader.tscn")
 const MAP_SCENE: String = "res://Map/map.tscn"
 const START_SCREEN_SCENE: String = "res://MainScenes/start_menu.tscn"
@@ -15,6 +16,9 @@ func _ready() -> void:
 	call_deferred("initialize")
 
 func initialize() -> void:
+	if _initialized:
+		return
+	_initialized = true
 	AudioManager.play_background_music(BACKGROUND_MUSIC, false)
 
 func change_scene(scene_path: String) -> void:
@@ -30,22 +34,18 @@ func change_scene(scene_path: String) -> void:
 		_prepare_map_scene()
 	
 	if root:
-		for child in root.get_children():
-			if child.name == "LoaderCanvasLayer" or child.name == "VideoPlaybackLayer":
-				continue
+		if root.get_node_or_null("LoaderCanvasLayer"):
+			return
 		
 		var loader: Node = LOADER_SCENE.instantiate()
 		loader.name = "LoaderCanvasLayer"
 		root.add_child(loader)
 		
 		# Mute all buses except Background and Master
-		for bus in AudioServer.bus_count:
+		for bus in range(AudioServer.bus_count):
 			var bus_name = AudioServer.get_bus_name(bus)
 			if bus_name != "Background" and bus_name != "Master":
 				AudioServer.set_bus_mute(bus, true)
-		
-		if gm.ad_manager.is_initialized:
-			gm.ad_manager.hide_banner_ad()
 		
 		loader.start_load(scene_path)
 
@@ -71,9 +71,6 @@ func handle_node_added(node: Node) -> void:
 			
 			AudioManager.mute_bus("Bullet", true)
 			AudioManager.mute_bus("Explosion", true)
-			
-			if gm.ad_manager.is_initialized:
-				gm.ad_manager.show_banner_ad()
 		else:
 			if AudioManager.background_player:
 				AudioManager.background_player.stream.loop = false
@@ -81,6 +78,3 @@ func handle_node_added(node: Node) -> void:
 			AudioManager.mute_bus("Bullet", false)
 			AudioManager.mute_bus("Explosion", false)
 			
-			# Hide banner ad when entering any non-menu scene (including levels)
-			if gm.ad_manager.is_initialized:
-				gm.ad_manager.hide_banner_ad()

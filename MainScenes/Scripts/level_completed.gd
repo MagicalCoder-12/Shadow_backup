@@ -147,14 +147,9 @@ func _on_level_completed(_level_num: int) -> void:
 		GameManager.reset_level_currencies()
 
 func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
-	# Get reward configuration
-	var reward_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		reward_config = ConfigLoader.upgrade_settings
-	
 	# Default values if config not found
-	var base_coins = reward_config.get("level_completion_base_coins", 200)
-	var base_crystals = reward_config.get("level_completion_base_crystals", 10)
+	var base_coins = GameManager.get_upgrade_setting("level_completion_base_coins", 200) if GameManager else 200
+	var base_crystals = GameManager.get_upgrade_setting("level_completion_base_crystals", 10) if GameManager else 10
 	
 	# Calculate rewards based on level number with diminishing returns
 	# Using square root to provide growth that slows over time

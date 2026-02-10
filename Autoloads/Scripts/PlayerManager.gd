@@ -25,22 +25,23 @@ func initialize() -> void:
 	set_spawn_position()
 
 func _load_settings_from_config() -> void:
-	if ConfigLoader:
-		default_bullet_speed = ConfigLoader.game_settings.get("default_bullet_speed", 3000.0)
-		default_bullet_damage = ConfigLoader.game_settings.get("default_bullet_damage", 20)
-		max_attack_level = ConfigLoader.game_settings.get("max_attack_level", 4)
+	# Read settings via GameManager helpers so config access is centralized.
+	if gm:
+		default_bullet_speed = gm.get_game_setting("default_bullet_speed", 3000.0)
+		default_bullet_damage = gm.get_game_setting("default_bullet_damage", 20)
+		max_attack_level = gm.get_game_setting("max_attack_level", 4)
 
 	# Add max_life loading
 	@warning_ignore("unused_variable")
-	var max_life_setting = 3  
-	if ConfigLoader and ConfigLoader.player_settings.has("max_life"):
-		max_life_setting = ConfigLoader.player_settings.get("max_life", 3)
+	var max_life_setting = gm.get_player_setting("max_life", 3) if gm else 3
 	
 	# We'll need to make this accessible to the Player class
 	# For now, we'll just note that we've loaded it
 
-	if not ConfigLoader.ships_data.is_empty():
-		default_ship_id = ConfigLoader.ships_data[0].id
+	# Use a copied ships list from GameManager to avoid mutating shared config data.
+	var ships_data: Array = gm.get_config_ships_data() if gm else []
+	if not ships_data.is_empty():
+		default_ship_id = ships_data[0].id
 	else:
 		push_error("Ships data is empty, cannot determine default ship ID.")
 		default_ship_id = "Ship1"
@@ -101,7 +102,8 @@ func spawn_player(lives: int) -> void:
 	else:
 		push_error("[DEBUG] Player scene not found at path: %s" % player_scene_path)
 
-func revive_player(lives: int = 2) -> void:
+# Keep revive default at one life to match game-over revive UI expectations.
+func revive_player(lives: int = 1) -> void:
 	# Always reset the ad manager's revive pending state to prevent double revives
 	gm.reset_ad_revive_state()
 

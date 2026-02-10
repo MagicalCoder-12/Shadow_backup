@@ -7,7 +7,6 @@ var is_reward_ad_pending: bool = false
 var current_reward_type: String = ""
 var selected_ad_type: String = ""
 var is_ad_showing: bool = false
-var ad_retry_count: int = 0
 var max_ad_retries: int = 3
 var revive_type: String = "none"
 var ad_revive_pending: bool = false
@@ -15,24 +14,30 @@ var revive_timeout_timer: Timer
 var is_banner_showing: bool = false
 var enable_debug_logging: bool = true  # Toggle for debug messages
 var _rewarded_ad_shown: bool = false  # Track if a rewarded ad has been shown
+var _initialized: bool = false
+var _banner_retry_count: int = 0
+var _rewarded_retry_count: int = 0
+var _reward_earned_for_current_ad: bool = false
 
 # Helper function to check if game over screen is active
 func is_game_over_screen_active() -> bool:
-	# Check if we're in a level scene and if the game over screen is active
-	# Directly check if game over screen is visible in the current scene
+	# Allow banner ads on map screen
 	if gm and gm.get_tree().current_scene:
-		# Look for a GameOverScreen node in the current scene
+		var scene_path = gm.get_tree().current_scene.scene_file_path
+		if scene_path == "res://Map/map.tscn":
+			return false
+	
+	# Prefer the level manager state when available
+	if gm and gm.level_manager and gm.level_manager.is_game_over_screen_active:
+		return true
+	
+	# Fallback to checking the scene tree for the GameOverScreen node
+	if gm and gm.get_tree().current_scene:
 		var game_over_screen = gm.get_tree().current_scene.find_child("GameOverScreen", true, false)
 		if game_over_screen and game_over_screen.visible:
 			return true
 	
-	# Also check if we're in the map scene where banner ads should show
-	if gm and gm.get_tree().current_scene:
-		var scene_path = gm.get_tree().current_scene.scene_file_path
-		if scene_path == "res://Map/map.tscn":
-			return false  # Allow banner ads on map screen
-	
-	return false  # Default to not showing banner ads
+	return false
 
 # Signals
 @warning_ignore("unused_signal")
@@ -46,6 +51,11 @@ func _ready() -> void:
 	call_deferred("initialize")
 
 func initialize() -> void:
+	if _initialized:
+		return
+	_initialized = true
+	if not gm:
+		gm = GameManager
 	admob = gm.get_node_or_null("Admob")
 	if admob:
 		# Wait a frame to ensure all autoloads are ready
@@ -68,6 +78,15 @@ func initialize() -> void:
 	revive_timeout_timer.one_shot = true
 	revive_timeout_timer.timeout.connect(_on_revive_timeout)
 	gm.add_child(revive_timeout_timer)
+	
+	if gm and gm.has_signal("scene_change_started"):
+		if not gm.scene_change_started.is_connected(_on_scene_change_started):
+			gm.scene_change_started.connect(_on_scene_change_started)
+	
+	# Apply banner policy for the current scene once we're initialized
+	if gm and gm.get_tree().current_scene:
+		var scene_path = gm.get_tree().current_scene.scene_file_path
+		_apply_banner_policy_for_scene(scene_path if scene_path else "")
 
 func _check_initialization_status() -> void:
 	if not is_initialized:
@@ -186,51 +205,89 @@ func _debug_log(message: String) -> void:
 	if enable_debug_logging:
 		print("[AdManager Debug] " + message)
 
+func _get_menu_scene_paths() -> Array[String]:
+	if gm and gm.scene_manager:
+		return [
+			gm.scene_manager.START_SCREEN_SCENE,
+			gm.scene_manager.MAP_SCENE,
+			gm.scene_manager.UPGRADE_MENU
+		]
+	return [
+		"res://MainScenes/start_menu.tscn",
+		"res://Map/map.tscn",
+		"res://MainScenes/upgrade_menu.tscn"
+	]
 
-func request_ad_revive() -> void:
-	_debug_log("Requesting ad revive")
-	if not admob or not is_initialized:
-		push_error("Cannot request ad revive: AdMob not initialized or missing.")
-		gm.revive_completed.emit(false)
-		_debug_log("Ad revive failed: Admob not initialized")
+func _should_show_banner_for_scene(scene_path: String) -> bool:
+	if scene_path.is_empty():
+		return false
+	for menu_scene in _get_menu_scene_paths():
+		if scene_path == menu_scene:
+			return true
+	return false
+
+func _apply_banner_policy_for_scene(scene_path: String) -> void:
+	if _should_show_banner_for_scene(scene_path):
+		show_banner_ad()
+	else:
+		if is_banner_showing:
+			hide_banner_ad()
+
+func _on_scene_change_started() -> void:
+	if is_banner_showing:
+		hide_banner_ad()
+
+func _emit_ad_failed(ad_type: String, error_data: Variant) -> void:
+	if gm:
+		gm.ad_failed_to_load.emit(ad_type, error_data)
+	emit_signal("ad_failed_to_load", ad_type, error_data)
+
+func _refresh_banner_policy_for_current_scene() -> void:
+	if not gm or not gm.get_tree().current_scene:
 		return
+	var scene_path = gm.get_tree().current_scene.scene_file_path
+	_apply_banner_policy_for_scene(scene_path if scene_path else "")
 
-	if is_ad_showing:
-		print("Ad request ignored: Another ad is already showing.")
-		gm.revive_completed.emit(false)
-		_debug_log("Ad revive ignored: Another ad showing")
-		return
+func _stop_revive_timeout() -> void:
+	if revive_timeout_timer and revive_timeout_timer.time_left > 0:
+		revive_timeout_timer.stop()
+		_debug_log("Stopped revive timeout timer")
 
-	if gm.is_revive_pending:
-		print("Ad request ignored: Revive already pending (GameManager).")
-		gm.revive_completed.emit(false)
-		_debug_log("Ad revive ignored: GameManager revive pending")
-		return
-
-	# Don't hide banner ad when requesting revive - let rewarded ads show over banner
-	# Reset rewarded ad shown flag when requesting a new revive
+func reset_revive_state(clear_game_manager_pending: bool = true) -> void:
+	_stop_revive_timeout()
+	if clear_game_manager_pending and gm:
+		gm.request_revive_pending_clear("AdManager.reset_revive_state")
+	ad_revive_pending = false
+	revive_type = "none"
+	selected_ad_type = ""
+	is_ad_showing = false
+	_rewarded_retry_count = 0
+	_reward_earned_for_current_ad = false
 	_rewarded_ad_shown = false
+	_refresh_banner_policy_for_current_scene()
 
-	gm.request_revive_pending_start("AdManager.request_ad_revive")
-	revive_type = "ad"
-	ad_revive_pending = true
-	ad_retry_count = 0
-	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
-	
-	# Start timeout timer
+func _clear_reward_request_state() -> void:
+	is_reward_ad_pending = false
+	current_reward_type = ""
+	selected_ad_type = ""
+	is_ad_showing = false
+	_rewarded_retry_count = 0
+	_reward_earned_for_current_ad = false
+	_rewarded_ad_shown = false
+	_refresh_banner_policy_for_current_scene()
+
+func _start_revive_timeout() -> void:
 	if revive_timeout_timer:
 		revive_timeout_timer.start()
 		_debug_log("Started revive timeout timer")
 
-	_debug_log("Requesting %s ad for revive" % selected_ad_type)
-
-	# Don't hide banner ad before showing rewarded ad - let them coexist
-	# Show rewarded ad directly without hiding banner
+func _request_selected_rewarded_ad() -> void:
+	_reward_earned_for_current_ad = false
 	if selected_ad_type == "video":
 		if admob.is_rewarded_ad_loaded():
 			is_ad_showing = true
 			admob.show_rewarded_ad()
-			_debug_log("Showing rewarded video ad over banner ad")
+			_debug_log("Showing rewarded video ad")
 		else:
 			admob.load_rewarded_ad()
 			_debug_log("Loading rewarded video ad")
@@ -238,52 +295,152 @@ func request_ad_revive() -> void:
 		if admob.is_rewarded_interstitial_ad_loaded():
 			is_ad_showing = true
 			admob.show_rewarded_interstitial_ad()
-			_debug_log("Showing rewarded interstitial ad over banner ad")
+			_debug_log("Showing rewarded interstitial ad")
 		else:
 			admob.load_rewarded_interstitial_ad()
 			_debug_log("Loading rewarded interstitial ad")
 
-func complete_ad_revive() -> void:
-	_debug_log("complete_ad_revive called")
-	if not gm.is_revive_pending:
-		print("[DEBUG] AdManager: No revive pending in GameManager")
-		_debug_log("No revive pending in GameManager")
+func _begin_rewarded_request(for_revive: bool, reward_type: String = "") -> bool:
+	if not admob or not is_initialized:
+		var init_error := {"message": "AdMob not initialized"}
+		if for_revive:
+			if gm:
+				gm.revive_completed.emit(false)
+		else:
+			_emit_ad_failed(reward_type, init_error)
+		return false
+	
+	if is_ad_showing or ad_revive_pending or is_reward_ad_pending:
+		var busy_error := {"message": "Another ad request is in progress"}
+		if for_revive:
+			if gm:
+				gm.revive_completed.emit(false)
+		else:
+			_emit_ad_failed(reward_type, busy_error)
+		return false
+	
+	if for_revive and gm and gm.is_revive_pending:
+		gm.revive_completed.emit(false)
+		return false
+	
+	_rewarded_retry_count = 0
+	_rewarded_ad_shown = false
+	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
+	
+	if for_revive:
+		if gm and not gm.is_revive_pending:
+			gm.request_revive_pending_start("AdManager._begin_rewarded_request")
+		ad_revive_pending = true
+		revive_type = "ad"
+		_start_revive_timeout()
+		_debug_log("Requesting %s ad for revive" % selected_ad_type)
+	else:
+		is_reward_ad_pending = true
+		current_reward_type = reward_type
+		_debug_log("Requesting %s ad for reward: %s" % [selected_ad_type, reward_type])
+	
+	_request_selected_rewarded_ad()
+	return true
+
+func _handle_rewarded_load_failure(is_video: bool, error_data: Variant) -> void:
+	var failed_type := "video" if is_video else "interstitial"
+	_debug_log("Rewarded %s ad failed to load: %s" % [failed_type, error_data.get("message", "Unknown error")])
+	
+	if selected_ad_type != failed_type:
 		return
 	
-	# Stop timeout timer
-	if revive_timeout_timer and revive_timeout_timer.time_left > 0:
-		revive_timeout_timer.stop()
-		_debug_log("Stopped revive timeout timer")
+	if _rewarded_retry_count < max_ad_retries:
+		_rewarded_retry_count += 1
+		await gm.get_tree().create_timer(5.0).timeout
+		if not is_initialized:
+			return
+		if is_video:
+			admob.load_rewarded_ad()
+		else:
+			admob.load_rewarded_interstitial_ad()
+		_debug_log("Retrying rewarded %s ad load (attempt %d)" % [failed_type, _rewarded_retry_count])
+		return
+	
+	if ad_revive_pending:
+		_emit_ad_failed(failed_type, error_data)
+		reset_revive_state()
+		if gm:
+			gm.revive_completed.emit(false)
+	elif is_reward_ad_pending:
+		var reward_type := current_reward_type
+		_clear_reward_request_state()
+		_emit_ad_failed(reward_type, error_data)
 
+func _on_rewarded_ad_dismissed(is_video: bool) -> void:
+	var dismissed_type := "video" if is_video else "interstitial"
+	_debug_log("Rewarded %s ad dismissed" % dismissed_type)
+	
+	if selected_ad_type != dismissed_type:
+		return
+	
 	is_ad_showing = false
-	gm.request_revive_pending_clear("AdManager.complete_ad_revive")
-	revive_type = "none"
-	selected_ad_type = ""
-	ad_revive_pending = false  # Make sure this is set to false
-	_rewarded_ad_shown = false  # Reset rewarded ad shown flag
+	if is_video:
+		if is_initialized:
+			admob.load_rewarded_ad()
+			_debug_log("Reloading rewarded video ad")
+	else:
+		if is_initialized:
+			admob.load_rewarded_interstitial_ad()
+			_debug_log("Reloading rewarded interstitial ad")
+	
+	if ad_revive_pending:
+		# Some providers may miss the earned callback; treat close as success fallback.
+		await gm.get_tree().create_timer(1.0).timeout
+		if ad_revive_pending and not _reward_earned_for_current_ad:
+			_debug_log("No earned callback received, completing revive on dismiss fallback")
+			if gm:
+				gm.ad_reward_granted.emit(dismissed_type)
+			complete_ad_revive()
+		return
+	
+	if is_reward_ad_pending:
+		if _reward_earned_for_current_ad:
+			_clear_reward_request_state()
+		else:
+			var reward_type := current_reward_type
+			_clear_reward_request_state()
+			_emit_ad_failed(reward_type, {"message": "Ad closed before reward was earned"})
 
-	_debug_log("Calling GameManager.revive_player")
-	gm.revive_player()
-	gm.revive_completed.emit(true)
+
+func request_ad_revive() -> bool:
+	_debug_log("Requesting ad revive")
+	return _begin_rewarded_request(true)
+
+func complete_ad_revive() -> void:
+	_debug_log("complete_ad_revive called")
+	if not ad_revive_pending:
+		return
+	_reward_earned_for_current_ad = true
+	reset_revive_state()
+	if is_initialized:
+		admob.load_rewarded_ad()
+		admob.load_rewarded_interstitial_ad()
+	if gm:
+		gm.revive_completed.emit(true)
 	_debug_log("complete_ad_revive completed")
 
 func reset_ad_state() -> void:
-	is_ad_showing = false
-	ad_revive_pending = false
-	is_reward_ad_pending = false
-	current_reward_type = ""
-	revive_type = "none"
-	selected_ad_type = ""
-	ad_retry_count = 0
+	reset_revive_state()
+	_clear_reward_request_state()
+	_banner_retry_count = 0
 	_rewarded_ad_shown = false  # Reset rewarded ad shown flag
 	if is_initialized:
 		admob.load_banner_ad()
+		admob.load_rewarded_ad()
+		admob.load_rewarded_interstitial_ad()
 		# Don't automatically show banner on reset, wait for explicit show_banner_ad() calls
 		# is_banner_showing = true
 	_debug_log("Ad state reset")
 
 func show_banner_ad() -> void:
 	# Check if we should show banner ads (not after rewarded ads and not during game over)
+	if is_banner_showing:
+		return
 	if is_initialized and not is_ad_showing and not ad_revive_pending and not _rewarded_ad_shown and not is_game_over_screen_active():
 		admob.show_banner_ad()
 		is_banner_showing = true
@@ -292,6 +449,8 @@ func show_banner_ad() -> void:
 		_debug_log("Banner ad not shown: ad showing (%s), revive pending (%s), rewarded ad shown (%s), or game over screen active" % [str(is_ad_showing), str(ad_revive_pending), str(_rewarded_ad_shown)])
 
 func hide_banner_ad() -> void:
+	if not is_banner_showing:
+		return
 	if is_initialized:
 		admob.hide_banner_ad()
 		is_banner_showing = false
@@ -305,8 +464,13 @@ func _on_admob_initialization_completed(_status_data: InitializationStatus) -> v
 	# Don't automatically show banner on initialization, wait for explicit show_banner_ad() calls
 	# is_banner_showing = true
 	_debug_log("Admob initialization completed, loading ads")
+	
+	if gm and gm.get_tree().current_scene:
+		var scene_path = gm.get_tree().current_scene.scene_file_path
+		_apply_banner_policy_for_scene(scene_path if scene_path else "")
 
 func _on_admob_banner_ad_loaded(_ad_id: String) -> void:
+	_banner_retry_count = 0
 	_debug_log("Banner ad loaded")
 
 func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
@@ -315,17 +479,18 @@ func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> 
 	print("Banner ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
 	_debug_log("Banner ad failed to load: %s (Code: %s)" % [error_info, error_code])
 
-	if ad_retry_count < max_ad_retries:
-		ad_retry_count += 1
+	if _banner_retry_count < max_ad_retries:
+		_banner_retry_count += 1
 		await gm.get_tree().create_timer(5.0).timeout
 		if is_initialized:
 			admob.load_banner_ad()
-			_debug_log("Retrying banner ad load (attempt %d)" % ad_retry_count)
+			_debug_log("Retrying banner ad load (attempt %d)" % _banner_retry_count)
 	else:
-		ad_retry_count = 0
+		_banner_retry_count = 0
 		_debug_log("Max retries reached for banner ad")
 
 func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
+	_rewarded_retry_count = 0
 	_debug_log("Rewarded video ad loaded")
 	if ad_revive_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
@@ -339,23 +504,7 @@ func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
 		_debug_log("Showing rewarded video ad over banner ad for reward")
 
 func _on_admob_rewarded_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	_debug_log("Rewarded video ad failed to load: %s" % error_data.get("message", "Unknown error"))
-	if ad_revive_pending and selected_ad_type == "video":
-		gm.ad_failed_to_load.emit("video", error_data)
-		if ad_retry_count < max_ad_retries:
-			ad_retry_count += 1
-			await gm.get_tree().create_timer(5.0).timeout
-			if is_initialized:
-				admob.load_rewarded_ad()
-				_debug_log("Retrying rewarded video ad load (attempt %d)" % ad_retry_count)
-		else:
-			_fallback_to_map()
-			_debug_log("Max retries reached for video ad, falling back to map")
-	elif is_reward_ad_pending and selected_ad_type == "video":
-		is_reward_ad_pending = false
-		current_reward_type = ""
-		gm.ad_failed_to_load.emit("video", error_data)
-		_debug_log("Reward ad failed, resetting reward state")
+	await _handle_rewarded_load_failure(true, error_data)
 
 func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
 	is_ad_showing = true
@@ -363,23 +512,7 @@ func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
 	_debug_log("Rewarded video ad shown")
 
 func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void:
-	_debug_log("Rewarded video ad dismissed")
-	if ad_revive_pending and selected_ad_type == "video":
-		# Only reset state on dismiss, actual revive happens on earned reward
-		_debug_log("Video ad dismissed during revive - waiting for earned reward signal")
-		# Add a safety fallback with a 3-second delay
-		await gm.get_tree().create_timer(3.0).timeout
-		if ad_revive_pending:  # If still pending after 3 seconds, force complete
-			_debug_log("No earned reward signal received, forcing revive completion")
-			complete_ad_revive()
-	else:
-		is_ad_showing = false
-		ad_revive_pending = false  # Make sure this is set to false
-		# Do not show banner ad again after rewarded ad is dismissed to prevent conflicts
-		_debug_log("Rewarded video ad dismissed, banner ad will not be shown")
-		if is_initialized:
-			admob.load_rewarded_ad()
-		_debug_log("Reloading rewarded video ad")
+	await _on_rewarded_ad_dismissed(true)
 
 func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for video ad")
@@ -387,13 +520,12 @@ func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data) -> v
 		gm.ad_reward_granted.emit("video")
 		complete_ad_revive()
 	elif is_reward_ad_pending and selected_ad_type == "video":
+		_reward_earned_for_current_ad = true
 		_grant_reward(current_reward_type)
-		gm.ad_reward_granted.emit("video")
-		is_reward_ad_pending = false
-		current_reward_type = ""
-		_debug_log("Granted reward: %s" % current_reward_type)
+		_debug_log("Granted reward for reward ad flow")
 
 func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
+	_rewarded_retry_count = 0
 	_debug_log("Rewarded interstitial ad loaded")
 	if ad_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
@@ -407,23 +539,7 @@ func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
 		_debug_log("Showing rewarded interstitial ad over banner ad for reward")
 
 func _on_admob_rewarded_interstitial_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	_debug_log("Rewarded interstitial ad failed to load: %s" % error_data.get("message", "Unknown error"))
-	if ad_revive_pending and selected_ad_type == "interstitial":
-		gm.ad_failed_to_load.emit("interstitial", error_data)
-		if ad_retry_count < max_ad_retries:
-			ad_retry_count += 1
-			await gm.get_tree().create_timer(5.0).timeout
-			if is_initialized:
-				admob.load_rewarded_interstitial_ad()
-				_debug_log("Retrying rewarded interstitial ad load (attempt %d)" % ad_retry_count)
-		else:
-			_fallback_to_map()
-			_debug_log("Max retries reached for interstitial ad, falling back to map")
-	elif is_reward_ad_pending and selected_ad_type == "interstitial":
-		is_reward_ad_pending = false
-		current_reward_type = ""
-		gm.ad_failed_to_load.emit("interstitial", error_data)
-		_debug_log("Reward ad failed, resetting reward state")
+	await _handle_rewarded_load_failure(false, error_data)
 
 func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: String) -> void:
 	is_ad_showing = true
@@ -431,23 +547,7 @@ func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: Strin
 	_debug_log("Rewarded interstitial ad shown")
 
 func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: String) -> void:
-	_debug_log("Rewarded interstitial ad dismissed")
-	if ad_revive_pending and selected_ad_type == "interstitial":
-		# Only reset state on dismiss, actual revive happens on earned reward
-		_debug_log("Interstitial ad dismissed during revive - waiting for earned reward signal")
-		# Add a safety fallback with a 3-second delay
-		await gm.get_tree().create_timer(3.0).timeout
-		if ad_revive_pending:  # If still pending after 3 seconds, force complete
-			_debug_log("No earned reward signal received, forcing revive completion")
-			complete_ad_revive()
-	else:
-		is_ad_showing = false
-		ad_revive_pending = false  # Make sure this is set to false
-		# Do not show banner ad again after rewarded ad is dismissed to prevent conflicts
-		_debug_log("Rewarded interstitial ad dismissed, banner ad will not be shown")
-		if is_initialized:
-			admob.load_rewarded_interstitial_ad()
-		_debug_log("Reloading rewarded interstitial ad")
+	await _on_rewarded_ad_dismissed(false)
 
 func _on_admob_rewarded_interstitial_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for interstitial ad")
@@ -455,28 +555,14 @@ func _on_admob_rewarded_interstitial_ad_user_earned_reward(_ad_id: String, _rewa
 		gm.ad_reward_granted.emit("interstitial")
 		complete_ad_revive()
 	elif is_reward_ad_pending and selected_ad_type == "interstitial":
+		_reward_earned_for_current_ad = true
 		_grant_reward(current_reward_type)
-		gm.ad_reward_granted.emit("interstitial")
-		is_reward_ad_pending = false
-		current_reward_type = ""
-		_debug_log("Granted reward: %s" % current_reward_type)
-
-func _fallback_to_map() -> void:
-	is_ad_showing = false
-	ad_revive_pending = false
-	revive_type = "none"
-	selected_ad_type = ""
-	ad_retry_count = 0
-	# Do not show banner ad when falling back to map to prevent conflicts
-	_debug_log("Falling back to map scene, banner ad will not be shown")
-	gm.revive_completed.emit(false)
-	gm.change_scene(gm.scene_manager.MAP_SCENE)
-	_debug_log("Falling back to map scene due to ad failure")
+		_debug_log("Granted reward for reward ad flow")
 
 func _grant_reward(reward_type: String) -> void:
-	var ad_crystal_reward = ConfigLoader.upgrade_settings.get("ad_crystal_reward", 15)
-	var ad_ascend_reward = ConfigLoader.upgrade_settings.get("ad_ascend_reward", 10)
-	var ad_coins_reward = ConfigLoader.upgrade_settings.get("ad_coins_reward", 5000)
+	var ad_crystal_reward = gm.get_upgrade_setting("ad_crystal_reward", 15) if gm else 15
+	var ad_ascend_reward = gm.get_upgrade_setting("ad_ascend_reward", 10) if gm else 10
+	var ad_coins_reward = gm.get_upgrade_setting("ad_coins_reward", 5000) if gm else 5000
 	
 	# Also emit signal for UI updates
 	match reward_type:
@@ -489,63 +575,33 @@ func _grant_reward(reward_type: String) -> void:
 			_debug_log("Granted %d coins" % ad_coins_reward)
 	
 	# Emit the signal to notify that reward has been granted
+	emit_signal("ad_reward_granted", reward_type)
 	gm.ad_reward_granted.emit(reward_type)
 
 func handle_node_added(_node: Node) -> void:
-	pass  # Placeholder, not needed for static ReviveAdButton
+	if not gm or not _node:
+		return
+	if _node != gm.get_tree().current_scene:
+		return
+	var scene_path = _node.scene_file_path if _node.scene_file_path else ""
+	_apply_banner_policy_for_scene(scene_path)
 
 func _on_revive_timeout() -> void:
 	_debug_log("Revive timeout triggered - ad took too long to complete")
 	if ad_revive_pending:
-		_debug_log("Forcing revive completion due to timeout")
-		# Do not show banner ad when timeout occurs to prevent conflicts
-		_debug_log("Revive timeout occurred, banner ad will not be shown")
-		# Force complete the revive since the ad system seems stuck
-		complete_ad_revive()
+		_debug_log("Revive timeout reached; failing revive request")
+		if gm:
+			_emit_ad_failed("revive", {"message": "Revive ad timed out"})
+		reset_revive_state()
+		if gm:
+			gm.revive_completed.emit(false)
 	else:
 		_debug_log("Timeout triggered but no revive pending")
 
 # New function to request reward ads
 func request_reward_ad(reward_type: String) -> void:
 	_debug_log("Requesting reward ad for: %s" % reward_type)
-	if not admob or not is_initialized:
-		push_error("Cannot request reward ad: AdMob not initialized or missing.")
-		# Emit failed signal instead of granting reward directly
-		gm.ad_failed_to_load.emit(reward_type, {"message": "AdMob not initialized"})
+	if reward_type != "crystals" and reward_type != "coins":
+		_emit_ad_failed(reward_type, {"message": "Unsupported reward type"})
 		return
-
-	if is_ad_showing:
-		print("Ad request ignored: Another ad is already showing.")
-		# Emit failed signal instead of granting reward directly
-		gm.ad_failed_to_load.emit(reward_type, {"message": "Another ad is already showing"})
-		return
-
-	# Set up reward state
-	is_reward_ad_pending = true
-	current_reward_type = reward_type
-	ad_retry_count = 0
-	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
-	
-	_debug_log("Requesting %s ad for reward: %s" % [selected_ad_type, reward_type])
-
-	# Don't hide banner ad before showing rewarded ad - let them coexist
-	# Reset rewarded ad shown flag when requesting a new reward ad
-	_rewarded_ad_shown = false
-
-	# Show rewarded ad directly without hiding banner
-	if selected_ad_type == "video":
-		if admob.is_rewarded_ad_loaded():
-			is_ad_showing = true
-			admob.show_rewarded_ad()
-			_debug_log("Showing rewarded video ad over banner ad")
-		else:
-			admob.load_rewarded_ad()
-			_debug_log("Loading rewarded video ad")
-	else:
-		if admob.is_rewarded_interstitial_ad_loaded():
-			is_ad_showing = true
-			admob.show_rewarded_interstitial_ad()
-			_debug_log("Showing rewarded interstitial ad over banner ad")
-		else:
-			admob.load_rewarded_interstitial_ad()
-			_debug_log("Loading rewarded interstitial ad")
+	_begin_rewarded_request(false, reward_type)

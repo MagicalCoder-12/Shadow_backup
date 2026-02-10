@@ -12,6 +12,10 @@
 	"ad_crystal_reward": 20,
 	"ad_ascend_reward": 15,
 	"ad_coins_reward": 1000,
+	"max_ad_revives_per_level": 1,
+	"max_crystal_revives_per_level": 2,
+	"crystal_revive_base_cost": 10,
+	"crystal_revive_cost_increment": 10,
 	
 	"level_completion_base_coins": 200,
 	"level_completion_base_crystals": 10,

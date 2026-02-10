@@ -2,6 +2,15 @@ extends Node2D
 
 # Revive state tracking
 var is_revive_pending: bool = false
+# Per-level revive usage counters used by ad/crystal revive limits.
+var ad_revives_used_this_level: int = 0
+var crystal_revives_used_this_level: int = 0
+
+# Default revive economy settings (overridable from upgrade settings).
+const DEFAULT_MAX_AD_REVIVES_PER_LEVEL: int = 1
+const DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL: int = 2
+const DEFAULT_CRYSTAL_REVIVE_BASE_COST: int = 10
+const DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT: int = 10
 # 🔁 SIGNALS
 @warning_ignore("unused_signal")
 signal ad_reward_granted(ad_type: String)
@@ -212,6 +221,63 @@ func request_revive_pending_start(_source: String = "") -> void:
 func request_revive_pending_clear(_source: String = "") -> void:
 	is_revive_pending = false
 
+# Called at run reset/new level start so revive limits do not carry across levels.
+func reset_revive_limits_for_level() -> void:
+	request_revive_pending_clear("GameManager.reset_revive_limits_for_level")
+	ad_revives_used_this_level = 0
+	crystal_revives_used_this_level = 0
+
+# Read revive configuration through GameManager so callers use one source of truth.
+func get_max_ad_revives_per_level() -> int:
+	return max(0, int(get_upgrade_setting("max_ad_revives_per_level", DEFAULT_MAX_AD_REVIVES_PER_LEVEL)))
+
+func get_max_crystal_revives_per_level() -> int:
+	return max(0, int(get_upgrade_setting("max_crystal_revives_per_level", DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL)))
+
+func get_ad_revives_remaining() -> int:
+	return max(0, get_max_ad_revives_per_level() - ad_revives_used_this_level)
+
+func get_crystal_revives_remaining() -> int:
+	return max(0, get_max_crystal_revives_per_level() - crystal_revives_used_this_level)
+
+func get_crystal_revive_cost() -> int:
+	var base_cost: int = max(0, int(get_upgrade_setting("crystal_revive_base_cost", DEFAULT_CRYSTAL_REVIVE_BASE_COST)))
+	var increment: int = max(0, int(get_upgrade_setting("crystal_revive_cost_increment", DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT)))
+	# Crystal revive price scales with each crystal revive used in the current level.
+	return base_cost + (increment * crystal_revives_used_this_level)
+
+# Revives are allowed only while game-over is active and no revive is already pending.
+func can_use_ad_revive() -> bool:
+	return game_over and not is_revive_pending and get_ad_revives_remaining() > 0
+
+func can_use_crystal_revive() -> bool:
+	return game_over and not is_revive_pending and get_crystal_revives_remaining() > 0
+
+func mark_ad_revive_used() -> void:
+	ad_revives_used_this_level = min(get_max_ad_revives_per_level(), ad_revives_used_this_level + 1)
+
+# Deduct crystals and lock revive state atomically so UI/gameplay stay in sync.
+func try_spend_crystal_revive() -> Dictionary:
+	if not can_use_crystal_revive():
+		return {
+			"ok": false,
+			"error": "Crystal revives are unavailable."
+		}
+	var cost: int = get_crystal_revive_cost()
+	if not can_afford("crystals", cost):
+		return {
+			"ok": false,
+			"error": "Not enough crystals.",
+			"cost": cost
+		}
+	deduct_currency("crystals", cost)
+	crystal_revives_used_this_level = min(get_max_crystal_revives_per_level(), crystal_revives_used_this_level + 1)
+	request_revive_pending_start("GameManager.try_spend_crystal_revive")
+	return {
+		"ok": true,
+		"cost": cost
+	}
+
 func set_shadow_mode_enabled(value: bool, _source: String = "") -> void:
 	shadow_mode_state.shadow_mode_enabled = value
 
@@ -244,6 +310,7 @@ func reset_game() -> void:
 	player_lives = 3
 	is_paused = false
 	request_game_over_clear("reset_game")
+	reset_revive_limits_for_level()
 	game_ended = false
 	game_won = false
 	coins_collected_this_level = 0
@@ -269,6 +336,7 @@ func reset_for_new_level() -> void:
 	# Always reset score to 0 and lives to 3 for each level
 	_score = 0
 	_player_lives = 3
+	reset_revive_limits_for_level()
 	
 	coins_collected_this_level = 0
 	crystals_collected_this_level = 0
@@ -306,21 +374,30 @@ func change_scene(scene_path: String) -> void:
 func load_level(level_num: int) -> void:
 	level_manager.load_level(level_num)
 
-func request_ad_revive() -> void:
+func request_ad_revive() -> bool:
+	# Return `false` immediately when ad revive is not currently valid.
+	if not can_use_ad_revive():
+		return false
+	if not ad_manager:
+		return false
 	pause_for_ad_revive()  # Pause game before requesting ad
 	# Ensure any banner ads are hidden before requesting revive
 	if ad_manager.is_initialized and ad_manager.is_banner_showing:
 		ad_manager.hide_banner_ad()
-	ad_manager.request_ad_revive()
+	return ad_manager.request_ad_revive()
 
-func request_ad_revive_from_ui() -> void:
+func request_ad_revive_from_ui() -> bool:
+	if not can_use_ad_revive():
+		return false
 	# Matches previous UI flow: hide banner if visible, then request revive.
 	if ad_manager and ad_manager.is_initialized and ad_manager.is_banner_showing:
 		ad_manager.hide_banner_ad()
 	if ad_manager:
-		ad_manager.request_ad_revive()
+		return ad_manager.request_ad_revive()
+	return false
 
-func revive_player(lives: int = 2) -> void:
+# Revive flow restores one life by default unless a caller explicitly overrides it.
+func revive_player(lives: int = 1) -> void:
 	player_manager.revive_player(lives)
 
 func spawn_player(lives: int) -> void:
@@ -373,10 +450,14 @@ func is_ad_revive_pending() -> bool:
 func reset_ad_revive_state() -> void:
 	if not ad_manager:
 		return
-	ad_manager.ad_revive_pending = false
-	ad_manager.revive_type = "none"
-	ad_manager.selected_ad_type = ""
-	ad_manager.is_ad_showing = false
+	# Prefer centralized AdManager cleanup when available.
+	if ad_manager.has_method("reset_revive_state"):
+		ad_manager.reset_revive_state()
+	else:
+		ad_manager.ad_revive_pending = false
+		ad_manager.revive_type = "none"
+		ad_manager.selected_ad_type = ""
+		ad_manager.is_ad_showing = false
 
 func get_start_scene_path() -> String:
 	if scene_manager:
@@ -386,6 +467,88 @@ func get_start_scene_path() -> String:
 func set_level_game_over_screen_active(active: bool) -> void:
 	if level_manager:
 		level_manager.is_game_over_screen_active = active
+
+# Save/load helper accessors keep persistence logic decoupled from manager internals.
+func has_level_state() -> bool:
+	return level_manager != null
+
+func has_player_state() -> bool:
+	return player_manager != null
+
+func can_persist_progress() -> bool:
+	return has_level_state() and has_player_state()
+
+func get_unlocked_levels_for_save() -> int:
+	return level_manager.unlocked_levels if level_manager else 1
+
+func set_unlocked_levels_from_save(value: Variant) -> void:
+	if level_manager:
+		level_manager.unlocked_levels = value
+
+func get_shadow_mode_unlocked_for_save() -> bool:
+	return shadow_mode_state.shadow_mode_unlocked
+
+func get_shadow_mode_tutorial_shown_for_save() -> bool:
+	return shadow_mode_state.shadow_mode_tutorial_shown
+
+func get_completed_levels_for_save() -> Array:
+	return level_manager.completed_levels if level_manager else []
+
+func set_completed_levels_from_save(value: Variant) -> void:
+	if level_manager:
+		level_manager.completed_levels = value
+
+func get_selected_ship_id_for_save() -> String:
+	return player_manager.selected_ship_id if player_manager else "Ship1"
+
+func set_selected_ship_id_from_save(value: Variant) -> void:
+	if player_manager:
+		player_manager.selected_ship_id = value
+
+func reset_level_progress() -> void:
+	if level_manager:
+		level_manager.reset_level_progress()
+
+# Config passthrough helpers avoid direct ConfigLoader coupling in other managers.
+func get_game_setting(key: String, default_value: Variant) -> Variant:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.game_settings:
+		return ConfigLoader.game_settings.get(key, default_value)
+	return default_value
+
+func get_game_settings_section(key: String) -> Dictionary:
+	var section = get_game_setting(key, {})
+	return section if section is Dictionary else {}
+
+func get_player_setting(key: String, default_value: Variant) -> Variant:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.player_settings:
+		return ConfigLoader.player_settings.get(key, default_value)
+	return default_value
+
+func get_upgrade_setting(key: String, default_value: Variant) -> Variant:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
+		return ConfigLoader.upgrade_settings.get(key, default_value)
+	return default_value
+
+func get_boss_reward_for_level(level_num: int) -> Dictionary:
+	var fallback := {
+		"coins": int(1000 * (level_num / 5.0)),
+		"crystals": int(60 * (level_num / 5.0)),
+		"void_shards": int(50 * (level_num / 5.0))
+	}
+	var boss_rewards = get_upgrade_setting("boss_level_rewards", {})
+	if boss_rewards is Dictionary and boss_rewards.has(str(level_num)):
+		return boss_rewards[str(level_num)]
+	return fallback
+
+func get_config_ships_data() -> Array:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.ships_data and ConfigLoader.ships_data is Array:
+		return ConfigLoader.ships_data.duplicate(true)
+	return []
+
+func get_config_satellites_data() -> Array:
+	if is_instance_valid(ConfigLoader) and ConfigLoader.satellites_data and ConfigLoader.satellites_data is Array:
+		return ConfigLoader.satellites_data.duplicate(true)
+	return []
 
 func is_boss_level_completed(level_num: int) -> bool:
 	return save_manager != null and save_manager.boss_levels_completed.has(level_num)

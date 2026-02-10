@@ -304,6 +304,8 @@ func _game_over_triggered():
 func _on_player_revived():
 	if not GameManager.is_revive_pending:
 		return
+	# Reviving from the game-over flow always grants exactly one life.
+	var revive_lives: int = 1
 	level_game_over = false
 	GameManager.request_game_over_clear("Level._on_player_revived")
 	# Reset the game over screen active flag in LevelManager
@@ -312,9 +314,9 @@ func _on_player_revived():
 
 	var player = get_tree().get_first_node_in_group("Player")
 	if not player:
-		_spawn_player(2)
+		_spawn_player(revive_lives)
 	else:
-		player.revive(2)
+		player.revive(revive_lives)
 
 	if hud and hud.has_method("update_charge_display"):
 		hud.current_charge = saved_shadow_charge
@@ -322,7 +324,7 @@ func _on_player_revived():
 
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
-	GameManager.revive_player(2)
+	GameManager.revive_player(revive_lives)
 	
 	# Ensure banner ad is hidden after revive
 	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:

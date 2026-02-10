@@ -2,13 +2,18 @@ extends Control
 
 # Onready references
 @onready var score_label: Label = $PanelContainer/Panel/ScoreContainer/Score
-@onready var message_label: Label = $PanelContainer/Panel/ButtonsContainer/MessageLabel
-@onready var revive_button: Button = $PanelContainer/Panel/ButtonsContainer/HBoxContainer/Revive
+@onready var message_label: Label = $PanelContainer/Panel/Formatter/ButtonsContainer/MessageLabel
+@onready var revive_button: Button = $PanelContainer/Panel/Formatter/ButtonsContainer/Revive_container/Revive
+@onready var crystal_revive: Button = $PanelContainer/Panel/Formatter/ButtonsContainer/Revive_container/Crystal_revive
+@onready var void_shards_display: Label = $Resources/VoidCrystal/Void_Shards_display
+@onready var crystals_display: Label = $Resources/Crystal/Crystals_display
+@onready var coins_display: Label = $Resources/Money/Coins_display
 
 # Constants
 const MAP_SCENE: String = "res://Map/map.tscn"
 const SHOP_SCENE: String = "res://MainScenes/upgrade_menu.tscn"
 var current_level
+var _message_token: int = 0
 
 # Signals
 @warning_ignore("unused_signal")
@@ -24,6 +29,9 @@ func _ready() -> void:
 			
 		if not GameManager.score_updated.is_connected(_on_score_updated):
 			GameManager.score_updated.connect(_on_score_updated)
+		
+		if not GameManager.currency_updated.is_connected(_on_currency_updated):
+			GameManager.currency_updated.connect(_on_currency_updated)
 			
 		if not GameManager.revive_completed.is_connected(_on_revive_completed):
 			GameManager.revive_completed.connect(_on_revive_completed)
@@ -43,8 +51,11 @@ func _ready() -> void:
 	current_level = GameManager.get_current_level() if GameManager else 1
 	set_process_input(true)
 	revive_button.disabled = false
+	crystal_revive.disabled = false
 	_on_score_updated(GameManager.score if GameManager else 0)
-	message_label.visible = false
+	_update_resource_display()
+	_refresh_revive_buttons()
+	_set_default_message()
 	get_tree().get_root().connect("go_back_requested", _on_map_pressed)
 	_debug_log("GameOverScreen powered up for level %d, ready to revive or restart!" % current_level)
 	
@@ -60,9 +71,59 @@ func _on_game_over_triggered() -> void:
 	_award_half_collected_currency()
 	
 	revive_button.disabled = false
+	crystal_revive.disabled = false
 	visible = true
-	message_label.visible = false
+	_update_resource_display()
+	_refresh_revive_buttons()
+	_set_default_message()
 	_debug_log("Game over triggered, showing screen of doom!")
+
+func _on_currency_updated(_currency_type: String, _new_amount: int) -> void:
+	_update_resource_display()
+
+func _format_number(value: int) -> String:
+	if value >= 1000000000:
+		return "%.1fB" % (value / 1000000000.0)
+	if value >= 1000000:
+		return "%.1fM" % (value / 1000000.0)
+	if value >= 1000:
+		return "%.1fK" % (value / 1000.0)
+	return str(value)
+
+func _update_resource_display() -> void:
+	if not GameManager:
+		return
+	if void_shards_display:
+		void_shards_display.text = "Void Shards: %s" % _format_number(GameManager.void_shards_count)
+	if crystals_display:
+		crystals_display.text = "Crystals: %s" % _format_number(GameManager.crystal_count)
+	if coins_display:
+		coins_display.text = "Coins: %s" % _format_number(GameManager.coin_count)
+
+func _refresh_revive_buttons() -> void:
+	if not GameManager:
+		return
+	
+	var ad_remaining: int = GameManager.get_ad_revives_remaining()
+	var can_use_ad: bool = GameManager.can_use_ad_revive()
+	revive_button.text = "Revive ad" if ad_remaining > 0 else "Ad used"
+	revive_button.disabled = not can_use_ad
+	
+	var crystal_cost: int = GameManager.get_crystal_revive_cost()
+	var crystal_remaining: int = GameManager.get_crystal_revives_remaining()
+	var can_use_crystal: bool = GameManager.can_use_crystal_revive() and GameManager.can_afford("crystals", crystal_cost)
+	if crystal_remaining <= 0:
+		crystal_revive.text = "MAX"
+	else:
+		crystal_revive.text = str(crystal_cost)
+	crystal_revive.disabled = not can_use_crystal
+
+func _set_default_message() -> void:
+	_message_token += 1
+	var ad_status := "Ad revive available" if not revive_button.disabled else "Ad revive unavailable"
+	var crystal_status := "Crystal revive cost: %s" % crystal_revive.text if not crystal_revive.disabled else "Crystal revive unavailable"
+	message_label.text = "%s | %s" % [ad_status, crystal_status]
+	message_label.visible = true
 
 # Award half the collected coins and crystals when player dies
 func _award_half_collected_currency() -> void:
@@ -83,35 +144,43 @@ func _award_half_collected_currency() -> void:
 		
 		# Reset the level currencies since we've awarded them
 		GameManager.reset_level_currencies()
+		_update_resource_display()
 
 func _on_revive_pressed() -> void:
 	if revive_button.disabled or (GameManager and GameManager.is_revive_pending):
 		_debug_log("Revive button press ignored: Disabled or revive in progress")
 		return
 	revive_button.disabled = true
+	_show_interaction_message("Requesting ad revive...")
 	# Request rewarded ad for revive
 	if GameManager:
-		GameManager.request_ad_revive_from_ui()
+		if not GameManager.request_ad_revive_from_ui():
+			_show_temp_message("Ad revive unavailable right now.")
+			_refresh_revive_buttons()
 	else:
 		emit_signal("ad_revive_requested") # fallback
 		_debug_log("Revive button pressed, requesting ad revive! Beam us up, Scotty!")
 
 func _on_ad_reward_granted(_ad_type: String) -> void:
+	if not GameManager or not GameManager.is_revive_pending:
+		return
 	revive_button.disabled = true
+	crystal_revive.disabled = true
+	GameManager.mark_ad_revive_used()
 	emit_signal("player_revived")
 	visible = false
-	message_label.visible = false
+	_set_default_message()
 	if GameManager and GameManager.game_over:
 		_debug_log("Warning: Game over still true after ad revive! Forcing to false.")
 		GameManager.request_game_over_clear("GameOverScreen._on_ad_reward_granted")
 	_debug_log("Ad reward granted, player revived like a cosmic phoenix!")
 
 func _on_ad_failed(_ad_type: String, _error_code: Variant) -> void:
+	if not GameManager or not GameManager.is_revive_pending:
+		return
 	revive_button.disabled = false
-	message_label.text = "Ad failed to load. Try again, space cowboy!"
-	message_label.visible = true
-	await get_tree().create_timer(3.0).timeout
-	message_label.visible = false
+	_show_temp_message("Ad failed to load. Try again, space cowboy!")
+	_refresh_revive_buttons()
 	_debug_log("Ad failed, showing error message and re-enabling revive button")
 
 func _on_revive_completed(success: bool) -> void:
@@ -120,14 +189,16 @@ func _on_revive_completed(success: bool) -> void:
 			_debug_log("Warning: Game over still true after successful revive! Forcing to false.")
 			GameManager.request_game_over_clear("GameOverScreen._on_revive_completed")
 		visible = false
-		message_label.visible = false
+		_set_default_message()
+		_refresh_revive_buttons()
 		_debug_log("Revive completed successfully! Player's back in the galaxy!")
 	else:
 		revive_button.disabled = false
-		message_label.text = "Revive failed. Try again or restart, star pilot!"
-		message_label.visible = true
-		await get_tree().create_timer(3.0).timeout
-		message_label.visible = false
+		_refresh_revive_buttons()
+		if message_label.visible:
+			_debug_log("Revive failed message already visible from ad failure callback")
+			return
+		_show_temp_message("Revive failed. Try again or restart, star pilot!")
 		_debug_log("Revive failed, showing error message and re-enabling revive button")
 
 func _input(event: InputEvent) -> void:
@@ -136,9 +207,12 @@ func _input(event: InputEvent) -> void:
 			_debug_log("R key press ignored: Revive button disabled or revive pending")
 			return
 		revive_button.disabled = true
+		_show_interaction_message("Requesting ad revive...")
 		# Use the same logic as the revive button
 		if GameManager:
-			GameManager.request_ad_revive_from_ui()
+			if not GameManager.request_ad_revive_from_ui():
+				_show_temp_message("Ad revive unavailable right now.")
+				_refresh_revive_buttons()
 		else:
 			emit_signal("ad_revive_requested") # fallback
 		_debug_log("R key pressed for revive! Requesting ad like a mad scientist!")
@@ -169,3 +243,46 @@ func _debug_log(message: String) -> void:
 
 func _on_shop_button_down() -> void:
 	GameManager.change_scene(SHOP_SCENE)
+
+
+func _on_crystal_revive_pressed() -> void:
+	if crystal_revive.disabled or (GameManager and GameManager.is_revive_pending):
+		_debug_log("Crystal revive press ignored: Disabled or revive in progress")
+		return
+	
+	if not GameManager:
+		_show_temp_message("GameManager missing. Cannot crystal revive.")
+		return
+	
+	var result: Dictionary = GameManager.try_spend_crystal_revive()
+	if not result.get("ok", false):
+		var error_message: String = str(result.get("error", "Crystal revive unavailable."))
+		if error_message == "Not enough crystals." and result.has("cost"):
+			error_message = "Need %d crystals to revive." % int(result["cost"])
+		_show_temp_message(error_message)
+		_refresh_revive_buttons()
+		return
+	
+	revive_button.disabled = true
+	crystal_revive.disabled = true
+	_show_interaction_message("Using crystals to revive...")
+	emit_signal("player_revived")
+	GameManager.request_revive_pending_clear("GameOverScreen._on_crystal_revive_pressed")
+	_update_resource_display()
+	visible = false
+	_set_default_message()
+	_debug_log("Crystal revive purchased for %d crystals" % int(result.get("cost", 0)))
+
+func _show_interaction_message(text: String) -> void:
+	_message_token += 1
+	message_label.text = text
+	message_label.visible = true
+
+func _show_temp_message(text: String, duration: float = 3.0) -> void:
+	_message_token += 1
+	var current_token: int = _message_token
+	message_label.text = text
+	message_label.visible = true
+	await get_tree().create_timer(duration).timeout
+	if message_label and current_token == _message_token:
+		_set_default_message()
