@@ -103,10 +103,7 @@ func spawn_player(lives: int) -> void:
 
 func revive_player(lives: int = 2) -> void:
 	# Always reset the ad manager's revive pending state to prevent double revives
-	gm.ad_manager.ad_revive_pending = false
-	gm.ad_manager.revive_type = "none"
-	gm.ad_manager.selected_ad_type = ""
-	gm.ad_manager.is_ad_showing = false
+	gm.reset_ad_revive_state()
 
 	gm.request_game_over_clear("PlayerManager.revive_player")
 	gm.is_paused = false
@@ -117,8 +114,7 @@ func revive_player(lives: int = 2) -> void:
 
 	set_spawn_position()
 
-	if gm.save_manager.autosave_progress:
-		gm.save_manager.save_progress()
+	gm.save_progress_if_enabled()
 
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
@@ -138,13 +134,12 @@ func revive_player(lives: int = 2) -> void:
 	if not player_found:
 		spawn_player(lives)
 
-	gm.level_manager.is_game_over_screen_active = false
+	gm.set_level_game_over_screen_active(false)
 
 	# Hide banner ad when reviving player to prevent conflicts
-	if gm.ad_manager.is_initialized:
-		gm.ad_manager.hide_banner_ad()
-		# Add a small delay before potentially showing banner again
-		await gm.get_tree().create_timer(1.0).timeout
+	gm.hide_banner_ad_if_initialized()
+	# Add a small delay before potentially showing banner again
+	await gm.get_tree().create_timer(1.0).timeout
 
 
 func _hide_game_over_screen(current_scene: Node) -> void:
