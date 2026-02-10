@@ -631,12 +631,16 @@ func _fire_at_player():
 	# Position bullet at enemy center
 	bullet.global_position = position
 	
-	# Calculate direction to player
-	var direction = (player_reference.global_position - position).normalized()
+	# Refresh player reference and safely fallback if player is missing.
+	_update_player_reference()
+	var direction: Vector2 = Vector2(0, 1)
+	if is_instance_valid(player_reference):
+		direction = (player_reference.global_position - position).normalized()
 	bullet.rotation = direction.angle() + PI/2
 	
 	# Add to scene
-	get_tree().current_scene.add_child(bullet)
+	if get_tree().current_scene:
+		get_tree().current_scene.add_child(bullet)
 	
 	if debug_mode:
 		print("Enemy fired bullet")
