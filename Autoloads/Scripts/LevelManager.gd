@@ -46,7 +46,7 @@ func load_level(level_num: int) -> void:
 	gm.reset_for_new_level()
 	
 	# Reset player stats to default values
-	gm.player_manager.reset_player_stats()
+	gm.reset_player_stats()
 	
 	# Always set player lives to 3 for each level
 	gm.player_lives = 3
@@ -54,12 +54,11 @@ func load_level(level_num: int) -> void:
 	var level_path: String = "res://Levels/level_%d.tscn" % level_num
 	
 	# Stop background music before loading level scenes to prevent overlap
-	if level_path != gm.scene_manager.START_SCREEN_SCENE and level_path != gm.scene_manager.MAP_SCENE:
+	if level_path != gm.get_start_scene_path() and level_path != gm.get_map_scene_path():
 		AudioManager.stop_background_music()
 	
 	# Hide banner ad when loading a level
-	if gm.ad_manager.is_initialized:
-		gm.ad_manager.hide_banner_ad()
+	gm.hide_banner_ad_if_initialized()
 	
 	gm.change_scene(level_path)
 	await gm.get_tree().create_timer(0.5).timeout
@@ -67,15 +66,14 @@ func load_level(level_num: int) -> void:
 	if gm.get_tree().current_scene:
 		update_hud_visibility(level_num)
 		
-		if gm.ad_manager.is_initialized:
-			gm.ad_manager.hide_banner_ad()
+		gm.hide_banner_ad_if_initialized()
 		
 		level_loaded.emit(level_num)
 	else:
 		push_error("LevelManager: Failed to load level %d, no current scene" % level_num)
 
 func complete_level(current_level: int) -> void:
-	if gm.game_over and not gm.ad_manager.ad_revive_pending:
+	if gm.game_over and not gm.is_ad_revive_pending():
 		return
 	
 	is_level_just_completed = true
@@ -83,8 +81,7 @@ func complete_level(current_level: int) -> void:
 	if gm.player_lives == 0:
 		gm.player_lives = 2
 	
-	if gm.save_manager.autosave_progress:
-		gm.save_manager.save_progress()
+	gm.save_progress_if_enabled()
 	
 	# Handle special level completions
 	var should_transition_to_next_level: bool = true
@@ -104,8 +101,7 @@ func complete_level(current_level: int) -> void:
 	if not completed_levels.has(current_level):
 		completed_levels.append(current_level)
 		gm.level_star_earned.emit(current_level)
-		if gm.save_manager.autosave_progress:
-			gm.save_manager.save_progress()
+		gm.save_progress_if_enabled()
 	
 	# For boss levels, emit the level_completed signal to show boss clear screen
 	# For non-boss levels, also emit the level_completed signal
@@ -115,8 +111,7 @@ func complete_level(current_level: int) -> void:
 	var next_level: int = current_level + 1
 	if next_level == unlocked_levels + 1:  # Only unlock if it's the next sequential level
 		unlocked_levels = next_level
-		if gm.save_manager.autosave_progress:
-			gm.save_manager.save_progress()
+		gm.save_progress_if_enabled()
 		gm.level_unlocked.emit(next_level)
 	
 	if should_transition_to_next_level:
@@ -137,8 +132,7 @@ func _show_shadow_mode_tutorial() -> void:
 		current_scene.add_child(tutorial_layer)
 		
 		gm.set_shadow_mode_tutorial_shown(true, "LevelManager._show_shadow_mode_tutorial")
-		if gm.save_manager.autosave_progress:
-			gm.save_manager.save_progress()
+		gm.save_progress_if_enabled()
 		
 		# Properly reset the level completion flag after showing tutorial
 		is_level_just_completed = false
@@ -179,23 +173,21 @@ func unlock_next_level(current_level: int) -> void:
 	var next_level_path: String = "res://Levels/level_%d.tscn" % next_level
 	if ResourceLoader.exists(next_level_path):
 		# Reset player stats before loading next level
-		gm.player_manager.reset_player_stats()
+		gm.reset_player_stats()
 		# Unlock the next level in the save data
 		if next_level > unlocked_levels:
 			unlocked_levels = next_level
-			if gm.save_manager.autosave_progress:
-				gm.save_manager.save_progress()
+			gm.save_progress_if_enabled()
 		gm.change_scene(next_level_path)
 	else:
-		gm.change_scene(gm.scene_manager.MAP_SCENE)
+		gm.change_scene(gm.get_map_scene_path())
 	
 	is_level_just_completed = false
 
 func unlock_shadow_mode() -> void:
 	if not shadow_mode_unlocked:
 		gm.set_shadow_mode_unlocked(true, "LevelManager.unlock_shadow_mode")
-		if gm.save_manager.autosave_progress:
-			gm.save_manager.save_progress()
+		gm.save_progress_if_enabled()
 		update_hud_visibility()
 
 func activate_shadow_mode(duration: float = 2.0) -> void:
