@@ -282,6 +282,9 @@ func reset_for_new_level() -> void:
 func complete_level(current_level: int) -> void:
 	level_manager.complete_level(current_level)
 
+func complete_current_level() -> void:
+	level_manager.complete_level(get_current_level())
+
 func _on_shadow_mode_timer_timeout() -> void:
 	request_shadow_mode_deactivate("_on_shadow_mode_timer_timeout")
 
@@ -310,6 +313,13 @@ func request_ad_revive() -> void:
 		ad_manager.hide_banner_ad()
 	ad_manager.request_ad_revive()
 
+func request_ad_revive_from_ui() -> void:
+	# Matches previous UI flow: hide banner if visible, then request revive.
+	if ad_manager and ad_manager.is_initialized and ad_manager.is_banner_showing:
+		ad_manager.hide_banner_ad()
+	if ad_manager:
+		ad_manager.request_ad_revive()
+
 func revive_player(lives: int = 2) -> void:
 	player_manager.revive_player(lives)
 
@@ -332,6 +342,79 @@ func get_current_level() -> int:
 	if level_manager:
 		return level_manager.get_current_level()
 	return 0
+
+func get_map_scene_path() -> String:
+	if scene_manager:
+		return scene_manager.MAP_SCENE
+	return "res://Map/map.tscn"
+
+func is_shadow_mode_enabled() -> bool:
+	return shadow_mode_state.shadow_mode_enabled
+
+func save_progress() -> void:
+	if save_manager:
+		save_manager.save_progress()
+
+func save_progress_if_enabled() -> void:
+	if save_manager and save_manager.autosave_progress:
+		save_manager.save_progress()
+
+func reset_player_stats() -> void:
+	if player_manager:
+		player_manager.reset_player_stats()
+
+func hide_banner_ad_if_initialized() -> void:
+	if ad_manager and ad_manager.is_initialized:
+		ad_manager.hide_banner_ad()
+
+func is_ad_revive_pending() -> bool:
+	return ad_manager != null and ad_manager.ad_revive_pending
+
+func reset_ad_revive_state() -> void:
+	if not ad_manager:
+		return
+	ad_manager.ad_revive_pending = false
+	ad_manager.revive_type = "none"
+	ad_manager.selected_ad_type = ""
+	ad_manager.is_ad_showing = false
+
+func get_start_scene_path() -> String:
+	if scene_manager:
+		return scene_manager.START_SCREEN_SCENE
+	return "res://MainScenes/start_menu.tscn"
+
+func set_level_game_over_screen_active(active: bool) -> void:
+	if level_manager:
+		level_manager.is_game_over_screen_active = active
+
+func is_boss_level_completed(level_num: int) -> bool:
+	return save_manager != null and save_manager.boss_levels_completed.has(level_num)
+
+func mark_boss_level_completed(level_num: int) -> bool:
+	if not save_manager:
+		return false
+	if save_manager.boss_levels_completed.has(level_num):
+		return false
+	save_manager.boss_levels_completed.append(level_num)
+	return true
+
+func mark_level_completed_if_needed(level_num: int) -> bool:
+	if not level_manager:
+		return false
+	if level_manager.completed_levels.has(level_num):
+		return false
+	level_manager.completed_levels.append(level_num)
+	level_star_earned.emit(level_num)
+	return true
+
+func unlock_level_if_needed(level_num: int) -> bool:
+	if not level_manager:
+		return false
+	if level_num > level_manager.unlocked_levels:
+		level_manager.unlocked_levels = level_num
+		level_unlocked.emit(level_num)
+		return true
+	return false
 
 func can_afford(currency_type: String, cost: int) -> bool:
 	match currency_type:
