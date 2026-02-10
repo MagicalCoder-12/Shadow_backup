@@ -40,7 +40,7 @@ func _ready() -> void:
 	else:
 		_debug_log("Error: GameManager not found! Game over screen is lost in the void.")
 	
-	current_level = GameManager.level_manager.get_current_level() if GameManager and GameManager.level_manager else 1
+	current_level = GameManager.get_current_level() if GameManager else 1
 	set_process_input(true)
 	revive_button.disabled = false
 	_on_score_updated(GameManager.score if GameManager else 0)
@@ -90,11 +90,8 @@ func _on_revive_pressed() -> void:
 		return
 	revive_button.disabled = true
 	# Request rewarded ad for revive
-	if GameManager and GameManager.ad_manager:
-		# Ensure banner is hidden before requesting revive
-		if GameManager.ad_manager.is_initialized and GameManager.ad_manager.is_banner_showing:
-			GameManager.ad_manager.hide_banner_ad()
-		GameManager.ad_manager.request_ad_revive()
+	if GameManager:
+		GameManager.request_ad_revive_from_ui()
 	else:
 		emit_signal("ad_revive_requested") # fallback
 		_debug_log("Revive button pressed, requesting ad revive! Beam us up, Scotty!")
@@ -140,18 +137,15 @@ func _input(event: InputEvent) -> void:
 			return
 		revive_button.disabled = true
 		# Use the same logic as the revive button
-		if GameManager and GameManager.ad_manager:
-			# Ensure banner is hidden before requesting revive
-			if GameManager.ad_manager.is_initialized and GameManager.ad_manager.is_banner_showing:
-				GameManager.ad_manager.hide_banner_ad()
-			GameManager.ad_manager.request_ad_revive()
+		if GameManager:
+			GameManager.request_ad_revive_from_ui()
 		else:
 			emit_signal("ad_revive_requested") # fallback
 		_debug_log("R key pressed for revive! Requesting ad like a mad scientist!")
 
 func _on_map_pressed() -> void:
 	if GameManager:
-		GameManager.change_scene(MAP_SCENE)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 		_debug_log("Warping to map scene, hyperspace engaged!")
 	else:
 		_debug_log("Error: GameManager missing, can't warp to map!")
