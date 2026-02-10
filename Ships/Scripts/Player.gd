@@ -86,8 +86,7 @@ func _ready() -> void:
 func _initialize_player() -> void:
 	# Sync lives with GameManager
 	lives = GameManager.player_lives
-	if GameManager.save_manager.autosave_progress:
-		GameManager.save_manager.save_progress()
+	GameManager.save_progress_if_enabled()
 	
 	sprite_2d.show()
 	# Cache original speed
@@ -190,7 +189,7 @@ func _connect_signals() -> void:
 
 func _apply_initial_state() -> void:
 	# Apply shadow mode if enabled
-	if GameManager.level_manager.shadow_mode_enabled:
+	if GameManager.is_shadow_mode_enabled():
 		_on_shadow_mode_activated()
 
 func _initialize_satellites() -> void:
@@ -521,8 +520,7 @@ func _update_lives_after_damage(amount: int) -> void:
 	lives = max(0, lives - amount)
 	GameManager.player_lives = lives
 	_debug_log("Player damaged, lives: " + str(lives))
-	if GameManager.save_manager.autosave_progress:
-		GameManager.save_manager.save_progress()
+	GameManager.save_progress_if_enabled()
 
 
 func _setup_damage_collision() -> void:
@@ -870,8 +868,7 @@ func increase_life(amount: int) -> void:
 	GameManager.player_lives = lives
 	_debug_log("Player lives increased to: " + str(lives))
 	
-	if GameManager.save_manager.autosave_progress:
-		GameManager.save_manager.save_progress()
+	GameManager.save_progress_if_enabled()
 
 func _on_game_over_triggered() -> void:
 	is_alive = false
@@ -889,8 +886,7 @@ func _on_level_completed(_level_num):
 	input_enabled = false
 	GameManager.player_manager.player_stats["attack_level"] = 0
 	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.default_bullet_damage
-	if GameManager.save_manager.autosave_progress:
-		GameManager.save_manager.save_progress()
+	GameManager.save_progress_if_enabled()
 	
 	# When level is completed, update satellites to reflect any changes made in the upgrade menu
 	update_satellites_from_selection()
