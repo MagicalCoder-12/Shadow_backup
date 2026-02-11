@@ -3,8 +3,8 @@
 Tracked remediation items in this report: **13**
 
 - Completed: **10**
-- Partial: **0**
-- Remaining: **3**
+- Partial: **1**
+- Remaining: **2**
 - Completion (fully done items): **76.9%**
 - Remaining effort: **23.1%**
 
@@ -114,6 +114,7 @@ Progress: Upgrade/purchase payment flows and cost computation are delegated to `
 
 2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
 Target: Extract revive/combat/mode/state-machine modules.
+Progress: Revive flow, invincibility, and shield blinking were extracted into `Ships/Scripts/Services/PlayerReviveService.gd`; remaining combat/mode and enemy-side extractions still pending.
 
 3. Scene-safe spawn/effect API for enemy/boss scripts  
 Target: Replace raw `current_scene.add_child` with guarded spawn facade.

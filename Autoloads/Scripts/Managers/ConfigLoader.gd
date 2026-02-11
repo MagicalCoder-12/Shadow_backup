@@ -235,7 +235,8 @@ func _unwrap_versioned_json(data: Variant, path: String) -> Variant:
 			if data.has("data"):
 				return data.get("data", {})
 			
-			var payload := data.duplicate()
+			# Fixed: Explicitly type the duplicated dictionary
+			var payload: Dictionary = data.duplicate()
 			payload.erase("schema_version")
 			payload.erase("version")
 			return payload

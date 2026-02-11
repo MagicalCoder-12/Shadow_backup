@@ -1,16 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://b75ond0nu0ai0"]
+[gd_scene format=3 uid="uid://b75ond0nu0ai0"]
 
 [ext_resource type="Script" uid="uid://quqr01hwnao4" path="res://Autoloads/Scripts/Core/GameManager.gd" id="1_dmm7s"]
 [ext_resource type="Script" uid="uid://cblp4rc4tnx77" path="res://addons/AdmobPlugin/Admob.gd" id="2_40v6j"]
 
-[node name="GameManager" type="Node2D" groups=["GameManager"]]
+[node name="GameManager" type="Node2D" unique_id=2082259744 groups=["GameManager"]]
 script = ExtResource("1_dmm7s")
 
-[node name="ShadowModeTimer" type="Timer" parent="."]
+[node name="ShadowModeTimer" type="Timer" parent="." unique_id=301455201]
 one_shot = true
 autostart = true
 
-[node name="Admob" type="Node" parent="."]
+[node name="Admob" type="Node" parent="." unique_id=1686134296]
 script = ExtResource("2_40v6j")
 max_ad_content_rating = 1
 child_directed = 0

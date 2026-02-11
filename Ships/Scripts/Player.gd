@@ -50,14 +50,12 @@ var is_alive: bool = true
 var lives: int = 2  # Synced with GameManager
 var original_texture: Texture2D
 var original_speed: float
-var is_blinking: bool = false
-var just_revived: bool = false
-var is_revive_shield_active: bool = false
-var _pending_post_revive_invincibility: bool = false
 var super_mode_timer: Timer
 var super_mode_spawn_points: Array[Marker2D] = []
 var input_enabled: bool = true
-const REVIVE_INVINCIBILITY_DURATION: float = 3.0
+const REVIVE_INVINCIBILITY_DURATION: float = 4.0
+const DAMAGE_INVINCIBILITY_DURATION: float = 2.5
+var revive_service: PlayerReviveService = PlayerReviveService.new()
 
 # Satellite management variables
 var satellites: Array[Node2D] = []
@@ -139,10 +137,7 @@ func _setup_references() -> void:
 		push_warning("DeathAnimation node is missing or not properly set up")
 	if not invincibility_timer:
 		push_error("InvincibilityTimer node is missing in Player.tscn")
-	else:
-		# Connect the invincibility timer timeout signal
-		if not invincibility_timer.is_connected("timeout", _on_invincibility_timer_timeout):
-			invincibility_timer.connect("timeout", _on_invincibility_timer_timeout)
+	revive_service.configure(self, invincibility_timer, animation_player, revive_shiled, sprite_2d, self)
 	if not plBullet or not plBullet.can_instantiate():
 		push_error("Invalid plBullet scene")
 	if not plSuperBullet or not plSuperBullet.can_instantiate():
@@ -502,15 +497,16 @@ func clamp_position() -> void:
 	position = position.clamp(min_pos, max_pos)
 
 func damage(amount: int) -> void:
-	if just_revived or !invincibility_timer.is_stopped() or GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+	if revive_service.is_invincible() or GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
 		return
 
 	_save_current_stats()
 	_update_lives_after_damage(amount)
 	_setup_damage_collision()
-	_start_invincibility()
+	revive_service.start_damage_invincibility(DAMAGE_INVINCIBILITY_DURATION)
 	
 	if lives > 0:
+		_play_death_animation()
 		_handle_survival()
 	else:
 		_handle_death()
@@ -541,10 +537,6 @@ func _setup_damage_collision() -> void:
 	else:
 		push_error("CollisionShape2D is null, cannot update collision mask")
 
-func _start_invincibility() -> void:
-	invincibility_timer.start(2.5)
-	blinking(true)
-
 func _handle_survival() -> void:
 	sprite_2d.visible = true
 	is_alive = true
@@ -556,16 +548,19 @@ func _handle_survival() -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(20)
 
-func _handle_death() -> void:
-	sprite_2d.visible = false
+func _play_death_animation() -> void:
 	if death_animation:
-		# Ensure one-shot particles can replay on every death.
+		# Ensure one-shot particles can replay on every hit.
 		death_animation.emitting = false
 		death_animation.visible = true
 		death_animation.restart()
 		death_animation.emitting = true
 	else:
 		push_error("Cannot emit death animation: DeathAnimation is null")
+
+func _handle_death() -> void:
+	sprite_2d.visible = false
+	_play_death_animation()
 	
 	is_alive = false
 	var death_anim_duration: float = max(0.6, death_animation.lifetime) if death_animation else 1.0
@@ -575,8 +570,6 @@ func _handle_death() -> void:
 	queue_free()
 
 func revive(Player_lives: int) -> void:
-	just_revived = true
-	_pending_post_revive_invincibility = false
 	self.lives = Player_lives
 	GameManager.player_lives = Player_lives
 	_debug_log("Player revived with " + str(Player_lives) + " lives")
@@ -593,7 +586,7 @@ func revive(Player_lives: int) -> void:
 
 	_animate_revival()
 	_setup_revival_state_before_invincibility()
-	_play_revive_animation_then_start_invincibility()
+	revive_service.play_revive_animation_then_start_invincibility(REVIVE_INVINCIBILITY_DURATION)
 
 func _animate_revival() -> void:
 	var target_pos = GameManager.player_manager.player_spawn_position - Vector2(0, 500)
@@ -608,38 +601,11 @@ func _animate_revival() -> void:
 func _setup_revival_state_before_invincibility() -> void:
 	if death_animation:
 		death_animation.emitting = false
-	
-	if invincibility_timer:
-		invincibility_timer.stop()
-	just_revived = true
+
+	revive_service.prepare_revival_state()
 	is_alive = true
-	blinking(false)
-	_set_revive_shield_active(false)
-	if sprite_2d:
-		sprite_2d.visible = true
-		sprite_2d.modulate.a = 1.0
-	if collision_shape:
-		set_collision_layer_value(1, false)
-		set_collision_layer_value(2, false)
 	GameManager.request_game_over_clear("Player._setup_revival_state")
 	_debug_log("Revival state setup complete; waiting for Player_revive animation")
-
-func _play_revive_animation_then_start_invincibility() -> void:
-	_pending_post_revive_invincibility = true
-	if animation_player and animation_player.has_animation("Player_revive"):
-		animation_player.play("Player_revive")
-		return
-	_start_post_revive_invincibility()
-
-func _start_post_revive_invincibility() -> void:
-	_pending_post_revive_invincibility = false
-	if invincibility_timer:
-		invincibility_timer.start(REVIVE_INVINCIBILITY_DURATION)
-	else:
-		push_error("InvincibilityTimer node is missing in Player.tscn")
-	_set_revive_shield_active(true)
-	blinking(true)
-	_debug_log("Post-revive invincibility started")
 
 func set_lives(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
@@ -650,72 +616,6 @@ func set_lives(new_lives: int) -> void:
 		is_alive = false
 		queue_free()
 		GameManager.game_over_triggered.emit()
-
-func blinking(state: bool) -> void:
-	if not sprite_2d:
-		push_error("Cannot toggle blinking: sprite_2d is null")
-		return
-		
-	if state:
-		_start_blinking()
-	else:
-		_stop_blinking()
-
-func _start_blinking() -> void:
-	if is_blinking:
-		return
-		
-	is_blinking = true
-	var blink_timer := Timer.new()
-	blink_timer.wait_time = 0.2
-	blink_timer.one_shot = false
-	blink_timer.name = "BlinkTimer"
-	add_child(blink_timer)
-	
-	if blink_timer.timeout.connect(_on_blink_timer_timeout) != OK:
-		push_error("Failed to connect BlinkTimer timeout signal")
-		
-	sprite_2d.visible = true
-	sprite_2d.modulate.a = 0.7
-	blink_timer.start()
-
-func _stop_blinking() -> void:
-	if not is_blinking:
-		return
-		
-	is_blinking = false
-	sprite_2d.modulate.a = 1.0
-	sprite_2d.visible = true
-	
-	var blink_timer := get_node_or_null("BlinkTimer")
-	if blink_timer:
-		blink_timer.stop()
-		blink_timer.queue_free()
-
-func _on_blink_timer_timeout() -> void:
-	if is_blinking and sprite_2d:
-		sprite_2d.visible = !sprite_2d.visible
-	if is_blinking and is_revive_shield_active and revive_shiled:
-		revive_shiled.visible = !revive_shiled.visible
-
-func _on_invincibility_timer_timeout() -> void:
-	just_revived = false
-	blinking(false)
-	_set_revive_shield_active(false)
-	if sprite_2d:
-		sprite_2d.visible = true
-		sprite_2d.modulate.a = 1.0
-	if collision_shape:
-		set_collision_layer_value(1, true)  # Re-enable layer 1
-	else:
-		push_error("CollisionShape2D is null, cannot re-enable collision")
-	_debug_log("Invincibility timer finished, just_revived set to false")
-
-func _set_revive_shield_active(active: bool) -> void:
-	is_revive_shield_active = active
-	if revive_shiled:
-		revive_shiled.visible = active
-		revive_shiled.modulate.a = 1.0
 
 func set_stats(attack_level_value: int, bullet_damage_value: int, base_bullet_damage_value: int, shadow_mode_active: bool, super_mode_active: bool = false) -> void:
 	_reset_firing_positions()
@@ -991,12 +891,12 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == "Player_sweep":
 		_debug_log("Victory pose animation finished")
 		emit_signal("victory_pose_done", anim_name)
-	elif anim_name == "Player_revive" and _pending_post_revive_invincibility:
-		_start_post_revive_invincibility()
+	else:
+		revive_service.on_animation_finished(anim_name, REVIVE_INVINCIBILITY_DURATION)
 
 # Handle collisions with enemies and enemy bullets
 func _on_area_entered(area: Area2D) -> void:
-	if not is_alive or just_revived:
+	if not is_alive or revive_service.just_revived:
 		return
 	
 	# Handle enemy collision (direct contact damage)
@@ -1016,7 +916,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 func _handle_enemy_collision(enemy: Area2D) -> void:
 	"""Handle direct collision with enemy ships"""
-	if not is_alive or just_revived:
+	if not is_alive or revive_service.just_revived:
 		return
 	
 	# Deal damage to player
@@ -1030,7 +930,7 @@ func _handle_enemy_collision(enemy: Area2D) -> void:
 
 func _handle_enemy_bullet_collision(bullet: Area2D) -> void:
 	"""Handle collision with enemy bullets"""
-	if not is_alive or just_revived:
+	if not is_alive or revive_service.just_revived:
 		return
 	
 	# Deal damage to player
@@ -1049,4 +949,4 @@ func _handle_enemy_bullet_collision(bullet: Area2D) -> void:
 	_debug_log("Player hit by bullet: %s (damage: %d)" % [bullet.name, bullet_damage])
 
 func is_just_revived() -> bool:
-	return just_revived
+	return revive_service.just_revived
