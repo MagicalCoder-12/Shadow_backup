@@ -24,7 +24,7 @@ func initialize():
 			if not GameManager.score_updated.is_connected(set_score):
 				GameManager.score_updated.connect(set_score)
 				
-			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
+			current_level = GameManager.get_current_level()
 		else:
 			push_error("Error: GameManager not found! Boss clear screen is adrift.")
 			current_level = 1
@@ -76,30 +76,12 @@ func _show_boss_rewards() -> void:
 		print("[BossClear Debug] Displaying boss rewards: %d void shards, %d coins, %d crystals" % [rewards.void_shards, rewards.coins, rewards.crystals])
 
 func _calculate_boss_rewards() -> Dictionary:
-	# Get reward configuration
-	var boss_rewards_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		boss_rewards_config = ConfigLoader.upgrade_settings.get("boss_level_rewards", {})
-	
-	# Default rewards if config not found
-	var _default_rewards = {
+	if GameManager:
+		return GameManager.get_boss_reward_for_level(current_level)
+	return {
 		"coins": 1000,
 		"crystals": 60,
 		"void_shards": 50
-	}
-	
-	# Check if we have specific rewards for this level
-	if boss_rewards_config.has(str(current_level)):
-		return boss_rewards_config[str(current_level)]
-	
-	# Calculate rewards based on level number (boss levels are 5, 10, 15, 20, etc.)
-	@warning_ignore("integer_division")
-	var level_multiplier = current_level / 5  # 1 for level 5, 2 for level 10, etc.
-	
-	return {
-		"coins": int(1000 * level_multiplier),
-		"crystals": int(60 * level_multiplier),
-		"void_shards": int(50 * level_multiplier)
 	}
 
 func _apply_boss_rewards() -> void:
@@ -108,8 +90,7 @@ func _apply_boss_rewards() -> void:
 		var rewards = _calculate_boss_rewards()
 		
 		# Check if this is the first time completing this boss level
-		var boss_levels_completed = GameManager.save_manager.boss_levels_completed
-		var is_first_time = not boss_levels_completed.has(current_level)
+		var is_first_time = not GameManager.is_boss_level_completed(current_level)
 		
 		if is_first_time:
 			print("[BossClear Debug] First time completing boss level %d, applying rewards" % current_level)
@@ -119,8 +100,7 @@ func _apply_boss_rewards() -> void:
 			GameManager.add_currency("crystals", rewards.crystals)
 			
 			# Mark this boss level as completed
-			boss_levels_completed.append(current_level)
-			# SaveManager will handle saving the updated boss_levels_completed array
+			GameManager.mark_boss_level_completed(current_level)
 		else:
 			print("[BossClear Debug] Boss level %d already completed before")
 		
@@ -143,8 +123,7 @@ func _apply_boss_rewards() -> void:
 			GameManager.reset_level_currencies()
 		
 		# Save progress
-		if GameManager.save_manager and GameManager.save_manager.autosave_progress:
-			GameManager.save_manager.save_progress()
+		GameManager.save_progress_if_enabled()
 		
 		# Play reward sound effect
 		_play_sound_effect("boss_victory")
@@ -208,16 +187,16 @@ func _on_auto_unlock_timeout():
 	_on_next_pressed()
 	
 func _on_next_pressed() -> void:
-	if GameManager and GameManager.level_manager:
+	if GameManager:
 		# Complete the level properly before going to map
-		GameManager.level_manager.complete_level(current_level)
+		GameManager.complete_level(current_level)
 		# Navigate to map
-		GameManager.change_scene(Map)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 
 
 func _on_map_pressed() -> void:
 	if GameManager:
-		GameManager.change_scene(Map)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 
 
 func _on_restart_pressed() -> void:

@@ -1,62 +1,117 @@
-Thanks for the clear constraints — this is a meaty architecture review, and I dug into the core managers and hot paths to surface coupling risks without proposing fixes.
+**Fix Progress Summary (Updated)**
 
-**High-risk files**
+Tracked remediation items in this report: **13**
 
-1. `Autoloads/Scripts/GameManager.gd`  
-Why risky: God-object pattern with ownership of game state, currency, score, pause, scene transitions, ads, shadow mode, timers, and signals; hard dependency on autoload init order and on other managers being present; many systems read/write its state directly, creating tight coupling and high blast radius.  
-What other files they affect: `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/PlayerManager.gd`, `Autoloads/Scripts/SaveManager.gd`, `Autoloads/Scripts/SceneManager.gd`, `Autoloads/Scripts/AdManager.gd`, `Ships/Scripts/Player.gd`, `Enemy/Scripts/Enemy.gd`, `MainScenes/Scripts/game_over_screen.gd`, `MainScenes/Scripts/pause_menu.gd`, `MainScenes/Scripts/level_completed.gd`, `MainScenes/Scripts/boss_clear.gd`, `Satellites/Scripts/satellite.gd`, `Bullet/Scripts/BulletBase.gd`, `Autoloads/Scripts/ConfigLoader.gd`.
+- Completed: **8**
+- Partial: **0**
+- Remaining: **5**
+- Completion (fully done items): **61.5%**
+- Remaining effort: **38.5%**
 
-2. `Autoloads/Scripts/SaveManager.gd`  
-Why risky: Serializes/deserializes a wide swath of GameManager state with implicit ordering and type expectations; couples persistence to runtime managers (level, player) and to ConfigLoader defaults; changes in any data shape or autoload timing can corrupt or invalidate saves.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/PlayerManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/ConfigLoader.gd`, `MainScenes/Scripts/boss_clear.gd`, `MainScenes/Scripts/level_completed.gd`, `MainScenes/Scripts/game_over_screen.gd`.
+**Completed**
 
-3. `Autoloads/Scripts/PlayerManager.gd`  
-Why risky: Mixes player stats/state, spawning, revive flow, ad state cleanup, audio toggling, and UI cleanup; directly manipulates GameManager, AdManager, AudioManager, and scene tree nodes; hidden dependency on node names like `GameOverScreen` and group `Player`.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/AdManager.gd`, `Ships/Scripts/Player.gd`, `MainScenes/Scripts/game_over_screen.gd`, `MainScenes/Scripts/pause_menu.gd`.
+1. `Autoloads/Scripts/Managers/SaveManager.gd`  
+Status: **Completed**  
+Notes: Keyed payload save schema, legacy compatibility, backup fallback, and normalization added.
 
-4. `Autoloads/Scripts/LevelManager.gd`  
-Why risky: Handles level progression, HUD visibility, tutorials, ad visibility, audio rules, and state flags; depends on exact scene paths and node paths like `CanvasLayer/HUD`; relies on group names and signals from `WaveManager` and boss nodes; strong coupling to GameManager and SceneManager.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/SceneManager.gd`, `MainScenes/ShadowModeTutorial.tscn`, `Levels/*.tscn`, `MainScenes/Scripts/level_completed.gd`, `MainScenes/Scripts/boss_clear.gd`, `MainScenes/Scripts/game_over_screen.gd`, `Ships/Scripts/Player.gd`.
+2. `MainScenes/Scripts/game_over_screen.gd` + `Autoloads/Scripts/Core/GameManager.gd` crystal revive flow  
+Status: **Completed**  
+Notes: Crystal revives added with per-level limits and escalating cost; ad revive remains optional.
 
-5. `Autoloads/Scripts/SceneManager.gd`  
-Why risky: Centralizes scene transitions, loader UI, audio routing, and ad show/hide rules; depends on specific scene names and node names like `LoaderCanvasLayer`; hidden dependency on AdManager initialization state and AudioManager configuration.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/AdManager.gd`, `Autoloads/Scripts/AudioManager.gd`, `MainScenes/start_menu.tscn`, `Map/map.tscn`, `MainScenes/upgrade_menu.tscn`, all level scenes.
+3. `MainScenes/Scripts/game_over_screen.gd` message and resource display  
+Status: **Completed**  
+Notes: Message label is visible from start and now updates by button interaction; resource labels now reflect current totals.
 
-6. `Autoloads/Scripts/AdManager.gd`  
-Why risky: Blends ad lifecycle, revive logic, UI visibility checks, and scene-based conditions; depends on an `Admob` node being present under GameManager and on scene paths like `res://Map/map.tscn`; many hidden assumptions about when game-over UI is active.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/SceneManager.gd`, `Autoloads/Scripts/PlayerManager.gd`, `MainScenes/Scripts/game_over_screen.gd`, `MainScenes/Scripts/pause_menu.gd`.
+4. Revive life-count bug (`Levels/Scripts/Level.gd`, `Autoloads/Scripts/Core/GameManager.gd`, `Autoloads/Scripts/Managers/PlayerManager.gd`)  
+Status: **Completed**  
+Notes: Revive now restores exactly **1 life**.
 
-7. `Autoloads/Scripts/ConfigLoader.gd`  
-Why risky: Single source of truth for multiple systems but also depends on `GameManager.SAVE_VERSION`; configuration changes ripple into PlayerManager, Enemy, SaveManager, UI, and data validation; failure modes are global.  
-What other files they affect: `Autoloads/Scripts/SaveManager.gd`, `Autoloads/Scripts/PlayerManager.gd`, `Enemy/Scripts/Enemy.gd`, `MainScenes/Scripts/boss_clear.gd`, `MainScenes/Scripts/level_completed.gd`, `Autoloads/Scripts/AdManager.gd`.
+5. `Autoloads/Scripts/Core/GameManager.gd` revive limit reset integration  
+Status: **Completed**  
+Notes: Revive counters reset at new run/new level boundaries.
 
-8. `Ships/Scripts/Player.gd`  
-Why risky: Very large responsibility surface (input, movement, shooting, stats, satellites, UI, save triggers, mode logic) and deep direct access to GameManager, PlayerManager, SaveManager, AudioManager, BulletFactory; uses scene/group lookups for `LevelManager` and `Level` signals, making behavior depend on scene graph structure.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/PlayerManager.gd`, `Autoloads/Scripts/SaveManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Satellites/Scripts/satellite.gd`, `Bullet/Scripts/BulletBase.gd`, `Autoloads/Scripts/BulletFactory.gd`.
+6. `Autoloads/Scripts/Managers/AdManager.gd` race/lifecycle patch  
+Status: **Completed**  
+Notes: Request nonce tracking, stale-callback guards, dismiss-gated revive completion, timeout nonce checks, and `PROCESS_MODE_ALWAYS` handling are in place.
 
-9. `Enemy/Scripts/Enemy.gd`  
-Why risky: Mixes gameplay, AI, spawning, reward drops, and difficulty logic with direct GameManager and ConfigLoader access; score and progression are updated directly here, and shadow-mode logic is tied to LevelManager state; large file with many conditionals increases hidden dependencies and side effects.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/ConfigLoader.gd`, `Enemy Manager/Scripts/formation_enums.gd`, `Enemy Manager/Scripts/WaveConfig.gd`, `Resources/crystal.gd`, `Resources/Coins.tscn`.
+7. `Autoloads/Scripts/Managers/AdManager.gd` rewarded ad show-failure handling  
+Status: **Completed**  
+Notes: Added and connected `rewarded_ad_failed_to_show_full_screen_content` and `rewarded_interstitial_ad_failed_to_show_full_screen_content`, with unified fail-safe finalize logic.
 
-10. `MainScenes/Scripts/game_over_screen.gd`  
-Why risky: UI layer directly manipulates GameManager state, currency, revive flow, and ad interactions; ties UI behavior to LevelManager and AdManager internals.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/AdManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/SaveManager.gd`.
+8. `Autoloads/Scripts/Core/GameManager.gd` responsibility split (revive/currency/scene)  
+Status: **Completed**  
+Notes: Revive orchestration moved to `Autoloads/Scripts/Services/GameReviveService.gd`, scene routing moved to `Autoloads/Scripts/Services/GameSceneService.gd`, and currency/save helpers moved to `Autoloads/Scripts/Services/GameEconomyService.gd`.
 
-11. `MainScenes/Scripts/level_completed.gd` and `MainScenes/Scripts/boss_clear.gd`  
-Why risky: UI screens contain game logic for rewards, level progression, save triggers, and scene transitions; heavy direct coupling to GameManager, LevelManager, SaveManager, ConfigLoader.  
-What other files they affect: `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/SaveManager.gd`, `Autoloads/Scripts/ConfigLoader.gd`.
+---
 
-12. `Autoloads/Scripts/BulletFactory.gd` and `Bullet/Scripts/BulletBase.gd`  
-Why risky: Global pool manager is relied on across gameplay; uses GameManager constants in bullet base; pooling assumptions (signals, `pool_key`, scene paths) are shared implicitly across bullet scenes.  
-What other files they affect: `Ships/Scripts/Player.gd`, `Satellites/Scripts/satellite.gd`, `Enemy/Scripts/Enemy.gd`, `Bullet/PlBullet/*.tscn`, `Bullet/Ebullet/*.tscn`.
+**Deep Project Risk Audit**
 
-**Suggested order to fix (no code)**
+Audit coverage:
+- **102** GDScript files scanned.
+- Largest scripts by size:
+`MainScenes/Scripts/upgrade_menu.gd` (**1686**), `Ships/Scripts/Player.gd` (**1052**), `Enemy/Scripts/Enemy.gd` (**981**), `Autoloads/Scripts/Managers/AdManager.gd` (**760**), `Autoloads/Scripts/Core/GameManager.gd` (**690**), `Levels/Scripts/Level.gd` (**613**).
+- Coupling indicators:
+project-wide `GameManager.` references: **584**.
+`MainScenes/Scripts/upgrade_menu.gd` refs: **139**.
+`Ships/Scripts/Player.gd` refs: **139**.
+- Async complexity indicators:
+`await ...create_timer(...)` usages: **38**.
+`save_progress(...)` call sites: **27**.
 
-1. `Autoloads/Scripts/GameManager.gd`  
-2. `Autoloads/Scripts/SaveManager.gd` and `Autoloads/Scripts/ConfigLoader.gd`  
-3. `Autoloads/Scripts/PlayerManager.gd`, `Autoloads/Scripts/LevelManager.gd`, `Autoloads/Scripts/SceneManager.gd`, `Autoloads/Scripts/AdManager.gd`  
-4. `Ships/Scripts/Player.gd` and `Enemy/Scripts/Enemy.gd`  
-5. `MainScenes/Scripts/game_over_screen.gd`, `MainScenes/Scripts/level_completed.gd`, `MainScenes/Scripts/boss_clear.gd`, `MainScenes/Scripts/pause_menu.gd`  
-6. `Autoloads/Scripts/BulletFactory.gd` and `Bullet/Scripts/BulletBase.gd`
+**High-Risk Elements (Prioritized)**
 
-If you want, I can zoom in on any one file next and map its dependency graph in detail, still without suggesting changes.
+1. **Critical** - `Autoloads/Scripts/Core/GameManager.gd` remains a high-fan-out orchestrator.  
+Evidence: 690-line script with global state, scene control, ads, currency, revive, save proxy, and shadow-mode orchestration.  
+Risk: high regression blast radius and difficult bug isolation.
+
+2. **High** - `MainScenes/Scripts/upgrade_menu.gd` is a monolith handling UI + economy + ad rewards + equip + save.  
+Evidence: 1686 lines, 139 `GameManager` references, frequent direct save calls.  
+Risk: UI fixes can break economy logic and vice versa.
+
+3. **High** - `Ships/Scripts/Player.gd` is multi-responsibility (movement/combat/revive/satellites/modes/stats sync).  
+Evidence: 1052 lines, 139 `GameManager` references.  
+Risk: high fragility around revive/combat state transitions.
+
+4. **High** - `Enemy/Scripts/Enemy.gd` bundles movement AI, attack patterns, shadow behavior, lifecycle, and rewards.  
+Evidence: 981 lines with many mode-specific branches.  
+Risk: balancing or AI fixes can cause hidden lifecycle regressions.
+
+5. **High** - Scene-transition safety risk from direct `get_tree().current_scene.add_child(...)` usage in combat scripts.  
+Evidence: direct add-child calls in enemy and boss scripts during runtime effects/spawns.  
+Risk: null/current-scene churn during transitions causing intermittent runtime errors.
+
+6. **Medium** - Save I/O is synchronous and called from many runtime paths.  
+Evidence: 27 save call sites across gameplay/UI managers.  
+Risk: unnecessary write pressure and potential save contention/stutter on low-end devices.
+
+7. **Medium** - `Autoloads/Scripts/Managers/ConfigLoader.gd` still mixes loader + large embedded defaults.  
+Evidence: large fallback payload definitions inline.  
+Risk: config drift between JSON and hardcoded defaults; higher maintenance cost.
+
+8. **Medium** - `Autoloads/Scripts/Managers/SceneManager.gd` mixes scene loading with audio bus policy.  
+Evidence: scene transition logic plus bus mute/unmute orchestration in same unit.  
+Risk: scene-flow changes can unintentionally affect audio state.
+
+9. **Medium** - `MainScenes/Scripts/authentication.gd` is largely placeholder flow.  
+Evidence: status-only handlers without actual auth service calls.  
+Risk: false-ready auth UI path and inconsistent production behavior.
+
+---
+
+**Remaining High-Priority Fixes**
+
+1. `MainScenes/Scripts/upgrade_menu.gd`  
+Target: Separate transaction logic from UI rendering/state.
+Progress: Upgrade/purchase payment flows and cost computation are delegated to `MainScenes/Scripts/Services/UpgradeTransactionService.gd`, ad request orchestration plus usage/reward messaging is delegated to `MainScenes/Scripts/Services/UpgradeAdService.gd`, selection/equip logic is delegated to `MainScenes/Scripts/Services/UpgradeSelectionService.gd`, and currency/texture refresh logic is delegated to `MainScenes/Scripts/Services/UpgradeUIRefreshService.gd`, while `upgrade_menu.gd` retains UI rendering/state updates.
+
+2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
+Target: Extract revive/combat/mode/state-machine modules.
+
+3. Scene-safe spawn/effect API for enemy/boss scripts  
+Target: Replace raw `current_scene.add_child` with guarded spawn facade.
+
+4. Save batching/debounce strategy  
+Target: Reduce direct synchronous save frequency.
+
+5. `Autoloads/Scripts/Managers/ConfigLoader.gd`  
+Target: Move defaults into versioned data assets and add strict schema validation.

@@ -7,3 +7,6 @@
 
 [node name="Sprite2D" parent="." index="0"]
 texture = ExtResource("2_6pvqj")
+
+[node name="Nozel" parent="." index="3"]
+position = Vector2(-2, -59)

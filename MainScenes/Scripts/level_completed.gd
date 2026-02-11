@@ -38,7 +38,7 @@ func initialize():
 				if debug:
 					print("[LevelCompleted Debug] level_completed signal already connected")
 			
-			current_level = GameManager.level_manager.get_current_level() if GameManager.level_manager else 1
+			current_level = GameManager.get_current_level()
 		else:
 			push_error("Error: GameManager not found! Level completed screen is adrift.")
 			current_level = 1
@@ -147,14 +147,9 @@ func _on_level_completed(_level_num: int) -> void:
 		GameManager.reset_level_currencies()
 
 func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
-	# Get reward configuration
-	var reward_config = {}
-	if ConfigLoader and ConfigLoader.upgrade_settings:
-		reward_config = ConfigLoader.upgrade_settings
-	
 	# Default values if config not found
-	var base_coins = reward_config.get("level_completion_base_coins", 200)
-	var base_crystals = reward_config.get("level_completion_base_crystals", 10)
+	var base_coins = GameManager.get_upgrade_setting("level_completion_base_coins", 200) if GameManager else 200
+	var base_crystals = GameManager.get_upgrade_setting("level_completion_base_crystals", 10) if GameManager else 10
 	
 	# Calculate rewards based on level number with diminishing returns
 	# Using square root to provide growth that slows over time
@@ -168,24 +163,24 @@ func _calculate_level_completion_rewards(level_num: int) -> Dictionary:
 func _on_next_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_next_pressed called")
-	if GameManager and GameManager.level_manager:
+	if GameManager:
 		# Complete the level properly before going to map
-		current_level = GameManager.level_manager.get_current_level()
-		GameManager.level_manager.complete_level(current_level)
+		current_level = GameManager.get_current_level()
+		GameManager.complete_current_level()
 		GameManager.score = 0
 		if debug:
 			print("[LevelCompleted Debug] Level completed after %d, going to map!" % current_level)
 		# Navigate to map
-		GameManager.change_scene(Map)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 	else:
 		if debug:
-			print("[LevelCompleted Debug] Error: GameManager or level_manager missing, can't go to map!")
+			print("[LevelCompleted Debug] Error: GameManager missing, can't go to map!")
 
 func _on_map_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_map_pressed called")
 	if GameManager:
-		GameManager.change_scene(Map)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 		if debug:
 			print("[LevelCompleted Debug] Warping to map scene, hyperspace engaged!")
 	else:

@@ -212,10 +212,7 @@ func _init_movement_patterns():
 
 func _load_attack_settings_from_config():
 	"""Load attack settings from game_settings.json"""
-	if not ConfigLoader or not ConfigLoader.game_settings:
-		return
-	
-	var attack_settings = ConfigLoader.game_settings.get("enemy_attack_settings", {})
+	var attack_settings = GameManager.get_game_settings_section("enemy_attack_settings") if GameManager else {}
 	if attack_settings.is_empty():
 		return
 	
@@ -241,10 +238,7 @@ func _load_attack_settings_from_config():
 
 func _load_movement_settings_from_config():
 	"""Load movement settings from game_settings.json"""
-	if not ConfigLoader or not ConfigLoader.game_settings:
-		return
-	
-	var movement_settings = ConfigLoader.game_settings.get("movement_settings", {})
+	var movement_settings = GameManager.get_game_settings_section("movement_settings") if GameManager else {}
 	if movement_settings.is_empty():
 		return
 	
@@ -388,9 +382,8 @@ func _handle_formation_hold(delta: float):
 func _handle_side_to_side(delta: float):
 	"""Move side to side around formation position with smooth easing"""
 	var amplitude = 50.0
-	if ConfigLoader and ConfigLoader.game_settings:
-		var movement_settings = ConfigLoader.game_settings.get("movement_settings", {})
-		amplitude = movement_settings.get("side_to_side_amplitude", amplitude)
+	var movement_settings = GameManager.get_game_settings_section("movement_settings") if GameManager else {}
+	amplitude = movement_settings.get("side_to_side_amplitude", amplitude)
 	
 	# Use unique offset per enemy for variety
 	var phase_offset = formation_index * 0.5
@@ -631,12 +624,16 @@ func _fire_at_player():
 	# Position bullet at enemy center
 	bullet.global_position = position
 	
-	# Calculate direction to player
-	var direction = (player_reference.global_position - position).normalized()
+	# Refresh player reference and safely fallback if player is missing.
+	_update_player_reference()
+	var direction: Vector2 = Vector2(0, 1)
+	if is_instance_valid(player_reference):
+		direction = (player_reference.global_position - position).normalized()
 	bullet.rotation = direction.angle() + PI/2
 	
 	# Add to scene
-	get_tree().current_scene.add_child(bullet)
+	if get_tree().current_scene:
+		get_tree().current_scene.add_child(bullet)
 	
 	if debug_mode:
 		print("Enemy fired bullet")

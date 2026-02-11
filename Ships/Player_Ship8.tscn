@@ -27,3 +27,8 @@ position = Vector2(1.19209e-07, 55.3333)
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(-0.666667, 11.3333)
 shape = SubResource("CapsuleShape2D_bfqx8")
+
+[node name="Revive_shiled" parent="." index="8"]
+modulate = Color(0, 0, 0, 0.455)
+position = Vector2(2.9999943, 6.500012)
+scale = Vector2(0.8647059, 0.7911765)

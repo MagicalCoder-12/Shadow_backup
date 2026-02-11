@@ -21,7 +21,7 @@ func _ready():
 	else:
 		_debug_log("Warning: GameManager not found, cannot connect to wave_started!")
 	
-	current_level = GameManager.level_manager.get_current_level() if GameManager and GameManager.level_manager else 1
+	current_level = GameManager.get_current_level() if GameManager else 1
 	if level:
 		level.text = "Level: %d" % current_level
 	else:
@@ -79,7 +79,7 @@ func _on_game_paused(_paused: bool):
 func _on_map_pressed() -> void:
 	if GameManager:
 		GameManager.is_paused = false
-		GameManager.change_scene(Map)
+		GameManager.change_scene(GameManager.get_map_scene_path())
 		_debug_log("Warping to map scene, hyperspace engaged!")
 	else:
 		_debug_log("Error: GameManager missing, can't warp to map!")
