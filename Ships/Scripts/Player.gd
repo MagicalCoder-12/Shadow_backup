@@ -51,11 +51,12 @@ var lives: int = 2  # Synced with GameManager
 var original_texture: Texture2D
 var original_speed: float
 var super_mode_timer: Timer
-var super_mode_spawn_points: Array[Marker2D] = []
 var input_enabled: bool = true
 const REVIVE_INVINCIBILITY_DURATION: float = 4.0
 const DAMAGE_INVINCIBILITY_DURATION: float = 2.5
 var revive_service: PlayerReviveService = PlayerReviveService.new()
+var combat_service: PlayerCombatService = PlayerCombatService.new()
+var mode_service: PlayerModeService = PlayerModeService.new()
 
 # Satellite management variables
 var satellites: Array[Node2D] = []
@@ -150,6 +151,28 @@ func _setup_references() -> void:
 	super_mode_timer.one_shot = true
 	add_child(super_mode_timer)
 	super_mode_timer.timeout.connect(_on_super_mode_timeout)
+	mode_service.configure(
+		self,
+		GameManager,
+		sprite_2d,
+		fire_delay_timer,
+		firing_positions,
+		super_mode_timer,
+		ship_id,
+		shadow_texture,
+		original_texture,
+		original_speed,
+		normal_fire_delay,
+		shadow_speed_multiplier,
+		shadow_fire_delay_multiplier,
+		super_mode_speed_multiplier,
+		super_mode_damage_boost,
+		super_mode_fire_delay,
+		spawn_point_offset,
+		plNormalBullet,
+		plSuperBullet,
+		plShadowBullet
+	)
 
 func _connect_signals() -> void:
 	# Connect to LevelManager
@@ -332,69 +355,16 @@ func get_health_percent() -> float:
 	return float(lives) / float(max_life)
 
 func _on_shadow_mode_activated() -> void:
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		return
-	GameManager.player_manager.player_stats["is_shadow_mode_active"] = true
-	apply_shadow_mode_effects()
+	mode_service.on_shadow_mode_activated()
 
 func _on_shadow_mode_deactivated() -> void:
-	if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		return
-	GameManager.player_manager.player_stats["is_shadow_mode_active"] = false
-	revert_shadow_mode_effects()
+	mode_service.on_shadow_mode_deactivated()
 
 func apply_shadow_mode_effects() -> void:
-	if sprite_2d:
-		# For Ship2, use different visual effects
-		if ship_id == "Ship2":
-			sprite_2d.texture = shadow_texture
-			sprite_2d.modulate = Color(0.7, 0.3, 1.0)  # Purple tint for Ship2 shadow mode (from Ship2.gd)
-		else:
-			sprite_2d.texture = shadow_texture
-			sprite_2d.modulate = Color(1.2, 1.2, 1.2)
-	speed = original_speed * shadow_speed_multiplier
-	fire_delay_timer.wait_time = shadow_fire_delay_multiplier
-	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
+	mode_service.apply_shadow_mode_effects()
 
 func revert_shadow_mode_effects() -> void:
-	if sprite_2d and original_texture:
-		sprite_2d.texture = original_texture
-		# Check if super mode is still active
-		if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-			# For Ship2, use super mode visual effects
-			if ship_id == "Ship2":
-				sprite_2d.modulate = Color(1, 0.706, 0.385)  # Ship2-specific super mode color
-			else:
-				sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
-		else:
-			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
-	
-	# Restore speed based on whether super mode is still active
-	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		# If super mode is active, check if it's Ship2 for combined effects
-		if ship_id == "Ship2" and GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-			# Combined mode for Ship2
-			speed = original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
-		elif GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-			speed = original_speed * super_mode_speed_multiplier
-	else:
-		speed = original_speed
-	
-	# Restore fire delay based on whether super mode is still active
-	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		fire_delay_timer.wait_time = super_mode_fire_delay
-	else:
-		fire_delay_timer.wait_time = normal_fire_delay
-	
-	# Restore bullet damage based on whether super mode is still active
-	if GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		# Keep super mode damage
-		pass
-	else:
-		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
-	
-	# Reset bullet scene to ship's normal bullet
-	plBullet = plNormalBullet
+	mode_service.revert_shadow_mode_effects()
 
 func shoot() -> void:
 	fire_delay_timer.start(fire_delay_timer.wait_time)
@@ -497,56 +467,20 @@ func clamp_position() -> void:
 	position = position.clamp(min_pos, max_pos)
 
 func damage(amount: int) -> void:
-	if revive_service.is_invincible() or GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
+	if combat_service.should_ignore_damage(revive_service, GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)):
 		return
 
-	_save_current_stats()
-	_update_lives_after_damage(amount)
-	_setup_damage_collision()
+	combat_service.save_current_stats(GameManager)
+	lives = combat_service.update_lives_after_damage(GameManager, lives, amount)
+	_debug_log("Player damaged, lives: " + str(lives))
+	combat_service.setup_damage_collision(self)
 	revive_service.start_damage_invincibility(DAMAGE_INVINCIBILITY_DURATION)
 	
 	if lives > 0:
 		_play_death_animation()
-		_handle_survival()
+		combat_service.handle_survival(self, sprite_2d, self)
 	else:
 		_handle_death()
-
-func _save_current_stats() -> void:
-	GameManager.player_manager.save_player_stats(
-		GameManager.player_manager.player_stats.get("attack_level", 0),
-		GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage),
-		GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage),
-		GameManager.player_manager.player_stats.get("is_shadow_mode_active", false),
-		GameManager.player_manager.player_stats.get("is_super_mode_active", false)
-	)
-	# Ensure super mode state is also saved
-	GameManager.player_manager.player_stats["is_super_mode_active"] = GameManager.player_manager.player_stats.get("is_super_mode_active", false)
-
-func _update_lives_after_damage(amount: int) -> void:
-	lives = max(0, lives - amount)
-	GameManager.player_lives = lives
-	_debug_log("Player damaged, lives: " + str(lives))
-	GameManager.save_progress_if_enabled()
-
-
-func _setup_damage_collision() -> void:
-	# Set collision mask to layer 2 (power-ups only)
-	if collision_shape:
-		set_collision_layer_value(1, false)
-		set_collision_layer_value(2, true)
-	else:
-		push_error("CollisionShape2D is null, cannot update collision mask")
-
-func _handle_survival() -> void:
-	sprite_2d.visible = true
-	is_alive = true
-	set_collision_layer_value(1, true)
-	set_collision_layer_value(2, false)
-
-	
-	var cam := get_tree().current_scene.get_node_or_null("Cam")
-	if cam and cam.has_method("shake"):
-		cam.shake(20)
 
 func _play_death_animation() -> void:
 	if death_animation:
@@ -627,7 +561,7 @@ func _reset_firing_positions() -> void:
 	for child in firing_positions.get_children():
 		if child.name not in ["LeftGun", "RightGun"]:
 			child.queue_free()
-	super_mode_spawn_points.clear()
+	mode_service.clear_super_mode_spawn_cache()
 
 func _update_game_manager_stats(attack_level_value: int, bullet_damage_value: int, base_bullet_damage_value: int, shadow_mode_active: bool, super_mode_active: bool = false) -> void:
 	GameManager.player_manager.player_stats["attack_level"] = clamp(attack_level_value, 0, GameManager.player_manager.max_attack_level)
@@ -641,14 +575,7 @@ func _setup_firing_positions() -> void:
 		add_firing_position(i)
 
 func _apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool = false) -> void:
-	# Preserve existing modes instead of deactivating them
-	if super_mode_active and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		# Activate super mode without deactivating shadow mode
-		GameManager.player_manager.player_stats["is_super_mode_active"] = true
-		apply_super_mode_effects(2.0, 10.0)  # Use default values
-	elif shadow_mode_active and not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		# Activate shadow mode without deactivating super mode
-		_on_shadow_mode_activated()
+	mode_service.apply_mode_effects(shadow_mode_active, super_mode_active)
 
 func increase_bullet_damage(amount: int) -> void:
 	if GameManager.player_manager.player_stats.get("attack_level", 0) >= GameManager.player_manager.max_attack_level:
@@ -690,115 +617,16 @@ func add_firing_position(level: int) -> void:
 	firing_positions.add_child(mirror_marker)
 
 func activate_super_mode(multiplier_div: float, duration: float) -> void:
-	GameManager.player_manager.player_stats["is_super_mode_active"] = true
-	apply_super_mode_effects(multiplier_div, duration)
+	mode_service.activate_super_mode(multiplier_div, duration)
 
 func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
-	# Calculate combined effects based on whether shadow mode is also active
-	var base_damage = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
-	var current_damage = GameManager.player_manager.player_stats.get("bullet_damage", base_damage)
-	
-	# If shadow mode is active, apply combined effects
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		# Combined damage: (base damage * 2) + super_mode_damage_boost
-		GameManager.player_manager.player_stats["bullet_damage"] = (base_damage * 2) + super_mode_damage_boost
-		# Set bullet type to shadow bullet for combined mode
-		plBullet = plShadowBullet
-	else:
-		# Normal super mode damage calculation
-		GameManager.player_manager.player_stats["bullet_damage"] = int(current_damage * multiplier_div) + super_mode_damage_boost
-		# Set bullet type to super bullet for normal super mode
-		plBullet = plSuperBullet
-	
-	fire_delay_timer.wait_time = super_mode_fire_delay
-	add_super_mode_spawn_points()
-	super_mode_timer.start(duration)
-	
-	# Apply visual effects for super mode
-	if sprite_2d:
-		if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-			# Combined mode: different visual effect for Ship2
-			if ship_id == "Ship2":
-				sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
-			else:
-				sprite_2d.modulate = Color(0.7, 0.7, 1.5)  # Combined visual effect
-		else:
-			# Normal super mode: Ship2-specific color
-			if ship_id == "Ship2":
-				sprite_2d.modulate = Color(1, 0.706, 0.385)  # Ship2-specific super mode color
-			else:
-				sprite_2d.modulate = Color(0.5, 0.5, 1.5)  # Blue tint for super mode
-	
-	# Apply speed multiplier
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		# Combined speed: original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
-		speed = original_speed * shadow_speed_multiplier * super_mode_speed_multiplier
-	else:
-		# Normal super mode speed
-		speed = original_speed * super_mode_speed_multiplier
+	mode_service.apply_super_mode_effects(multiplier_div, duration)
 
 func add_super_mode_spawn_points() -> void:
-	super_mode_spawn_points.clear()
-	var total_angle: float = 100.0
-	var start_angle := -5.0 - (total_angle / 2)
-	var angle_step: float = total_angle / (GameManager.SUPER_MODE_SPAWN_COUNT - 1)
-	
-	for i in GameManager.SUPER_MODE_SPAWN_COUNT:
-		var marker := Marker2D.new()
-		marker.name = "SuperMode%d" % i
-		var angle := deg_to_rad(start_angle + angle_step * i)
-		var offset := Vector2(spawn_point_offset, 0).rotated(angle)
-		marker.position = offset
-		marker.rotation = angle
-		firing_positions.add_child(marker)
-		super_mode_spawn_points.append(marker)
+	mode_service.add_super_mode_spawn_points()
 
 func _on_super_mode_timeout() -> void:
-	GameManager.player_manager.player_stats["is_super_mode_active"] = false
-	_restore_normal_damage()
-	_restore_normal_fire_delay()
-	_cleanup_super_mode_spawn_points()
-	
-	# Reset bullet scene to ship's normal bullet
-	plBullet = plNormalBullet
-	
-	# Revert visual effects for super mode
-	if sprite_2d:
-		if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-			# If shadow mode is still active, apply shadow mode visuals
-			sprite_2d.modulate = Color(1.2, 1.2, 1.2)
-			# Also restore shadow mode speed
-			speed = original_speed * shadow_speed_multiplier
-		else:
-			# Otherwise, revert to normal visuals
-			sprite_2d.modulate = Color(1.0, 1.0, 1.0)
-			speed = original_speed
-
-	# Ensure we properly reset the player's bullet damage to base values
-	if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
-
-func _restore_normal_damage() -> void:
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		# If shadow mode is active, restore shadow mode damage (base damage * 2)
-		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
-	else:
-		# Otherwise, restore normal damage
-		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)
-	
-	# Ensure the UI and other systems are aware of the damage change
-	GameManager.notify_ship_stats_updated(ship_id, GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage))
-
-func _restore_normal_fire_delay() -> void:
-	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false):
-		fire_delay_timer.wait_time = normal_fire_delay * shadow_fire_delay_multiplier
-	else:
-		fire_delay_timer.wait_time = normal_fire_delay
-
-func _cleanup_super_mode_spawn_points() -> void:
-	for marker in super_mode_spawn_points:
-		marker.queue_free()
-	super_mode_spawn_points.clear()
+	mode_service.on_super_mode_timeout()
 
 func _on_player_life_changed(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
@@ -850,6 +678,7 @@ func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:
 		# If not in shadow mode or super mode, also update current bullet damage
 		if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
 			GameManager.player_manager.player_stats["bullet_damage"] = new_damage
+		mode_service.update_ship_context(ship_id, original_texture, original_speed)
 		_debug_log("Ship stats updated: damage is now %d for ship %s" % [new_damage, ship_id])
 
 func _on_player_manager_satellites_changed() -> void:
@@ -896,7 +725,7 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 
 # Handle collisions with enemies and enemy bullets
 func _on_area_entered(area: Area2D) -> void:
-	if not is_alive or revive_service.just_revived:
+	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
 	
 	# Handle enemy collision (direct contact damage)
@@ -916,36 +745,20 @@ func _on_area_entered(area: Area2D) -> void:
 
 func _handle_enemy_collision(enemy: Area2D) -> void:
 	"""Handle direct collision with enemy ships"""
-	if not is_alive or revive_service.just_revived:
+	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
 	
 	# Deal damage to player
-	damage(1)  # Direct enemy contact deals 1 damage
-	
-	# Damage or destroy the enemy
-	if enemy.has_method("damage"):
-		enemy.damage(500)  # Deal significant damage to enemy on collision
-	
+	combat_service.apply_enemy_contact(enemy, Callable(self, "damage"))
 	_debug_log("Player collided with enemy: %s" % enemy.name)
 
 func _handle_enemy_bullet_collision(bullet: Area2D) -> void:
 	"""Handle collision with enemy bullets"""
-	if not is_alive or revive_service.just_revived:
+	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
 	
 	# Deal damage to player
-	var bullet_damage = 1
-	if bullet.has_method("get_damage"):
-		bullet_damage = bullet.get_damage()
-	elif bullet.has_variable("damage"):
-		bullet_damage = bullet.damage
-	
-	damage(bullet_damage)
-	
-	# Destroy the bullet
-	if bullet.has_method("queue_free"):
-		bullet.queue_free()
-	
+	var bullet_damage := combat_service.apply_bullet_hit(bullet, Callable(self, "damage"))
 	_debug_log("Player hit by bullet: %s (damage: %d)" % [bullet.name, bullet_damage])
 
 func is_just_revived() -> bool:

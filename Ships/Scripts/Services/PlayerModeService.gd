@@ -1,0 +1,286 @@
+extends RefCounted
+class_name PlayerModeService
+
+var _owner: Node
+var _game_manager: Node
+var _sprite: Sprite2D
+var _fire_delay_timer: Timer
+var _firing_positions: Node2D
+var _super_mode_timer: Timer
+
+var _ship_id: String = ""
+var _shadow_texture: Texture2D
+var _original_texture: Texture2D
+var _original_speed: float = 0.0
+var _normal_fire_delay: float = 0.3
+var _shadow_speed_multiplier: float = 1.2
+var _shadow_fire_delay_multiplier: float = 0.1
+var _super_mode_speed_multiplier: float = 2.0
+var _super_mode_damage_boost: int = 2
+var _super_mode_fire_delay: float = 0.15
+var _spawn_point_offset: float = 5.0
+
+var _normal_bullet_scene: PackedScene
+var _super_bullet_scene: PackedScene
+var _shadow_bullet_scene: PackedScene
+
+var _super_mode_spawn_points: Array[Marker2D] = []
+
+func configure(
+	owner: Node,
+	game_manager: Node,
+	sprite: Sprite2D,
+	fire_delay_timer: Timer,
+	firing_positions: Node2D,
+	super_mode_timer: Timer,
+	ship_id: String,
+	shadow_texture: Texture2D,
+	original_texture: Texture2D,
+	original_speed: float,
+	normal_fire_delay: float,
+	shadow_speed_multiplier: float,
+	shadow_fire_delay_multiplier: float,
+	super_mode_speed_multiplier: float,
+	super_mode_damage_boost: int,
+	super_mode_fire_delay: float,
+	spawn_point_offset: float,
+	normal_bullet_scene: PackedScene,
+	super_bullet_scene: PackedScene,
+	shadow_bullet_scene: PackedScene
+) -> void:
+	_owner = owner
+	_game_manager = game_manager
+	_sprite = sprite
+	_fire_delay_timer = fire_delay_timer
+	_firing_positions = firing_positions
+	_super_mode_timer = super_mode_timer
+	_ship_id = ship_id
+	_shadow_texture = shadow_texture
+	_original_texture = original_texture
+	_original_speed = original_speed
+	_normal_fire_delay = normal_fire_delay
+	_shadow_speed_multiplier = shadow_speed_multiplier
+	_shadow_fire_delay_multiplier = shadow_fire_delay_multiplier
+	_super_mode_speed_multiplier = super_mode_speed_multiplier
+	_super_mode_damage_boost = super_mode_damage_boost
+	_super_mode_fire_delay = super_mode_fire_delay
+	_spawn_point_offset = spawn_point_offset
+	_normal_bullet_scene = normal_bullet_scene
+	_super_bullet_scene = super_bullet_scene
+	_shadow_bullet_scene = shadow_bullet_scene
+
+func update_ship_context(ship_id: String, original_texture: Texture2D, original_speed: float) -> void:
+	_ship_id = ship_id
+	_original_texture = original_texture
+	_original_speed = original_speed
+
+func on_shadow_mode_activated() -> void:
+	if _is_shadow_mode_active():
+		return
+	_set_shadow_mode_active(true)
+	apply_shadow_mode_effects()
+
+func on_shadow_mode_deactivated() -> void:
+	if not _is_shadow_mode_active():
+		return
+	_set_shadow_mode_active(false)
+	revert_shadow_mode_effects()
+
+func apply_shadow_mode_effects() -> void:
+	var stats := _get_stats()
+	if _sprite:
+		_sprite.texture = _shadow_texture
+		if _ship_id == "Ship2":
+			_sprite.modulate = Color(0.7, 0.3, 1.0)
+		else:
+			_sprite.modulate = Color(1.2, 1.2, 1.2)
+
+	_set_player_speed(_original_speed * _shadow_speed_multiplier)
+	if _fire_delay_timer:
+		_fire_delay_timer.wait_time = _shadow_fire_delay_multiplier
+	if stats:
+		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage())) * 2
+
+func revert_shadow_mode_effects() -> void:
+	var stats := _get_stats()
+	if _sprite and _original_texture:
+		_sprite.texture = _original_texture
+		if _is_super_mode_active():
+			if _ship_id == "Ship2":
+				_sprite.modulate = Color(1, 0.706, 0.385)
+			else:
+				_sprite.modulate = Color(0.5, 0.5, 1.5)
+		else:
+			_sprite.modulate = Color(1.0, 1.0, 1.0)
+
+	if _is_super_mode_active():
+		if _ship_id == "Ship2" and _is_shadow_mode_active():
+			_set_player_speed(_original_speed * _shadow_speed_multiplier * _super_mode_speed_multiplier)
+		else:
+			_set_player_speed(_original_speed * _super_mode_speed_multiplier)
+	else:
+		_set_player_speed(_original_speed)
+
+	if _fire_delay_timer:
+		if _is_super_mode_active():
+			_fire_delay_timer.wait_time = _super_mode_fire_delay
+		else:
+			_fire_delay_timer.wait_time = _normal_fire_delay
+
+	if stats and not _is_super_mode_active():
+		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+
+	_set_active_bullet_scene(_normal_bullet_scene)
+
+func apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool) -> void:
+	if super_mode_active and not _is_super_mode_active():
+		_set_super_mode_active(true)
+		apply_super_mode_effects(2.0, 10.0)
+	elif shadow_mode_active and not _is_shadow_mode_active():
+		on_shadow_mode_activated()
+
+func activate_super_mode(multiplier_div: float, duration: float) -> void:
+	_set_super_mode_active(true)
+	apply_super_mode_effects(multiplier_div, duration)
+
+func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
+	var stats := _get_stats()
+	if stats.is_empty():
+		return
+
+	var base_damage: int = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+	var current_damage: int = int(stats.get("bullet_damage", base_damage))
+
+	if _is_shadow_mode_active():
+		stats["bullet_damage"] = (base_damage * 2) + _super_mode_damage_boost
+		_set_active_bullet_scene(_shadow_bullet_scene)
+	else:
+		stats["bullet_damage"] = int(current_damage * multiplier_div) + _super_mode_damage_boost
+		_set_active_bullet_scene(_super_bullet_scene)
+
+	if _fire_delay_timer:
+		_fire_delay_timer.wait_time = _super_mode_fire_delay
+
+	add_super_mode_spawn_points()
+	if _super_mode_timer:
+		_super_mode_timer.start(duration)
+
+	if _sprite:
+		if _is_shadow_mode_active():
+			_sprite.modulate = Color(0.7, 0.7, 1.5)
+		else:
+			if _ship_id == "Ship2":
+				_sprite.modulate = Color(1, 0.706, 0.385)
+			else:
+				_sprite.modulate = Color(0.5, 0.5, 1.5)
+
+	if _is_shadow_mode_active():
+		_set_player_speed(_original_speed * _shadow_speed_multiplier * _super_mode_speed_multiplier)
+	else:
+		_set_player_speed(_original_speed * _super_mode_speed_multiplier)
+
+func add_super_mode_spawn_points() -> void:
+	_cleanup_super_mode_spawn_points()
+	if not _firing_positions or not _game_manager:
+		return
+
+	var total_angle: float = 100.0
+	var start_angle := -5.0 - (total_angle / 2)
+	var spawn_count: int = int(_game_manager.SUPER_MODE_SPAWN_COUNT)
+	if spawn_count <= 1:
+		return
+	var angle_step: float = total_angle / float(spawn_count - 1)
+
+	for i in spawn_count:
+		var marker := Marker2D.new()
+		marker.name = "SuperMode%d" % i
+		var angle := deg_to_rad(start_angle + angle_step * i)
+		var offset := Vector2(_spawn_point_offset, 0).rotated(angle)
+		marker.position = offset
+		marker.rotation = angle
+		_firing_positions.add_child(marker)
+		_super_mode_spawn_points.append(marker)
+
+func on_super_mode_timeout() -> void:
+	_set_super_mode_active(false)
+	_restore_normal_damage()
+	_restore_normal_fire_delay()
+	_cleanup_super_mode_spawn_points()
+	_set_active_bullet_scene(_normal_bullet_scene)
+
+	if _sprite:
+		if _is_shadow_mode_active():
+			_sprite.modulate = Color(1.2, 1.2, 1.2)
+			_set_player_speed(_original_speed * _shadow_speed_multiplier)
+		else:
+			_sprite.modulate = Color(1.0, 1.0, 1.0)
+			_set_player_speed(_original_speed)
+
+	if not _is_shadow_mode_active():
+		var stats := _get_stats()
+		if stats:
+			stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+
+func clear_super_mode_spawn_cache() -> void:
+	_super_mode_spawn_points.clear()
+
+func _restore_normal_damage() -> void:
+	var stats := _get_stats()
+	if stats.is_empty():
+		return
+
+	if _is_shadow_mode_active():
+		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage())) * 2
+	else:
+		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+
+	if _game_manager:
+		_game_manager.notify_ship_stats_updated(_ship_id, int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
+
+func _restore_normal_fire_delay() -> void:
+	if not _fire_delay_timer:
+		return
+	if _is_shadow_mode_active():
+		_fire_delay_timer.wait_time = _normal_fire_delay * _shadow_fire_delay_multiplier
+	else:
+		_fire_delay_timer.wait_time = _normal_fire_delay
+
+func _cleanup_super_mode_spawn_points() -> void:
+	for marker in _super_mode_spawn_points:
+		if marker and is_instance_valid(marker):
+			marker.queue_free()
+	_super_mode_spawn_points.clear()
+
+func _set_player_speed(new_speed: float) -> void:
+	if _owner:
+		_owner.set("speed", new_speed)
+
+func _set_active_bullet_scene(scene: PackedScene) -> void:
+	if _owner:
+		_owner.set("plBullet", scene)
+
+func _get_stats() -> Dictionary:
+	if _game_manager and _game_manager.player_manager:
+		return _game_manager.player_manager.player_stats
+	return {}
+
+func _get_default_bullet_damage() -> int:
+	if _game_manager and _game_manager.player_manager:
+		return int(_game_manager.player_manager.default_bullet_damage)
+	return 20
+
+func _is_shadow_mode_active() -> bool:
+	return bool(_get_stats().get("is_shadow_mode_active", false))
+
+func _is_super_mode_active() -> bool:
+	return bool(_get_stats().get("is_super_mode_active", false))
+
+func _set_shadow_mode_active(active: bool) -> void:
+	var stats := _get_stats()
+	if stats:
+		stats["is_shadow_mode_active"] = active
+
+func _set_super_mode_active(active: bool) -> void:
+	var stats := _get_stats()
+	if stats:
+		stats["is_super_mode_active"] = active

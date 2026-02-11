@@ -33,6 +33,10 @@ boot_splash/main_scene="res://MainScenes/start_menu.tscn"
 boot_splash/custom_image="res://Textures/Splash_Screen/cursor.png"
 "1.2ârun/main_scene"="res://MainScenes/start_menu.tscn"
 
+[audio]
+
+buses/default_bus_layout="uid://vt7iqtmav27l"
+
 [autoload]
 
 ConfigLoader="*res://Autoloads/Scripts/Managers/ConfigLoader.gd"
@@ -55,8 +59,6 @@ window/size/viewport_width=1440
 window/size/viewport_height=3200
 window/size/mode=3
 window/size/resizable=false
-window/size/window_width_override=500
-window/size/window_height_override=500
 window/subwindows/embed_subwindows=false
 window/stretch/mode="canvas_items"
 window/per_pixel_transparency/allowed=true

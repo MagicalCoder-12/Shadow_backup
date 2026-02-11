@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://lff5yob7g21k"]
+[gd_scene format=3 uid="uid://lff5yob7g21k"]
 
 [ext_resource type="Script" uid="uid://cj27vxbramlb1" path="res://Ships/Scripts/Player.gd" id="1_4bi7n"]
 [ext_resource type="Texture2D" uid="uid://elye2idjkre3" path="res://Textures/player/ship_textures/ship_01_lvl1.png" id="2_p2q7k"]
@@ -82,6 +82,34 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cy6s0"]
 size = Vector2(159.5, 108)
 
+[sub_resource type="Animation" id="Animation_hn11j"]
+resource_name = "Player_revive"
+length = 0.7
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(9.333334, 1027), Vector2(-10, 8)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.7),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.0]
+}
+
 [sub_resource type="Animation" id="Animation_yixmy"]
 resource_name = "Player_sweep"
 tracks/0/type = "value"
@@ -148,34 +176,6 @@ tracks/2/keys = {
 "values": [0.0]
 }
 
-[sub_resource type="Animation" id="Animation_hn11j"]
-resource_name = "Player_revive"
-length = 0.7
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.7),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(9.333334, 1027), Vector2(-10, 8)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.7),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 0.0]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_02602"]
 _data = {
 &"Player_revive": SubResource("Animation_hn11j"),
@@ -183,52 +183,52 @@ _data = {
 &"RESET": SubResource("Animation_kcxub")
 }
 
-[node name="Player" type="Area2D" groups=["Player"]]
+[node name="Player" type="Area2D" unique_id=937880650 groups=["Player"]]
 z_index = 100
 scale = Vector2(3, 3)
 collision_mask = 14
 script = ExtResource("1_4bi7n")
 evolution_textures = Array[Texture2D]([ExtResource("2_p2q7k"), ExtResource("3_jjmcd")])
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=888187266]
 scale = Vector2(2.5, 2.5)
 texture = ExtResource("4_vqa31")
 
-[node name="Thruster" type="AnimatedSprite2D" parent="Sprite2D"]
+[node name="Thruster" type="AnimatedSprite2D" parent="Sprite2D" unique_id=1472620250]
 position = Vector2(-0.666667, 74.6667)
 scale = Vector2(0.313265, 0.3)
 sprite_frames = SubResource("SpriteFrames_eennk")
 autoplay = "default"
 
-[node name="FiringPositions" type="Node2D" parent="Sprite2D"]
+[node name="FiringPositions" type="Node2D" parent="Sprite2D" unique_id=1989316497]
 scale = Vector2(0.833333, 0.833333)
 
-[node name="LeftGun" type="Marker2D" parent="Sprite2D/FiringPositions"]
+[node name="LeftGun" type="Marker2D" parent="Sprite2D/FiringPositions" unique_id=439290444]
 position = Vector2(-55, -20)
 gizmo_extents = 100.0
 
-[node name="RightGun" type="Marker2D" parent="Sprite2D/FiringPositions"]
+[node name="RightGun" type="Marker2D" parent="Sprite2D/FiringPositions" unique_id=126099729]
 position = Vector2(53, -26)
 gizmo_extents = 100.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=978596634]
 position = Vector2(3.0000014, 16.666668)
 shape = SubResource("RectangleShape2D_cy6s0")
 
-[node name="FireDelayTimer" type="Timer" parent="."]
+[node name="FireDelayTimer" type="Timer" parent="." unique_id=893257250]
 wait_time = 0.3
 one_shot = true
 autostart = true
 
-[node name="InvincibilityTimer" type="Timer" parent="."]
+[node name="InvincibilityTimer" type="Timer" parent="." unique_id=1554639141]
 wait_time = 5.0
 one_shot = true
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=144051926]
 stream = ExtResource("31_bgaaw")
 bus = &"Bullet"
 
-[node name="DeathAnimation" type="CPUParticles2D" parent="."]
+[node name="DeathAnimation" type="CPUParticles2D" parent="." unique_id=1897842959]
 emitting = false
 amount = 500
 one_shot = true
@@ -244,7 +244,7 @@ initial_velocity_max = 400.0
 scale_amount_min = 3.0
 scale_amount_max = 10.0
 
-[node name="PowerUpNotification" type="Label" parent="."]
+[node name="PowerUpNotification" type="Label" parent="." unique_id=1050939066]
 visible = false
 z_index = 10
 anchors_preset = 15
@@ -264,12 +264,10 @@ text = "OVERCLOCKED"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_02602")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=810439249]
+libraries/ = SubResource("AnimationLibrary_02602")
 
-[node name="Revive_shiled" type="Sprite2D" parent="."]
+[node name="Revive_shiled" type="Sprite2D" parent="." unique_id=564268223]
 modulate = Color(1, 1, 1, 0.45490196)
 position = Vector2(1.333333, -6.333335)
 scale = Vector2(0.9633762, 0.79607844)
