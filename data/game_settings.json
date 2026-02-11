@@ -4,6 +4,23 @@
 	"default_bullet_speed": 3000.0,
 	"default_bullet_damage": 20,
 	"max_attack_level": 4,
+	"initial_resources": {
+		"coins": 2000,
+		"crystals": 700,
+		"void_shards": 200
+	},
+	"player_balance": {
+		"shadow_damage_multiplier": 1.75,
+		"super_damage_multiplier": 1.55,
+		"super_flat_bonus": 3,
+		"combined_damage_multiplier": 2.1,
+		"min_fire_delay": 0.08,
+		"max_fire_delay": 0.32,
+		"max_damage_cap": 2500,
+		"ship2_mode_swap_enabled": true,
+		"upgrade_diminish_per_level": 0.12,
+		"min_upgrade_factor": 0.55
+	},
 	
 	"enemy_attack_settings": {
 		"base_shoot_cooldown": 1.5,

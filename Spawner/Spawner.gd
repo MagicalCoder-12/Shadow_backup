@@ -1,7 +1,7 @@
 extends Node2D
 
-@export var spawn_padding: float = 10.0
-@export var minPowerupSpawnTime: float = 3.0
+@export var spawn_padding: float = 20.0
+@export var minPowerupSpawnTime: float = 5.0
 @export var maxPowerupSpawnTime: float = 20.0
 
 var powerup_scenes := [
@@ -71,17 +71,21 @@ func _on_PowerupSpawnTimer_timeout() -> void:
 		powerupSpawnTimer.stop()
 		return
 	
-	# Weighted random selection: Attack_boost_powerup 50%, Astroid 15%, SuperMode 15%, Health 20%
+		# Weighted random selection:
+	# - Asteroid: 50%
+	# - Attack Boost (powerup): 25%
+	# - Super Mode: 15%
+	# - Health: 10%
 	var roll = randf() * 100  # Random number between 0 and 100
 	var selected_scene
 	var is_astroid = false
 	
 	if roll < 50:
-		selected_scene = powerup_scenes[0]  # Attack Boost
-	elif roll < 65:
-		selected_scene = powerup_scenes[2]  # Asteroid
+		selected_scene = powerup_scenes[2]  # Attack Boost
+	elif roll < 75:
+		selected_scene = powerup_scenes[0]  # Asteroid
 		is_astroid = true
-	elif roll < 80:
+	elif roll < 90:
 		selected_scene = powerup_scenes[1]  # Super Mode
 	else:
 		selected_scene = powerup_scenes[3]  # Health

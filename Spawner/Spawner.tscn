@@ -1,14 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://ci2dx8vxi2rne"]
+[gd_scene format=3 uid="uid://ci2dx8vxi2rne"]
 
 [ext_resource type="Script" uid="uid://fh6g7i0ua4r" path="res://Spawner/Spawner.gd" id="1"]
 
-[node name="Spawner" type="Node2D"]
+[node name="Spawner" type="Node2D" unique_id=820070893]
 script = ExtResource("1")
 spawn_padding = 50.0
-minPowerupSpawnTime = 5.0
 maxPowerupSpawnTime = 15.0
 
-[node name="PowerupSpawnTimer" type="Timer" parent="."]
+[node name="PowerupSpawnTimer" type="Timer" parent="." unique_id=1723535925]
 autostart = true
 
 [connection signal="timeout" from="PowerupSpawnTimer" to="." method="_on_PowerupSpawnTimer_timeout"]

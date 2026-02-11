@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://dgv64lgc6rm83"]
+[gd_scene format=3 uid="uid://dgv64lgc6rm83"]
 
 [ext_resource type="Script" uid="uid://dkoa187w4j8tq" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
 [ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
@@ -125,14 +125,14 @@ font_color = Color(1, 0.451458, 0.392, 1)
 outline_size = 5
 outline_color = Color(0, 0.560784, 0.384314, 1)
 
-[node name="Start_menu" type="Node2D"]
+[node name="Start_menu" type="Node2D" unique_id=1289019851]
 process_mode = 3
 script = ExtResource("1_4nus0")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1604341790]
 layer = -2
 
-[node name="Background" type="TextureRect" parent="CanvasLayer"]
+[node name="Background" type="TextureRect" parent="CanvasLayer" unique_id=1235124913]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -142,13 +142,13 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_mccjh")
 
-[node name="Splayer" type="Sprite2D" parent="CanvasLayer"]
+[node name="Splayer" type="Sprite2D" parent="CanvasLayer" unique_id=147132427]
 position = Vector2(724.99994, 2925)
 rotation = -0.888373
 scale = Vector2(1.3, 1.3)
 texture = ExtResource("3_3nkws")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Splayer"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Splayer" unique_id=664834390]
 position = Vector2(314.504, -147.35)
 rotation = 0.881391
 scale = Vector2(1.00926, 0.62542)
@@ -156,7 +156,7 @@ sprite_frames = SubResource("SpriteFrames_f6g2d")
 autoplay = "default"
 frame_progress = 0.0962794
 
-[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Splayer"]
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Splayer" unique_id=1735350528]
 position = Vector2(184.149, -302.995)
 rotation = 0.881391
 scale = Vector2(1.00926, 0.62542)
@@ -164,60 +164,60 @@ sprite_frames = SubResource("SpriteFrames_f6g2d")
 autoplay = "default"
 frame_progress = 0.385642
 
-[node name="Left" type="Sprite2D" parent="CanvasLayer/Splayer"]
+[node name="Left" type="Sprite2D" parent="CanvasLayer/Splayer" unique_id=1231187768]
 position = Vector2(-154.09, -297.429)
 rotation = 0.923279
 scale = Vector2(1.62501, 1.36071)
 texture = ExtResource("14_n5c6h")
 
-[node name="56" type="Sprite2D" parent="CanvasLayer/Splayer/Left"]
+[node name="56" type="Sprite2D" parent="CanvasLayer/Splayer/Left" unique_id=780592987]
 position = Vector2(-2.39847, -125.993)
 rotation = -1.57778
 scale = Vector2(0.622351, 0.554683)
 skew = -0.0380731
 texture = ExtResource("8_a8j06")
 
-[node name="Right" type="Sprite2D" parent="CanvasLayer/Splayer/Left"]
+[node name="Right" type="Sprite2D" parent="CanvasLayer/Splayer/Left" unique_id=1470958523]
 position = Vector2(408.736, -5.93488)
 rotation = -0.0349061
 texture = ExtResource("15_y3j5q")
 
-[node name="57" type="Sprite2D" parent="CanvasLayer/Splayer/Left/Right"]
+[node name="57" type="Sprite2D" parent="CanvasLayer/Splayer/Left/Right" unique_id=842212133]
 position = Vector2(-1.06235, -112.509)
 rotation = -1.5708
 scale = Vector2(0.600761, 0.455315)
 texture = ExtResource("10_3pl5x")
 
-[node name="Boss" type="Sprite2D" parent="CanvasLayer"]
+[node name="Boss" type="Sprite2D" parent="CanvasLayer" unique_id=594763052]
 position = Vector2(763.5, 578.49994)
 scale = Vector2(0.9365234, 0.9326172)
 texture = ExtResource("8_mccjh")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Boss"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Boss" unique_id=863412291]
 position = Vector2(-428.035, 441.833)
 scale = Vector2(2.31487, 2.39283)
 sprite_frames = SubResource("SpriteFrames_yhv5c")
 autoplay = "default"
 frame_progress = 0.354037
 
-[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Boss"]
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Boss" unique_id=786019762]
 position = Vector2(487.935, 463.19)
 scale = Vector2(2.38891, 2.36935)
 sprite_frames = SubResource("SpriteFrames_yhv5c")
 autoplay = "default"
 frame_progress = 0.336242
 
-[node name="Start" type="AudioStreamPlayer" parent="."]
+[node name="Start" type="AudioStreamPlayer" parent="." unique_id=254301913]
 stream = ExtResource("18_mccjh")
 parameters/looping = true
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=979008581]
 offset_left = 207.0
 offset_top = 1210.0
 offset_right = 1270.0
 offset_bottom = 2164.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1763636618]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -233,28 +233,28 @@ grow_vertical = 2
 scale = Vector2(1.2, 1.2)
 theme_override_constants/separation = 80
 
-[node name="Welcome" type="Label" parent="Panel/VBoxContainer"]
+[node name="Welcome" type="Label" parent="Panel/VBoxContainer" unique_id=1183608425]
 layout_mode = 2
 text = "Welcome "
 label_settings = SubResource("LabelSettings_w5iua")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Start_button" type="TextureButton" parent="Panel/VBoxContainer"]
+[node name="Start_button" type="TextureButton" parent="Panel/VBoxContainer" unique_id=2064932340]
 layout_mode = 2
 texture_normal = ExtResource("8_5c6u1")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = ExtResource("8_5c6u1")
 stretch_mode = 0
 
-[node name="Exit" type="TextureButton" parent="Panel/VBoxContainer"]
+[node name="Exit" type="TextureButton" parent="Panel/VBoxContainer" unique_id=538877787]
 layout_mode = 2
 texture_normal = ExtResource("28_a5br4")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = SubResource("CompressedTexture2D_75pxm")
 stretch_mode = 0
 
-[node name="Info" type="Button" parent="Panel/VBoxContainer"]
+[node name="Info" type="Button" parent="Panel/VBoxContainer" unique_id=1471731850]
 custom_minimum_size = Vector2(100, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("28_5h8pl")
@@ -264,9 +264,9 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_kb1xe")
 theme_override_styles/focus = SubResource("StyleBoxTexture_xu6k0")
 text = "INFO"
 
-[node name="ExitUI" type="CanvasLayer" parent="."]
+[node name="ExitUI" type="CanvasLayer" parent="." unique_id=937022876]
 
-[node name="Exit_panel" type="PanelContainer" parent="ExitUI"]
+[node name="Exit_panel" type="PanelContainer" parent="ExitUI" unique_id=601265510]
 visible = false
 anchors_preset = -1
 anchor_left = 0.162037
@@ -277,11 +277,11 @@ offset_left = 1.52588e-05
 offset_bottom = -0.00012207
 metadata/_edit_use_anchors_ = true
 
-[node name="Panel2" type="Panel" parent="ExitUI/Exit_panel"]
+[node name="Panel2" type="Panel" parent="ExitUI/Exit_panel" unique_id=835656065]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_xufyx")
 
-[node name="Label" type="Label" parent="ExitUI/Exit_panel/Panel2"]
+[node name="Label" type="Label" parent="ExitUI/Exit_panel/Panel2" unique_id=829469678]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 0.17737
@@ -291,7 +291,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Ok" type="TextureButton" parent="ExitUI/Exit_panel/Panel2"]
+[node name="Ok" type="TextureButton" parent="ExitUI/Exit_panel/Panel2" unique_id=2022968678]
 layout_mode = 0
 anchor_left = 0.122178
 anchor_top = 0.46789
@@ -303,7 +303,7 @@ texture_normal = ExtResource("30_a8tdm")
 texture_pressed = ExtResource("31_d1ama")
 metadata/_edit_use_anchors_ = true
 
-[node name="Close" type="TextureButton" parent="ExitUI/Exit_panel/Panel2"]
+[node name="Close" type="TextureButton" parent="ExitUI/Exit_panel/Panel2" unique_id=529949316]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.634794

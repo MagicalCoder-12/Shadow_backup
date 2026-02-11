@@ -151,7 +151,8 @@ func _setup_references() -> void:
 		spawn_point_offset,
 		plNormalBullet,
 		plSuperBullet,
-		plShadowBullet
+		plShadowBullet,
+		GameManager.get_game_settings_section("player_balance")
 	)
 	movement_input_service.configure(self, collision_shape, smoothness, boundary_padding)
 	satellite_service.configure(self, sprite_2d, GameManager, Callable(self, "_debug_log"))
@@ -251,36 +252,35 @@ func revert_shadow_mode_effects() -> void:
 	mode_service.revert_shadow_mode_effects()
 
 func shoot() -> void:
-	fire_delay_timer.start(fire_delay_timer.wait_time)
+	fire_delay_timer.start(mode_service.get_balanced_fire_delay(fire_delay_timer.wait_time))
 	var is_super_mode = GameManager.player_manager.player_stats.get("is_super_mode_active", false)
 	var is_shadow_mode = GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)
+	var bullet_damage: int = mode_service.get_balanced_bullet_damage(
+		GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+	)
 	
 	# Check if this is Ship2 to apply swapped behavior
-	if ship_id == "Ship2":
+	if ship_id == "Ship2" and mode_service.use_ship2_mode_swap():
 		# For Ship2, swap the bullet types and patterns
 		if is_super_mode and not is_shadow_mode:
 			# Super mode active: use shadow bullets with shadow pattern
 			var bullet_scene: PackedScene = plShadowBullet
 			var bullet_speed: float = GameManager.player_manager.default_bullet_speed
-			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 			_shoot_shadow_bullets(bullet_scene, bullet_speed, bullet_damage)
 		elif is_shadow_mode and not is_super_mode:
 			# Shadow mode active: use super bullets with super pattern
 			var bullet_scene: PackedScene = plSuperBullet
 			var bullet_speed: float = super_mode_bullet_speed
-			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 			_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
 		else:
 			# Neither mode or both modes: use normal bullets with normal pattern
 			var bullet_scene: PackedScene = plBullet
 			var bullet_speed: float = GameManager.player_manager.default_bullet_speed
-			var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 			_shoot_normal_bullets(bullet_scene, bullet_speed, bullet_damage)
 	else:
 		# For other ships, use standard behavior
 		var bullet_scene: PackedScene = plSuperBullet if is_super_mode else plShadowBullet if is_shadow_mode else plBullet
 		var bullet_speed: float = super_mode_bullet_speed if is_super_mode else GameManager.player_manager.default_bullet_speed
-		var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 
 		if is_shadow_mode and not is_super_mode:
 			_shoot_shadow_bullets(bullet_scene, bullet_speed, bullet_damage)
@@ -455,13 +455,21 @@ func _show_overclocked_notification() -> void:
 		get_tree().create_timer(2.0).timeout.connect(func(): power_up_notification.visible = false)
 
 func apply_bullet_damage_increase(amount: int) -> void:
-	GameManager.player_manager.player_stats["bullet_damage"] += amount
-	GameManager.player_manager.player_stats["base_bullet_damage"] += amount
+	var attack_level: int = int(GameManager.player_manager.player_stats.get("attack_level", 0))
+	var balanced_gain: int = mode_service.get_balanced_upgrade_gain(amount, attack_level, GameManager.player_manager.max_attack_level)
+	var next_base_damage := mode_service.get_balanced_bullet_damage(
+		int(GameManager.player_manager.player_stats.get("base_bullet_damage", GameManager.player_manager.default_bullet_damage)) + balanced_gain
+	)
+	GameManager.player_manager.player_stats["base_bullet_damage"] = next_base_damage
+	GameManager.player_manager.player_stats["bullet_damage"] = next_base_damage
 	GameManager.player_manager.player_stats["attack_level"] += 1
 	add_firing_position(GameManager.player_manager.player_stats["attack_level"])
 	
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
-		GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.player_stats["base_bullet_damage"] * 2
+		var shadow_multiplier: float = float(GameManager.get_game_settings_section("player_balance").get("shadow_damage_multiplier", 1.75))
+		GameManager.player_manager.player_stats["bullet_damage"] = mode_service.get_balanced_bullet_damage(
+			int(GameManager.player_manager.player_stats["base_bullet_damage"] * shadow_multiplier)
+		)
 	
 	# Notify GameManager that ship stats have been updated
 	GameManager.notify_ship_stats_updated(ship_id, GameManager.player_manager.player_stats["base_bullet_damage"])

@@ -10,10 +10,11 @@ const SAVE_SCHEMA_VERSION: int = 2
 
 # Default resource values for new or reset progress
 const DEFAULT_RESOURCES: Dictionary = {
-	"crystal_count": 500,
-	"coin_count": 1500,
-	"void_shards_count": 100
+	"crystal_count": 700,
+	"coin_count": 2000,
+	"void_shards_count": 200
 }
+var initial_resources: Dictionary = DEFAULT_RESOURCES.duplicate(true)
 
 # Per-level data storage
 var level_scores: Dictionary = {}  # level_num -> score
@@ -42,6 +43,29 @@ func _load_settings_from_config() -> void:
 	if gm:
 		progress_file_path = gm.get_game_setting("progress_file_path", "user://game_progress.dat")
 		save_debounce_seconds = float(gm.get_game_setting("save_debounce_seconds", 1.0))
+		var initial_resources_settings: Dictionary = gm.get_game_settings_section("initial_resources")
+		if not initial_resources_settings.is_empty():
+			initial_resources["crystal_count"] = int(
+				initial_resources_settings.get(
+					"crystals",
+					initial_resources_settings.get("crystal_count", DEFAULT_RESOURCES["crystal_count"])
+				)
+			)
+			initial_resources["coin_count"] = int(
+				initial_resources_settings.get(
+					"coins",
+					initial_resources_settings.get("coin_count", DEFAULT_RESOURCES["coin_count"])
+				)
+			)
+			initial_resources["void_shards_count"] = int(
+				initial_resources_settings.get(
+					"void_shards",
+					initial_resources_settings.get(
+						"void_crystals",
+						initial_resources_settings.get("void_shards_count", DEFAULT_RESOURCES["void_shards_count"])
+					)
+				)
+			)
 	else:
 		push_warning("GameManager not available. Using default file paths.")
 
@@ -220,9 +244,9 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	
 	gm.ships = _array_or_default(player_data.get("ships", _get_default_ships()), _get_default_ships())
 	gm.satellites = _array_or_default(player_data.get("satellites", _get_default_satellites()), _get_default_satellites())
-	gm.crystal_count = max(0, int(resources_data.get("crystals", DEFAULT_RESOURCES["crystal_count"])))
-	gm.coin_count = max(0, int(resources_data.get("coins", DEFAULT_RESOURCES["coin_count"])))
-	gm.void_shards_count = max(0, int(resources_data.get("void_shards", DEFAULT_RESOURCES["void_shards_count"])))
+	gm.crystal_count = max(0, int(resources_data.get("crystals", initial_resources["crystal_count"])))
+	gm.coin_count = max(0, int(resources_data.get("coins", initial_resources["coin_count"])))
+	gm.void_shards_count = max(0, int(resources_data.get("void_shards", initial_resources["void_shards_count"])))
 	
 	level_scores = _dictionary_or_default(progress_data.get("level_scores", {}), {})
 	level_lives = _dictionary_or_default(progress_data.get("level_lives", {}), {})
@@ -248,9 +272,9 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	var selected_ship_id: Variant = _read_legacy_value(file, "Ship1")
 	var ships_data: Variant = _read_legacy_value(file, _get_default_ships())
 	var satellites_data: Variant = _read_legacy_value(file, _get_default_satellites())
-	var crystals: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["crystal_count"])
-	var coins: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["coin_count"])
-	var void_shards: Variant = _read_legacy_value(file, DEFAULT_RESOURCES["void_shards_count"])
+	var crystals: Variant = _read_legacy_value(file, initial_resources["crystal_count"])
+	var coins: Variant = _read_legacy_value(file, initial_resources["coin_count"])
+	var void_shards: Variant = _read_legacy_value(file, initial_resources["void_shards_count"])
 	var loaded_level_scores: Variant = _read_legacy_value(file, {})
 	var loaded_level_lives: Variant = _read_legacy_value(file, {})
 	var loaded_boss_levels: Variant = _read_legacy_value(file, [])
@@ -348,9 +372,9 @@ func reset_progress() -> void:
 	gm.reset_level_progress()
 	gm.ships = _get_default_ships()
 	gm.satellites = _get_default_satellites()
-	gm.crystal_count = DEFAULT_RESOURCES["crystal_count"]
-	gm.coin_count = DEFAULT_RESOURCES["coin_count"]
-	gm.void_shards_count = DEFAULT_RESOURCES["void_shards_count"]
+	gm.crystal_count = initial_resources["crystal_count"]
+	gm.coin_count = initial_resources["coin_count"]
+	gm.void_shards_count = initial_resources["void_shards_count"]
 	level_scores = {}
 	level_lives = {}
 	# Reset boss_levels_completed data

@@ -19,6 +19,18 @@ var _super_mode_speed_multiplier: float = 2.0
 var _super_mode_damage_boost: int = 2
 var _super_mode_fire_delay: float = 0.15
 var _spawn_point_offset: float = 5.0
+var _player_balance: Dictionary = {
+	"shadow_damage_multiplier": 1.75,
+	"super_damage_multiplier": 1.55,
+	"super_flat_bonus": 3,
+	"combined_damage_multiplier": 2.1,
+	"min_fire_delay": 0.08,
+	"max_fire_delay": 0.32,
+	"max_damage_cap": 2500,
+	"ship2_mode_swap_enabled": true,
+	"upgrade_diminish_per_level": 0.12,
+	"min_upgrade_factor": 0.55
+}
 
 var _normal_bullet_scene: PackedScene
 var _super_bullet_scene: PackedScene
@@ -46,7 +58,8 @@ func configure(
 	spawn_point_offset: float,
 	normal_bullet_scene: PackedScene,
 	super_bullet_scene: PackedScene,
-	shadow_bullet_scene: PackedScene
+	shadow_bullet_scene: PackedScene,
+	player_balance_settings: Dictionary = {}
 ) -> void:
 	_owner = owner
 	_game_manager = game_manager
@@ -68,6 +81,7 @@ func configure(
 	_normal_bullet_scene = normal_bullet_scene
 	_super_bullet_scene = super_bullet_scene
 	_shadow_bullet_scene = shadow_bullet_scene
+	_apply_player_balance_settings(player_balance_settings)
 
 func update_ship_context(ship_id: String, original_texture: Texture2D, original_speed: float) -> void:
 	_ship_id = ship_id
@@ -97,9 +111,11 @@ func apply_shadow_mode_effects() -> void:
 
 	_set_player_speed(_original_speed * _shadow_speed_multiplier)
 	if _fire_delay_timer:
-		_fire_delay_timer.wait_time = _shadow_fire_delay_multiplier
+		_fire_delay_timer.wait_time = get_balanced_fire_delay(_normal_fire_delay * _shadow_fire_delay_multiplier)
 	if stats:
-		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage())) * 2
+		var base_damage: int = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+		var shadow_multiplier: float = float(_player_balance.get("shadow_damage_multiplier", 1.75))
+		stats["bullet_damage"] = get_balanced_bullet_damage(int(base_damage * shadow_multiplier))
 
 func revert_shadow_mode_effects() -> void:
 	var stats := _get_stats()
@@ -123,12 +139,12 @@ func revert_shadow_mode_effects() -> void:
 
 	if _fire_delay_timer:
 		if _is_super_mode_active():
-			_fire_delay_timer.wait_time = _super_mode_fire_delay
+			_fire_delay_timer.wait_time = get_balanced_fire_delay(_super_mode_fire_delay)
 		else:
-			_fire_delay_timer.wait_time = _normal_fire_delay
+			_fire_delay_timer.wait_time = get_balanced_fire_delay(_normal_fire_delay)
 
 	if stats and not _is_super_mode_active():
-		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+		stats["bullet_damage"] = get_balanced_bullet_damage(int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
 
 	_set_active_bullet_scene(_normal_bullet_scene)
 
@@ -150,16 +166,22 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 
 	var base_damage: int = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
 	var current_damage: int = int(stats.get("bullet_damage", base_damage))
+	var super_damage_multiplier: float = float(_player_balance.get("super_damage_multiplier", 1.55))
+	var combined_damage_multiplier: float = float(_player_balance.get("combined_damage_multiplier", 2.1))
+	var super_flat_bonus: int = int(_player_balance.get("super_flat_bonus", 3))
 
 	if _is_shadow_mode_active():
-		stats["bullet_damage"] = (base_damage * 2) + _super_mode_damage_boost
+		stats["bullet_damage"] = get_balanced_bullet_damage(int(base_damage * combined_damage_multiplier) + super_flat_bonus + _super_mode_damage_boost)
 		_set_active_bullet_scene(_shadow_bullet_scene)
 	else:
-		stats["bullet_damage"] = int(current_damage * multiplier_div) + _super_mode_damage_boost
+		var normalized_multiplier := clampf(multiplier_div, 1.0, 2.2)
+		var final_multiplier: float = minf(super_damage_multiplier, normalized_multiplier)
+		var scaled_damage := int(current_damage * final_multiplier) + super_flat_bonus + _super_mode_damage_boost
+		stats["bullet_damage"] = get_balanced_bullet_damage(scaled_damage)
 		_set_active_bullet_scene(_super_bullet_scene)
 
 	if _fire_delay_timer:
-		_fire_delay_timer.wait_time = _super_mode_fire_delay
+		_fire_delay_timer.wait_time = get_balanced_fire_delay(_super_mode_fire_delay)
 
 	add_super_mode_spawn_points()
 	if _super_mode_timer:
@@ -219,7 +241,7 @@ func on_super_mode_timeout() -> void:
 	if not _is_shadow_mode_active():
 		var stats := _get_stats()
 		if stats:
-			stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+			stats["bullet_damage"] = get_balanced_bullet_damage(int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
 
 func clear_super_mode_spawn_cache() -> void:
 	_super_mode_spawn_points.clear()
@@ -230,9 +252,10 @@ func _restore_normal_damage() -> void:
 		return
 
 	if _is_shadow_mode_active():
-		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage())) * 2
+		var shadow_multiplier: float = float(_player_balance.get("shadow_damage_multiplier", 1.75))
+		stats["bullet_damage"] = get_balanced_bullet_damage(int(stats.get("base_bullet_damage", _get_default_bullet_damage()) * shadow_multiplier))
 	else:
-		stats["bullet_damage"] = int(stats.get("base_bullet_damage", _get_default_bullet_damage()))
+		stats["bullet_damage"] = get_balanced_bullet_damage(int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
 
 	if _game_manager:
 		_game_manager.notify_ship_stats_updated(_ship_id, int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
@@ -241,9 +264,9 @@ func _restore_normal_fire_delay() -> void:
 	if not _fire_delay_timer:
 		return
 	if _is_shadow_mode_active():
-		_fire_delay_timer.wait_time = _normal_fire_delay * _shadow_fire_delay_multiplier
+		_fire_delay_timer.wait_time = get_balanced_fire_delay(_normal_fire_delay * _shadow_fire_delay_multiplier)
 	else:
-		_fire_delay_timer.wait_time = _normal_fire_delay
+		_fire_delay_timer.wait_time = get_balanced_fire_delay(_normal_fire_delay)
 
 func _cleanup_super_mode_spawn_points() -> void:
 	for marker in _super_mode_spawn_points:
@@ -284,3 +307,33 @@ func _set_super_mode_active(active: bool) -> void:
 	var stats := _get_stats()
 	if stats:
 		stats["is_super_mode_active"] = active
+
+func get_balanced_fire_delay(raw_delay: float) -> float:
+	var min_delay: float = float(_player_balance.get("min_fire_delay", 0.08))
+	var max_delay: float = float(_player_balance.get("max_fire_delay", 0.32))
+	if max_delay < min_delay:
+		max_delay = min_delay
+	return clampf(raw_delay, min_delay, max_delay)
+
+func get_balanced_bullet_damage(raw_damage: int) -> int:
+	var cap: int = int(_player_balance.get("max_damage_cap", 2500))
+	return clampi(raw_damage, 1, maxi(1, cap))
+
+func get_balanced_upgrade_gain(base_gain: int, attack_level: int, max_attack_level: int) -> int:
+	var diminish_per_level: float = float(_player_balance.get("upgrade_diminish_per_level", 0.12))
+	var min_factor: float = float(_player_balance.get("min_upgrade_factor", 0.55))
+	var level_ratio: float = 0.0
+	if max_attack_level > 0:
+		level_ratio = float(attack_level) / float(max_attack_level)
+	var factor: float = maxf(min_factor, 1.0 - (diminish_per_level * level_ratio))
+	return maxi(1, int(round(base_gain * factor)))
+
+func use_ship2_mode_swap() -> bool:
+	return bool(_player_balance.get("ship2_mode_swap_enabled", true))
+
+func _apply_player_balance_settings(balance_settings: Dictionary) -> void:
+	if balance_settings.is_empty():
+		return
+	for key in _player_balance.keys():
+		if balance_settings.has(key):
+			_player_balance[key] = balance_settings[key]

@@ -33,7 +33,14 @@ func _ready() -> void:
 	# Connect to screen exit signal if a VisibleOnScreenNotifier2D is present
 	var notifier: VisibleOnScreenNotifier2D = get_node_or_null("VisibleOnScreenNotifier2D")
 	if notifier:
-		notifier.screen_exited.connect(_on_screen_exited)
+		var notifier_callable := Callable(self, "_on_screen_exited")
+		if not notifier.screen_exited.is_connected(notifier_callable):
+			notifier.screen_exited.connect(notifier_callable)
+
+	# Keep collision handling resilient even if a scene forgot to wire area_entered.
+	var area_callable := Callable(self, "_on_area_entered")
+	if not area_entered.is_connected(area_callable):
+		area_entered.connect(area_callable)
 
 	# Allow derived classes to customize setup
 	_setup_bullet()
