@@ -114,7 +114,7 @@ Progress: Upgrade/purchase payment flows and cost computation are delegated to `
 
 2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
 Target: Extract revive/combat/mode/state-machine modules.
-Progress: Revive flow, invincibility, and shield blinking were extracted into `Ships/Scripts/Services/PlayerReviveService.gd`, combat/damage handling was extracted into `Ships/Scripts/Services/PlayerCombatService.gd`, and mode/state transitions were extracted into `Ships/Scripts/Services/PlayerModeService.gd`; enemy-side extraction remains pending.
+Progress: Revive flow, invincibility, and shield blinking were extracted into `Ships/Scripts/Services/PlayerReviveService.gd`, combat/damage handling was extracted into `Ships/Scripts/Services/PlayerCombatService.gd`, mode/state transitions were extracted into `Ships/Scripts/Services/PlayerModeService.gd`, movement/input handling was extracted into `Ships/Scripts/Services/PlayerMovementInputService.gd`, and satellite integration was extracted into `Ships/Scripts/Services/PlayerSatelliteService.gd`; enemy-side extraction remains pending.
 
 3. Scene-safe spawn/effect API for enemy/boss scripts  
 Target: Replace raw `current_scene.add_child` with guarded spawn facade.
