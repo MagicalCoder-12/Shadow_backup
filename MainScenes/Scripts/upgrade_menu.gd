@@ -68,6 +68,7 @@ var ad_last_used_time: int = 0
 var ad_usage_timer: Timer
 var currency_display_updated: bool = false
 var refresh_timer: Timer
+var details_display_request_id: int = 0
 
 # Ship mapping & indexing
 var name_to_index = {
@@ -230,13 +231,21 @@ func _update_selection_buttons_visibility() -> void:
 				sat_left_select.hide()
 				sat_right_select.hide()
 	else:
-		# When on ships tab, hide left/right select buttons and show normal select button
+		# When on ships tab, hide left/right select buttons and only show select for unlocked ships.
 		if sat_left_select:
 			sat_left_select.hide()
 		if sat_right_select:
 			sat_right_select.hide()
 		if selected:
-			selected.show()
+			var can_show_select := false
+			if not GameManager.ships.is_empty() and selected_ship_index >= 0 and selected_ship_index < GameManager.ships.size():
+				var current_ship = GameManager.ships[selected_ship_index]
+				if current_ship is Dictionary:
+					can_show_select = bool(current_ship.get("unlocked", false))
+			if can_show_select:
+				selected.show()
+			else:
+				selected.hide()
 
 func _can_show_rewarded_ad() -> bool:
 	var current_time = Time.get_unix_time_from_system() as int
@@ -708,9 +717,24 @@ func _execute_ship_upgrade(ship: Dictionary, cost: int, currency_type: String, s
 
 	if ship_index == selected_ship_index:
 		update_ship_ui()
+		_show_details_container_temporarily(2.0)
 
 	# Save progress after upgrade
 	GameManager.save_manager.save_progress()
+
+func _show_details_container_temporarily(duration_seconds: float = 2.0) -> void:
+	if not details_container:
+		return
+	details_display_request_id += 1
+	var request_id := details_display_request_id
+	details_container.show()
+	await get_tree().create_timer(duration_seconds).timeout
+	if not is_inside_tree():
+		return
+	if request_id != details_display_request_id:
+		return
+	if details_container:
+		details_container.hide()
 
 func _apply_stat_boost(ship: Dictionary) -> void:
 	var base_damage_boost = 5
@@ -1458,6 +1482,7 @@ func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
 
 	if satellite_index == selected_satellite_index:
 		update_satellite_ui()
+		_show_details_container_temporarily(2.0)
 	_update_all_satellite_textures()
 
 	# Save progress after upgrade
