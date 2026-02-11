@@ -1,0 +1,50 @@
+{
+	"schema_version": 1,
+	"progress_file_path": "user://game_progress.dat",
+	"default_bullet_speed": 3000.0,
+	"default_bullet_damage": 20,
+	"max_attack_level": 4,
+	
+	"enemy_attack_settings": {
+		"base_shoot_cooldown": 1.5,
+		"min_shoot_cooldown": 0.8,
+		"max_shoot_cooldown": 2.5,
+		
+		"normal_pattern_weights": {
+			"single_shot": 60,
+			"aimed_shot": 25,
+			"spread_shot": 10,
+			"burst_shot": 5
+		},
+		
+		"shadow_pattern_weights": {
+			"single_shot": 40,
+			"aimed_shot": 30,
+			"spread_shot": 20,
+			"burst_shot": 10
+		},
+		
+		"difficulty_modifiers": {
+			"easy": 1.3,
+			"normal": 1.0,
+			"hard": 0.85,
+			"nightmare": 0.7
+		}
+	},
+	
+	"spawn_settings": {
+		"entry_path_steps": 12,
+		"curve_strength": 0.4,
+		"spiral_rotations": 1.5,
+		"spawn_indicator_duration": 1.0,
+		"spawn_indicator_blink_count": 3
+	},
+	
+	"movement_settings": {
+		"swarm_coherence": 0.8,
+		"dive_bomb_probability": 0.1,
+		"ambush_probability": 0.15,
+		"circle_radius": 80.0,
+		"side_to_side_amplitude": 50.0
+	}
+}

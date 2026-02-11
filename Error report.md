@@ -2,11 +2,11 @@
 
 Tracked remediation items in this report: **13**
 
-- Completed: **9**
+- Completed: **10**
 - Partial: **0**
-- Remaining: **4**
-- Completion (fully done items): **69.2%**
-- Remaining effort: **30.8%**
+- Remaining: **3**
+- Completion (fully done items): **76.9%**
+- Remaining effort: **23.1%**
 
 **Completed**
 
@@ -45,6 +45,10 @@ Notes: Revive orchestration moved to `Autoloads/Scripts/Services/GameReviveServi
 9. Save batching/debounce strategy (`Autoloads/Scripts/Managers/SaveManager.gd`)  
 Status: **Completed**  
 Notes: Added debounced save scheduling with configurable delay, pending-save coalescing, and force-save path for shutdown and recovery.
+
+10. `Autoloads/Scripts/Managers/ConfigLoader.gd` defaults + schema validation  
+Status: **Completed**  
+Notes: Defaults moved into versioned assets under `data/defaults/` and strict schema validation added to reject mismatched config shapes.
 
 ---
 
@@ -113,6 +117,3 @@ Target: Extract revive/combat/mode/state-machine modules.
 
 3. Scene-safe spawn/effect API for enemy/boss scripts  
 Target: Replace raw `current_scene.add_child` with guarded spawn facade.
-
-4. `Autoloads/Scripts/Managers/ConfigLoader.gd`  
-Target: Move defaults into versioned data assets and add strict schema validation.
