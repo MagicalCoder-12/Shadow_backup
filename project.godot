@@ -31,13 +31,13 @@ boot_splash/custom_image="res://Textures/Splash_Screen/cursor.png"
 
 [autoload]
 
-ConfigLoader="*res://Autoloads/Scripts/ConfigLoader.gd"
-AudioManager="*res://Autoloads/Scripts/AudioManager.gd"
-SaveManager="*res://Autoloads/Scripts/SaveManager.gd"
-AdManager="*res://Autoloads/Scripts/AdManager.gd"
-PlayerManager="*res://Autoloads/Scripts/PlayerManager.gd"
-LevelManager="*res://Autoloads/Scripts/LevelManager.gd"
-SceneManager="*res://Autoloads/Scripts/SceneManager.gd"
+ConfigLoader="*res://Autoloads/Scripts/Managers/ConfigLoader.gd"
+AudioManager="*res://Autoloads/Scripts/Systems/AudioManager.gd"
+SaveManager="*res://Autoloads/Scripts/Managers/SaveManager.gd"
+AdManager="*res://Autoloads/Scripts/Managers/AdManager.gd"
+PlayerManager="*res://Autoloads/Scripts/Managers/PlayerManager.gd"
+LevelManager="*res://Autoloads/Scripts/Managers/LevelManager.gd"
+SceneManager="*res://Autoloads/Scripts/Managers/SceneManager.gd"
 GameManager="*res://Autoloads/game_manager.tscn"
 BulletFactory="*res://Autoloads/Bullet_Factory.tscn"
 

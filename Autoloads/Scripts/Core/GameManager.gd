@@ -55,9 +55,11 @@ const GROUP_DAMAGEABLE: String = "damageable"
 const GROUP_BOSS: String = "Boss"
 const SUPER_MODE_SPAWN_COUNT: int = 25
 const SAVE_VERSION: int = 1
-const GAME_ECONOMY_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameEconomyService.gd")
-const GAME_PROGRESS_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameProgressService.gd")
-const GAME_CONFIG_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameConfigService.gd")
+const GAME_ECONOMY_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/Services/GameEconomyService.gd")
+const GAME_PROGRESS_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/Services/GameProgressService.gd")
+const GAME_CONFIG_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/Services/GameConfigService.gd")
+const GAME_REVIVE_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/Services/GameReviveService.gd")
+const GAME_SCENE_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/Services/GameSceneService.gd")
 
 # Ascension thresholds for ships (mirroring upgrade_settings.json)
 const ASCENSION_THRESHOLDS: Dictionary = {
@@ -155,6 +157,8 @@ var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
 var economy_service: GameEconomyService = GAME_ECONOMY_SERVICE_SCRIPT.new()
 var progress_service: GameProgressService = GAME_PROGRESS_SERVICE_SCRIPT.new()
 var config_service: GameConfigService = GAME_CONFIG_SERVICE_SCRIPT.new()
+var revive_service: GameReviveService = GAME_REVIVE_SERVICE_SCRIPT.new()
+var game_scene_service: GameSceneService = GAME_SCENE_SERVICE_SCRIPT.new()
 
 func _ready() -> void:
 	# Reference autoload managers instead of instantiating them
@@ -228,60 +232,46 @@ func request_revive_pending_clear(_source: String = "") -> void:
 
 # Called at run reset/new level start so revive limits do not carry across levels.
 func reset_revive_limits_for_level() -> void:
-	request_revive_pending_clear("GameManager.reset_revive_limits_for_level")
-	ad_revives_used_this_level = 0
-	crystal_revives_used_this_level = 0
+	revive_service.reset_revive_limits_for_level(self)
 
 # Read revive configuration through GameManager so callers use one source of truth.
 func get_max_ad_revives_per_level() -> int:
-	return max(0, int(get_upgrade_setting("max_ad_revives_per_level", DEFAULT_MAX_AD_REVIVES_PER_LEVEL)))
+	return revive_service.get_max_ad_revives_per_level(config_service, ConfigLoader, DEFAULT_MAX_AD_REVIVES_PER_LEVEL)
 
 func get_max_crystal_revives_per_level() -> int:
-	return max(0, int(get_upgrade_setting("max_crystal_revives_per_level", DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL)))
+	return revive_service.get_max_crystal_revives_per_level(config_service, ConfigLoader, DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL)
 
 func get_ad_revives_remaining() -> int:
-	return max(0, get_max_ad_revives_per_level() - ad_revives_used_this_level)
+	return revive_service.get_ad_revives_remaining(get_max_ad_revives_per_level(), ad_revives_used_this_level)
 
 func get_crystal_revives_remaining() -> int:
-	return max(0, get_max_crystal_revives_per_level() - crystal_revives_used_this_level)
+	return revive_service.get_crystal_revives_remaining(get_max_crystal_revives_per_level(), crystal_revives_used_this_level)
 
 func get_crystal_revive_cost() -> int:
-	var base_cost: int = max(0, int(get_upgrade_setting("crystal_revive_base_cost", DEFAULT_CRYSTAL_REVIVE_BASE_COST)))
-	var increment: int = max(0, int(get_upgrade_setting("crystal_revive_cost_increment", DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT)))
-	# Crystal revive price scales with each crystal revive used in the current level.
-	return base_cost + (increment * crystal_revives_used_this_level)
+	return revive_service.get_crystal_revive_cost(
+		config_service,
+		ConfigLoader,
+		crystal_revives_used_this_level,
+		DEFAULT_CRYSTAL_REVIVE_BASE_COST,
+		DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT
+	)
 
 # Revives are allowed only while game-over is active and no revive is already pending.
 func can_use_ad_revive() -> bool:
-	return game_over and not is_revive_pending and get_ad_revives_remaining() > 0
+	return revive_service.can_use_ad_revive(game_over, is_revive_pending, get_ad_revives_remaining())
 
 func can_use_crystal_revive() -> bool:
-	return game_over and not is_revive_pending and get_crystal_revives_remaining() > 0
+	return revive_service.can_use_crystal_revive(game_over, is_revive_pending, get_crystal_revives_remaining())
 
 func mark_ad_revive_used() -> void:
-	ad_revives_used_this_level = min(get_max_ad_revives_per_level(), ad_revives_used_this_level + 1)
+	ad_revives_used_this_level = revive_service.mark_ad_revive_used(
+		ad_revives_used_this_level,
+		get_max_ad_revives_per_level()
+	)
 
 # Deduct crystals and lock revive state atomically so UI/gameplay stay in sync.
 func try_spend_crystal_revive() -> Dictionary:
-	if not can_use_crystal_revive():
-		return {
-			"ok": false,
-			"error": "Crystal revives are unavailable."
-		}
-	var cost: int = get_crystal_revive_cost()
-	if not can_afford("crystals", cost):
-		return {
-			"ok": false,
-			"error": "Not enough crystals.",
-			"cost": cost
-		}
-	deduct_currency("crystals", cost)
-	crystal_revives_used_this_level = min(get_max_crystal_revives_per_level(), crystal_revives_used_this_level + 1)
-	request_revive_pending_start("GameManager.try_spend_crystal_revive")
-	return {
-		"ok": true,
-		"cost": cost
-	}
+	return revive_service.try_spend_crystal_revive(self)
 
 func set_shadow_mode_enabled(value: bool, _source: String = "") -> void:
 	shadow_mode_state.shadow_mode_enabled = value
@@ -372,12 +362,10 @@ func connect_score_signals(target_node: Node) -> void:
 
 # Public API methods
 func change_scene(scene_path: String) -> void:
-	# Clear bullet pools before changing scenes to prevent memory leaks
-	BulletFactory.clear_pools()
-	scene_manager.change_scene(scene_path)
+	game_scene_service.change_scene(scene_manager, scene_path)
 
 func load_level(level_num: int) -> void:
-	level_manager.load_level(level_num)
+	game_scene_service.load_level(level_manager, level_num)
 
 func request_ad_revive() -> bool:
 	return _request_ad_revive_internal()
@@ -387,27 +375,14 @@ func request_ad_revive_from_ui() -> bool:
 
 # Shared ad-revive request path keeps UI and non-UI callers behaviorally identical.
 func _request_ad_revive_internal() -> bool:
-	if not can_use_ad_revive():
-		return false
-	if not ad_manager:
-		return false
-	pause_for_ad_revive()
-	# Hide banner before requesting revive ad to avoid overlap conflicts.
-	if ad_manager.is_initialized and ad_manager.is_banner_showing:
-		ad_manager.hide_banner_ad()
-	var started := ad_manager.request_ad_revive()
-	# If the ad request cannot start, immediately unpause to avoid freeze leaks.
-	if not started:
-		resume_after_ad_revive()
-	return started
+	return revive_service.request_ad_revive_internal(self, ad_manager)
 
 # Centralized revive result handlers keep UI flows dependent on one completion signal.
 func handle_ad_revive_success(_ad_type: String = "") -> void:
-	mark_ad_revive_used()
-	revive_completed.emit(true)
+	revive_service.handle_ad_revive_success(self)
 
 func handle_ad_revive_failure(_error_data: Variant = null) -> void:
-	revive_completed.emit(false)
+	revive_service.handle_ad_revive_failure(self, _error_data)
 
 func notify_ad_failed_to_load(ad_type: String, error_data: Variant) -> void:
 	ad_failed_to_load.emit(ad_type, error_data)
@@ -435,14 +410,10 @@ func is_level_completed(level: int) -> bool:
 	return level_manager.is_level_completed(level)
 
 func get_current_level() -> int:
-	if level_manager:
-		return level_manager.get_current_level()
-	return 0
+	return game_scene_service.get_current_level(level_manager)
 
 func get_map_scene_path() -> String:
-	if scene_manager:
-		return scene_manager.MAP_SCENE
-	return "res://Map/map.tscn"
+	return game_scene_service.get_map_scene_path(scene_manager)
 
 func is_shadow_mode_enabled() -> bool:
 	return shadow_mode_state.shadow_mode_enabled
@@ -477,13 +448,10 @@ func reset_ad_revive_state() -> void:
 		ad_manager.is_ad_showing = false
 
 func get_start_scene_path() -> String:
-	if scene_manager:
-		return scene_manager.START_SCREEN_SCENE
-	return "res://MainScenes/start_menu.tscn"
+	return game_scene_service.get_start_scene_path(scene_manager)
 
 func set_level_game_over_screen_active(active: bool) -> void:
-	if level_manager:
-		level_manager.is_game_over_screen_active = active
+	game_scene_service.set_level_game_over_screen_active(level_manager, active)
 
 # Save/load helper accessors keep persistence logic decoupled from manager internals.
 func has_level_state() -> bool:
