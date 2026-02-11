@@ -17,14 +17,6 @@ position = Vector2(1, -47)
 
 [node name="CPUParticles2D" parent="." index="4"]
 position = Vector2(-19, 36)
-emission_sphere_radius = 6.85
-gravity = Vector2(-30, 0)
-color = Color(0.8357874, 0.45177972, 0.20591736, 1)
-
-[node name="CPUParticles2D2" type="CPUParticles2D" parent="." index="5"]
-position = Vector2(24, 2)
-amount = 500
-emission_shape = 1
-emission_sphere_radius = 6.85
-gravity = Vector2(30, 0)
+emission_sphere_radius = 6.0
+gravity = Vector2(-50, 0)
 color = Color(0.8357874, 0.45177972, 0.20591736, 1)

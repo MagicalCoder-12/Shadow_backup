@@ -918,9 +918,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -338.63412
-offset_top = -297.5
-offset_right = 963.8659
-offset_bottom = 263.5
+offset_top = -343.5
+offset_right = 976.3659
+offset_bottom = 347.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -941,12 +941,12 @@ theme = ExtResource("7_462bn")
 theme_type_variation = &"Details_panel"
 
 [node name="ShipDetails" type="VBoxContainer" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.0817204
 anchor_top = 0.271186
 anchor_right = 0.939785
-anchor_bottom = 1.29567
-grow_vertical = 2
+anchor_bottom = 0.93053544
 theme = ExtResource("7_462bn")
 metadata/_edit_use_anchors_ = true
 
@@ -962,7 +962,7 @@ vertical_alignment = 1
 [node name="StatusLabel" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "Upgrades to next ascension: %d\" % next_requirements[\"upgrades_needed\"]"
+text = "Upgrades to next ascension: "
 label_settings = SubResource("LabelSettings_4xt2x")
 autowrap_mode = 3
 metadata/_edit_use_anchors_ = true

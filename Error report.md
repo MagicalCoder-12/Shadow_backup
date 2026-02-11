@@ -102,6 +102,7 @@ Risk: false-ready auth UI path and inconsistent production behavior.
 
 1. `MainScenes/Scripts/upgrade_menu.gd`  
 Target: Separate transaction logic from UI rendering/state.
+Progress: Upgrade/purchase payment flows and cost computation are delegated to `MainScenes/Scripts/Services/UpgradeTransactionService.gd`, ad request orchestration plus usage/reward messaging is delegated to `MainScenes/Scripts/Services/UpgradeAdService.gd`, selection/equip logic is delegated to `MainScenes/Scripts/Services/UpgradeSelectionService.gd`, and currency/texture refresh logic is delegated to `MainScenes/Scripts/Services/UpgradeUIRefreshService.gd`, while `upgrade_menu.gd` retains UI rendering/state updates.
 
 2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
 Target: Extract revive/combat/mode/state-machine modules.

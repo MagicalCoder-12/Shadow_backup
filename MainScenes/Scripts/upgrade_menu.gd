@@ -7,6 +7,10 @@ const MAP = "res://Map/map.tscn"
 const SHOP = "res://MainScenes/Shop.tscn"
 const AD_LIMIT_PER_HOUR = 15
 const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
+const UPGRADE_TRANSACTION_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeTransactionService.gd")
+const UPGRADE_AD_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeAdService.gd")
+const UPGRADE_SELECTION_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeSelectionService.gd")
+const UPGRADE_UI_REFRESH_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeUIRefreshService.gd")
 
 # ================================
 # UI NODE REFERENCES
@@ -63,12 +67,14 @@ var selected_ship_index: int = 0
 var selected_satellite_index: int = 0
 var is_satellite_tab_active: bool = false
 var is_ad_loading: bool = false
-var ad_usage_count: int = 0
-var ad_last_used_time: int = 0
 var ad_usage_timer: Timer
 var currency_display_updated: bool = false
 var refresh_timer: Timer
 var details_display_request_id: int = 0
+var transaction_service: UpgradeTransactionService = UPGRADE_TRANSACTION_SERVICE_SCRIPT.new()
+var ad_service: UpgradeAdService = UPGRADE_AD_SERVICE_SCRIPT.new()
+var selection_service: UpgradeSelectionService = UPGRADE_SELECTION_SERVICE_SCRIPT.new()
+var ui_refresh_service: UpgradeUIRefreshService = UPGRADE_UI_REFRESH_SERVICE_SCRIPT.new()
 
 # Ship mapping & indexing
 var name_to_index = {
@@ -189,28 +195,20 @@ func _initialize_ad_tracking() -> void:
 	ad_usage_timer.wait_time = 1.0  # Check every second
 	ad_usage_timer.timeout.connect(_on_ad_timer_timeout)
 	ad_usage_timer.start()
+	ad_service.configure(AD_LIMIT_PER_HOUR, AD_COOLDOWN_SECONDS)
 	
 	# Load ad usage data from save if available
 	_load_ad_usage_data()
 
 func _load_ad_usage_data() -> void:
-	if GameManager.save_manager:
-		# Fixed: Access SaveManager properties directly instead of trying to use return value of load_progress()
-		ad_usage_count = GameManager.save_manager.ad_usage_count
-		ad_last_used_time = GameManager.save_manager.ad_last_used_time
+	ad_service.load_usage(GameManager.save_manager)
 
 func _save_ad_usage_data() -> void:
 	# Save ad usage data to SaveManager and call save_progress()
-	if GameManager.save_manager:
-		GameManager.save_manager.ad_usage_count = ad_usage_count
-		GameManager.save_manager.ad_last_used_time = ad_last_used_time
-		GameManager.save_manager.save_progress()
+	ad_service.save_usage(GameManager.save_manager)
 	
 func _on_ad_timer_timeout() -> void:
-	var current_time = Time.get_unix_time_from_system() as int
-	# Reset ad usage count if more than an hour has passed
-	if current_time - ad_last_used_time >= AD_COOLDOWN_SECONDS:
-		ad_usage_count = 0
+	ad_service.reset_if_cooldown_elapsed()
 
 func _update_selection_buttons_visibility() -> void:
 	# When on satellites tab, hide normal select button and show left/right select buttons
@@ -248,32 +246,20 @@ func _update_selection_buttons_visibility() -> void:
 				selected.hide()
 
 func _can_show_rewarded_ad() -> bool:
-	var current_time = Time.get_unix_time_from_system() as int
-	# Reset count if cooldown period has passed
-	if current_time - ad_last_used_time >= AD_COOLDOWN_SECONDS:
-		ad_usage_count = 0
-		return true
-	
-	# Check if we're within the limit
-	return ad_usage_count < AD_LIMIT_PER_HOUR
+	return ad_service.can_show_rewarded_ad()
 
 func _record_ad_usage() -> void:
-	ad_usage_count += 1
-	ad_last_used_time = Time.get_unix_time_from_system() as int
-	_save_ad_usage_data()
+	ad_service.record_ad_usage(GameManager.save_manager)
 
 func _show_ad_limit_message() -> void:
-	var msg_text = "Ad limit reached! You can watch ads again in %d minutes." % _get_remaining_cooldown_minutes()
+	var msg_text = ad_service.get_ad_limit_message()
 	_show_warning(msg_text)
 	
 	# Update the currency display
 	_update_currency_display()
 
 func _get_remaining_cooldown_minutes() -> int:
-	var current_time = Time.get_unix_time_from_system() as int
-	var elapsed_time = current_time - ad_last_used_time
-	var remaining_time = max(0, AD_COOLDOWN_SECONDS - elapsed_time)
-	return ceil(remaining_time / 60.0)
+	return ad_service.get_remaining_cooldown_minutes()
 
 # ================================
 # CURRENCY MANAGEMENT
@@ -285,86 +271,21 @@ func _get_current_upgrade_costs() -> Dictionary:
 	var ship = GameManager.ships[selected_ship_index]
 	if not ship is Dictionary:
 		return {"crystal_cost": 50, "coin_cost": 250, "void_shard_cost": 100}
-
-	var upgrade_count = ship.get("upgrade_count", 0)
-	var ascend_count = ship.get("ascend_count", 0)  # New property
-	
-	# Get base costs and scaling factors from config
-	var base_crystal_cost = 50
-	var base_coin_cost = 250
-	var ascend_cost = 100
-	
-	# Use different scaling factors for each currency type
-	var crystal_scaling_factor = 1.10
-	var coin_scaling_factor = 1.25
-	var ascend_scaling_factor = 1.05
-
-	# Use ConfigLoader if available
-	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
-		base_crystal_cost = ConfigLoader.upgrade_settings.get("upgrade_crystal_cost", 50)
-		base_coin_cost = ConfigLoader.upgrade_settings.get("upgrade_coin_cost", 250)
-		ascend_cost = ConfigLoader.upgrade_settings.get("upgrade_ascend_cost", 100)
-		
-		# Load different scaling factors if available in config
-		crystal_scaling_factor = ConfigLoader.upgrade_settings.get("crystal_scaling_factor", 1.10)
-		coin_scaling_factor = ConfigLoader.upgrade_settings.get("coin_scaling_factor", 1.25)
-		ascend_scaling_factor = ConfigLoader.upgrade_settings.get("ascend_scaling_factor", 1.05)
-	else:
-		push_warning("ConfigLoader not available or upgrade_settings missing. Using default upgrade costs.")
-
-	# Use different scaling factors for each currency type
-	# Only non-ascend upgrades affect crystal/coin costs
-	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count - ascend_count))
-	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count - ascend_count))
-	# Ascend costs scale independently
-	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(ascend_count))
-
-	return {
-		"crystal_cost": int(crystal_cost),
-		"coin_cost": int(coin_cost),
-		"void_shard_cost": int(void_shard_cost)
-	}
+	return transaction_service.get_ship_upgrade_costs(ConfigLoader, ship)
 
 func _format_number(num: int) -> String:
-	if num >= 1000000000:
-		return "%.1fB" % (num / 1000000000.0)
-	elif num >= 1000000:
-		return "%.1fM" % (num / 1000000.0)
-	elif num >= 1000:
-		return "%.1fK" % (num / 1000.0)
-	return str(num)
+	return ui_refresh_service.format_number(num)
 
 func _update_currency_display() -> void:
-	# Check if nodes are valid before accessing them
-	if not Crystals_display:
-		push_error("Crystals_display node is null!")
+	if not ui_refresh_service:
 		return
-		
-	if not Coins_display:
-		push_error("Coins_display node is null!")
-		return
-		
-	if not void_shards_display:
-		push_error("void_shards_display node is null!")
-		return
-
-	var crystals_text := _format_number(GameManager.crystal_count)
-	var coins_text := _format_number(GameManager.coin_count)
-	var void_shards_text := _format_number(GameManager.void_shards_count)
-
-	# Additional safety checks before setting text
-	if Crystals_display:
-		Crystals_display.text = "Crystals: %s" % crystals_text
-	if Coins_display:
-		Coins_display.text = "Coins: %s" % coins_text
-	if void_shards_display:
-		void_shards_display.text = "Void Shards: %s" % void_shards_text
+	ui_refresh_service.update_currency_display(GameManager, Crystals_display, Coins_display, void_shards_display)
 
 func _can_afford_upgrade(cost: int, currency_type: String) -> bool:
-	return GameManager.can_afford(currency_type, cost)
+	return transaction_service.can_afford(GameManager, cost, currency_type)
 
 func _deduct_currency(amount: int, currency_type: String) -> void:
-	GameManager.deduct_currency(currency_type, amount)
+	transaction_service.deduct_currency(GameManager, amount, currency_type)
 	# Ensure the display is updated immediately after deducting currency
 	call_deferred("_update_currency_display")
 
@@ -450,16 +371,8 @@ func update_satellite_ui() -> void:
 		return
 
 	var satellite = GameManager.satellites[selected_satellite_index]
-	# Load satellite texture - try to get it from the satellite data
-	var satellite_texture = null
-	if satellite.has("texture"):
-		var texture_path = satellite["texture"]
-		if texture_path:
-			satellite_texture = load(texture_path)
-		else:
-			push_warning("No texture path found for satellite: %s" % satellite.get("display_name", "Unknown"))
-	else:
-		push_warning("No texture found for satellite: %s" % satellite.get("display_name", "Unknown"))
+	# Load satellite texture using shared refresh service logic
+	var satellite_texture = _get_satellite_texture_dynamic(satellite)
 	
 	if satellite_texture:
 		selected_ship.texture = satellite_texture
@@ -467,7 +380,7 @@ func update_satellite_ui() -> void:
 		push_warning("Could not load satellite texture for: %s" % satellite.get("display_name", "Unknown"))
 
 	ship_name.text = satellite.get("display_name", "Unknown Satellite")
-	damage.text = "Damage: +%d" % satellite.get("damage_bonus", 0)
+	damage.text = "Damage: %d" % satellite.get("damage_bonus", 0)
 
 	var rank_color = _get_rank_color(satellite["rank"])
 	ship_name.modulate = rank_color
@@ -494,6 +407,12 @@ func update_satellite_ui() -> void:
 			if current_ascend < thresholds.size() and satellite["upgrade_count"] < thresholds[current_ascend]:
 				var upgrades_needed = thresholds[current_ascend] - satellite["upgrade_count"]
 				status_text = "Upgrades to next ascension: %d" % upgrades_needed
+			var upgrade_damage := _get_satellite_upgrade_damage_increase(satellite)
+			if upgrade_damage > 0:
+				if status_text.is_empty():
+					status_text = "Upgrade +%d Damage" % upgrade_damage
+				else:
+					status_text = "%s | Upgrade +%d Damage" % [status_text, upgrade_damage]
 
 		status_label.text = status_text
 		_update_satellite_ascend_button_visibility()
@@ -596,73 +515,26 @@ func select_ship_by_name(ship_node_name: String) -> void:
 # ENHANCED TEXTURE MANAGEMENT
 # ================================
 func _get_ship_texture_dynamic(ship: Dictionary, evolution_stage: int) -> Texture2D:
-	if not ship.has("textures"):
-		push_error("No textures found for ship: %s" % ship.get("display_name", "Unknown"))
+	if not ui_refresh_service:
 		return null
-
-	var textures = ship["textures"]
-	if textures.is_empty():
-		push_error("Textures dictionary is empty for ship: %s" % ship.get("display_name", "Unknown"))
-		return null
-
-	var texture_key = "base" if evolution_stage == 0 else "upgrade_%d" % evolution_stage
-	var texture_path = textures.get(texture_key, textures.get("base", ""))
-
-	if not texture_path:
-		push_warning("Texture key %s not found for %s, using fallback" % [texture_key, ship.get("display_name", "Unknown")])
-		return null
-
-	return load(texture_path)
+	return ui_refresh_service.get_ship_texture_dynamic(ship, evolution_stage)
 
 
 func _get_satellite_texture_dynamic(satellite: Dictionary) -> Texture2D:
-	if not satellite.has("texture"):
-		push_error("No texture found for satellite: %s" % satellite.get("display_name", "Unknown"))
+	if not ui_refresh_service:
 		return null
-
-	var texture_path = satellite["texture"]
-	if not texture_path:
-		push_warning("Texture path is empty for satellite: %s" % satellite.get("display_name", "Unknown"))
-		return null
-
-	return load(texture_path)
+	return ui_refresh_service.get_satellite_texture_dynamic(satellite)
 
 
 func _update_all_ship_textures() -> void:
-	if ship_textures_ui.size() != GameManager.ships.size():
-		push_warning("Mismatch: ship_textures_ui has %d elements, but ships has %d" %
-			[ship_textures_ui.size(), GameManager.ships.size()])
-
-	for i in range(min(GameManager.ships.size(), ship_textures_ui.size())):
-		var ship = GameManager.ships[i]
-		var texture_node = ship_textures_ui[i]
-
-		if not texture_node:
-			push_warning("Texture node at index %d is null!" % i)
-			continue
-
-		var current_texture = _get_ship_texture_dynamic(ship, ship["current_evolution_stage"])
-		if current_texture:
-			texture_node.texture = current_texture
-			texture_node.modulate = Color.WHITE if ship["unlocked"] else Color.BLACK
+	if not ui_refresh_service:
+		return
+	ui_refresh_service.update_all_ship_textures(GameManager, ship_textures_ui)
 
 func _update_all_satellite_textures() -> void:
-	if satellite_textures_ui.size() != GameManager.satellites.size():
-		push_warning("Mismatch: satellite_textures_ui has %d elements, but satellites has %d" %
-			[satellite_textures_ui.size(), GameManager.satellites.size()])
-
-	for i in range(min(GameManager.satellites.size(), satellite_textures_ui.size())):
-		var satellite = GameManager.satellites[i]
-		var texture_node = satellite_textures_ui[i]
-
-		if not texture_node:
-			push_warning("Texture node at index %d is null!" % i)
-			continue
-
-		var current_texture = _get_satellite_texture_dynamic(satellite)
-		if current_texture:
-			texture_node.texture = current_texture
-			texture_node.modulate = Color.WHITE if satellite["unlocked"] else Color.BLACK
+	if not ui_refresh_service:
+		return
+	ui_refresh_service.update_all_satellite_textures(GameManager, satellite_textures_ui)
 
 func _get_rank_color(rank: String) -> Color:
 	match rank:
@@ -683,15 +555,13 @@ func _upgrade_ship(ship_index: int, currency_type: String) -> bool:
 		return false
 	
 	var costs = _get_current_upgrade_costs()
-	var cost = costs["crystal_cost"] if currency_type == "crystals" else costs["coin_cost"]
-	
-	# Check if player can afford
-	if not _can_afford_upgrade(cost, currency_type):
+	var payment_result := transaction_service.try_pay_upgrade_cost(GameManager, costs, currency_type)
+	if not bool(payment_result.get("ok", false)):
 		_show_insufficient_funds_message(ship["display_name"], currency_type)
 		return false
 	
 	# Execute the upgrade
-	_execute_ship_upgrade(ship, cost, currency_type, ship_index)
+	_execute_ship_upgrade(ship, int(payment_result.get("cost", 0)), currency_type, ship_index)
 	return true
 
 func _can_upgrade_ship(ship: Dictionary, _ship_index: int) -> bool:
@@ -707,8 +577,7 @@ func _can_upgrade_ship(ship: Dictionary, _ship_index: int) -> bool:
 	
 	return true
 
-func _execute_ship_upgrade(ship: Dictionary, cost: int, currency_type: String, ship_index: int) -> void:
-	_deduct_currency(cost, currency_type)
+func _execute_ship_upgrade(ship: Dictionary, _cost: int, _currency_type: String, ship_index: int) -> void:
 	ship["upgrade_count"] += 1
 	_apply_stat_boost(ship)
 	_update_all_ship_textures()
@@ -720,7 +589,7 @@ func _execute_ship_upgrade(ship: Dictionary, cost: int, currency_type: String, s
 		_show_details_container_temporarily(2.0)
 
 	# Save progress after upgrade
-	GameManager.save_manager.save_progress()
+	transaction_service.save_progress(GameManager)
 
 func _show_details_container_temporarily(duration_seconds: float = 2.0) -> void:
 	if not details_container:
@@ -762,11 +631,10 @@ func _manual_ascend_ship(ship_index: int) -> bool:
 	if not ship["unlocked"] or not ship["can_ascend"]:
 		return false
 
-	if not _can_afford_upgrade(costs["void_shard_cost"], "void_shards"):
+	var payment_result := transaction_service.try_pay_ascend_cost(GameManager, costs)
+	if not bool(payment_result.get("ok", false)):
 		_show_insufficient_funds_message(ship["display_name"], "void_shards")
 		return false
-
-	_deduct_currency(costs["void_shard_cost"], "void_shards")
 
 	# Increment both counters
 	ship["upgrade_count"] += 1
@@ -793,7 +661,7 @@ func _manual_ascend_ship(ship_index: int) -> bool:
 	_show_evolution_message(ship)
 
 	# Save progress after ascension
-	GameManager.save_manager.save_progress()
+	transaction_service.save_progress(GameManager)
 	return true
 
 func _get_evolution_bonus(ship_id: String, evolution_stage: int) -> Dictionary:
@@ -947,173 +815,55 @@ func _on_selected_pressed() -> void:
 	# Determine if we're currently showing a ship or satellite based on active tab
 	if is_satellite_tab_active:
 		var satellite = GameManager.satellites[selected_satellite_index]
-		if satellite["unlocked"]:
-			# For satellites, update both satellite slots in PlayerManager with the selected satellite (same drone can be used on both sides)
-			if PlayerManager.selected_satellite_ids.size() < 2:
-				PlayerManager.selected_satellite_ids.resize(2)
-				PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-				PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
-			
-			# Update both satellite slots with the selected satellite (same drone can be used on both sides)
-			PlayerManager.selected_satellite_ids[0] = satellite["id"]
-			PlayerManager.selected_satellite_ids[1] = satellite["id"]
-			GameManager.save_manager.save_progress()
-			
-			# Update satellite textures in the current scene
+		var result := selection_service.equip_satellite_both(GameManager, PlayerManager, satellite)
+		if bool(result.get("ok", false)):
 			PlayerManager.update_selected_satellites()
-			# Show message in the message panel
-			_show_message("%s equipped to both left and right slots" % satellite["display_name"])
+			_show_message(str(result.get("message", "")))
 	else:
 		var ship = GameManager.ships[selected_ship_index]
-		if ship["unlocked"]:
-			# Use GameManager's player manager to set selected ship
-			GameManager.player_manager.selected_ship_id = ship["id"]
-			GameManager.save_manager.save_progress()		
-			# Show message in the message panel
-			_show_message("%s selected" % ship["display_name"])
+		var result := selection_service.select_ship(GameManager, ship)
+		if bool(result.get("ok", false)):
+			_show_message(str(result.get("message", "")))
 
 func _on_buy_pressed() -> void:
-	# Determine if we're currently showing a ship or satellite based on active tab
 	if is_satellite_tab_active:
-		var satellite = GameManager.satellites[selected_satellite_index]
-		if satellite["unlocked"]:
-			return
-		
-		# Handle free satellites vs paid satellites
-		var cost = satellite.get("purchase_cost", 0)
-		
-		# If cost is 0 or not defined, unlock the satellite immediately without deducting currency
-		if cost <= 0:
-			satellite["unlocked"] = true
-			GameManager.save_manager.save_progress()
-			_update_all_satellite_textures()  # Fixed to use satellite textures
-			update_satellite_ui()
-			_update_currency_display()
-			return
-		
-		# For paid satellites, check if player can afford and deduct currency
-		if GameManager.can_afford("crystals", cost):
-			GameManager.deduct_currency("crystals", cost)
-			satellite["unlocked"] = true
-			GameManager.save_manager.save_progress()
-			_update_all_satellite_textures()  # Fixed to use satellite textures
-			update_satellite_ui()
-			_update_currency_display()
-		else:
-			_show_insufficient_funds_message(satellite["display_name"], "crystals")
+		_purchase_satellite(selected_satellite_index)
 	else:
-		var ship = GameManager.ships[selected_ship_index]
-		if ship["unlocked"]:
-			return
-	
-		# Handle free ships vs paid ships
-		var cost = ship.get("purchase_cost", 0)
-		
-		# If cost is 0 or not defined, unlock the ship immediately without deducting currency
-		if cost <= 0:
-			ship["unlocked"] = true
-			GameManager.save_manager.save_progress()
-			_update_all_ship_textures()
-			update_ship_ui()
-			_update_currency_display()
-			return
-		
-		# For paid ships, check if player can afford and deduct currency
-		if GameManager.can_afford("crystals", cost):
-			GameManager.deduct_currency("crystals", cost)
-			ship["unlocked"] = true
-			GameManager.save_manager.save_progress()
-			_update_all_ship_textures()
-			update_ship_ui()
-			_update_currency_display()
-		else:
-			_show_insufficient_funds_message(ship["display_name"], "crystals")
+		_purchase_ship(selected_ship_index)
 
 # ================================
 # AD MANAGEMENT SYSTEM
 # ================================
 func _on_ad_crystals_pressed() -> void:
 	if not is_ad_loading:
-		# Check ad limit before showing ad
-		if _can_show_rewarded_ad():
-			_show_rewarded_ad("crystals")
-		else:
-			_show_ad_limit_message()
+		_request_rewarded_ad("crystals")
 
 func _on_ad_coins_pressed() -> void:
 	if not is_ad_loading:
-		# Check ad limit before showing ad
-		if _can_show_rewarded_ad():
-			_show_rewarded_ad("coins")
-		else:
-			_show_ad_limit_message()
+		_request_rewarded_ad("coins")
 
-func _show_rewarded_ad(reward_type: String) -> void:
-	# Use GameManager's ad system
-	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
+func _request_rewarded_ad(reward_type: String) -> void:
+	var result := ad_service.request_reward_ad(GameManager, reward_type)
+	if bool(result.get("ok", false)):
 		is_ad_loading = true
-		GameManager.ad_manager.request_reward_ad(reward_type)
+		return
+
+	is_ad_loading = false
+	var error_code := str(result.get("error", ""))
+	if error_code == "limit":
+		_show_ad_limit_message()
 	else:
-		# If ads aren't available, don't grant reward directly
-		# Instead, show a message that ads are not available
-		_show_warning("Ads not available. Please try again later.")
-		is_ad_loading = false
+		var message_text := str(result.get("message", "Ads not available. Please try again later."))
+		_show_warning(message_text)
 		_update_currency_display()
 
 func _grant_ad_reward(reward_type: String) -> void:
-	var ad_rewards = {}
-	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
-		ad_rewards = ConfigLoader.upgrade_settings
-	else:
-		push_warning("ConfigLoader not available. Using default ad rewards.")
-		# Default values if config not found
-		ad_rewards = {
-			"ad_crystal_reward": 10,
-			"ad_ascend_reward": 10,
-			"ad_coins_reward": 1000
-		}
-	
-	match reward_type:
-		"crystals":
-			var crystal_reward = ad_rewards.get("ad_crystal_reward", 20)
-			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 15)
-			GameManager.add_currency("crystals", crystal_reward)
-			GameManager.add_currency("void_shards", void_shard_reward)
-			_show_ad_reward_message("crystals")
-		"coins":
-			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
-			GameManager.add_currency("coins", coins_reward)
-			_show_ad_reward_message("coins")
-		_:
-			push_warning("Unknown reward type: %s" % reward_type)
-			_show_ad_reward_message(reward_type)
-	
-	# Ensure the display is updated immediately after granting rewards
+	var message_text := ad_service.grant_reward(GameManager, reward_type)
+	_show_message(message_text)
 	call_deferred("_update_currency_display")
 
 func _show_ad_reward_message(reward_type: String) -> void:
-	var ad_rewards = {}
-	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
-		ad_rewards = ConfigLoader.upgrade_settings
-	else:
-		# Default values if config not found
-		ad_rewards = {
-			"ad_crystal_reward": 20,
-			"ad_ascend_reward": 15,
-			"ad_coins_reward": 1000
-		}
-	
-	var message_text = ""
-	match reward_type:
-		"crystals":
-			var crystal_reward = ad_rewards.get("ad_crystal_reward", 20)
-			var void_shard_reward = ad_rewards.get("ad_ascend_reward", 15)
-			message_text = "Rewarded: %d Crystals and %d Void Shards!" % [crystal_reward, void_shard_reward]
-		"coins":
-			var coins_reward = ad_rewards.get("ad_coins_reward", 1000)
-			message_text = "Rewarded: %d Coins!" % coins_reward
-		_:
-			message_text = "Reward granted!"
+	var message_text := ad_service.build_reward_message(GameManager, reward_type)
 	
 	# Display the message in the message panel instead of warning panel
 	_show_message(message_text)
@@ -1125,7 +875,7 @@ func _show_ad_reward_message(reward_type: String) -> void:
 # SAVE/LOAD SYSTEM
 # ================================
 func _save_ship_progress() -> void:
-	GameManager.save_manager.save_progress()
+	transaction_service.save_progress(GameManager)
 
 # ================================
 # UTILITY FUNCTIONS
@@ -1200,18 +950,9 @@ func _get_next_evolution_requirements(ship_index: int) -> Dictionary:
 # PERFORMANCE OPTIMIZATIONS
 # ================================
 func _optimize_texture_loading() -> void:
-	var visible_ships = [selected_ship_index]
-	for i in range(max(0, selected_ship_index - 2), min(GameManager.ships.size(), selected_ship_index + 3)):
-		if i != selected_ship_index:
-			visible_ships.append(i)
-
-	for ship_index in visible_ships:
-		var ship = GameManager.ships[ship_index]
-		var texture_node = ship_textures_ui[ship_index]
-		if texture_node:
-			var current_texture = _get_ship_texture_dynamic(ship, ship["current_evolution_stage"])
-			if current_texture:
-				texture_node.texture = current_texture
+	if not ui_refresh_service:
+		return
+	ui_refresh_service.optimize_texture_loading(GameManager, ship_textures_ui, selected_ship_index)
 
 func _debug_grant_resources(crystal: int = 1000000, coin: int = 500000, void_shard: int = 500000) -> void:
 	GameManager.add_currency("crystals", crystal)
@@ -1326,10 +1067,11 @@ func _initialize_refresh_timer() -> void:
 func _on_refresh_timer_timeout() -> void:
 	# Periodically refresh the currency display as a fallback
 	# Only update if the display hasn't been updated yet or if there's a discrepancy
-	if not currency_display_updated or (
-		Crystals_display and Crystals_display.text != "Crystals: %s" % _format_number(GameManager.crystal_count) or
-		Coins_display and Coins_display.text != "Coins: %s" % _format_number(GameManager.coin_count) or
-		void_shards_display and void_shards_display.text != "Void Shards: %s" % _format_number(GameManager.void_shards_count)
+	if not currency_display_updated or ui_refresh_service.is_currency_display_stale(
+		GameManager,
+		Crystals_display,
+		Coins_display,
+		void_shards_display
 	):
 		_update_currency_display()
 		currency_display_updated = true
@@ -1373,39 +1115,9 @@ func _on_satellites_pressed() -> void:
 
 func _update_current_satellite_textures() -> void:
 	"""Update textures of currently active satellites in the game scene"""
-	# Find all satellite nodes in the current scene and update their textures
-	var current_scene = GameManager.get_tree().current_scene
-	if current_scene:
-		# Look for satellite nodes in the scene
-		var satellites = current_scene.get_nodes_in_group("Satellite")
-		for satellite in satellites:
-			if satellite and satellite.has_method("_load_satellite_data"):
-				satellite._load_satellite_data()  # Reload satellite data to update texture
-				print("Updated satellite texture for: ", satellite.name)
-				
-		# Also try to find satellites as children of the player
-		var player = current_scene.get_node_or_null("Player")
-		if not player:
-			# Try to find player in any group
-			var players = current_scene.get_nodes_in_group("Player")
-			if players.size() > 0:
-				player = players[0]
-			
-		if player:
-			# Try to get satellites attached to player
-			var player_sprite = player.get_node_or_null("Sprite2D")
-			if player_sprite:
-				for child in player_sprite.get_children():
-					if child.name.begins_with("Satellite") and child.has_method("_load_satellite_data"):
-						child._load_satellite_data()  # Reload satellite data to update texture
-						print("Updated satellite texture for: ", child.name)
-		
-			
-		# Wait a frame to ensure all signals are processed, then reload satellite data
-		await get_tree().process_frame
-		for satellite in satellites:
-			if satellite and satellite.has_method("_load_satellite_data"):
-				satellite._load_satellite_data()  # Reload again after signal processing
+	if not ui_refresh_service:
+		return
+	await ui_refresh_service.update_current_satellite_textures(GameManager)
 
 
 func _on_shop_pressed() -> void:
@@ -1424,38 +1136,7 @@ func _get_satellite_upgrade_costs() -> Dictionary:
 	var satellite = GameManager.satellites[selected_satellite_index]
 	if not satellite is Dictionary:
 		return {"crystal_cost": 30, "coin_cost": 500, "void_shard_cost": 80}
-
-	var upgrade_count = satellite.get("upgrade_count", 0)
-	var ascend_count = satellite.get("ascend_count", 0)
-	
-	# Get base costs from config
-	var base_crystal_cost = 30
-	var base_coin_cost = 500
-	var ascend_cost = 80
-	
-	var crystal_scaling_factor = 1.10
-	var coin_scaling_factor = 1.15
-	var ascend_scaling_factor = 1.05
-
-	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
-		base_crystal_cost = ConfigLoader.upgrade_settings.get("satellite_crystal_cost", 30)
-		base_coin_cost = ConfigLoader.upgrade_settings.get("satellite_coin_cost", 500)
-		ascend_cost = ConfigLoader.upgrade_settings.get("satellite_ascend_cost", 80)
-		
-		crystal_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_crystal_scaling_factor", 1.10)
-		coin_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_coin_scaling_factor", 1.15)
-		ascend_scaling_factor = ConfigLoader.upgrade_settings.get("satellite_ascend_scaling_factor", 1.05)
-
-	# Calculate costs using exponential scaling
-	var crystal_cost = base_crystal_cost * pow(crystal_scaling_factor, float(upgrade_count - ascend_count))
-	var coin_cost = base_coin_cost * pow(coin_scaling_factor, float(upgrade_count - ascend_count))
-	var void_shard_cost = ascend_cost * pow(ascend_scaling_factor, float(ascend_count))
-
-	return {
-		"crystal_cost": int(crystal_cost),
-		"coin_cost": int(coin_cost),
-		"void_shard_cost": int(void_shard_cost)
-	}
+	return transaction_service.get_satellite_upgrade_costs(ConfigLoader, satellite)
 
 func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
 	"""Upgrade a satellite using crystals or coins"""
@@ -1469,12 +1150,11 @@ func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
 	if satellite["ascend_count"] >= satellite["max_evolution_stage"]:
 		return false
 
-	var cost = costs["crystal_cost"] if currency_type == "crystals" else costs["coin_cost"]
-	if not _can_afford_upgrade(cost, currency_type):
+	var payment_result := transaction_service.try_pay_upgrade_cost(GameManager, costs, currency_type)
+	if not bool(payment_result.get("ok", false)):
 		_show_warning("Not enough %s to upgrade %s!" % [currency_type, satellite["display_name"]])
 		return false
 
-	_deduct_currency(cost, currency_type)
 	satellite["upgrade_count"] += 1
 	_apply_satellite_stat_boost(satellite)
 	_check_satellite_ascension_eligibility(satellite_index)
@@ -1486,18 +1166,22 @@ func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
 	_update_all_satellite_textures()
 
 	# Save progress after upgrade
-	GameManager.save_manager.save_progress()
+	transaction_service.save_progress(GameManager)
 	return true
 
 func _apply_satellite_stat_boost(satellite: Dictionary) -> void:
 	"""Apply damage bonus increase to satellite"""
-	var base_damage_boost = 2
-	var ascend_count = satellite.get("ascend_count", 0)
-	var stage_multiplier = 1.0 + (ascend_count * 0.2)
-	satellite["damage_bonus"] += int(base_damage_boost * stage_multiplier)
+	var damage_increase := _get_satellite_upgrade_damage_increase(satellite)
+	satellite["damage_bonus"] += damage_increase
 	
 	# Notify GameManager that satellite stats have been updated
 	GameManager.notify_satellite_stats_updated(satellite["id"], satellite["damage_bonus"])
+
+func _get_satellite_upgrade_damage_increase(satellite: Dictionary) -> int:
+	var base_damage_boost = 2
+	var ascend_count = int(satellite.get("ascend_count", 0))
+	var stage_multiplier = 1.0 + (ascend_count * 0.2)
+	return int(base_damage_boost * stage_multiplier)
 
 func _check_satellite_ascension_eligibility(satellite_index: int) -> void:
 	"""Check if satellite has reached ascension threshold"""
@@ -1517,11 +1201,10 @@ func _ascend_satellite(satellite_index: int) -> bool:
 	if not satellite["unlocked"] or not satellite["can_ascend"]:
 		return false
 
-	if not _can_afford_upgrade(costs["void_shard_cost"], "void_shards"):
+	var payment_result := transaction_service.try_pay_ascend_cost(GameManager, costs)
+	if not bool(payment_result.get("ok", false)):
 		_show_warning("Not enough void shards to ascend %s!" % satellite["display_name"])
 		return false
-
-	_deduct_currency(costs["void_shard_cost"], "void_shards")
 
 	# Increment both counters
 	satellite["upgrade_count"] += 1
@@ -1548,7 +1231,7 @@ func _ascend_satellite(satellite_index: int) -> bool:
 	_update_all_satellite_textures()
 
 	# Save progress after ascension
-	GameManager.save_manager.save_progress()
+	transaction_service.save_progress(GameManager)
 	return true
 
 func _get_satellite_evolution_bonus(satellite_id: String, ascend_count: int) -> int:
@@ -1582,34 +1265,37 @@ func _get_satellite_by_id(satellite_id: String) -> Dictionary:
 func _purchase_satellite(satellite_index: int) -> bool:
 	"""Purchase a locked satellite"""
 	var satellite = GameManager.satellites[satellite_index]
-	if satellite["unlocked"]:
+	var result := transaction_service.try_purchase_unlock(GameManager, satellite, "crystals")
+	if not bool(result.get("ok", false)):
+		var error_code := str(result.get("error", "unknown"))
+		if error_code == "insufficient_funds":
+			_show_warning("Not enough crystals to purchase %s!" % satellite["display_name"])
 		return false
 
-	var cost = satellite.get("purchase_cost", 0)
-	
-	# If cost is 0, unlock immediately
-	if cost <= 0:
-		satellite["unlocked"] = true
-		GameManager.save_manager.save_progress()
-		_update_all_satellite_textures()
-		if satellite_index == selected_satellite_index:
-			update_satellite_ui()
-		_show_message("%s unlocked!" % satellite["display_name"])
-		return true
-	
-	# For paid satellites, check if player can afford
-	if GameManager.can_afford("crystals", cost):
-		GameManager.deduct_currency("crystals", cost)
-		satellite["unlocked"] = true
-		GameManager.save_manager.save_progress()
-		_update_all_satellite_textures()
-		if satellite_index == selected_satellite_index:
-			update_satellite_ui()
-		_show_message("%s purchased!" % satellite["display_name"])
-		return true
-	else:
-		_show_warning("Not enough crystals to purchase %s!" % satellite["display_name"])
+	_update_all_satellite_textures()
+	if satellite_index == selected_satellite_index:
+		update_satellite_ui()
+	var action_text := "unlocked" if bool(result.get("was_free", false)) else "purchased"
+	_show_message("%s %s!" % [satellite["display_name"], action_text])
+	_update_currency_display()
+	return true
+
+func _purchase_ship(ship_index: int) -> bool:
+	var ship = GameManager.ships[ship_index]
+	var result := transaction_service.try_purchase_unlock(GameManager, ship, "crystals")
+	if not bool(result.get("ok", false)):
+		var error_code := str(result.get("error", "unknown"))
+		if error_code == "insufficient_funds":
+			_show_insufficient_funds_message(ship["display_name"], "crystals")
 		return false
+
+	_update_all_ship_textures()
+	if ship_index == selected_ship_index:
+		update_ship_ui()
+	var action_text := "unlocked" if bool(result.get("was_free", false)) else "purchased"
+	_show_message("%s %s!" % [ship["display_name"], action_text])
+	_update_currency_display()
+	return true
 
 
 func _on_sat_1_gui_input(event: InputEvent) -> void:
@@ -1639,41 +1325,19 @@ func _on_sat_6_gui_input(event: InputEvent) -> void:
 func _on_sat_left_select_pressed() -> void:
 	# When player selects left satellite, equip the currently selected satellite in the left position
 	var satellite = GameManager.satellites[selected_satellite_index]
-	if satellite["unlocked"]:
-		# Ensure the selected_satellite_ids array has at least 2 elements
-		if PlayerManager.selected_satellite_ids.size() < 2:
-			PlayerManager.selected_satellite_ids.resize(2)
-			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-			PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
-		
-		# Update the left satellite slot with the selected satellite
-		PlayerManager.selected_satellite_ids[0] = satellite["id"]
-		GameManager.save_manager.save_progress()
-		
-		# Update satellite textures in the current scene
+	var result := selection_service.equip_satellite_left(GameManager, PlayerManager, satellite)
+	if bool(result.get("ok", false)):
 		PlayerManager.update_selected_satellites()
-		# Show message in the message panel
-		_show_message("%s equipped to left slot" % satellite["display_name"])
+		_show_message(str(result.get("message", "")))
 
 
 func _on_sat_right_select_pressed() -> void:
 	# When player selects right satellite, equip the currently selected satellite in the right position
 	var satellite = GameManager.satellites[selected_satellite_index]
-	if satellite["unlocked"]:
-		# Ensure the selected_satellite_ids array has at least 2 elements
-		if PlayerManager.selected_satellite_ids.size() < 2:
-			PlayerManager.selected_satellite_ids.resize(2)
-			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-			PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
-		
-		# Update the right satellite slot with the selected satellite
-		PlayerManager.selected_satellite_ids[1] = satellite["id"]
-		GameManager.save_manager.save_progress()
-		
-		# Update satellite textures in the current scene
+	var result := selection_service.equip_satellite_right(GameManager, PlayerManager, satellite)
+	if bool(result.get("ok", false)):
 		PlayerManager.update_selected_satellites()
-		# Show message in the message panel
-		_show_message("%s equipped to right slot" % satellite["display_name"])
+		_show_message(str(result.get("message", "")))
 
 
 func _on_selected_ship_gui_input(event: InputEvent) -> void:
