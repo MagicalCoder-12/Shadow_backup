@@ -1,18 +1,18 @@
-**Fix Progress Summary**
+**Fix Progress Summary (Updated)**
 
-Tracked items in this report: **13**
+Tracked remediation items in this report: **13**
 
-- Completed: **5**
-- Partial: **1**
+- Completed: **6**
+- Partial: **0**
 - Remaining: **7**
-- Effective completion (partial counted as 0.5): **42.3%**
-- Remaining effort: **57.7%**
+- Completion: **46.2%**
+- Remaining effort: **53.8%**
 
 **Completed**
 
 1. `Autoloads/Scripts/SaveManager.gd`  
 Status: **Completed**  
-Notes: Keyed payload save schema, legacy compatibility, backup fallback, and normalization were added.
+Notes: Keyed payload save schema, legacy compatibility, backup fallback, and normalization added.
 
 2. `MainScenes/Scripts/game_over_screen.gd` + `Autoloads/Scripts/GameManager.gd` crystal revive flow  
 Status: **Completed**  
@@ -20,50 +20,100 @@ Notes: Crystal revives added with per-level limits and escalating cost; ad reviv
 
 3. `MainScenes/Scripts/game_over_screen.gd` message and resource display  
 Status: **Completed**  
-Notes: Message label is shown from start and updated by button interaction; `void_shards_display`, `crystals_display`, and `coins_display` now show current player resources.
+Notes: Message label is visible from start and now updates by button interaction; resource labels now reflect current totals.
 
-4. Revive life count bug (`Levels/Scripts/Level.gd`, `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/PlayerManager.gd`)  
+4. Revive life-count bug (`Levels/Scripts/Level.gd`, `Autoloads/Scripts/GameManager.gd`, `Autoloads/Scripts/PlayerManager.gd`)  
 Status: **Completed**  
-Notes: Revive now restores **1 life** consistently (no more 2-life revive).
+Notes: Revive now restores exactly **1 life**.
 
 5. `Autoloads/Scripts/GameManager.gd` revive limit reset integration  
 Status: **Completed**  
-Notes: Revive counters reset for new game/new level to prevent carry-over between levels.
+Notes: Revive counters reset at new run/new level boundaries.
 
-**Partial**
+6. `Autoloads/Scripts/AdManager.gd` race/lifecycle patch  
+Status: **Completed**  
+Notes: Request nonce tracking, stale-callback guards, dismiss-gated revive completion, timeout nonce checks, and `PROCESS_MODE_ALWAYS` handling are in place.
 
-1. `Autoloads/Scripts/SceneManager.gd` + `Autoloads/Scripts/AdManager.gd` ad orchestration  
-Status: **Partial**  
-Done: Banner visibility policy moved from scene manager into ad manager with guard rails.  
-Remaining: Lifecycle/race cleanup and full revive-state ownership split are still needed.
+---
 
-**Remaining (High Priority)**
+**Deep Project Risk Audit**
 
-1. `Autoloads/Scripts/GameManager.gd`  
-Why: Still a high-fan-out orchestrator with mixed responsibilities.
+Audit coverage:
+- **102** GDScript files scanned.
+- Largest scripts by size:
+`MainScenes/Scripts/upgrade_menu.gd` (**1686**), `Ships/Scripts/Player.gd` (**1052**), `Enemy/Scripts/Enemy.gd` (**981**), `Autoloads/Scripts/AdManager.gd` (**760**), `Autoloads/Scripts/GameManager.gd` (**690**), `Levels/Scripts/Level.gd` (**613**).
+- Coupling indicators:
+project-wide `GameManager.` references: **584**.
+`MainScenes/Scripts/upgrade_menu.gd` refs: **139**.
+`Ships/Scripts/Player.gd` refs: **139**.
+- Async complexity indicators:
+`await ...create_timer(...)` usages: **38**.
+`save_progress(...)` call sites: **27**.
 
-2. `Autoloads/Scripts/ConfigLoader.gd`  
-Why: Global config ownership and validation/fallback behavior are still centralized and brittle.
+**High-Risk Elements (Prioritized)**
 
-3. `Autoloads/Scripts/SceneManager.gd`  
-Why: Scene transition, loading, and audio concerns remain concentrated.
+1. **Critical** - Rewarded ad *show-failure* path is not handled in `Autoloads/Scripts/AdManager.gd`.  
+Evidence: plugin exposes `rewarded_ad_failed_to_show_full_screen_content` and `rewarded_interstitial_ad_failed_to_show_full_screen_content` in `addons/AdmobPlugin/Admob.gd`, but `AdManager` does not connect/handle these callbacks.  
+Risk: stuck revive pending state, paused-game mismatch, or silent failure after request.
 
-4. `Autoloads/Scripts/AdManager.gd`  
-Why: Ad lifecycle, retry, and revive interactions still need a race-condition hardening pass.
+2. **Critical** - `Autoloads/Scripts/GameManager.gd` remains a high-fan-out orchestrator.  
+Evidence: 690-line script with global state, scene control, ads, currency, revive, save proxy, and shadow-mode orchestration.  
+Risk: high regression blast radius and difficult bug isolation.
 
-5. `Ships/Scripts/Player.gd`  
-Why: Script is still large and multi-responsibility.
+3. **High** - `MainScenes/Scripts/upgrade_menu.gd` is a monolith handling UI + economy + ad rewards + equip + save.  
+Evidence: 1686 lines, 139 `GameManager` references, frequent direct save calls.  
+Risk: UI fixes can break economy logic and vice versa.
 
-6. `Enemy/Scripts/Enemy.gd`  
-Why: Movement/firing/spawn/mode/lifecycle behavior remains tightly coupled.
+4. **High** - `Ships/Scripts/Player.gd` is multi-responsibility (movement/combat/revive/satellites/modes/stats sync).  
+Evidence: 1052 lines, 139 `GameManager` references.  
+Risk: high fragility around revive/combat state transitions.
 
-7. `MainScenes/Scripts/upgrade_menu.gd` and `Autoloads/Scripts/BulletFactory.gd` + `Bullet/Scripts/BulletBase.gd`  
-Why: Upgrade flow and bullet contracts still carry cross-cutting coupling risk.
+5. **High** - `Enemy/Scripts/Enemy.gd` bundles movement AI, attack patterns, shadow behavior, lifecycle, and rewards.  
+Evidence: 981 lines with many mode-specific branches.  
+Risk: balancing or AI fixes can cause hidden lifecycle regressions.
 
-**Suggested Next Fix Order**
+6. **High** - Scene-transition safety risk from direct `get_tree().current_scene.add_child(...)` usage in combat scripts.  
+Evidence: direct add-child calls in enemy and boss scripts during runtime effects/spawns.  
+Risk: null/current-scene churn during transitions causing intermittent runtime errors.
 
-1. `Autoloads/Scripts/AdManager.gd` race/lifecycle cleanup
-2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd` decomposition
-3. `MainScenes/Scripts/upgrade_menu.gd` separation of UI vs transaction logic
-4. `Autoloads/Scripts/BulletFactory.gd` + `Bullet/Scripts/BulletBase.gd` contract hardening
-5. `Autoloads/Scripts/GameManager.gd` surface reduction + responsibility split
+7. **Medium** - Save I/O is synchronous and called from many runtime paths.  
+Evidence: 27 save call sites across gameplay/UI managers.  
+Risk: unnecessary write pressure and potential save contention/stutter on low-end devices.
+
+8. **Medium** - `Autoloads/Scripts/ConfigLoader.gd` still mixes loader + large embedded defaults.  
+Evidence: large fallback payload definitions inline.  
+Risk: config drift between JSON and hardcoded defaults; higher maintenance cost.
+
+9. **Medium** - `Autoloads/Scripts/SceneManager.gd` mixes scene loading with audio bus policy.  
+Evidence: scene transition logic plus bus mute/unmute orchestration in same unit.  
+Risk: scene-flow changes can unintentionally affect audio state.
+
+10. **Medium** - `MainScenes/Scripts/authentication.gd` is largely placeholder flow.  
+Evidence: status-only handlers without actual auth service calls.  
+Risk: false-ready auth UI path and inconsistent production behavior.
+
+---
+
+**Remaining High-Priority Fixes**
+
+1. `Autoloads/Scripts/AdManager.gd`  
+Target: Add `failed_to_show_full_screen_content` handling and fail-safe finalize paths.
+
+2. `Autoloads/Scripts/GameManager.gd`  
+Target: Split revive/currency/scene responsibilities behind narrow APIs.
+
+3. `MainScenes/Scripts/upgrade_menu.gd`  
+Target: Separate transaction logic from UI rendering/state.
+
+4. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
+Target: Extract revive/combat/mode/state-machine modules.
+
+5. Scene-safe spawn/effect API for enemy/boss scripts  
+Target: Replace raw `current_scene.add_child` with guarded spawn facade.
+
+6. Save batching/debounce strategy  
+Target: Reduce direct synchronous save frequency.
+
+7. `Autoloads/Scripts/ConfigLoader.gd`  
+Target: Move defaults into versioned data assets and add strict schema validation.
+

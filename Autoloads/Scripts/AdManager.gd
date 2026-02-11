@@ -171,6 +171,12 @@ func _connect_admob_signals() -> void:
 			admob.rewarded_ad_showed_full_screen_content.connect(_on_admob_rewarded_ad_showed_full_screen_content)
 		else:
 			_debug_log("rewarded_ad_showed_full_screen_content signal already connected")
+	if admob.has_signal("rewarded_ad_failed_to_show_full_screen_content"):
+		# Check if already connected before connecting
+		if not admob.rewarded_ad_failed_to_show_full_screen_content.is_connected(_on_admob_rewarded_ad_failed_to_show_full_screen_content):
+			admob.rewarded_ad_failed_to_show_full_screen_content.connect(_on_admob_rewarded_ad_failed_to_show_full_screen_content)
+		else:
+			_debug_log("rewarded_ad_failed_to_show_full_screen_content signal already connected")
 	if admob.has_signal("rewarded_ad_dismissed_full_screen_content"):
 		# Check if already connected before connecting
 		if not admob.rewarded_ad_dismissed_full_screen_content.is_connected(_on_admob_rewarded_ad_dismissed_full_screen_content):
@@ -203,6 +209,12 @@ func _connect_admob_signals() -> void:
 			admob.rewarded_interstitial_ad_showed_full_screen_content.connect(_on_admob_rewarded_interstitial_ad_showed_full_screen_content)
 		else:
 			_debug_log("rewarded_interstitial_ad_showed_full_screen_content signal already connected")
+	if admob.has_signal("rewarded_interstitial_ad_failed_to_show_full_screen_content"):
+		# Check if already connected before connecting
+		if not admob.rewarded_interstitial_ad_failed_to_show_full_screen_content.is_connected(_on_admob_rewarded_interstitial_ad_failed_to_show_full_screen_content):
+			admob.rewarded_interstitial_ad_failed_to_show_full_screen_content.connect(_on_admob_rewarded_interstitial_ad_failed_to_show_full_screen_content)
+		else:
+			_debug_log("rewarded_interstitial_ad_failed_to_show_full_screen_content signal already connected")
 	if admob.has_signal("rewarded_interstitial_ad_dismissed_full_screen_content"):
 		# Check if already connected before connecting
 		if not admob.rewarded_interstitial_ad_dismissed_full_screen_content.is_connected(_on_admob_rewarded_interstitial_ad_dismissed_full_screen_content):
@@ -483,6 +495,39 @@ func _handle_rewarded_load_failure(is_video: bool, error_data: Variant, request_
 		_clear_reward_request_state()
 		_emit_ad_failed(reward_type, error_data)
 
+func _handle_rewarded_show_failure(is_video: bool, error_data: Variant) -> void:
+	var failed_type := "video" if is_video else "interstitial"
+	_debug_log("Rewarded %s ad failed to show: %s" % [failed_type, _get_error_message(error_data)])
+
+	if selected_ad_type != failed_type:
+		return
+	if not _is_callback_for_showing_request():
+		return
+	if _dismiss_handled_for_current_request:
+		return
+
+	_dismiss_handled_for_current_request = true
+	is_ad_showing = false
+	_set_load_waiting(false)
+
+	if is_initialized and admob:
+		if is_video:
+			admob.load_rewarded_ad()
+		else:
+			admob.load_rewarded_interstitial_ad()
+
+	var normalized_error := {
+		"message": "Rewarded %s ad failed to show" % failed_type,
+		"code": _get_error_code(error_data)
+	}
+
+	if ad_revive_pending:
+		_finalize_ad_revive(false, failed_type, normalized_error)
+	elif is_reward_ad_pending:
+		var reward_type := current_reward_type
+		_clear_reward_request_state()
+		_emit_ad_failed(reward_type, normalized_error)
+
 func _on_rewarded_ad_dismissed(is_video: bool) -> void:
 	var dismissed_type := "video" if is_video else "interstitial"
 	_debug_log("Rewarded %s ad dismissed" % dismissed_type)
@@ -648,6 +693,9 @@ func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
 	_rewarded_ad_shown = true
 	_debug_log("Rewarded video ad shown")
 
+func _on_admob_rewarded_ad_failed_to_show_full_screen_content(_ad_id: String, error_data: Variant) -> void:
+	_handle_rewarded_show_failure(true, error_data)
+
 func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void:
 	await _on_rewarded_ad_dismissed(true)
 
@@ -694,6 +742,9 @@ func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: Strin
 	is_ad_showing = true
 	_rewarded_ad_shown = true
 	_debug_log("Rewarded interstitial ad shown")
+
+func _on_admob_rewarded_interstitial_ad_failed_to_show_full_screen_content(_ad_id: String, error_data: Variant) -> void:
+	_handle_rewarded_show_failure(false, error_data)
 
 func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: String) -> void:
 	await _on_rewarded_ad_dismissed(false)
