@@ -55,6 +55,9 @@ const GROUP_DAMAGEABLE: String = "damageable"
 const GROUP_BOSS: String = "Boss"
 const SUPER_MODE_SPAWN_COUNT: int = 25
 const SAVE_VERSION: int = 1
+const GAME_ECONOMY_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameEconomyService.gd")
+const GAME_PROGRESS_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameProgressService.gd")
+const GAME_CONFIG_SERVICE_SCRIPT := preload("res://Autoloads/Scripts/GameConfigService.gd")
 
 # Ascension thresholds for ships (mirroring upgrade_settings.json)
 const ASCENSION_THRESHOLDS: Dictionary = {
@@ -149,6 +152,9 @@ var shadow_mode_timer: Timer = Timer.new()
 var shadow_mode_state: ShadowModeState = ShadowModeState.new()
 
 var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
+var economy_service: GameEconomyService = GAME_ECONOMY_SERVICE_SCRIPT.new()
+var progress_service: GameProgressService = GAME_PROGRESS_SERVICE_SCRIPT.new()
+var config_service: GameConfigService = GAME_CONFIG_SERVICE_SCRIPT.new()
 
 func _ready() -> void:
 	# Reference autoload managers instead of instantiating them
@@ -374,27 +380,26 @@ func load_level(level_num: int) -> void:
 	level_manager.load_level(level_num)
 
 func request_ad_revive() -> bool:
-	# Return `false` immediately when ad revive is not currently valid.
-	if not can_use_ad_revive():
-		return false
-	if not ad_manager:
-		return false
-	pause_for_ad_revive()  # Pause game before requesting ad
-	# Ensure any banner ads are hidden before requesting revive
-	if ad_manager.is_initialized and ad_manager.is_banner_showing:
-		ad_manager.hide_banner_ad()
-	return ad_manager.request_ad_revive()
+	return _request_ad_revive_internal()
 
 func request_ad_revive_from_ui() -> bool:
+	return _request_ad_revive_internal()
+
+# Shared ad-revive request path keeps UI and non-UI callers behaviorally identical.
+func _request_ad_revive_internal() -> bool:
 	if not can_use_ad_revive():
 		return false
 	if not ad_manager:
 		return false
 	pause_for_ad_revive()
-	# Matches previous UI flow: hide banner if visible, then request revive.
-	if ad_manager and ad_manager.is_initialized and ad_manager.is_banner_showing:
+	# Hide banner before requesting revive ad to avoid overlap conflicts.
+	if ad_manager.is_initialized and ad_manager.is_banner_showing:
 		ad_manager.hide_banner_ad()
-	return ad_manager.request_ad_revive()
+	var started := ad_manager.request_ad_revive()
+	# If the ad request cannot start, immediately unpause to avoid freeze leaks.
+	if not started:
+		resume_after_ad_revive()
+	return started
 
 # Centralized revive result handlers keep UI flows dependent on one completion signal.
 func handle_ad_revive_success(_ad_type: String = "") -> void:
@@ -443,12 +448,10 @@ func is_shadow_mode_enabled() -> bool:
 	return shadow_mode_state.shadow_mode_enabled
 
 func save_progress() -> void:
-	if save_manager:
-		save_manager.save_progress()
+	economy_service.save_progress(save_manager)
 
 func save_progress_if_enabled() -> void:
-	if save_manager and save_manager.autosave_progress:
-		save_manager.save_progress()
+	economy_service.save_progress_if_enabled(save_manager)
 
 func reset_player_stats() -> void:
 	if player_manager:
@@ -484,134 +487,86 @@ func set_level_game_over_screen_active(active: bool) -> void:
 
 # Save/load helper accessors keep persistence logic decoupled from manager internals.
 func has_level_state() -> bool:
-	return level_manager != null
+	return progress_service.has_level_state(level_manager)
 
 func has_player_state() -> bool:
-	return player_manager != null
+	return progress_service.has_player_state(player_manager)
 
 func can_persist_progress() -> bool:
-	return has_level_state() and has_player_state()
+	return progress_service.can_persist_progress(level_manager, player_manager)
 
 func get_unlocked_levels_for_save() -> int:
-	return level_manager.unlocked_levels if level_manager else 1
+	return progress_service.get_unlocked_levels_for_save(level_manager)
 
 func set_unlocked_levels_from_save(value: Variant) -> void:
-	if level_manager:
-		level_manager.unlocked_levels = value
+	progress_service.set_unlocked_levels_from_save(level_manager, value)
 
 func get_shadow_mode_unlocked_for_save() -> bool:
-	return shadow_mode_state.shadow_mode_unlocked
+	return progress_service.get_shadow_mode_unlocked_for_save(shadow_mode_state)
 
 func get_shadow_mode_tutorial_shown_for_save() -> bool:
-	return shadow_mode_state.shadow_mode_tutorial_shown
+	return progress_service.get_shadow_mode_tutorial_shown_for_save(shadow_mode_state)
 
 func get_completed_levels_for_save() -> Array:
-	return level_manager.completed_levels if level_manager else []
+	return progress_service.get_completed_levels_for_save(level_manager)
 
 func set_completed_levels_from_save(value: Variant) -> void:
-	if level_manager:
-		level_manager.completed_levels = value
+	progress_service.set_completed_levels_from_save(level_manager, value)
 
 func get_selected_ship_id_for_save() -> String:
-	return player_manager.selected_ship_id if player_manager else "Ship1"
+	return progress_service.get_selected_ship_id_for_save(player_manager)
 
 func set_selected_ship_id_from_save(value: Variant) -> void:
-	if player_manager:
-		player_manager.selected_ship_id = value
+	progress_service.set_selected_ship_id_from_save(player_manager, value)
 
 func reset_level_progress() -> void:
-	if level_manager:
-		level_manager.reset_level_progress()
+	progress_service.reset_level_progress(level_manager)
 
 # Config passthrough helpers avoid direct ConfigLoader coupling in other managers.
 func get_game_setting(key: String, default_value: Variant) -> Variant:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.game_settings:
-		return ConfigLoader.game_settings.get(key, default_value)
-	return default_value
+	return config_service.get_game_setting(ConfigLoader, key, default_value)
 
 func get_game_settings_section(key: String) -> Dictionary:
-	var section = get_game_setting(key, {})
-	return section if section is Dictionary else {}
+	return config_service.get_game_settings_section(ConfigLoader, key)
 
 func get_player_setting(key: String, default_value: Variant) -> Variant:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.player_settings:
-		return ConfigLoader.player_settings.get(key, default_value)
-	return default_value
+	return config_service.get_player_setting(ConfigLoader, key, default_value)
 
 func get_upgrade_setting(key: String, default_value: Variant) -> Variant:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.upgrade_settings:
-		return ConfigLoader.upgrade_settings.get(key, default_value)
-	return default_value
+	return config_service.get_upgrade_setting(ConfigLoader, key, default_value)
 
 func get_boss_reward_for_level(level_num: int) -> Dictionary:
-	var fallback := {
-		"coins": int(1000 * (level_num / 5.0)),
-		"crystals": int(60 * (level_num / 5.0)),
-		"void_shards": int(50 * (level_num / 5.0))
-	}
-	var boss_rewards = get_upgrade_setting("boss_level_rewards", {})
-	if boss_rewards is Dictionary and boss_rewards.has(str(level_num)):
-		return boss_rewards[str(level_num)]
-	return fallback
+	return config_service.get_boss_reward_for_level(ConfigLoader, level_num)
 
 func get_config_ships_data() -> Array:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.ships_data and ConfigLoader.ships_data is Array:
-		return ConfigLoader.ships_data.duplicate(true)
-	return []
+	return config_service.get_config_ships_data(ConfigLoader)
 
 func get_config_satellites_data() -> Array:
-	if is_instance_valid(ConfigLoader) and ConfigLoader.satellites_data and ConfigLoader.satellites_data is Array:
-		return ConfigLoader.satellites_data.duplicate(true)
-	return []
+	return config_service.get_config_satellites_data(ConfigLoader)
 
 func is_boss_level_completed(level_num: int) -> bool:
-	return save_manager != null and save_manager.boss_levels_completed.has(level_num)
+	return progress_service.is_boss_level_completed(save_manager, level_num)
 
 func mark_boss_level_completed(level_num: int) -> bool:
-	if not save_manager:
-		return false
-	if save_manager.boss_levels_completed.has(level_num):
-		return false
-	save_manager.boss_levels_completed.append(level_num)
-	return true
+	return progress_service.mark_boss_level_completed(save_manager, level_num)
 
 func mark_level_completed_if_needed(level_num: int) -> bool:
-	if not level_manager:
+	if not progress_service.mark_level_completed_if_needed(level_manager, level_num):
 		return false
-	if level_manager.completed_levels.has(level_num):
-		return false
-	level_manager.completed_levels.append(level_num)
 	level_star_earned.emit(level_num)
 	return true
 
 func unlock_level_if_needed(level_num: int) -> bool:
-	if not level_manager:
+	if not progress_service.unlock_level_if_needed(level_manager, level_num):
 		return false
-	if level_num > level_manager.unlocked_levels:
-		level_manager.unlocked_levels = level_num
-		level_unlocked.emit(level_num)
-		return true
-	return false
+	level_unlocked.emit(level_num)
+	return true
 
 func can_afford(currency_type: String, cost: int) -> bool:
-	match currency_type:
-		"crystals":
-			return _crystal_count >= cost
-		"coins":
-			return _coin_count >= cost
-		"void_shards":
-			return _void_shards_count >= cost
-	return false
+	return economy_service.can_afford(self, currency_type, cost)
 
 func deduct_currency(currency_type: String, amount: int) -> void:
-	match currency_type:
-		"crystals":
-			crystal_count -= amount
-		"coins":
-			coin_count -= amount
-		"void_shards":
-			void_shards_count -= amount
-	save_manager.save_progress()
+	economy_service.deduct_currency(self, save_manager, currency_type, amount)
 
 var coins_collected_this_level: int:
 	get: return level_currency_state.coins_collected_this_level
@@ -624,16 +579,7 @@ var crystals_collected_this_level: int:
 		level_currency_state.crystals_collected_this_level = value
 
 func add_currency(currency_type: String, amount: int) -> void:
-	match currency_type:
-		"crystals":
-			crystal_count += amount
-			crystals_collected_this_level += amount
-		"coins":
-			coin_count += amount
-			coins_collected_this_level += amount
-		"void_shards":
-			void_shards_count += amount
-			save_manager.save_progress()
+	economy_service.add_currency(self, save_manager, currency_type, amount)
 
 # Add this function to reset the collected currencies when starting a new level
 func reset_level_currencies() -> void:
