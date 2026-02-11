@@ -18,6 +18,7 @@ var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  
 @onready var death_animation: CPUParticles2D = $DeathAnimation
 @onready var power_up_notification: Label = $PowerUpNotification
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var revive_shiled: Sprite2D = $Revive_shiled
 
 # Exported variables
 @export var ship_id: String = ""  # Unique identifier for the ship
@@ -51,9 +52,12 @@ var original_texture: Texture2D
 var original_speed: float
 var is_blinking: bool = false
 var just_revived: bool = false
+var is_revive_shield_active: bool = false
+var _pending_post_revive_invincibility: bool = false
 var super_mode_timer: Timer
 var super_mode_spawn_points: Array[Marker2D] = []
 var input_enabled: bool = true
+const REVIVE_INVINCIBILITY_DURATION: float = 3.0
 
 # Satellite management variables
 var satellites: Array[Node2D] = []
@@ -101,6 +105,8 @@ func _initialize_player() -> void:
 	add_to_group("Player")
 	
 	target_position = position
+	if revive_shiled:
+		revive_shiled.visible = false
 	
 	# Initialize ship-specific base stats
 	GameManager.player_manager.player_stats["base_bullet_damage"] = base_bullet_damage
@@ -216,7 +222,9 @@ func _add_satellites_from_selection() -> void:
 	# Add satellites based on PlayerManager selection
 	for i in range(2):  # Add two satellites (left and right)
 		var satellite_id = "Satellite1"  # Default satellite
-		if i < GameManager.player_manager.selected_satellite_ids.size():
+		if GameManager.player_manager and GameManager.player_manager.has_method("get_selected_satellite_id"):
+			satellite_id = GameManager.player_manager.get_selected_satellite_id(i)
+		elif i < GameManager.player_manager.selected_satellite_ids.size():
 			satellite_id = GameManager.player_manager.selected_satellite_ids[i]
 		
 		# Get the satellite scene
@@ -233,7 +241,9 @@ func _add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
 	
 	# Get the satellite ID based on the position index
 	var satellite_id = "Satellite1"  # Default
-	if position_index < GameManager.player_manager.selected_satellite_ids.size():
+	if GameManager.player_manager and GameManager.player_manager.has_method("get_selected_satellite_id"):
+		satellite_id = GameManager.player_manager.get_selected_satellite_id(position_index)
+	elif position_index < GameManager.player_manager.selected_satellite_ids.size():
 		satellite_id = GameManager.player_manager.selected_satellite_ids[position_index]
 	
 	# Instantiate the satellite
@@ -549,18 +559,24 @@ func _handle_survival() -> void:
 func _handle_death() -> void:
 	sprite_2d.visible = false
 	if death_animation:
+		# Ensure one-shot particles can replay on every death.
+		death_animation.emitting = false
+		death_animation.visible = true
+		death_animation.restart()
 		death_animation.emitting = true
 	else:
 		push_error("Cannot emit death animation: DeathAnimation is null")
 	
 	is_alive = false
-	await get_tree().create_timer(death_animation.lifetime if death_animation else 1.0).timeout
+	var death_anim_duration: float = max(0.6, death_animation.lifetime) if death_animation else 1.0
+	await get_tree().create_timer(death_anim_duration).timeout
 	GameManager.game_over_triggered.emit()
 	_remove_all_satellites()
 	queue_free()
 
 func revive(Player_lives: int) -> void:
 	just_revived = true
+	_pending_post_revive_invincibility = false
 	self.lives = Player_lives
 	GameManager.player_lives = Player_lives
 	_debug_log("Player revived with " + str(Player_lives) + " lives")
@@ -576,7 +592,8 @@ func revive(Player_lives: int) -> void:
 		GameManager.player_manager.set_spawn_position()
 
 	_animate_revival()
-	_setup_revival_state()
+	_setup_revival_state_before_invincibility()
+	_play_revive_animation_then_start_invincibility()
 
 func _animate_revival() -> void:
 	var target_pos = GameManager.player_manager.player_spawn_position - Vector2(0, 500)
@@ -588,19 +605,41 @@ func _animate_revival() -> void:
 		if tween:
 			tween.tween_property(self, "global_position", target_pos, 3.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-func _setup_revival_state() -> void:
+func _setup_revival_state_before_invincibility() -> void:
 	if death_animation:
 		death_animation.emitting = false
 	
-	invincibility_timer.start(5.0)
-	just_revived = true  # Ensure just_revived is set when starting invincibility
+	if invincibility_timer:
+		invincibility_timer.stop()
+	just_revived = true
+	is_alive = true
+	blinking(false)
+	_set_revive_shield_active(false)
+	if sprite_2d:
+		sprite_2d.visible = true
+		sprite_2d.modulate.a = 1.0
 	if collision_shape:
 		set_collision_layer_value(1, false)
-	
-	blinking(true)
-	is_alive = true
+		set_collision_layer_value(2, false)
 	GameManager.request_game_over_clear("Player._setup_revival_state")
-	_debug_log("Revival state setup complete, invincibility timer started, just_revived set to true")
+	_debug_log("Revival state setup complete; waiting for Player_revive animation")
+
+func _play_revive_animation_then_start_invincibility() -> void:
+	_pending_post_revive_invincibility = true
+	if animation_player and animation_player.has_animation("Player_revive"):
+		animation_player.play("Player_revive")
+		return
+	_start_post_revive_invincibility()
+
+func _start_post_revive_invincibility() -> void:
+	_pending_post_revive_invincibility = false
+	if invincibility_timer:
+		invincibility_timer.start(REVIVE_INVINCIBILITY_DURATION)
+	else:
+		push_error("InvincibilityTimer node is missing in Player.tscn")
+	_set_revive_shield_active(true)
+	blinking(true)
+	_debug_log("Post-revive invincibility started")
 
 func set_lives(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
@@ -636,6 +675,7 @@ func _start_blinking() -> void:
 	if blink_timer.timeout.connect(_on_blink_timer_timeout) != OK:
 		push_error("Failed to connect BlinkTimer timeout signal")
 		
+	sprite_2d.visible = true
 	sprite_2d.modulate.a = 0.7
 	blink_timer.start()
 
@@ -655,10 +695,13 @@ func _stop_blinking() -> void:
 func _on_blink_timer_timeout() -> void:
 	if is_blinking and sprite_2d:
 		sprite_2d.visible = !sprite_2d.visible
+	if is_blinking and is_revive_shield_active and revive_shiled:
+		revive_shiled.visible = !revive_shiled.visible
 
 func _on_invincibility_timer_timeout() -> void:
 	just_revived = false
 	blinking(false)
+	_set_revive_shield_active(false)
 	if sprite_2d:
 		sprite_2d.visible = true
 		sprite_2d.modulate.a = 1.0
@@ -667,6 +710,12 @@ func _on_invincibility_timer_timeout() -> void:
 	else:
 		push_error("CollisionShape2D is null, cannot re-enable collision")
 	_debug_log("Invincibility timer finished, just_revived set to false")
+
+func _set_revive_shield_active(active: bool) -> void:
+	is_revive_shield_active = active
+	if revive_shiled:
+		revive_shiled.visible = active
+		revive_shiled.modulate.a = 1.0
 
 func set_stats(attack_level_value: int, bullet_damage_value: int, base_bullet_damage_value: int, shadow_mode_active: bool, super_mode_active: bool = false) -> void:
 	_reset_firing_positions()
@@ -942,6 +991,8 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	if anim_name == "Player_sweep":
 		_debug_log("Victory pose animation finished")
 		emit_signal("victory_pose_done", anim_name)
+	elif anim_name == "Player_revive" and _pending_post_revive_invincibility:
+		_start_post_revive_invincibility()
 
 # Handle collisions with enemies and enemy bullets
 func _on_area_entered(area: Area2D) -> void:

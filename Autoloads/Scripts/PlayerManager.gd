@@ -5,6 +5,7 @@ var gm: Node
 var default_ship_id: String = "Ship1"
 var selected_ship_id: String
 var selected_satellite_ids: Array[String] = []  # Array of selected satellite IDs
+const DEFAULT_SATELLITE_ID: String = "Satellite1"
 var player_spawn_position: Vector2 = Vector2.ZERO
 var default_bullet_speed: float = 3000.0
 var default_bullet_damage: int = 20
@@ -57,8 +58,34 @@ func _initialize_player_stats() -> void:
 	# Initialize satellite selection - default to first two available satellites
 	if selected_satellite_ids.is_empty():
 		selected_satellite_ids.resize(2)
-		selected_satellite_ids[0] = "Satellite1"  # Default left satellite
-		selected_satellite_ids[1] = "Satellite2"  # Default right satellite
+		selected_satellite_ids[0] = DEFAULT_SATELLITE_ID  # Default left satellite
+		selected_satellite_ids[1] = DEFAULT_SATELLITE_ID  # Default right satellite
+	sanitize_selected_satellite_ids()
+
+func _is_satellite_unlocked(satellite_id: String) -> bool:
+	if not gm or not (gm.satellites is Array):
+		return satellite_id == DEFAULT_SATELLITE_ID
+	for satellite in gm.satellites:
+		if not (satellite is Dictionary):
+			continue
+		if str(satellite.get("id", "")) == satellite_id:
+			return bool(satellite.get("unlocked", false))
+	return false
+
+# Ensure both satellite slots always resolve to unlocked IDs.
+func sanitize_selected_satellite_ids() -> void:
+	if selected_satellite_ids.size() < 2:
+		selected_satellite_ids.resize(2)
+	for i in range(2):
+		var candidate: String = str(selected_satellite_ids[i]) if i < selected_satellite_ids.size() else ""
+		if candidate.is_empty() or not _is_satellite_unlocked(candidate):
+			selected_satellite_ids[i] = DEFAULT_SATELLITE_ID
+
+func get_selected_satellite_id(slot_index: int) -> String:
+	sanitize_selected_satellite_ids()
+	if slot_index >= 0 and slot_index < selected_satellite_ids.size():
+		return selected_satellite_ids[slot_index]
+	return DEFAULT_SATELLITE_ID
 
 func save_player_stats(attack_level: int, bullet_damage: int, base_bullet_damage: int, is_shadow_mode_active: bool, is_super_mode_active: bool = false) -> void:
 	player_stats["attack_level"] = attack_level
@@ -87,7 +114,7 @@ func set_spawn_position() -> void:
 	var viewport_size: Vector2 = gm.get_viewport().get_visible_rect().size
 	player_spawn_position = Vector2(viewport_size.x / 2, viewport_size.y)
 
-func spawn_player(lives: int) -> void:
+func spawn_player(lives: int, apply_revive_state: bool = false) -> void:
 	var current_scene = gm.get_tree().current_scene
 	if not current_scene:
 		return
@@ -98,7 +125,11 @@ func spawn_player(lives: int) -> void:
 		var player_instance = player_scene.instantiate()
 		player_instance.global_position = player_spawn_position
 		current_scene.call_deferred("add_child", player_instance)
-		player_instance.call_deferred("set_lives", lives)
+		if apply_revive_state:
+			# Ensure fresh-spawn revives receive invincibility/shield behavior.
+			player_instance.call_deferred("revive", lives)
+		else:
+			player_instance.call_deferred("set_lives", lives)
 	else:
 		push_error("[DEBUG] Player scene not found at path: %s" % player_scene_path)
 
@@ -134,7 +165,7 @@ func revive_player(lives: int = 1) -> void:
 			break
 
 	if not player_found:
-		spawn_player(lives)
+		spawn_player(lives, true)
 
 	gm.set_level_game_over_screen_active(false)
 
@@ -186,6 +217,7 @@ func update_current_ship_damage(new_damage: int) -> void:
 
 # Update satellite selection and textures in the current scene
 func update_selected_satellites() -> void:
+	sanitize_selected_satellite_ids()
 	# Find the current player in the scene and update its satellites
 	var players = gm.get_tree().get_nodes_in_group("Player")
 	if players.size() > 0:
@@ -202,6 +234,7 @@ func update_selected_satellites() -> void:
 # Signal handler for when satellite selections change
 func _on_player_manager_satellites_changed() -> void:
 	# This method will be called when satellite selections change
+	sanitize_selected_satellite_ids()
 	# Find all players and update their satellites
 	var players = gm.get_tree().get_nodes_in_group("Player")
 	for player in players:

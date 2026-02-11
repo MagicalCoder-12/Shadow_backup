@@ -928,7 +928,7 @@ func _on_selected_pressed() -> void:
 			if PlayerManager.selected_satellite_ids.size() < 2:
 				PlayerManager.selected_satellite_ids.resize(2)
 				PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-				PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
+				PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
 			
 			# Update both satellite slots with the selected satellite (same drone can be used on both sides)
 			PlayerManager.selected_satellite_ids[0] = satellite["id"]
@@ -1619,7 +1619,7 @@ func _on_sat_left_select_pressed() -> void:
 		if PlayerManager.selected_satellite_ids.size() < 2:
 			PlayerManager.selected_satellite_ids.resize(2)
 			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-			PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
+			PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
 		
 		# Update the left satellite slot with the selected satellite
 		PlayerManager.selected_satellite_ids[0] = satellite["id"]
@@ -1639,7 +1639,7 @@ func _on_sat_right_select_pressed() -> void:
 		if PlayerManager.selected_satellite_ids.size() < 2:
 			PlayerManager.selected_satellite_ids.resize(2)
 			PlayerManager.selected_satellite_ids[0] = "Satellite1"  # Default
-			PlayerManager.selected_satellite_ids[1] = "Satellite2"  # Default
+			PlayerManager.selected_satellite_ids[1] = "Satellite1"  # Default
 		
 		# Update the right satellite slot with the selected satellite
 		PlayerManager.selected_satellite_ids[1] = satellite["id"]

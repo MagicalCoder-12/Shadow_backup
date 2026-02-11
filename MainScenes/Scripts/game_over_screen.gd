@@ -35,11 +35,6 @@ func _ready() -> void:
 			
 		if not GameManager.revive_completed.is_connected(_on_revive_completed):
 			GameManager.revive_completed.connect(_on_revive_completed)
-			
-		# Connect ad signals, with validation
-		if GameManager.has_signal("ad_reward_granted"):
-			if not GameManager.ad_reward_granted.is_connected(_on_ad_reward_granted):
-				GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
 				
 		if GameManager.has_signal("ad_failed_to_load"):
 			if not GameManager.ad_failed_to_load.is_connected(_on_ad_failed):
@@ -161,22 +156,8 @@ func _on_revive_pressed() -> void:
 		emit_signal("ad_revive_requested") # fallback
 		_debug_log("Revive button pressed, requesting ad revive! Beam us up, Scotty!")
 
-func _on_ad_reward_granted(_ad_type: String) -> void:
-	if not GameManager or not GameManager.is_revive_pending:
-		return
-	revive_button.disabled = true
-	crystal_revive.disabled = true
-	GameManager.mark_ad_revive_used()
-	emit_signal("player_revived")
-	visible = false
-	_set_default_message()
-	if GameManager and GameManager.game_over:
-		_debug_log("Warning: Game over still true after ad revive! Forcing to false.")
-		GameManager.request_game_over_clear("GameOverScreen._on_ad_reward_granted")
-	_debug_log("Ad reward granted, player revived like a cosmic phoenix!")
-
-func _on_ad_failed(_ad_type: String, _error_code: Variant) -> void:
-	if not GameManager or not GameManager.is_revive_pending:
+func _on_ad_failed(ad_type: String, _error_code: Variant) -> void:
+	if ad_type != "revive":
 		return
 	revive_button.disabled = false
 	_show_temp_message("Ad failed to load. Try again, space cowboy!")
@@ -185,6 +166,10 @@ func _on_ad_failed(_ad_type: String, _error_code: Variant) -> void:
 
 func _on_revive_completed(success: bool) -> void:
 	if success:
+		# Use one completion path for ad revives to avoid duplicate revive side effects.
+		revive_button.disabled = true
+		crystal_revive.disabled = true
+		emit_signal("player_revived")
 		if GameManager and GameManager.game_over:
 			_debug_log("Warning: Game over still true after successful revive! Forcing to false.")
 			GameManager.request_game_over_clear("GameOverScreen._on_revive_completed")

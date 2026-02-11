@@ -111,7 +111,6 @@ var player_lives: int:
 
 var is_paused: bool = false:
 	set(value):
-		if game_over: return
 		if value != is_paused:
 			is_paused = value
 			get_tree().paused = value
@@ -389,12 +388,27 @@ func request_ad_revive() -> bool:
 func request_ad_revive_from_ui() -> bool:
 	if not can_use_ad_revive():
 		return false
+	if not ad_manager:
+		return false
+	pause_for_ad_revive()
 	# Matches previous UI flow: hide banner if visible, then request revive.
 	if ad_manager and ad_manager.is_initialized and ad_manager.is_banner_showing:
 		ad_manager.hide_banner_ad()
-	if ad_manager:
-		return ad_manager.request_ad_revive()
-	return false
+	return ad_manager.request_ad_revive()
+
+# Centralized revive result handlers keep UI flows dependent on one completion signal.
+func handle_ad_revive_success(_ad_type: String = "") -> void:
+	mark_ad_revive_used()
+	revive_completed.emit(true)
+
+func handle_ad_revive_failure(_error_data: Variant = null) -> void:
+	revive_completed.emit(false)
+
+func notify_ad_failed_to_load(ad_type: String, error_data: Variant) -> void:
+	ad_failed_to_load.emit(ad_type, error_data)
+
+func notify_ad_reward_granted(reward_type: String) -> void:
+	ad_reward_granted.emit(reward_type)
 
 # Revive flow restores one life by default unless a caller explicitly overrides it.
 func revive_player(lives: int = 1) -> void:
@@ -635,7 +649,7 @@ func pause_for_ad_revive() -> void:
 
 # New function to resume the game after ad revive
 func resume_after_ad_revive() -> void:
-	if is_paused and not game_over and not level_manager.is_level_just_completed:
+	if is_paused and not level_manager.is_level_just_completed:
 		is_paused = false  # Resumes the game tree
 
 

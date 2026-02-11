@@ -302,7 +302,8 @@ func _game_over_triggered():
 
 # === REVIVE ===
 func _on_player_revived():
-	if not GameManager.is_revive_pending:
+	# Allow revive when either a revive is pending or the game-over UI is active.
+	if not GameManager.is_revive_pending and not GameManager.game_over:
 		return
 	# Reviving from the game-over flow always grants exactly one life.
 	var revive_lives: int = 1
@@ -312,23 +313,31 @@ func _on_player_revived():
 	if GameManager.level_manager:
 		GameManager.level_manager.is_game_over_screen_active = false
 
-	var player = get_tree().get_first_node_in_group("Player")
-	if not player:
-		_spawn_player(revive_lives)
-	else:
-		player.revive(revive_lives)
-
 	if hud and hud.has_method("update_charge_display"):
 		hud.current_charge = saved_shadow_charge
 		hud.update_charge_display()
+	_clear_enemy_bullets()
 
 	AudioManager.mute_bus("Bullet", false)
 	AudioManager.mute_bus("Explosion", false)
+	# Use PlayerManager as the single revive entrypoint (handles existing player vs respawn).
 	GameManager.revive_player(revive_lives)
 	
 	# Ensure banner ad is hidden after revive
 	if GameManager.ad_manager and GameManager.ad_manager.is_initialized:
 		GameManager.ad_manager.hide_banner_ad()
+
+func _clear_enemy_bullets() -> void:
+	var bullets_by_id: Dictionary = {}
+	for node in get_tree().get_nodes_in_group("EnemyBullet"):
+		if node and is_instance_valid(node):
+			bullets_by_id[node.get_instance_id()] = node
+	for node in get_tree().get_nodes_in_group("enemy_bullet"):
+		if node and is_instance_valid(node):
+			bullets_by_id[node.get_instance_id()] = node
+	for bullet in bullets_by_id.values():
+		if bullet and is_instance_valid(bullet):
+			bullet.call_deferred("queue_free")
 
 func revive_player():
 	_on_player_revived()

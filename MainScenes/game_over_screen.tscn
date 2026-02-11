@@ -991,10 +991,10 @@ color = Color(0, 0, 0, 0.490196)
 [node name="Resources" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.025
-anchor_top = 0.19625
-anchor_right = 0.98125
-anchor_bottom = 0.2634375
+anchor_left = 0.035416666
+anchor_top = 0.1990625
+anchor_right = 0.975
+anchor_bottom = 0.26625
 grow_horizontal = 2
 theme_override_constants/separation = 30
 metadata/_edit_use_anchors_ = true
@@ -1062,7 +1062,7 @@ anchor_bottom = 0.5
 offset_left = -569.0
 offset_top = -731.0
 offset_right = 569.0
-offset_bottom = 731.0
+offset_bottom = 776.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_rlusx")
@@ -1105,12 +1105,15 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="Formatter" type="VBoxContainer" parent="PanelContainer/Panel"]
-layout_mode = 0
-offset_left = 35.0
-offset_top = 490.0
-offset_right = 1105.0
-offset_bottom = 1404.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.030755712
+anchor_top = 0.2835294
+anchor_right = 0.97100174
+anchor_bottom = 0.93091655
+offset_top = 3.0517578e-05
 theme_override_constants/separation = 120
+metadata/_edit_use_anchors_ = true
 
 [node name="ShopContainer" type="HBoxContainer" parent="PanelContainer/Panel/Formatter"]
 layout_mode = 2

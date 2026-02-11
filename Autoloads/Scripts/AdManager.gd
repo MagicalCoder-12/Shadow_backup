@@ -18,6 +18,15 @@ var _initialized: bool = false
 var _banner_retry_count: int = 0
 var _rewarded_retry_count: int = 0
 var _reward_earned_for_current_ad: bool = false
+# Request nonces prevent stale ad callbacks from older flows mutating current state.
+var _request_nonce_counter: int = 0
+var _active_request_nonce: int = 0
+var _showing_request_nonce: int = 0
+var _loading_request_nonce: int = 0
+var _loading_ad_type: String = ""
+var _is_waiting_for_load: bool = false
+var _revive_timeout_request_nonce: int = 0
+var _dismiss_handled_for_current_request: bool = false
 
 # Helper function to check if game over screen is active
 func is_game_over_screen_active() -> bool:
@@ -46,9 +55,14 @@ signal ad_reward_granted(ad_type: String)
 signal ad_failed_to_load(ad_type: String, error_data: Variant)
 
 func _ready() -> void:
+	# Keep ad lifecycle callbacks and retries alive even when gameplay is paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	gm = GameManager
 	# Defer initialization until all autoloads are ready
 	call_deferred("initialize")
+
+func _create_always_timer(seconds: float) -> SceneTreeTimer:
+	return gm.get_tree().create_timer(seconds, true)
 
 func initialize() -> void:
 	if _initialized:
@@ -58,6 +72,8 @@ func initialize() -> void:
 		gm = GameManager
 	admob = gm.get_node_or_null("Admob")
 	if admob:
+		if admob is Node:
+			(admob as Node).process_mode = Node.PROCESS_MODE_ALWAYS
 		# Wait a frame to ensure all autoloads are ready
 		await gm.get_tree().process_frame
 		# Connect all the Admob signals
@@ -66,7 +82,7 @@ func initialize() -> void:
 		admob.initialize()
 		_debug_log("Admob initialization called")
 		# Add additional delay to allow plugin singleton to initialize
-		await gm.get_tree().create_timer(1.0).timeout
+		await _create_always_timer(1.0).timeout
 		_check_initialization_status()
 	else:
 		push_error("Admob node not found in GameManager")
@@ -74,6 +90,7 @@ func initialize() -> void:
 	
 	# Initialize timeout timer
 	revive_timeout_timer = Timer.new()
+	revive_timeout_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	revive_timeout_timer.wait_time = 30.0  # 30 second timeout
 	revive_timeout_timer.one_shot = true
 	revive_timeout_timer.timeout.connect(_on_revive_timeout)
@@ -239,7 +256,10 @@ func _on_scene_change_started() -> void:
 
 func _emit_ad_failed(ad_type: String, error_data: Variant) -> void:
 	if gm:
-		gm.ad_failed_to_load.emit(ad_type, error_data)
+		if gm.has_method("notify_ad_failed_to_load"):
+			gm.notify_ad_failed_to_load(ad_type, error_data)
+		else:
+			gm.ad_failed_to_load.emit(ad_type, error_data)
 	emit_signal("ad_failed_to_load", ad_type, error_data)
 
 func _refresh_banner_policy_for_current_scene() -> void:
@@ -252,6 +272,40 @@ func _stop_revive_timeout() -> void:
 	if revive_timeout_timer and revive_timeout_timer.time_left > 0:
 		revive_timeout_timer.stop()
 		_debug_log("Stopped revive timeout timer")
+	_revive_timeout_request_nonce = 0
+
+func _next_request_nonce() -> int:
+	_request_nonce_counter += 1
+	return _request_nonce_counter
+
+func _set_load_waiting(waiting: bool, ad_type: String = "", request_nonce: int = 0) -> void:
+	_is_waiting_for_load = waiting
+	_loading_ad_type = ad_type if waiting else ""
+	_loading_request_nonce = request_nonce if waiting else 0
+
+func _is_current_request_nonce(request_nonce: int) -> bool:
+	return request_nonce > 0 and request_nonce == _active_request_nonce
+
+func _can_process_load_callback(ad_type: String) -> bool:
+	if not _is_waiting_for_load:
+		return false
+	if _loading_ad_type != ad_type:
+		return false
+	return _is_current_request_nonce(_loading_request_nonce)
+
+func _mark_show_started_for_current_request() -> void:
+	_showing_request_nonce = _active_request_nonce
+	_set_load_waiting(false)
+
+func _is_callback_for_showing_request() -> bool:
+	return _showing_request_nonce > 0 and _showing_request_nonce == _active_request_nonce
+
+func _clear_request_tracking() -> void:
+	_active_request_nonce = 0
+	_showing_request_nonce = 0
+	_set_load_waiting(false)
+	_revive_timeout_request_nonce = 0
+	_dismiss_handled_for_current_request = false
 
 func reset_revive_state(clear_game_manager_pending: bool = true) -> void:
 	_stop_revive_timeout()
@@ -264,6 +318,7 @@ func reset_revive_state(clear_game_manager_pending: bool = true) -> void:
 	_rewarded_retry_count = 0
 	_reward_earned_for_current_ad = false
 	_rewarded_ad_shown = false
+	_clear_request_tracking()
 	_refresh_banner_policy_for_current_scene()
 
 func _clear_reward_request_state() -> void:
@@ -274,29 +329,38 @@ func _clear_reward_request_state() -> void:
 	_rewarded_retry_count = 0
 	_reward_earned_for_current_ad = false
 	_rewarded_ad_shown = false
+	_clear_request_tracking()
 	_refresh_banner_policy_for_current_scene()
 
 func _start_revive_timeout() -> void:
-	if revive_timeout_timer:
+	if revive_timeout_timer and _active_request_nonce > 0:
+		_revive_timeout_request_nonce = _active_request_nonce
 		revive_timeout_timer.start()
 		_debug_log("Started revive timeout timer")
 
 func _request_selected_rewarded_ad() -> void:
 	_reward_earned_for_current_ad = false
+	var request_nonce := _active_request_nonce
+	if request_nonce <= 0:
+		return
 	if selected_ad_type == "video":
 		if admob.is_rewarded_ad_loaded():
 			is_ad_showing = true
+			_mark_show_started_for_current_request()
 			admob.show_rewarded_ad()
 			_debug_log("Showing rewarded video ad")
 		else:
+			_set_load_waiting(true, "video", request_nonce)
 			admob.load_rewarded_ad()
 			_debug_log("Loading rewarded video ad")
 	else:
 		if admob.is_rewarded_interstitial_ad_loaded():
 			is_ad_showing = true
+			_mark_show_started_for_current_request()
 			admob.show_rewarded_interstitial_ad()
 			_debug_log("Showing rewarded interstitial ad")
 		else:
+			_set_load_waiting(true, "interstitial", request_nonce)
 			admob.load_rewarded_interstitial_ad()
 			_debug_log("Loading rewarded interstitial ad")
 
@@ -304,8 +368,7 @@ func _begin_rewarded_request(for_revive: bool, reward_type: String = "") -> bool
 	if not admob or not is_initialized:
 		var init_error := {"message": "AdMob not initialized"}
 		if for_revive:
-			if gm:
-				gm.revive_completed.emit(false)
+			_notify_revive_failure(init_error)
 		else:
 			_emit_ad_failed(reward_type, init_error)
 		return false
@@ -313,19 +376,22 @@ func _begin_rewarded_request(for_revive: bool, reward_type: String = "") -> bool
 	if is_ad_showing or ad_revive_pending or is_reward_ad_pending:
 		var busy_error := {"message": "Another ad request is in progress"}
 		if for_revive:
-			if gm:
-				gm.revive_completed.emit(false)
+			_notify_revive_failure(busy_error)
 		else:
 			_emit_ad_failed(reward_type, busy_error)
 		return false
 	
 	if for_revive and gm and gm.is_revive_pending:
-		gm.revive_completed.emit(false)
+		_notify_revive_failure({"message": "Revive already pending"})
 		return false
 	
 	_rewarded_retry_count = 0
 	_rewarded_ad_shown = false
+	_dismiss_handled_for_current_request = false
 	selected_ad_type = "video" if randf() < 0.5 else "interstitial"
+	_active_request_nonce = _next_request_nonce()
+	_showing_request_nonce = 0
+	_set_load_waiting(false)
 	
 	if for_revive:
 		if gm and not gm.is_revive_pending:
@@ -342,30 +408,76 @@ func _begin_rewarded_request(for_revive: bool, reward_type: String = "") -> bool
 	_request_selected_rewarded_ad()
 	return true
 
-func _handle_rewarded_load_failure(is_video: bool, error_data: Variant) -> void:
+func _mark_reward_earned_once() -> bool:
+	if _reward_earned_for_current_ad:
+		return false
+	_reward_earned_for_current_ad = true
+	return true
+
+func _get_error_field(error_data: Variant, key: String, default_value: Variant) -> Variant:
+	if error_data == null:
+		return default_value
+	if error_data is Dictionary:
+		return error_data.get(key, default_value)
+	if error_data is Object:
+		var error_object: Object = error_data
+		var getter_name := "get_%s" % key
+		if error_object.has_method(getter_name):
+			return error_object.call(getter_name)
+		if error_object.has_method("get"):
+			var value: Variant = error_object.call("get", key)
+			if value != null:
+				return value
+	return default_value
+
+func _get_error_message(error_data: Variant) -> String:
+	var message_value: Variant = _get_error_field(error_data, "message", "")
+	var message_text := str(message_value)
+	if not message_text.is_empty():
+		return message_text
+	if error_data is Object:
+		return str(error_data)
+	return "Unknown error"
+
+func _get_error_code(error_data: Variant) -> int:
+	return int(_get_error_field(error_data, "code", -1))
+
+func _notify_revive_failure(error_data: Variant) -> void:
+	_emit_ad_failed("revive", error_data)
+	if gm:
+		if gm.has_method("handle_ad_revive_failure"):
+			gm.handle_ad_revive_failure(error_data)
+		else:
+			gm.revive_completed.emit(false)
+
+func _handle_rewarded_load_failure(is_video: bool, error_data: Variant, request_nonce: int) -> void:
 	var failed_type := "video" if is_video else "interstitial"
-	_debug_log("Rewarded %s ad failed to load: %s" % [failed_type, error_data.get("message", "Unknown error")])
+	_debug_log("Rewarded %s ad failed to load: %s" % [failed_type, _get_error_message(error_data)])
 	
+	if not _is_current_request_nonce(request_nonce):
+		return
 	if selected_ad_type != failed_type:
 		return
+	if not _can_process_load_callback(failed_type):
+		return
+	_set_load_waiting(false)
 	
 	if _rewarded_retry_count < max_ad_retries:
 		_rewarded_retry_count += 1
-		await gm.get_tree().create_timer(5.0).timeout
-		if not is_initialized:
+		await _create_always_timer(5.0).timeout
+		if not is_initialized or not _is_current_request_nonce(request_nonce):
 			return
 		if is_video:
+			_set_load_waiting(true, "video", request_nonce)
 			admob.load_rewarded_ad()
 		else:
+			_set_load_waiting(true, "interstitial", request_nonce)
 			admob.load_rewarded_interstitial_ad()
 		_debug_log("Retrying rewarded %s ad load (attempt %d)" % [failed_type, _rewarded_retry_count])
 		return
 	
 	if ad_revive_pending:
-		_emit_ad_failed(failed_type, error_data)
-		reset_revive_state()
-		if gm:
-			gm.revive_completed.emit(false)
+		_finalize_ad_revive(false, failed_type, error_data)
 	elif is_reward_ad_pending:
 		var reward_type := current_reward_type
 		_clear_reward_request_state()
@@ -375,8 +487,13 @@ func _on_rewarded_ad_dismissed(is_video: bool) -> void:
 	var dismissed_type := "video" if is_video else "interstitial"
 	_debug_log("Rewarded %s ad dismissed" % dismissed_type)
 	
+	if not _is_callback_for_showing_request():
+		return
 	if selected_ad_type != dismissed_type:
 		return
+	if _dismiss_handled_for_current_request:
+		return
+	_dismiss_handled_for_current_request = true
 	
 	is_ad_showing = false
 	if is_video:
@@ -389,16 +506,18 @@ func _on_rewarded_ad_dismissed(is_video: bool) -> void:
 			_debug_log("Reloading rewarded interstitial ad")
 	
 	if ad_revive_pending:
-		# Some providers may miss the earned callback; treat close as success fallback.
-		await gm.get_tree().create_timer(1.0).timeout
-		if ad_revive_pending and not _reward_earned_for_current_ad:
-			_debug_log("No earned callback received, completing revive on dismiss fallback")
-			if gm:
-				gm.ad_reward_granted.emit(dismissed_type)
-			complete_ad_revive()
+		# Complete revive only after the ad is explicitly dismissed.
+		if not _reward_earned_for_current_ad:
+			_debug_log("No earned callback received; applying dismiss fallback for revive")
+		complete_ad_revive(dismissed_type)
 		return
 	
 	if is_reward_ad_pending:
+		# Some SDKs deliver dismiss before reward; wait briefly to avoid false failures.
+		var request_nonce := _active_request_nonce
+		await _create_always_timer(0.5).timeout
+		if not _is_current_request_nonce(request_nonce):
+			return
 		if _reward_earned_for_current_ad:
 			_clear_reward_request_state()
 		else:
@@ -411,17 +530,27 @@ func request_ad_revive() -> bool:
 	_debug_log("Requesting ad revive")
 	return _begin_rewarded_request(true)
 
-func complete_ad_revive() -> void:
-	_debug_log("complete_ad_revive called")
+func _finalize_ad_revive(success: bool, ad_type: String = "", error_data: Variant = {}) -> void:
 	if not ad_revive_pending:
 		return
-	_reward_earned_for_current_ad = true
+	if success:
+		_mark_reward_earned_once()
 	reset_revive_state()
 	if is_initialized:
 		admob.load_rewarded_ad()
 		admob.load_rewarded_interstitial_ad()
-	if gm:
-		gm.revive_completed.emit(true)
+	if success:
+		if gm:
+			if gm.has_method("handle_ad_revive_success"):
+				gm.handle_ad_revive_success(ad_type)
+			else:
+				gm.revive_completed.emit(true)
+	else:
+		_notify_revive_failure(error_data)
+
+func complete_ad_revive(ad_type: String = "") -> void:
+	_debug_log("complete_ad_revive called")
+	_finalize_ad_revive(true, ad_type)
 	_debug_log("complete_ad_revive completed")
 
 func reset_ad_state() -> void:
@@ -474,14 +603,14 @@ func _on_admob_banner_ad_loaded(_ad_id: String) -> void:
 	_debug_log("Banner ad loaded")
 
 func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	var error_info = error_data.get("message", "Unknown error")
-	var error_code = error_data.get("code", -1)
+	var error_info: String = _get_error_message(error_data)
+	var error_code: int = _get_error_code(error_data)
 	print("Banner ad failed to load. Error: %s, Code: %s" % [error_info, error_code])
 	_debug_log("Banner ad failed to load: %s (Code: %s)" % [error_info, error_code])
 
 	if _banner_retry_count < max_ad_retries:
 		_banner_retry_count += 1
-		await gm.get_tree().create_timer(5.0).timeout
+		await _create_always_timer(5.0).timeout
 		if is_initialized:
 			admob.load_banner_ad()
 			_debug_log("Retrying banner ad load (attempt %d)" % _banner_retry_count)
@@ -490,23 +619,31 @@ func _on_admob_banner_ad_failed_to_load(_ad_id: String, error_data: Variant) -> 
 		_debug_log("Max retries reached for banner ad")
 
 func _on_admob_rewarded_ad_loaded(_ad_id: String) -> void:
+	if not _can_process_load_callback("video"):
+		return
+	_set_load_waiting(false)
 	_rewarded_retry_count = 0
 	_debug_log("Rewarded video ad loaded")
 	if ad_revive_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
+		_mark_show_started_for_current_request()
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_ad()
 		_debug_log("Showing rewarded video ad over banner ad after load")
 	elif is_reward_ad_pending and selected_ad_type == "video" and not is_ad_showing:
 		is_ad_showing = true
+		_mark_show_started_for_current_request()
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_ad()
 		_debug_log("Showing rewarded video ad over banner ad for reward")
 
 func _on_admob_rewarded_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	await _handle_rewarded_load_failure(true, error_data)
+	var request_nonce := _loading_request_nonce
+	await _handle_rewarded_load_failure(true, error_data, request_nonce)
 
 func _on_admob_rewarded_ad_showed_full_screen_content(_ad_id: String) -> void:
+	if not _is_callback_for_showing_request():
+		return
 	is_ad_showing = true
 	_rewarded_ad_shown = true
 	_debug_log("Rewarded video ad shown")
@@ -516,32 +653,44 @@ func _on_admob_rewarded_ad_dismissed_full_screen_content(_ad_id: String) -> void
 
 func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for video ad")
+	if not _is_callback_for_showing_request():
+		return
+	if selected_ad_type != "video":
+		return
+	if not _mark_reward_earned_once():
+		return
 	if ad_revive_pending and selected_ad_type == "video":
-		gm.ad_reward_granted.emit("video")
-		complete_ad_revive()
+		_debug_log("Revive reward earned for video ad; waiting for dismiss to complete revive")
 	elif is_reward_ad_pending and selected_ad_type == "video":
-		_reward_earned_for_current_ad = true
 		_grant_reward(current_reward_type)
 		_debug_log("Granted reward for reward ad flow")
 
 func _on_admob_rewarded_interstitial_ad_loaded(_ad_id: String) -> void:
+	if not _can_process_load_callback("interstitial"):
+		return
+	_set_load_waiting(false)
 	_rewarded_retry_count = 0
 	_debug_log("Rewarded interstitial ad loaded")
 	if ad_revive_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
+		_mark_show_started_for_current_request()
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_interstitial_ad()
 		_debug_log("Showing rewarded interstitial ad over banner ad after load")
 	elif is_reward_ad_pending and selected_ad_type == "interstitial" and not is_ad_showing:
 		is_ad_showing = true
+		_mark_show_started_for_current_request()
 		# Don't hide banner ad before showing rewarded ad - let them coexist
 		admob.show_rewarded_interstitial_ad()
 		_debug_log("Showing rewarded interstitial ad over banner ad for reward")
 
 func _on_admob_rewarded_interstitial_ad_failed_to_load(_ad_id: String, error_data: Variant) -> void:
-	await _handle_rewarded_load_failure(false, error_data)
+	var request_nonce := _loading_request_nonce
+	await _handle_rewarded_load_failure(false, error_data, request_nonce)
 
 func _on_admob_rewarded_interstitial_ad_showed_full_screen_content(_ad_id: String) -> void:
+	if not _is_callback_for_showing_request():
+		return
 	is_ad_showing = true
 	_rewarded_ad_shown = true
 	_debug_log("Rewarded interstitial ad shown")
@@ -551,11 +700,15 @@ func _on_admob_rewarded_interstitial_ad_dismissed_full_screen_content(_ad_id: St
 
 func _on_admob_rewarded_interstitial_ad_user_earned_reward(_ad_id: String, _reward_data) -> void:
 	_debug_log("User earned reward for interstitial ad")
+	if not _is_callback_for_showing_request():
+		return
+	if selected_ad_type != "interstitial":
+		return
+	if not _mark_reward_earned_once():
+		return
 	if ad_revive_pending and selected_ad_type == "interstitial":
-		gm.ad_reward_granted.emit("interstitial")
-		complete_ad_revive()
+		_debug_log("Revive reward earned for interstitial ad; waiting for dismiss to complete revive")
 	elif is_reward_ad_pending and selected_ad_type == "interstitial":
-		_reward_earned_for_current_ad = true
 		_grant_reward(current_reward_type)
 		_debug_log("Granted reward for reward ad flow")
 
@@ -576,7 +729,11 @@ func _grant_reward(reward_type: String) -> void:
 	
 	# Emit the signal to notify that reward has been granted
 	emit_signal("ad_reward_granted", reward_type)
-	gm.ad_reward_granted.emit(reward_type)
+	if gm:
+		if gm.has_method("notify_ad_reward_granted"):
+			gm.notify_ad_reward_granted(reward_type)
+		else:
+			gm.ad_reward_granted.emit(reward_type)
 
 func handle_node_added(_node: Node) -> void:
 	if not gm or not _node:
@@ -588,15 +745,11 @@ func handle_node_added(_node: Node) -> void:
 
 func _on_revive_timeout() -> void:
 	_debug_log("Revive timeout triggered - ad took too long to complete")
-	if ad_revive_pending:
+	if ad_revive_pending and _revive_timeout_request_nonce > 0 and _revive_timeout_request_nonce == _active_request_nonce:
 		_debug_log("Revive timeout reached; failing revive request")
-		if gm:
-			_emit_ad_failed("revive", {"message": "Revive ad timed out"})
-		reset_revive_state()
-		if gm:
-			gm.revive_completed.emit(false)
+		_finalize_ad_revive(false, "", {"message": "Revive ad timed out"})
 	else:
-		_debug_log("Timeout triggered but no revive pending")
+		_debug_log("Timeout ignored due to stale revive request state")
 
 # New function to request reward ads
 func request_reward_ad(reward_type: String) -> void:

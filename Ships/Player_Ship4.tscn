@@ -9,8 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://dh4pqvtonptme" path="res://Textures/player/ship_textures/ship_04_lvl4.png" id="6_g7hh6"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gkwpx"]
-radius = 105.0
-height = 226.0
+radius = 278.0
+height = 556.0
 
 [node name="Player_Ship4" instance=ExtResource("1_uurdh")]
 scale = Vector2(0.5, 0.5)
@@ -34,3 +34,8 @@ position = Vector2(126, -43.2)
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0, 34)
 shape = SubResource("CapsuleShape2D_gkwpx")
+
+[node name="Revive_shiled" parent="." index="8"]
+modulate = Color(0.36426768, 0.25493315, 0.27315557, 0.45490196)
+position = Vector2(1.1920929e-07, 24.000002)
+scale = Vector2(2.8470588, 3.0117648)

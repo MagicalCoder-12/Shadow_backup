@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://dula0etnafhc4"]
+[gd_scene load_steps=10 format=3 uid="uid://dula0etnafhc4"]
 
 [ext_resource type="Script" uid="uid://cubfji48ol10x" path="res://MainScenes/Scripts/shop.gd" id="1_q5gon"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vc4pe"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_ofht4"]
 [ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="2_xiv02"]
 [ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="3_2la7e"]
 [ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="4_b3jih"]
@@ -26,14 +27,11 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_q5gon")
 
-[node name="ColorRect" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.490196)
+[node name="Bg1" type="Sprite2D" parent="."]
+modulate = Color(0.88654685, 0.68012446, 0.7006819, 1)
+position = Vector2(718.00006, 1629)
+scale = Vector2(1.5234376, 3.2226563)
+texture = ExtResource("2_ofht4")
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
 layout_mode = 0

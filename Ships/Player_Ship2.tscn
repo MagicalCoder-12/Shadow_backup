@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://cjpg44ujmgk6j" path="res://Textures/player/ship_textures/ship_02_lvl2.png" id="5_do63i"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2eqej"]
-size = Vector2(94.00001, 68.333336)
+size = Vector2(196.5, 133.16667)
 
 [node name="aetherstrike" instance=ExtResource("1_024sp")]
 scale = Vector2(2, 2)
@@ -37,7 +37,7 @@ texture = ExtResource("3_c88ya")
 flip_v = true
 
 [node name="Thruster" parent="Sprite2D" index="0"]
-position = Vector2(-3.6, 89.6)
+position = Vector2(-0.99999976, 86)
 
 [node name="LeftGun" parent="Sprite2D/FiringPositions" index="0"]
 position = Vector2(-54.4, -54.4)
@@ -46,5 +46,11 @@ position = Vector2(-54.4, -54.4)
 position = Vector2(55.2, -53.6)
 
 [node name="CollisionShape2D" parent="." index="1"]
-position = Vector2(1.3333302, 9.5)
+position = Vector2(6.75, 41.916664)
 shape = SubResource("RectangleShape2D_2eqej")
+
+[node name="Revive_shiled" parent="." index="8"]
+modulate = Color(18.892157, 12.483121, 0, 1)
+self_modulate = Color(18.892157, 18.892157, 18.892157, 0.5411765)
+position = Vector2(-1.8869772, -18.499996)
+scale = Vector2(0.9669823, 0.97647053)

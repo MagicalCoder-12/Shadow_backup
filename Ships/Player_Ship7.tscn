@@ -11,11 +11,11 @@
 [ext_resource type="Texture2D" uid="uid://b8t5hg0raa2d" path="res://Textures/player/ship_textures/ship_07_lvl6.png" id="8_elj5c"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_7wk26"]
-radius = 110.0
-height = 346.0
+radius = 216.0
+height = 696.0
 
 [node name="Player_Ship7" instance=ExtResource("1_w7ml8")]
-scale = Vector2(1, 1)
+scale = Vector2(0.5, 0.5)
 ship_id = "Ship7"
 shadow_texture = ExtResource("2_evhxp")
 evolution_textures = Array[Texture2D]([ExtResource("2_6srv6"), ExtResource("3_8mwok"), ExtResource("4_d568r"), ExtResource("5_mu816"), ExtResource("6_odd6q"), ExtResource("7_bov56"), ExtResource("8_elj5c")])
@@ -34,14 +34,11 @@ position = Vector2(-35.625, -230.625)
 [node name="RightGun" parent="Sprite2D/FiringPositions" index="1"]
 position = Vector2(45, -234.375)
 
-[node name="Satellite" parent="Sprite2D" index="2"]
-position = Vector2(-187.5, -10.9375)
-scale = Vector2(1, 1)
-
-[node name="Satellite2" parent="Sprite2D" index="3"]
-position = Vector2(171.875, -15.625)
-scale = Vector2(1, 1)
-
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0, 18)
 shape = SubResource("CapsuleShape2D_7wk26")
+
+[node name="Revive_shiled" parent="." index="8"]
+modulate = Color(0.9696924, 0, 0, 0.45490196)
+position = Vector2(-1.0000114, -18.000015)
+scale = Vector2(2.6176472, 3.529412)
