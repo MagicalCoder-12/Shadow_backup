@@ -336,6 +336,12 @@ func update_ship_ui() -> void:
 			var next_requirements = _get_next_evolution_requirements(selected_ship_index)
 			if next_requirements["can_evolve"]:
 				status_text = "Upgrades to next ascension: %d" % next_requirements["upgrades_needed"]
+			var upgrade_damage := _get_ship_upgrade_damage_increase(ship)
+			if upgrade_damage > 0:
+				if status_text.is_empty():
+					status_text = "Upgrade: +%d Damage" % upgrade_damage
+				else:
+					status_text = "%s\nUpgrade: +%d Damage" % [status_text, upgrade_damage]
 
 		status_label.text = status_text
 		_update_ascend_button_visibility()
@@ -410,9 +416,9 @@ func update_satellite_ui() -> void:
 			var upgrade_damage := _get_satellite_upgrade_damage_increase(satellite)
 			if upgrade_damage > 0:
 				if status_text.is_empty():
-					status_text = "Upgrade +%d Damage" % upgrade_damage
+					status_text = "Upgrade: +%d Damage" % upgrade_damage
 				else:
-					status_text = "%s | Upgrade +%d Damage" % [status_text, upgrade_damage]
+					status_text = "%s\nUpgrade: +%d Damage" % [status_text, upgrade_damage]
 
 		status_label.text = status_text
 		_update_satellite_ascend_button_visibility()
@@ -606,12 +612,16 @@ func _show_details_container_temporarily(duration_seconds: float = 2.0) -> void:
 		details_container.hide()
 
 func _apply_stat_boost(ship: Dictionary) -> void:
-	var base_damage_boost = 5
-	var stage_multiplier = 1.0 + (ship["current_evolution_stage"] * 0.2)
-	ship["damage"] += int(base_damage_boost * stage_multiplier)
+	var damage_increase := _get_ship_upgrade_damage_increase(ship)
+	ship["damage"] += damage_increase
 	
 	# Notify GameManager that ship stats have been updated
 	GameManager.notify_ship_stats_updated(ship["id"], ship["damage"])
+
+func _get_ship_upgrade_damage_increase(ship: Dictionary) -> int:
+	var base_damage_boost = 5
+	var stage_multiplier = 1.0 + (float(ship.get("current_evolution_stage", 0)) * 0.2)
+	return int(base_damage_boost * stage_multiplier)
 
 func _check_ascension_eligibility(ship_index: int) -> void:
 	var ship = GameManager.ships[ship_index]

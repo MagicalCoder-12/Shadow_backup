@@ -4,6 +4,7 @@ var gm: Node
 var progress_file_path: String = "user://game_progress.dat"
 var backup_progress_file_path: String = "user://game_progress_backup.dat"
 var autosave_progress: bool = true
+var save_debounce_seconds: float = 1.0
 const SAVE_FORMAT_MAGIC: String = "shadow_avenger_save"
 const SAVE_SCHEMA_VERSION: int = 2
 
@@ -23,9 +24,13 @@ var boss_levels_completed: Array = []  # Array of boss level numbers that have b
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
+var _save_timer: Timer
+var _save_pending: bool = false
+var _save_in_progress: bool = false
 
 func _ready() -> void:
 	gm = GameManager
+	_initialize_save_timer()
 	# Defer initialization until all autoloads are ready
 	call_deferred("initialize")
 
@@ -36,21 +41,63 @@ func initialize() -> void:
 func _load_settings_from_config() -> void:
 	if gm:
 		progress_file_path = gm.get_game_setting("progress_file_path", "user://game_progress.dat")
+		save_debounce_seconds = float(gm.get_game_setting("save_debounce_seconds", 1.0))
 	else:
 		push_warning("GameManager not available. Using default file paths.")
 
-func save_progress() -> void:
+func save_progress(force: bool = false) -> void:
+	if force:
+		_flush_save_now()
+		return
+	request_save()
+
+func request_save(_reason: String = "") -> void:
 	if not autosave_progress:
 		return
-	
+	_save_pending = true
+	if _save_in_progress:
+		return
+	if save_debounce_seconds <= 0.0:
+		_flush_save_now()
+		return
+	_schedule_save_timer()
+
+func _initialize_save_timer() -> void:
+	if _save_timer:
+		return
+	_save_timer = Timer.new()
+	_save_timer.one_shot = true
+	add_child(_save_timer)
+	_save_timer.timeout.connect(_on_save_timer_timeout)
+
+func _schedule_save_timer() -> void:
+	if not _save_timer:
+		_initialize_save_timer()
+	if _save_timer and _save_timer.is_stopped():
+		_save_timer.start(save_debounce_seconds)
+
+func _on_save_timer_timeout() -> void:
+	_flush_save_now()
+
+func _flush_save_now() -> void:
+	if not autosave_progress:
+		return
+	if _save_in_progress:
+		_save_pending = true
+		return
 	#Check if managers are ready before saving
 	if not gm or not gm.can_persist_progress():
 		push_warning("SaveManager: Cannot save progress, managers not ready yet")
+		_save_pending = true
+		_schedule_save_timer()
 		return
-	
+	_save_in_progress = true
+	_save_pending = false
+
 	var file: FileAccess = FileAccess.open(progress_file_path, FileAccess.WRITE)
 	if not file:
 		push_error("Failed to save progress: Unable to open file at %s, error: %s" % [progress_file_path, FileAccess.get_open_error()])
+		_save_in_progress = false
 		return
 	
 	# Store keyed payload so load order changes do not break compatibility.
@@ -67,6 +114,9 @@ func save_progress() -> void:
 			push_warning("Failed to access directory for backup")
 	else:
 		push_error("Save file was not created successfully at %s" % progress_file_path)
+	_save_in_progress = false
+	if _save_pending:
+		_schedule_save_timer()
 
 func load_progress() -> void:
 	if _load_progress_from_path(progress_file_path):
@@ -75,7 +125,7 @@ func load_progress() -> void:
 	# Try backup when primary file is missing/corrupt.
 	if _load_progress_from_path(backup_progress_file_path):
 		push_warning("Loaded progress from backup file and restoring primary save file.")
-		save_progress()
+		save_progress(true)
 		return
 	
 	reset_progress()
@@ -308,7 +358,12 @@ func reset_progress() -> void:
 	ad_usage_count = 0
 	ad_last_used_time = 0
 	if autosave_progress:
-		save_progress()
+		save_progress(true)
+
+func _exit_tree() -> void:
+	if _save_timer and _save_timer.is_inside_tree():
+		_save_timer.stop()
+	save_progress(true)
 
 # Add functions to save and get per-level data
 

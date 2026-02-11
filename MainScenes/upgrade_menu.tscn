@@ -190,9 +190,7 @@ data = PackedByteArray("AAEAAAATAQAABAAwQkFTRWxYeJwAAAKIAAAA0kdQT1PObs4MAAANuAAA
 font_name = "IBM Plex Sans JP SemiBold"
 style_name = "SemiBold"
 font_weight = 600
-subpixel_positioning = 0
 msdf_pixel_range = 8
-msdf_size = 128
 cache/0/16/0/ascent = 17.0
 cache/0/16/0/descent = 8.0
 cache/0/16/0/underline_position = 1.90625
@@ -200,7 +198,7 @@ cache/0/16/0/underline_thickness = 1.40625
 cache/0/16/0/scale = 1.0
 cache/0/16/0/textures/0/offsets = PackedInt32Array(14, 0, 242, 16)
 cache/0/16/0/textures/0/image = SubResource("Image_5g30w")
-cache/0/16/0/glyphs/51/advance = Vector2(11, 16)
+cache/0/16/0/glyphs/51/advance = Vector2(11.1094, 16)
 cache/0/16/0/glyphs/51/offset = Vector2(0, -13)
 cache/0/16/0/glyphs/51/size = Vector2(12, 14)
 cache/0/16/0/glyphs/51/uv_rect = Rect2(1, 1, 12, 14)
@@ -547,24 +545,19 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -17.0
-offset_top = 5.0
-offset_right = 280.0
-offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_uf2vc")
 
 [node name="Outline" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.004605642
-anchor_top = -0.011029412
-anchor_right = 0.85031664
-anchor_bottom = 0.9739583
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -22.0
+offset_bottom = 88.0
 grow_horizontal = 2
 grow_vertical = 2
-metadata/_edit_use_anchors_ = true
 
 [node name="Heading" type="TextureRect" parent="."]
 layout_mode = 1
@@ -580,10 +573,11 @@ metadata/_edit_use_anchors_ = true
 [node name="Resources" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.027633851
+anchor_left = 0.05277778
 anchor_top = 0.08118872
-anchor_right = 0.82153136
+anchor_right = 0.95069444
 anchor_bottom = 0.12928921
+grow_horizontal = 2
 theme_override_constants/separation = 30
 metadata/_edit_use_anchors_ = true
 
@@ -598,9 +592,10 @@ label_settings = SubResource("LabelSettings_gmmlx")
 vertical_alignment = 2
 
 [node name="Void_shards" type="TextureRect" parent="Resources/VoidCrystal"]
-custom_minimum_size = Vector2(60, 0)
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 texture = ExtResource("9_8sam1")
+expand_mode = 1
 stretch_mode = 5
 
 [node name="Crystal" type="HBoxContainer" parent="Resources"]
@@ -614,10 +609,11 @@ label_settings = SubResource("LabelSettings_n5e6d")
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Crystal" type="TextureRect" parent="Resources/Crystal"]
-custom_minimum_size = Vector2(50, 0)
+[node name="Crstal" type="TextureRect" parent="Resources/Crystal"]
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 texture = ExtResource("12_hj2yo")
+expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
@@ -634,9 +630,10 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="Coins" type="TextureRect" parent="Resources/Money"]
-custom_minimum_size = Vector2(45, 45)
+custom_minimum_size = Vector2(60, 45)
 layout_mode = 2
 texture = ExtResource("10_yijgs")
+expand_mode = 1
 stretch_mode = 5
 metadata/_edit_use_anchors_ = true
 
@@ -645,10 +642,14 @@ layer = 0
 
 [node name="Bottom_ui" type="PanelContainer" parent="UI"]
 anchors_preset = -1
-anchor_left = 0.030555556
-anchor_top = 0.849375
-anchor_right = 0.98125
-anchor_bottom = 0.9196875
+anchor_left = 0.036805555
+anchor_top = 0.879375
+anchor_right = 0.9875
+anchor_bottom = 0.9496875
+offset_left = -19.0
+offset_top = -11.0
+offset_right = -19.0
+offset_bottom = -11.0
 theme_override_styles/panel = SubResource("StyleBoxEmpty_nr62u")
 metadata/_edit_use_anchors_ = true
 
@@ -690,10 +691,10 @@ theme_override_font_sizes/font_size = 75
 text = "Shop"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="UI"]
-offset_left = 55.0
-offset_top = 1252.0
-offset_right = 1471.0
-offset_bottom = 1633.0
+offset_left = 89.0
+offset_top = 1266.0
+offset_right = 659.0
+offset_bottom = 1647.0
 theme_override_constants/separation = 150
 
 [node name="Upgrade_coins" type="TextureButton" parent="UI/HBoxContainer"]
@@ -755,6 +756,10 @@ anchor_left = 0.025
 anchor_top = 0.5409375
 anchor_right = 0.9652778
 anchor_bottom = 0.57885444
+offset_left = 28.0
+offset_top = -36.0
+offset_right = 28.0
+offset_bottom = -36.0
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
@@ -876,10 +881,10 @@ autowrap_mode = 3
 metadata/_edit_use_anchors_ = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI"]
-offset_left = 800.0
-offset_top = 1151.0
-offset_right = 1368.0
-offset_bottom = 1633.0
+offset_left = 816.0
+offset_top = 1189.0
+offset_right = 1384.0
+offset_bottom = 1671.0
 theme_override_constants/separation = 50
 
 [node name="Ads_crystal" type="Button" parent="UI/VBoxContainer"]
@@ -917,10 +922,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -338.63412
-offset_top = -343.5
-offset_right = 976.3659
-offset_bottom = 347.5
+offset_left = -293.0283
+offset_top = -297.5
+offset_right = 1062.9717
+offset_bottom = 364.41174
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -945,13 +950,14 @@ layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.0817204
 anchor_top = 0.271186
-anchor_right = 0.939785
-anchor_bottom = 0.93053544
+anchor_right = 0.93978506
+anchor_bottom = 0.9502694
 theme = ExtResource("7_462bn")
 metadata/_edit_use_anchors_ = true
 
 [node name="Stats" type="VBoxContainer" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails"]
 layout_mode = 2
+theme_override_constants/separation = 40
 
 [node name="Damage" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats"]
 layout_mode = 2
@@ -962,18 +968,19 @@ vertical_alignment = 1
 [node name="StatusLabel" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel/ShipDetails/Stats"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
-text = "Upgrades to next ascension: "
+text = "Upgrades to next ascension: %d\" % next_requirements[\"upgrades_needed\"]"
 label_settings = SubResource("LabelSettings_4xt2x")
 autowrap_mode = 3
 metadata/_edit_use_anchors_ = true
 
 [node name="ShipName" type="Label" parent="SelectedShipDisplay/HBoxContainer/DetailsContainer/Panel"]
 custom_minimum_size = Vector2(100, 100)
-layout_mode = 0
-anchor_left = 0.102819234
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.10281924
 anchor_top = 0.058631923
-anchor_right = 0.86567163
-anchor_bottom = 0.22149837
+anchor_right = 0.8748068
+anchor_bottom = 0.19935066
 text = "Ship Name"
 label_settings = SubResource("LabelSettings_68fc6")
 horizontal_alignment = 1
@@ -984,10 +991,10 @@ metadata/_edit_use_anchors_ = true
 
 [node name="ShipContainer" type="ScrollContainer" parent="."]
 layout_mode = 0
-offset_left = 86.0
-offset_top = 1945.0001
-offset_right = 1147.0
-offset_bottom = 2486.0
+offset_left = 75.00001
+offset_top = 1964.0001
+offset_right = 1159.3334
+offset_bottom = 2631.5
 scale = Vector2(1.2, 1.2)
 
 [node name="GridContainer" type="GridContainer" parent="ShipContainer"]
@@ -1304,10 +1311,10 @@ stream = ExtResource("19_gsk1l")
 [node name="Satcontainer" type="ScrollContainer" parent="."]
 visible = false
 layout_mode = 0
-offset_left = 83.0
-offset_top = 1948.0
-offset_right = 1158.0
-offset_bottom = 2493.0
+offset_left = 76.0
+offset_top = 1963.0
+offset_right = 1180.1666
+offset_bottom = 2652.1667
 scale = Vector2(1.2, 1.2)
 
 [node name="GridContainer" type="GridContainer" parent="Satcontainer"]

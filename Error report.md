@@ -2,11 +2,11 @@
 
 Tracked remediation items in this report: **13**
 
-- Completed: **8**
+- Completed: **9**
 - Partial: **0**
-- Remaining: **5**
-- Completion (fully done items): **61.5%**
-- Remaining effort: **38.5%**
+- Remaining: **4**
+- Completion (fully done items): **69.2%**
+- Remaining effort: **30.8%**
 
 **Completed**
 
@@ -41,6 +41,10 @@ Notes: Added and connected `rewarded_ad_failed_to_show_full_screen_content` and 
 8. `Autoloads/Scripts/Core/GameManager.gd` responsibility split (revive/currency/scene)  
 Status: **Completed**  
 Notes: Revive orchestration moved to `Autoloads/Scripts/Services/GameReviveService.gd`, scene routing moved to `Autoloads/Scripts/Services/GameSceneService.gd`, and currency/save helpers moved to `Autoloads/Scripts/Services/GameEconomyService.gd`.
+
+9. Save batching/debounce strategy (`Autoloads/Scripts/Managers/SaveManager.gd`)  
+Status: **Completed**  
+Notes: Added debounced save scheduling with configurable delay, pending-save coalescing, and force-save path for shutdown and recovery.
 
 ---
 
@@ -110,8 +114,5 @@ Target: Extract revive/combat/mode/state-machine modules.
 3. Scene-safe spawn/effect API for enemy/boss scripts  
 Target: Replace raw `current_scene.add_child` with guarded spawn facade.
 
-4. Save batching/debounce strategy  
-Target: Reduce direct synchronous save frequency.
-
-5. `Autoloads/Scripts/Managers/ConfigLoader.gd`  
+4. `Autoloads/Scripts/Managers/ConfigLoader.gd`  
 Target: Move defaults into versioned data assets and add strict schema validation.
