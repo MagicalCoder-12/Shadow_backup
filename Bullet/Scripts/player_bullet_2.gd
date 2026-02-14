@@ -9,6 +9,7 @@ var arch_frequency: float = 2.0  # Speed of the arch oscillation
 var time: float = 0.0  # Time for sinusoidal arching
 
 func _ready() -> void:
+	time = 0.0
 	super._ready()  # Call base ready if BulletBase has one
 
 func _process(delta: float) -> void:
@@ -19,4 +20,4 @@ func _process(delta: float) -> void:
 
 
 func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
-	queue_free()
+	_on_screen_exited()

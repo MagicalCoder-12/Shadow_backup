@@ -584,7 +584,7 @@ func _fire_single_shot():
 	
 	bullet.global_position = position
 	bullet.rotation = PI/2  # Straight down
-	get_tree().current_scene.add_child(bullet)
+	SceneSpawnService.spawn_child(bullet)
 
 func _apply_shooting_cooldown():
 	"""Apply a variable cooldown between shots for natural shooting rhythm"""
@@ -631,9 +631,8 @@ func _fire_at_player():
 		direction = (player_reference.global_position - position).normalized()
 	bullet.rotation = direction.angle() + PI/2
 	
-	# Add to scene
-	if get_tree().current_scene:
-		get_tree().current_scene.add_child(bullet)
+	# Add to scene safely
+	SceneSpawnService.spawn_child(bullet)
 	
 	if debug_mode:
 		print("Enemy fired bullet")
@@ -660,7 +659,7 @@ func _fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI/6):  # Re
 		
 		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
-		get_tree().current_scene.add_child(bullet)
+		SceneSpawnService.spawn_child(bullet)
 
 @warning_ignore("unused_parameter")
 func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduced defaults
@@ -684,7 +683,7 @@ func _fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15):  # Reduc
 		
 		bullet.global_position = position
 		bullet.rotation = direction.angle() + PI/2
-		get_tree().current_scene.add_child(bullet)
+		SceneSpawnService.spawn_child(bullet)
 
 # --- Bomb Dropping Functionality ---
 
@@ -703,7 +702,7 @@ func _drop_bomb():
 		# Position the bomb at the enemy's position
 		bomb_instance.global_position = position
 		# Add the bomb to the scene
-		get_tree().current_scene.add_child(bomb_instance)
+		SceneSpawnService.spawn_child(bomb_instance)
 
 # --- Formation Setup ---
 @warning_ignore("unused_parameter")

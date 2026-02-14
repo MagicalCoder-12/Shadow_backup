@@ -3,6 +3,7 @@ extends Node
 # Object pool for bullets
 var bullet_pool: Dictionary = {}
 const MAX_POOL_SIZE: int = 50
+const META_POOL_RETURN_PENDING: StringName = &"_pool_return_pending"
 
 func _ready() -> void:
 	# Initialize pools for different bullet types
@@ -49,18 +50,8 @@ func spawn_bullet(
 	bullet.visible = true
 	bullet.z_index = 10
 	bullet.modulate.a = 1.0
-	
-	# Connect to cleanup signal if not already connected
-	# We still connect this as a backup in case a bullet gets freed unexpectedly
-	if bullet.has_signal("tree_exiting"):
-		bullet.pool_key = bullet_scene.resource_path  # Store the pool key in the bullet
-		# Disconnect any existing connection to prevent multiple connections
-		var existing_callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
-		if bullet.tree_exiting.is_connected(existing_callable):
-			bullet.tree_exiting.disconnect(existing_callable)
-		# Create a callable that will pass the bullet as an argument when tree_exiting is emitted
-		var callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
-		bullet.tree_exiting.connect(callable)
+	bullet.pool_key = bullet_scene.resource_path  # Store pool key for BulletBase return hooks.
+	bullet.set_meta(META_POOL_RETURN_PENDING, false)
 	
 	return bullet
 
@@ -78,6 +69,8 @@ func _get_bullet_from_pool(bullet_scene: PackedScene) -> Node:
 			# Ensure the bullet is not in the scene tree before returning
 			if bullet.get_parent():
 				bullet.get_parent().remove_child(bullet)
+			# Pooled bullets need _ready to run again to refresh velocity/timers/state.
+			bullet.request_ready()
 			return bullet
 		else:
 			return null
@@ -90,72 +83,53 @@ func _get_bullet_from_pool(bullet_scene: PackedScene) -> Node:
 			new_bullet.queue_free()
 			return null
 
-## Returns a bullet to the pool when it's freed
-func _on_bullet_tree_exiting(bullet: BulletBase) -> void:
-	if bullet and bullet.pool_key and bullet_pool.has(bullet.pool_key):
-		var pool_key = bullet.pool_key
-		# Check if the bullet is already in the pool to avoid double-adding
-		if bullet in bullet_pool[pool_key]:
-			# Bullet is already in the pool, just free it
-			bullet.queue_free()
-			return
-		if bullet_pool[pool_key].size() < MAX_POOL_SIZE:
-			# Reset bullet properties before returning to pool
-			bullet.is_active = false
-			bullet.visible = false
-			bullet.modulate.a = 1.0
-			bullet.global_position = Vector2(-1000, -1000)  # Move off-screen
-			bullet.speed = 600.0
-			bullet.damage = 10
-			bullet_pool[pool_key].append(bullet)
-		else:
-			# Pool is full, just free the bullet
-			bullet.queue_free()
-	else:
-		# If bullet doesn't have pool_key or pool doesn't exist, just free it
-		if bullet:
-			bullet.queue_free()
-
 ## Explicitly returns a bullet to the pool (called by bullets themselves)
 func return_bullet_to_pool(bullet: BulletBase, pool_key: String) -> void:
-	if bullet and pool_key and bullet_pool.has(pool_key):
-		# Check if the bullet is already in the pool to avoid double-adding
-		if bullet in bullet_pool[pool_key]:
-			# Bullet is already in the pool, just free it
-			bullet.queue_free()
-			return
-		if bullet_pool[pool_key].size() < MAX_POOL_SIZE:
-			# Disconnect any existing signal connection before returning to pool
-			if bullet.has_signal("tree_exiting"):
-				var existing_callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
-				if bullet.tree_exiting.is_connected(existing_callable):
-					bullet.tree_exiting.disconnect(existing_callable)
-			# Reset bullet properties before returning to pool
-			bullet.is_active = false
-			bullet.visible = false
-			bullet.modulate.a = 1.0
-			bullet.global_position = Vector2(-1000, -1000)  # Move off-screen
-			bullet.speed = 600.0
-			bullet.damage = 10
-			bullet_pool[pool_key].append(bullet)
-		else:
-			# Pool is full, just free the bullet
-			bullet.queue_free()
-	else:
-		# If bullet doesn't have pool_key or pool doesn't exist, just free it
-		if bullet:
-			bullet.queue_free()
+	if not is_instance_valid(bullet):
+		return
+
+	var is_pending: bool = bool(bullet.get_meta(META_POOL_RETURN_PENDING, false))
+	if is_pending:
+		return
+
+	bullet.set_meta(META_POOL_RETURN_PENDING, true)
+	call_deferred("_finalize_return_bullet_to_pool", bullet, pool_key)
+
+func _finalize_return_bullet_to_pool(bullet: BulletBase, pool_key: String) -> void:
+	if not is_instance_valid(bullet):
+		return
+
+	bullet.set_meta(META_POOL_RETURN_PENDING, false)
+
+	if pool_key == "" or not bullet_pool.has(pool_key):
+		bullet.queue_free()
+		return
+
+	# Check if the bullet is already in the pool to avoid double-adding.
+	if bullet in bullet_pool[pool_key]:
+		return
+
+	if bullet_pool[pool_key].size() >= MAX_POOL_SIZE:
+		# Pool is full, just free the bullet.
+		bullet.queue_free()
+		return
+
+	# Reset bullet properties before returning to pool.
+	bullet.is_active = false
+	bullet.visible = false
+	bullet.modulate.a = 1.0
+	bullet.global_position = Vector2(-1000, -1000)
+	bullet.speed = 600.0
+	bullet.damage = 10
+	if bullet.get_parent():
+		bullet.get_parent().remove_child(bullet)
+	bullet_pool[pool_key].append(bullet)
 
 ## Clears all pools (call when changing scenes)
 func clear_pools() -> void:
 	for pool_key in bullet_pool:
 		for bullet in bullet_pool[pool_key]:
 			if is_instance_valid(bullet):
-				# Disconnect the signal before freeing
-				if bullet.has_signal("tree_exiting"):
-					var callable = Callable(self, "_on_bullet_tree_exiting").bind(bullet)
-					if bullet.tree_exiting.is_connected(callable):
-						bullet.tree_exiting.disconnect(callable)
 				bullet.queue_free()
 		bullet_pool[pool_key].clear()
 

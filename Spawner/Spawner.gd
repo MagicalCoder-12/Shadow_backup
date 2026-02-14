@@ -95,12 +95,12 @@ func _on_PowerupSpawnTimer_timeout() -> void:
 		for i in range(num_asteroids):
 			var astroid: Node = selected_scene.instantiate()
 			astroid.position = get_random_spawn_pos(astroid)
-			get_tree().current_scene.add_child(astroid)
+			SceneSpawnService.spawn_child(astroid)
 	else:
 		# Spawn a single powerup
 		var powerup: Node = selected_scene.instantiate()
 		powerup.position = get_random_spawn_pos(powerup)
-		get_tree().current_scene.add_child(powerup)
+		SceneSpawnService.spawn_child(powerup)
 	
 	# Restart the timer
 	powerupSpawnTimer.start(randf_range(minPowerupSpawnTime, maxPowerupSpawnTime))

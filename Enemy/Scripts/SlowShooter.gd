@@ -272,7 +272,7 @@ func _fire_charge_shot():
 		# Apply aiming
 		_apply_aiming_to_bullet(bullet, child.global_position, target_pos)
 		
-		get_tree().current_scene.add_child(bullet)
+		SceneSpawnService.spawn_child(bullet)
 
 # Clean up charge effects
 func _cleanup_charge_effects():
@@ -326,7 +326,7 @@ func fire(target_pos: Vector2 = Vector2.ZERO):
 		if target_pos != Vector2.ZERO:
 			_apply_aiming_to_bullet(bullet, child.global_position, target_pos)
 		
-		get_tree().current_scene.add_child(bullet)
+		SceneSpawnService.spawn_child(bullet)
 
 # Apply aiming to bullet
 func _apply_aiming_to_bullet(bullet, start_pos: Vector2, target_pos: Vector2):

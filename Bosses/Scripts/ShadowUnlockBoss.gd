@@ -172,7 +172,7 @@ func _show_muzzle_flash() -> void:
 	var flash = MUZZLE_FLASH.instantiate()
 	if flash:
 		flash.global_position = nozzel.global_position
-		get_tree().current_scene.add_child(flash)
+		SceneSpawnService.spawn_child(flash)
 
 func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
 	# Create a small visual effect when bullets are fired

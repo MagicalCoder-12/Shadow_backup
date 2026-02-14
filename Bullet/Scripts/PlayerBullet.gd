@@ -17,8 +17,14 @@ func _on_collision(_area: Area2D) -> void:
 	var hit_effect = BULLET_EFFECT.instantiate()
 	if hit_effect:
 		hit_effect.global_position = global_position
-		get_parent().add_child(hit_effect)
+		var host: Node = get_parent()
+		if host:
+			host.call_deferred("add_child", hit_effect)
+		elif get_tree() and get_tree().current_scene:
+			get_tree().current_scene.call_deferred("add_child", hit_effect)
+		else:
+			hit_effect.queue_free()
 
 
 func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
-	queue_free()
+	_on_screen_exited()

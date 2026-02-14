@@ -9,12 +9,15 @@ var target: Node
 @onready var lifetime_timer: Timer = $LifetimeTimer
 
 func _setup_bullet() -> void:
-	lifetime_timer.wait_time = lifetime
-	lifetime_timer.start()
+	if lifetime_timer:
+		lifetime_timer.stop()
+		lifetime_timer.wait_time = maxf(0.05, lifetime)
+		lifetime_timer.start()
 	bullet_owner = "satellite"
 	collision_groups = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
 
-	damage = int(GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 0.8)
+	if damage <= 1 and GameManager and GameManager.player_manager:
+		damage = int(GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 0.8)
 	if damage <= 0:
 		damage = 10
 
@@ -57,7 +60,7 @@ func _find_nearest_enemy() -> void:
 
 
 func _on_lifetime_timer_timeout() -> void:
-	queue_free()
+	_on_screen_exited()
 
 func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
-	queue_free()
+	_on_screen_exited()

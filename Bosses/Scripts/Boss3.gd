@@ -180,7 +180,7 @@ func fire_tractor_beam() -> void:
 	var beam = tractor_beam_scene.instantiate()
 	beam.global_position = center.global_position
 	beam.rotation = PI / 2
-	get_tree().current_scene.add_child(beam)
+	SceneSpawnService.spawn_child(beam)
 	# Store reference to the beam for updating
 	tractor_beam = beam
 	get_tree().create_timer(tractor_beam_duration).timeout.connect(func():
@@ -223,7 +223,7 @@ func fire_hell_storm(bullet_count: int = 24) -> void:
 				bullet.set_lifetime(6.0)
 			if bullet.has_method("set_damage"):
 				bullet.set_damage(2)
-			get_tree().current_scene.add_child(bullet)
+			SceneSpawnService.spawn_child(bullet)
 		await get_tree().create_timer(0.05).timeout
 
 func _setup_minion_spawn_timer() -> void:

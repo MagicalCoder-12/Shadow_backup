@@ -48,6 +48,7 @@ LevelManager="*res://Autoloads/Scripts/Managers/LevelManager.gd"
 SceneManager="*res://Autoloads/Scripts/Managers/SceneManager.gd"
 GameManager="*res://Autoloads/game_manager.tscn"
 BulletFactory="*res://Autoloads/Bullet_Factory.tscn"
+SceneSpawnService="*res://Autoloads/Scripts/Services/SceneSpawnService.gd"
 
 [debug]
 
