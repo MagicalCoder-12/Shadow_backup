@@ -1,6 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://m4hqp78bi33k"]
+[gd_scene format=3 uid="uid://m4hqp78bi33k"]
 
-[ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite.gd" id="1_fg3ep"]
+[ext_resource type="Script" uid="uid://cuf838ksigbtl" path="res://Satellites/Scripts/satellite1.gd" id="1_fg3ep"]
 [ext_resource type="Texture2D" uid="uid://crjcufpe4hyir" path="res://Textures/Satellite/Sat_textures/Sat1.png" id="2_pk3iq"]
 [ext_resource type="Texture2D" uid="uid://h8l0ydp4hdgg" path="res://Textures/Satellite/Ship1/Parts/ship1_detail.png" id="3_pk3iq"]
 
@@ -65,36 +65,32 @@ _data = {
 &"shoot": SubResource("Animation_4nk4h")
 }
 
-[node name="Satellite" type="Node2D"]
+[node name="Satellite1" type="Node2D" unique_id=2003450190]
 script = ExtResource("1_fg3ep")
-fire_rate = 0.4
-shadow_fire_rate_multiplier = 0.2
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=327435845]
 texture_filter = 1
 position = Vector2(-1.29292e-05, 3.57162)
 rotation = 1.5708
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_pk3iq")
 
-[node name="Ship2Detail" type="Sprite2D" parent="."]
+[node name="Ship2Detail" type="Sprite2D" parent="." unique_id=956193229]
 texture_filter = 1
 position = Vector2(6.9999995, 1.9999962)
 rotation = 1.8238043
 scale = Vector2(1.6, 1.6)
 texture = ExtResource("3_pk3iq")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_yondh")
-}
-autoplay = "shoot"
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1395619866]
+libraries/ = SubResource("AnimationLibrary_yondh")
+autoplay = &"shoot"
 speed_scale = 2.0
 
-[node name="Nozel" type="Node2D" parent="."]
+[node name="Nozel" type="Node2D" parent="." unique_id=2088982984]
 position = Vector2(1, -41)
 
-[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=2073059673]
 position = Vector2(1, 49)
 amount = 500
 emission_shape = 1
@@ -102,7 +98,7 @@ emission_sphere_radius = 5.0
 gravity = Vector2(0, 40)
 color = Color(0, 1, 0, 1)
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="." unique_id=2143997534]
 one_shot = true
 autostart = true
 

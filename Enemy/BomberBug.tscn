@@ -14,6 +14,7 @@ radius = 98.0204
 script = ExtResource("2_f14bn")
 score = 300
 max_health = 300
+fire_rate = 0.8
 shadow_texture = SubResource("CompressedTexture2D_8evay")
 enemy_type = "Bomber"
 movement_pattern = 4

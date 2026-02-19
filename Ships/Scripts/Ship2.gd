@@ -222,7 +222,7 @@ func _shoot_shadow_burst_bullets(bullet_scene: PackedScene, bullet_speed: float,
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _shoot_super_burst_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Fire bullets with spread pattern for super mode
@@ -243,7 +243,7 @@ func _shoot_super_burst_bullets(bullet_scene: PackedScene, bullet_speed: float, 
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _start_next_shadow_burst_sequence() -> void:
 	# Reset for next burst sequence

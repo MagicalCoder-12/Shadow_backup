@@ -1,30 +1,39 @@
-[gd_scene format=3 uid="uid://cuafrx6rgdj2w"]
+[gd_scene format=3 uid="uid://6smx304r5nlr"]
 
-[ext_resource type="Texture2D" uid="uid://bcnw1tp07vyss" path="res://Textures/Boss/ball.png" id="1_j626h"]
 [ext_resource type="Script" uid="uid://b3ol4avc38i8i" path="res://Bullet/Scripts/sat_bullet_2.gd" id="1_lenlv"]
+[ext_resource type="Texture2D" uid="uid://35l35sp5e83f" path="res://Textures/Lasers/Laser Sprites/04.png" id="2_l8el1"]
+[ext_resource type="Texture2D" uid="uid://cx6hwv4qoy04m" path="res://Textures/Lasers/Laser Sprites/05.png" id="3_q12ln"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_lenlv"]
-radius = 22.022715
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2swq5"]
+radius = 16.0
+height = 52.0
 
-[node name="Sat_bullet2" type="Area2D" unique_id=1890584513]
+[node name="SatBullet2" type="Area2D" unique_id=1730693160]
+collision_layer = 16
+collision_mask = 44
 script = ExtResource("1_lenlv")
-bullet_owner = "satellite"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=265941153]
-position = Vector2(-2, -1)
-shape = SubResource("CircleShape2D_lenlv")
-debug_color = Color(0.95135266, 0.075981475, 0.5221597, 0.41960785)
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1007282393]
+rotation = -1.5708
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_l8el1")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=85964767]
-modulate = Color(0, 1, 0, 1)
-texture = ExtResource("1_j626h")
-region_enabled = true
-region_rect = Rect2(233.5, 120, 57, 55)
+[node name="GlowSprite" type="Sprite2D" parent="." unique_id=658697095]
+position = Vector2(-1, 1)
+rotation = -1.5708
+texture = ExtResource("3_q12ln")
 
-[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1099241085]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1373996508]
+position = Vector2(-1, 1)
+shape = SubResource("CapsuleShape2D_2swq5")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=2050946318]
 position = Vector2(-1, 4)
 scale = Vector2(1.7, 2.2)
-rect = Rect2(-11.176472, -9.090909, 21.176472, 13.636364)
 
-[node name="LifetimeTimer" type="Timer" parent="." unique_id=1605428679]
+[node name="LifetimeTimer" type="Timer" parent="." unique_id=2132728292]
 one_shot = true
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]
+[connection signal="timeout" from="LifetimeTimer" to="." method="_on_lifetime_timer_timeout"]

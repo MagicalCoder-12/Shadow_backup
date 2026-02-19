@@ -7,7 +7,7 @@ var player_in_area: Player = null
 
 # Add a class variable to track active bombs
 static var active_bombs: int = 0
-const MAX_ACTIVE_BOMBS: int = 30  # Reduced from 50 to 30 (limit the number of active bombs)
+const MAX_ACTIVE_BOMBS: int = 15  # Further reduced to 15 to prevent performance stuttering
 const OFFSCREEN_THRESHOLD: int = 1000  # Remove bombs that fall too far
 
 func _ready() -> void:

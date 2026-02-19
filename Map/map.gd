@@ -2,6 +2,7 @@ extends Control
 
 @onready var level_buttons: Node2D = $LevelButtons
 @onready var canvaslayer: CanvasLayer = $CanvasLayer
+@onready var difficulty_selection: Control = $CanvasLayer/DifficultySelection
 
 const Start_screen = "res://MainScenes/start_menu.tscn"
 const Shop = "res://MainScenes/upgrade_menu.tscn"
@@ -13,6 +14,10 @@ const Shop = "res://MainScenes/upgrade_menu.tscn"
 func _ready():
 	# Hide stars immediately to prevent flickering during transition
 	hide_all_stars()
+	
+	# Hide difficulty selection panel initially
+	if difficulty_selection:
+		difficulty_selection.hide()
 	
 	# Connect to prepare_map_scene signal to update stars before scene transition
 	if GameManager.has_signal("prepare_map_scene"):
@@ -47,6 +52,20 @@ func hide_all_stars():
 	var buttons = level_buttons.get_children()
 	for i in range(buttons.size()):
 		var button = buttons[i]
+		
+		# Hide all star types
+		var star_bronze = button.get_node_or_null("Star_bronze")
+		var star_silver = button.get_node_or_null("Star_silver")
+		var star_gold = button.get_node_or_null("Star_gold")
+		
+		if star_bronze:
+			star_bronze.hide()
+		if star_silver:
+			star_silver.hide()
+		if star_gold:
+			star_gold.hide()
+		
+		# Also hide fallback star for backward compatibility
 		var star = button.get_node_or_null("Star")
 		if star:
 			star.hide()
@@ -112,7 +131,8 @@ func _initialize_level_buttons():
 	level_buttons.show()
 	level_buttons.z_index = 1
 
-	# Update stars after buttons are initialized to ensure they reflect the correct state
+	# Hide all stars first to ensure clean state, then update based on completion counts
+	hide_all_stars()
 	update_stars()
 
 # Update button states when a new level is unlocked
@@ -133,15 +153,38 @@ func update_stars():
 	for i in range(buttons.size()):
 		var button = buttons[i]
 		var level_num = i + 1
-		var star = button.get_node_or_null("Star")
 		
-		if star:
-			if GameManager.is_level_completed(level_num):
-				# Show the star if the level is completed
-				star.show()
-			else:
-				# Hide the star if the level is not completed
-				star.hide()
+		# Get the star sprites from the button
+		if button.has_node("Star_bronze"):
+			var star_bronze: Sprite2D = button.get_node("Star_bronze")
+			var star_silver: Sprite2D = button.get_node("Star_silver")
+			var star_gold: Sprite2D = button.get_node("Star_gold")
+			
+			var completion_count = GameManager.level_manager.get_level_completion_count(level_num)
+			
+			# Hide all stars initially
+			star_bronze.hide()
+			star_silver.hide()
+			star_gold.hide()
+			
+			# Show appropriate star based on completion count
+			if completion_count >= 1:
+				star_bronze.show()
+			if completion_count >= 2:
+				star_bronze.hide()
+				star_silver.show()
+			if completion_count >= 3:
+				star_bronze.hide()
+				star_silver.hide()
+				star_gold.show()
+		else:
+			# Fallback for backward compatibility - original logic
+			var star = button.get_node_or_null("Star")
+			if star:
+				if GameManager.is_level_completed(i + 1):
+					star.show()
+				else:
+					star.hide()
 
 # Called when a level is completed and a star is earned
 func _on_level_star_earned():

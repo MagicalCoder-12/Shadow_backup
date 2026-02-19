@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c0rvebin2dhlv"]
+[gd_scene format=3 uid="uid://c0rvebin2dhlv"]
 
-[ext_resource type="Script" path="res://Enemy Manager/Scripts/formation_manager.gd" id="1_cojxs"]
+[ext_resource type="Script" uid="uid://ci2eqy5yx5pnm" path="res://Enemy Manager/Scripts/formation_manager.gd" id="1_cojxs"]
 
-[node name="FormationManager" type="Node2D"]
+[node name="FormationManager" type="Node2D" unique_id=442573117]
 script = ExtResource("1_cojxs")
+debug_mode = true

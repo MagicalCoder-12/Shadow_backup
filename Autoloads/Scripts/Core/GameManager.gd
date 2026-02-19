@@ -1,5 +1,8 @@
 extends Node2D
 
+# Import formation_enums to access shared enums
+const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 # Revive state tracking
 var is_revive_pending: bool = false
 # Per-level revive usage counters used by ad/crystal revive limits.
@@ -70,7 +73,7 @@ const ASCENSION_THRESHOLDS: Dictionary = {
 	"Ship5": [4, 8, 12, 16, 20, 24, 28, 32, 36, 40],
 	"Ship6": [4, 8, 12, 16, 20, 24, 28, 32],
 	"Ship7": [4, 8, 12, 16, 20, 24],
-	"Ship8": [4, 8, 12, 16, 20, 24]
+	"Ship8": [4, 8, 12, 16, 20]
 }
 
 # Ascension thresholds for satellites (mirroring upgrade_settings.json)
@@ -124,6 +127,9 @@ var is_paused: bool = false:
 var game_over: bool = false
 var game_ended: bool = false
 var game_won: bool = false
+
+# Current difficulty for the upcoming level
+var current_difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.NORMAL
 
 # SHIP AND CURRENCY DATA
 var ships: Array = []
@@ -452,6 +458,10 @@ func get_start_scene_path() -> String:
 
 func set_level_game_over_screen_active(active: bool) -> void:
 	game_scene_service.set_level_game_over_screen_active(level_manager, active)
+
+# Difficulty selection methods
+func set_current_difficulty(difficulty: FormationEnums.DifficultyLevel) -> void:
+	current_difficulty = difficulty
 
 # Save/load helper accessors keep persistence logic decoupled from manager internals.
 func has_level_state() -> bool:

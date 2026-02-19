@@ -3,8 +3,11 @@ extends TextureButton
 @onready var label: Label = $Label
 
 const Level_1 = "res://Levels/level_1.tscn"
+@onready var star_bronze: Sprite2D = $Stars/Star_bronze
+@onready var star_silver: Sprite2D = $Stars/Star_silver
+@onready var star_gold: Sprite2D = $Stars/Star_gold
 
-signal level_selected
+signal level_selected(level_num: int)
 
 @export var locked: bool = true:
 	set(value):
@@ -48,6 +51,47 @@ func _on_pressed():
 			var map_audio = map_scene.get_node("map")
 			if map_audio and map_audio.is_playing():
 				map_audio.stop()
-		# Emit the signal and let the GameManager handle the rest
+		
+		# Emit signal to notify listeners (like map scene) that level was selected
 		level_selected.emit(level_num)
-		GameManager.load_level(level_num)
+		
+		# Show difficulty selection before loading level
+		_show_difficulty_selection()
+		
+		# OLD CODE: GameManager.load_level(level_num)
+
+func _show_difficulty_selection() -> void:
+	# Show the existing difficulty selection panel by traversing up the scene tree
+	var current_node = self
+	
+	# Traverse up to find the map node
+	while current_node and current_node.name != "Map":
+		current_node = current_node.get_parent()
+		if not current_node:
+			print("Level button: Could not find Map node in parent hierarchy")
+			return
+	
+	print("Level button: Found Map node through parent traversal")
+	
+	# Find the difficulty selection panel
+	if current_node.has_node("CanvasLayer/DifficultySelection"):
+		var difficulty_panel = current_node.get_node("CanvasLayer/DifficultySelection")
+		print("Level button: Found difficulty selection panel")
+		
+		# Set the target level
+		if difficulty_panel.has_method("set_target_level"):
+			difficulty_panel.set_target_level(level_num)
+			print("Level button: Set target level to ", level_num)
+		
+		# Show the canvas layer and difficulty selection panel
+		if current_node.has_node("CanvasLayer"):
+			var canvas_layer = current_node.get_node("CanvasLayer")
+			canvas_layer.show()
+		
+		difficulty_panel.show()
+		print("Level button: Showed difficulty selection panel")
+		
+		# Bring the panel to the front to ensure it's visible
+		difficulty_panel.grab_focus()
+	else:
+		print("Level button: Difficulty selection panel not found at CanvasLayer/DifficultySelection")

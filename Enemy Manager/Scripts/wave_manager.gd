@@ -10,6 +10,9 @@ const POWERUP_SCENES = [
 	preload("res://Powerups/Health.tscn")
 ]
 
+# Import formation_enums to access shared enums
+const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+
 # Signals for wave progression and events
 signal wave_started(current_wave: int, total_waves: int)
 signal wave_cleared(current_wave: int, wave_config: WaveConfig)
@@ -87,6 +90,16 @@ func start_waves() -> void:
 
 # --- New Methods for Dynamic Wave Progression ---
 
+func _adjust_wave_difficulty_based_on_selection() -> void:
+	# Apply the difficulty selected by the player
+	if GameManager and GameManager.current_difficulty != null:
+		current_wave_config.difficulty = GameManager.current_difficulty
+		if debug_mode:
+			print("WaveManager: Applied selected difficulty: %s" % FormationEnums.DifficultyLevel.keys()[current_wave_config.difficulty])
+	else:
+		# Fallback to performance-based adjustment
+		_adjust_wave_difficulty(player_performance)
+
 func _adjust_wave_difficulty(new_player_performance: float):
 	# Update class-level player_performance
 	player_performance = clamp(new_player_performance, 0.0, 1.0)
@@ -99,22 +112,22 @@ func _adjust_wave_difficulty(new_player_performance: float):
 	
 	if not formation_enums:
 		push_warning("WaveManager: formation_enums not found, defaulting to NORMAL difficulty")
-		current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL if formation_enums else 1
+		current_wave_config.difficulty = FormationEnums.DifficultyLevel.NORMAL if formation_enums else 1
 		return
 	
 	if player_performance > 0.7:  # Player is doing well
 		# Increase difficulty
-		current_wave_config.difficulty = formation_enums.DifficultyLevel.HARD
+		current_wave_config.difficulty = FormationEnums.DifficultyLevel.HARD
 		if debug_mode:
 			print("WaveManager: Difficulty set to HARD (player_performance: %.2f)" % player_performance)
 	elif player_performance < 0.3:  # Player is struggling
 		# Decrease difficulty
-		current_wave_config.difficulty = formation_enums.DifficultyLevel.EASY
+		current_wave_config.difficulty = FormationEnums.DifficultyLevel.EASY
 		if debug_mode:
 			print("WaveManager: Difficulty set to EASY (player_performance: %.2f)" % player_performance)
 	else:
 		# Keep normal difficulty
-		current_wave_config.difficulty = formation_enums.DifficultyLevel.NORMAL
+		current_wave_config.difficulty = FormationEnums.DifficultyLevel.NORMAL
 		if debug_mode:
 			print("WaveManager: Difficulty set to NORMAL (player_performance: %.2f)" % player_performance)
 
@@ -139,9 +152,9 @@ func _spawn_elite_enemy():
 	# Create a temporary wave config for the elite enemy
 	var elite_config = WaveConfig.new()
 	elite_config.enemy_type = "EliteEnemy"
-	elite_config.formation_type = formation_enums.FormationType.CIRCLE if formation_enums else 0
-	elite_config.entry_pattern = formation_enums.EntryPattern.TOP_DIVE if formation_enums else 0
-	elite_config.difficulty = formation_enums.DifficultyLevel.HARD if formation_enums else 2
+	elite_config.formation_type = FormationEnums.FormationType.CIRCLE if formation_enums else 0
+	elite_config.entry_pattern = FormationEnums.EntryPattern.TOP_DIVE if formation_enums else 0
+	elite_config.difficulty = FormationEnums.DifficultyLevel.HARD if formation_enums else 2
 	elite_config.formation_center = Vector2(640, 300)
 	elite_config.formation_radius = 100.0
 	
@@ -158,7 +171,7 @@ func _spawn_elite_enemy():
 		return
 	
 	# Get the target parent - prefer current_scene, fall back to our parent
-	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var target_parent = SceneSpawnService._get_safe_current_scene() if SceneSpawnService._get_safe_current_scene() else get_parent()
 	if not target_parent:
 		push_error("WaveManager: No valid parent found for elite enemy")
 		elite_formation_manager.queue_free()
@@ -192,9 +205,9 @@ func _spawn_enemy_swarm(count: int, enemy_type: String):
 	# Create a temporary wave config for the swarm
 	var swarm_config = WaveConfig.new()
 	swarm_config.enemy_type = enemy_type
-	swarm_config.formation_type = formation_enums.FormationType.CLUSTER if formation_enums else 0
-	swarm_config.entry_pattern = formation_enums.EntryPattern.STAGGERED if formation_enums else 0
-	swarm_config.difficulty = formation_enums.DifficultyLevel.NORMAL if formation_enums else 1
+	swarm_config.formation_type = FormationEnums.FormationType.CLUSTER if formation_enums else 0
+	swarm_config.entry_pattern = FormationEnums.EntryPattern.STAGGERED if formation_enums else 0
+	swarm_config.difficulty = FormationEnums.DifficultyLevel.NORMAL if formation_enums else 1
 	swarm_config.formation_center = Vector2(640, 500)
 	swarm_config.formation_radius = 150.0
 	swarm_config.count = count  # Assuming WaveConfig has a count property
@@ -212,7 +225,7 @@ func _spawn_enemy_swarm(count: int, enemy_type: String):
 		return
 	
 	# Get the target parent - prefer current_scene, fall back to our parent
-	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var target_parent = SceneSpawnService._get_safe_current_scene() if SceneSpawnService._get_safe_current_scene() else get_parent()
 	if not target_parent:
 		push_error("WaveManager: No valid parent found for swarm")
 		swarm_formation_manager.queue_free()
@@ -254,11 +267,11 @@ func start_next_wave() -> void:
 	wave_in_progress = true
 	wave_start_time = Time.get_unix_time_from_system()
 	
-	# Adjust difficulty based on player performance
-	_adjust_wave_difficulty(player_performance)
+	# Apply the selected difficulty instead of performance-based adjustment
+	_adjust_wave_difficulty_based_on_selection()
 	
 	if debug_mode:
-		print("WaveManager: Starting wave %d/%d (Level: %d)" % [current_wave + 1, total_waves, current_level])
+		print("WaveManager: Starting wave %d/%d (Level: %d, Difficulty: %s)" % [current_wave + 1, total_waves, current_level, FormationEnums.DifficultyLevel.keys()[current_wave_config.difficulty]])
 	
 	wave_started.emit(current_wave + 1, total_waves)
 	
@@ -286,7 +299,7 @@ func _spawn_normal_wave() -> void:
 		return
 	
 	# Get the target parent - prefer current_scene, fall back to our parent
-	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var target_parent = SceneSpawnService._get_safe_current_scene() if SceneSpawnService._get_safe_current_scene() else get_parent()
 	if not target_parent:
 		push_error("WaveManager: No valid parent found for formation manager")
 		formation_manager.queue_free()
@@ -325,7 +338,7 @@ func _spawn_boss_wave() -> void:
 	_play_boss_music()
 	
 	# Get the target parent - prefer current_scene, fall back to our parent
-	var target_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var target_parent = SceneSpawnService._get_safe_current_scene() if SceneSpawnService._get_safe_current_scene() else get_parent()
 	if not target_parent:
 		push_error("WaveManager: No valid parent found for boss")
 		_complete_wave()
@@ -643,7 +656,7 @@ func _apply_enemy_rewards(payload: Dictionary) -> void:
 			# Set the coin value based on the scaled reward
 			if coin.has_method("set_value"):
 				coin.set_value(scaled_coins)
-			get_tree().current_scene.call_deferred("add_child", coin)
+			SceneSpawnService.call_deferred("spawn_child", coin)
 	
 	# Drop crystal if selected (instead of coins)
 	elif drop_crystal:
@@ -652,7 +665,7 @@ func _apply_enemy_rewards(payload: Dictionary) -> void:
 		# Set the crystal value based on the scaled reward
 		if crystal.has_method("set_value"):
 			crystal.set_value(scaled_crystal_reward)
-		get_tree().current_scene.call_deferred("add_child", crystal)
+		SceneSpawnService.call_deferred("spawn_child", crystal)
 		
 		# Drop power-ups occasionally
 		if randf() < 0.3:  # 30% chance to drop a power-up
@@ -663,7 +676,7 @@ func _drop_powerup(drop_position: Vector2) -> void:
 	var selected_scene = POWERUP_SCENES[randi() % POWERUP_SCENES.size()]
 	var powerup = selected_scene.instantiate()
 	powerup.global_position = drop_position
-	get_tree().current_scene.call_deferred("add_child", powerup)
+	SceneSpawnService.call_deferred("spawn_child", powerup)
 
 func _on_boss_defeated() -> void:
 	if debug_mode:

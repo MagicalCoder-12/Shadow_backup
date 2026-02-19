@@ -7,6 +7,9 @@
 [node name="mob2" instance=ExtResource("1_djdev")]
 script = ExtResource("2_t8q3m")
 vertical_speed = 300.0
+max_health = 200
+speed = 250.0
+fire_rate = 1.0
 movement_pattern = 5
 
 [node name="Sprite2D" parent="." index="0"]

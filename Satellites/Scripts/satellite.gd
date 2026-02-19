@@ -1,148 +1,242 @@
 extends Node2D
+class_name SatelliteWeaponController
 
-@export var bullet_scene: PackedScene = preload("res://Bullet/Sat_bullet/Sat_bullet.tscn")
-@export var fire_rate: float = 0.1
+const DEFAULT_BULLET_SCENE: PackedScene = preload("res://Bullet/Sat_bullet/Sat_bullet1.tscn")
+const BEHAVIOR_SHOOT_ONLY_SCRIPT := preload("res://Satellites/Scripts/Behaviors/SatelliteBehaviorShootOnly.gd")
+const BEHAVIOR_LAUNCH_ATTACK_SCRIPT := preload("res://Satellites/Scripts/Behaviors/SatelliteBehaviorLaunchAttack.gd")
+
+enum SatelliteBehaviorMode {
+	SHOOT_ONLY,
+	LAUNCH_ATTACK
+}
+
+@export var bullet_scene: PackedScene = DEFAULT_BULLET_SCENE
+@export var behavior_mode: SatelliteBehaviorMode = SatelliteBehaviorMode.SHOOT_ONLY
+@export var fire_rate: float = 0.4
+@export var bullet_speed: float = 1500.0
+@export var damage_multiplier: float = 0.8
 @export var shadow_spread_angle: float = 15.0
 @export var shadow_fire_rate_multiplier: float = 0.7
-@export var shadow_homing_strength: float = 1.0  # Increased homing in shadow mode
 
-@onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var nozzle: Node2D = $Nozel
-@onready var timer: Timer = $Timer
+@onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer")
+@onready var nozzle: Node2D = get_node_or_null("Nozel")
+@onready var timer: Timer = get_node_or_null("Timer")
 
 var is_shooting_active: bool = true
-var original_fire_rate: float
+var original_fire_rate: float = 0.4
 var is_shadow_mode_active: bool = false
+var satellite_id: String = ""
+var satellite_base_damage: int = 10
+var satellite_damage_bonus: int = 0
+var _behavior: SatelliteBehaviorBase = null
 
 func _ready() -> void:
-	original_fire_rate = fire_rate
-	timer.wait_time = fire_rate
+	original_fire_rate = maxf(0.05, fire_rate)
+	_initialize_timer()
+	_initialize_behavior()
+	_connect_signals()
+	_validate_scene_setup()
+	_play_shoot_animation_if_available()
+
+func _exit_tree() -> void:
+	if GameManager and GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
+		GameManager.shadow_mode_activated.disconnect(_on_shadow_mode_activated)
+	if GameManager and GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
+		GameManager.shadow_mode_deactivated.disconnect(_on_shadow_mode_deactivated)
+	if timer and timer.timeout.is_connected(_on_timer_timeout):
+		timer.timeout.disconnect(_on_timer_timeout)
+
+func _process(delta: float) -> void:
+	if _behavior:
+		_behavior.process(delta)
+
+func _physics_process(delta: float) -> void:
+	if _behavior:
+		_behavior.physics_process(delta)
+
+func _initialize_timer() -> void:
+	if timer == null:
+		timer = Timer.new()
+		timer.name = "Timer"
+		add_child(timer)
 	timer.one_shot = false
-	timer.start()
-	if animation_player:
-		animation_player.play("shoot")
-	
-	# Connect to GameManager signals for shadow mode shenanigans
-	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
-	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
-	
-	# Validate bullet_scene to avoid shooting blanks
-	if not bullet_scene or not bullet_scene.can_instantiate():
-		push_error("SatelliteWeapon: Invalid bullet_scene. Expected SatelliteBullet.tscn.")
-		is_shooting_active = false
+	timer.wait_time = original_fire_rate
+	if not timer.timeout.is_connected(_on_timer_timeout):
+		timer.timeout.connect(_on_timer_timeout)
+	if is_shooting_active:
+		timer.start()
+	else:
 		timer.stop()
 
-## Shoots bullets like a space cowboy, shadow mode or not.
-func _on_timer_timeout() -> void:
-	if not is_shooting_active or not bullet_scene:
+func _initialize_behavior() -> void:
+	_behavior = _create_behavior_instance(behavior_mode)
+	if _behavior:
+		_behavior.setup(self)
+
+func _create_behavior_instance(mode: SatelliteBehaviorMode) -> SatelliteBehaviorBase:
+	var behavior_script: GDScript
+	match mode:
+		SatelliteBehaviorMode.LAUNCH_ATTACK:
+			behavior_script = BEHAVIOR_LAUNCH_ATTACK_SCRIPT
+		_:
+			behavior_script = BEHAVIOR_SHOOT_ONLY_SCRIPT
+
+	var behavior_instance: Variant = behavior_script.new()
+	if behavior_instance is SatelliteBehaviorBase:
+		return behavior_instance as SatelliteBehaviorBase
+
+	push_warning("Invalid satellite behavior instance; falling back to shoot-only behavior.")
+	return SatelliteBehaviorShootOnly.new()
+
+func _connect_signals() -> void:
+	if GameManager and not GameManager.shadow_mode_activated.is_connected(_on_shadow_mode_activated):
+		GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
+	if GameManager and not GameManager.shadow_mode_deactivated.is_connected(_on_shadow_mode_deactivated):
+		GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
+
+func _validate_scene_setup() -> void:
+	if nozzle == null:
+		push_warning("Satellite %s is missing Nozel node; using satellite origin as fire point." % name)
+
+	if not bullet_scene or not bullet_scene.can_instantiate():
+		push_error("Satellite %s has invalid bullet_scene; disabling shooting." % name)
+		is_shooting_active = false
+		if timer:
+			timer.stop()
+
+func _play_shoot_animation_if_available() -> void:
+	if animation_player == null:
 		return
-	
-	# Get the player node to snag that sweet bullet damage
-	var player: Node = get_parent().get_parent()
-	var bullet_damage: int = GameManager.player_manager.default_bullet_damage
-	
-	if player:
-		bullet_damage = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+	if animation_player.has_animation("shoot"):
+		animation_player.play("shoot")
+	elif animation_player.has_animation("Shoot"):
+		animation_player.play("Shoot")
 
-	
-	if is_shadow_mode_active:
-		# Shadow mode: unleash a spread of homing bullets like a cosmic sprinkler
-		for angle in [-shadow_spread_angle, 0, shadow_spread_angle]:
-			var bullet: Node = BulletFactory.spawn_bullet(
-				bullet_scene,
-				nozzle.global_position,
-				deg_to_rad(angle),
-				1500,
-				int(bullet_damage * 0.8)  # Satellite bullets pack 80% of the punch
-			)
-			if bullet:
-				# Set homing strength if the bullet has this property
-				if "homing_strength" in bullet:
-					bullet.homing_strength = shadow_homing_strength  # Crank up the homing juice
-				# Only add the bullet to the scene if it doesn't already have a parent
-				if not bullet.get_parent():
-					get_tree().current_scene.add_child(bullet)
-				elif bullet.get_parent() != get_tree().current_scene:
-					# If bullet is in a different scene, remove it from there first
-					bullet.get_parent().remove_child(bullet)
-					get_tree().current_scene.add_child(bullet)
+func _on_timer_timeout() -> void:
+	if not is_shooting_active:
+		return
+	if not bullet_scene or not bullet_scene.can_instantiate():
+		return
+
+	var base_damage: int = _get_current_satellite_total_damage()
+	var shot_angles: Array[float] = []
+	if _behavior:
+		shot_angles = _behavior.get_shot_angles(is_shadow_mode_active, shadow_spread_angle)
 	else:
-		# Normal mode: just a single, no-nonsense bullet
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			nozzle.global_position,
-			0,
-			1500,
-			int(bullet_damage * 0.8)  # Keepin' it consistent
-		)
-		if bullet:
-			# Set homing strength if the bullet has this property
-			if "homing_strength" in bullet:
-				bullet.homing_strength = shadow_homing_strength  # Crank up the homing juice
-			# Only add the bullet to the scene if it doesn't already have a parent
-			if not bullet.get_parent():
-				get_tree().current_scene.add_child(bullet)
-			elif bullet.get_parent() != get_tree().current_scene:
-				# If bullet is in a different scene, remove it from there first
-				bullet.get_parent().remove_child(bullet)
-				get_tree().current_scene.add_child(bullet)
+		shot_angles = [0.0]
+	if shot_angles.is_empty():
+		shot_angles = [0.0]
 
-## Toggles shooting on or off, like flipping a laser switch.
+	for angle_deg in shot_angles:
+		_spawn_shot_at_angle(angle_deg, base_damage)
+
+func _spawn_shot_at_angle(angle_deg: float, base_damage: int) -> void:
+	var spawn_position: Vector2 = nozzle.global_position if nozzle else global_position
+	var shot_damage: int = _compute_scaled_damage(base_damage)
+	var bullet: Node = BulletFactory.spawn_bullet(
+		bullet_scene,
+		spawn_position,
+		deg_to_rad(angle_deg),
+		bullet_speed,
+		shot_damage
+	)
+	if bullet == null:
+		return
+
+	_configure_spawned_bullet(bullet, shot_damage)
+	if _behavior:
+		_behavior.configure_spawned_bullet(bullet, shot_damage, is_shadow_mode_active)
+	_attach_bullet_to_current_scene(bullet)
+
+func _configure_spawned_bullet(bullet: Node, shot_damage: int) -> void:
+	if bullet.has_method("configure_from_satellite_weapon"):
+		bullet.call("configure_from_satellite_weapon", shot_damage)
+
+func _compute_scaled_damage(base_damage: int) -> int:
+	return max(1, int(float(base_damage) * damage_multiplier))
+
+func _attach_bullet_to_current_scene(bullet: Node) -> void:
+	var current_scene: Node = get_tree().current_scene
+	if current_scene == null:
+		return
+
+	if not bullet.get_parent():
+		current_scene.add_child(bullet)
+	elif bullet.get_parent() != current_scene:
+		bullet.get_parent().remove_child(bullet)
+		current_scene.add_child(bullet)
+
+func _get_current_satellite_total_damage() -> int:
+	return max(1, satellite_base_damage + satellite_damage_bonus)
+
 func set_shooting_active(active: bool) -> void:
 	is_shooting_active = active
-	if active and timer.is_stopped():
+	if timer == null:
+		return
+	if is_shooting_active:
 		timer.start()
-	elif not active:
+	else:
 		timer.stop()
-		
-## Activates shadow mode, making this satellite a lean, mean, bullet-spraying machine.
+
 func _on_shadow_mode_activated() -> void:
 	if is_shadow_mode_active:
 		return
 	is_shadow_mode_active = true
-	fire_rate = original_fire_rate * shadow_fire_rate_multiplier
-	timer.wait_time = fire_rate
-	if is_shooting_active:
-		timer.start()
+	fire_rate = maxf(0.05, original_fire_rate * shadow_fire_rate_multiplier)
+	if timer:
+		timer.wait_time = fire_rate
+		if is_shooting_active:
+			timer.start()
+	if _behavior:
+		_behavior.on_shadow_mode_changed(true)
 
-## Deactivates shadow mode, back to regular pew-pew duty.
 func _on_shadow_mode_deactivated() -> void:
 	if not is_shadow_mode_active:
 		return
 	is_shadow_mode_active = false
 	fire_rate = original_fire_rate
-	timer.wait_time = fire_rate
-	if is_shooting_active:
-		timer.start()
-
-var satellite_id: String = ""
+	if timer:
+		timer.wait_time = fire_rate
+		if is_shooting_active:
+			timer.start()
+	if _behavior:
+		_behavior.on_shadow_mode_changed(false)
 
 func set_satellite_id(id: String) -> void:
 	satellite_id = id
+	_load_satellite_data()
+
+func get_satellite_id() -> String:
+	return satellite_id
+
+func apply_damage_bonus(new_damage_bonus: int) -> void:
+	satellite_damage_bonus = max(0, new_damage_bonus)
 
 func _load_satellite_data() -> void:
-	# This function is called by the Player when satellite data needs to be updated
-	# For example, when the satellite texture or stats change in the upgrade menu
-	
-	# If satellite_id is not set via the setter method, try to get it from metadata
+	if satellite_id.is_empty() and has_meta("satellite_id"):
+		satellite_id = str(get_meta("satellite_id"))
+
 	if satellite_id.is_empty():
-		if has_meta("satellite_id"):
-			satellite_id = get_meta("satellite_id")
-	
-	# Look up satellite data in GameManager
+		return
+
 	for sat_data in GameManager.satellites:
-		if sat_data.get("id", "") == satellite_id:
-			# Update any visual properties based on satellite data
-			if sat_data.has("texture") and sat_data["texture"]:
-				var texture_path = sat_data["texture"]
-				if ResourceLoader.exists(texture_path):
-					var texture = load(texture_path)
-					# Find the sprite node and update its texture
-					var sprite = get_node_or_null("Sprite2D")
-					if sprite:
-						sprite.texture = texture
-						print("Updated satellite texture for: ", satellite_id)
-						break
-				else:
-					push_warning("Invalid texture path for satellite: " + texture_path)
-					break
+		if not (sat_data is Dictionary):
+			continue
+		if str(sat_data.get("id", "")) != satellite_id:
+			continue
+
+		var texture_path: String = str(sat_data.get("texture", ""))
+		satellite_base_damage = max(1, int(sat_data.get("base_damage", 10)))
+		satellite_damage_bonus = max(0, int(sat_data.get("damage_bonus", 0)))
+		if texture_path.is_empty():
+			return
+		if not ResourceLoader.exists(texture_path):
+			push_warning("Invalid texture path for satellite %s: %s" % [satellite_id, texture_path])
+			return
+
+		var sprite: Sprite2D = get_node_or_null("Sprite2D")
+		if sprite:
+			var texture: Texture2D = load(texture_path) as Texture2D
+			if texture:
+				sprite.texture = texture
+		return

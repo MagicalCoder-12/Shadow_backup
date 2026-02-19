@@ -46,9 +46,10 @@ signal shadow_state_changed(is_shadow: bool)
 
 # --- Bomber Enemy Properties ---
 var last_bomb_drop_time: float = 0.0
-const BOMB_DROP_COOLDOWN: float = 3.0  # Increased from 2.0 to 3.0 seconds (minimum time between bomb drops)
+const BOMB_DROP_COOLDOWN: float = 4.0  # Increased to 4.0 seconds (minimum time between bomb drops)
 var bombs_dropped: int = 0
-const MAX_BOMBS_PER_ENEMY: int = 3  # Reduced from 5 to 3 (maximum bombs a single bomber can drop)
+const MAX_BOMBS_PER_ENEMY: int = 2  # Reduced to 2 (maximum bombs a single bomber can drop)
+const BOMB_DROP_CHANCE: float = 0.2  # Reduced chance to 20% when cooldown ready
 
 # --- Optimized Attack Pattern System ---
 enum AttackPattern { SINGLE_SHOT, SPREAD_SHOT, BURST_SHOT, AIMED_SHOT }
@@ -62,10 +63,10 @@ var normal_pattern_weights: Dictionary = {
 }
 
 var shadow_pattern_weights: Dictionary = {
-	AttackPattern.SINGLE_SHOT: 40,    # 40% - still common but reduced
-	AttackPattern.AIMED_SHOT: 30,     # 30% - more aimed shots
-	AttackPattern.SPREAD_SHOT: 20,    # 20% - more spread
-	AttackPattern.BURST_SHOT: 10      # 10% - more burst
+	AttackPattern.SINGLE_SHOT: 25,    # 25% - less single shots
+	AttackPattern.AIMED_SHOT: 35,     # 35% - more aimed shots
+	AttackPattern.SPREAD_SHOT: 25,    # 25% - more spread
+	AttackPattern.BURST_SHOT: 15      # 15% - more burst
 }
 
 # Shooting cooldown management
@@ -517,8 +518,8 @@ func _handle_bomber_shooting():
 	
 	# Use time-based cooldown instead of random chance per frame
 	if time_since_spawn - last_bomb_drop_time >= BOMB_DROP_COOLDOWN:
-		# 30% chance to drop a bomb when cooldown is ready
-		if randf() < 0.3:
+		# Reduced chance to drop a bomb when cooldown is ready
+		if randf() < BOMB_DROP_CHANCE:
 			_drop_bomb()
 			bombs_dropped += 1
 			last_bomb_drop_time = time_since_spawn
@@ -824,12 +825,16 @@ func _on_shadow_mode_activated():
 	if not is_shadow_enemy:
 		_make_shadow_enemy()
 	
-	# Increase fire rate in shadow mode to make enemies more threatening, but not excessively
-	fire_timer.wait_time = (1.0 / fire_rate) * 0.9  # 10% faster firing (more reasonable)
+	# Increase fire rate significantly in shadow mode to make enemies more threatening
+	fire_timer.wait_time = (1.0 / fire_rate) * 0.7  # 30% faster firing (much more aggressive)
 	
 	# Increase movement speed in shadow mode
-	speed = original_speed * 1.2  # Reduced from 1.3 to 1.2
-	vertical_speed = original_vertical_speed * 1.2
+	speed = original_speed * 1.3  # Increased to 1.3 for more aggressive movement
+	vertical_speed = original_vertical_speed * 1.3
+	
+	# Ensure enemies start shooting immediately when shadow mode activates
+	can_shoot = true
+	shoot_cooldown = 0.0
 	
 	# Change movement pattern to more aggressive patterns in shadow mode
 	if movement_pattern == MovementPattern.FORMATION_HOLD:

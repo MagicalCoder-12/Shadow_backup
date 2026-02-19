@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://cuafrx6rgdj2w"]
+
+[ext_resource type="Script" uid="uid://cm1lk4k3gyeq8" path="res://Bullet/Scripts/sat_bullet1.gd" id="1_adx2k"]
+[ext_resource type="Texture2D" uid="uid://sgfykr1r0nus" path="res://Textures/Lasers/Laser Sprites/26.png" id="2_0nvb1"]
+[ext_resource type="Texture2D" uid="uid://d31qhhgg0nnk1" path="res://Textures/Lasers/Laser Sprites/25.png" id="3_nas0n"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fqx7m"]
+radius = 16.666666
+height = 173.33333
+
+[node name="Sat_bullet1" type="Area2D" unique_id=1890584513]
+scale = Vector2(0.5, 0.5)
+script = ExtResource("1_adx2k")
+damage = 5
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=523114459]
+rotation = -1.5708
+texture = ExtResource("2_0nvb1")
+
+[node name="GlowSprite" type="Sprite2D" parent="." unique_id=102997566]
+rotation = -1.5708
+texture = ExtResource("3_nas0n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2124028685]
+shape = SubResource("CapsuleShape2D_fqx7m")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=417633135]
+position = Vector2(-1, 4)
+scale = Vector2(1.7, 2.2)
+rect = Rect2(-10, -38.181816, 20, 75.757576)
+
+[node name="LifetimeTimer" type="Timer" parent="." unique_id=967959011]
+one_shot = true
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]
+[connection signal="timeout" from="LifetimeTimer" to="." method="_on_lifetime_timer_timeout"]

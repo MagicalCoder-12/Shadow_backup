@@ -69,7 +69,8 @@ func damage(amount: int):
 		effect.position = position
 		get_parent().add_child(effect)
 		
-		var cam := get_tree().current_scene.find_child("Cam", true, false)
+		var current_scene = SceneSpawnService._get_safe_current_scene()
+		var cam := current_scene.find_child("Cam", true, false) if current_scene else null
 		cam.shake(100)
 		
 		@warning_ignore("narrowing_conversion")

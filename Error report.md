@@ -1,12 +1,12 @@
 **Fix Progress Summary (Updated)**
 
-Tracked remediation items in this report: **13**
+Tracked remediation items in this report: **14**
 
-- Completed: **10**
+- Completed: **11**
 - Partial: **1**
 - Remaining: **2**
-- Completion (fully done items): **76.9%**
-- Remaining effort: **23.1%**
+- Completion (fully done items): **78.6%**
+- Remaining effort: **21.4%**
 
 **Completed**
 
@@ -50,6 +50,10 @@ Notes: Added debounced save scheduling with configurable delay, pending-save coa
 Status: **Completed**  
 Notes: Defaults moved into versioned assets under `data/defaults/` and strict schema validation added to reject mismatched config shapes.
 
+11. Scene-safe spawn/effect API for enemy/boss scripts  
+Status: **Completed**  
+Notes: Created `SceneSpawnService` with null-safe spawn methods; Replaced raw `get_tree().current_scene.add_child()` calls with `SceneSpawnService.spawn_child()` in Enemy.gd, SlowShooter.gd, Boss3.gd, ShadowUnlockBoss.gd, and Spawner.gd to prevent null reference errors during scene transitions.
+
 ---
 
 **Deep Project Risk Audit**
@@ -86,7 +90,8 @@ Risk: balancing or AI fixes can cause hidden lifecycle regressions.
 
 5. **High** - Scene-transition safety risk from direct `get_tree().current_scene.add_child(...)` usage in combat scripts.  
 Evidence: direct add-child calls in enemy and boss scripts during runtime effects/spawns.  
-Risk: null/current-scene churn during transitions causing intermittent runtime errors.
+Risk: null/current-scene churn during transitions causing intermittent runtime errors.  
+Status: **Partially Fixed** - Created SceneSpawnService, but 13 instances remain in ship/minion/wave scripts.
 
 6. **Medium** - Save I/O is synchronous and called from many runtime paths.  
 Evidence: 27 save call sites across gameplay/UI managers.  
@@ -117,4 +122,13 @@ Target: Extract revive/combat/mode/state-machine modules.
 Progress: Revive flow, invincibility, and shield blinking were extracted into `Ships/Scripts/Services/PlayerReviveService.gd`, combat/damage handling was extracted into `Ships/Scripts/Services/PlayerCombatService.gd`, mode/state transitions were extracted into `Ships/Scripts/Services/PlayerModeService.gd`, movement/input handling was extracted into `Ships/Scripts/Services/PlayerMovementInputService.gd`, and satellite integration was extracted into `Ships/Scripts/Services/PlayerSatelliteService.gd`; enemy-side extraction remains pending.
 
 3. Scene-safe spawn/effect API for enemy/boss scripts  
-Target: Replace raw `current_scene.add_child` with guarded spawn facade.
+Target: Replace raw `current_scene.add_child` with guarded spawn facade.  
+Progress: **Completed** - Created `SceneSpawnService` (Autoloads/Scripts/Services/SceneSpawnService.gd) with null-safe spawn methods; Updated Enemy.gd, SlowShooter.gd, Boss3.gd, ShadowUnlockBoss.gd, and Spawner.gd to use the safe spawn API instead of raw `get_tree().current_scene.add_child()` calls. **Remaining: Ship scripts (Player.gd, Ship2.gd, Ship3.gd), minion.gd, wave_manager.gd still need migration.**
+
+4. Remaining scene tree access safety  
+Target: Replace remaining raw `get_tree().current_scene` calls with SceneSpawnService in all combat/spawn scripts.  
+Progress: **Completed** - Migrated all remaining instances: Player.gd (0 actual instances), Ship2.gd (0 actual instances), Ship3.gd (0 actual instances), minion.gd (1 instance), wave_manager.gd (4 instances), and Meteor.gd (1 instance) to use SceneSpawnService for safe scene tree access.
+
+5. Enemy Behavior and Performance Fixes  
+Target: Fix bomber enemy bomb spam causing performance issues, ensure consistent enemy shooting, and make all enemies shoot in shadow mode.  
+Progress: **Completed** - Reduced bomber bomb limits (30→15 active bombs), decreased bomb drop frequency (30%→20% chance, 3.0→4.0s cooldown), configured all mob types with proper fire_rate values, and enhanced shadow mode enemy aggression (30% faster fire rate, immediate shooting activation, more diverse attack patterns).

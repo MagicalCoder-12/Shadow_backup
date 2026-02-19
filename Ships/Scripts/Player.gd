@@ -306,7 +306,7 @@ func _shoot_shadow_bullets(bullet_scene: PackedScene, bullet_speed: float, bulle
 		if bullet:
 			# Only add to scene if not already in the scene tree
 			if not bullet.is_inside_tree():
-				get_tree().current_scene.call_deferred("add_child", bullet)
+				SceneSpawnService.spawn_child(bullet)
 
 func _shoot_normal_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	for child in firing_positions.get_children():
@@ -320,7 +320,7 @@ func _shoot_normal_bullets(bullet_scene: PackedScene, bullet_speed: float, bulle
 		if bullet:
 			# Only add to scene if not already in the scene tree
 			if not bullet.is_inside_tree():
-				get_tree().current_scene.call_deferred("add_child", bullet)
+				SceneSpawnService.spawn_child(bullet)
 
 func handle_keyboard_movement(delta: float) -> void:
 	movement_input_service.handle_keyboard_movement(delta, speed)

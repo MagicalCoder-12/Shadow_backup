@@ -325,9 +325,9 @@ func update_ship_ui() -> void:
 		var status_text = ""
 		if ship["can_ascend"]:
 			status_text = "Ready to Ascend!"
-		elif ship["current_evolution_stage"] == ship["max_evolution_stage"]:
-			var last_threshold = GameManager.ASCENSION_THRESHOLDS[ship["id"]][-1]
-			var additional_upgrades = ship["upgrade_count"] - last_threshold
+		elif int(ship.get("current_evolution_stage", 0)) >= int(ship.get("max_evolution_stage", 0)):
+			var last_threshold = _get_ship_last_threshold(ship)
+			var additional_upgrades = max(0, int(ship["upgrade_count"]) - last_threshold)
 			if additional_upgrades >= 5:
 				status_text = "Max Level"
 			else:
@@ -386,7 +386,7 @@ func update_satellite_ui() -> void:
 		push_warning("Could not load satellite texture for: %s" % satellite.get("display_name", "Unknown"))
 
 	ship_name.text = satellite.get("display_name", "Unknown Satellite")
-	damage.text = "Damage: %d" % satellite.get("damage_bonus", 0)
+	damage.text = "Damage: %d" % _get_satellite_total_damage(satellite)
 
 	var rank_color = _get_rank_color(satellite["rank"])
 	ship_name.modulate = rank_color
@@ -450,13 +450,15 @@ func update_satellite_ui() -> void:
 func _update_ascend_button_visibility() -> void:
 	var ship = GameManager.ships[selected_ship_index]
 	var costs = _get_current_upgrade_costs()
+	var current_stage: int = int(ship.get("current_evolution_stage", 0))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
 
 	# Only show ascend button if ship is unlocked AND can ascend
-	if ship["unlocked"] and ship["can_ascend"]:
+	if ship["unlocked"] and ship["can_ascend"] and current_stage < max_stage:
 		ascend.visible = true
 		ascend.disabled = false
 		var ship_id = ship["id"]
-		var next_stage = ship["current_evolution_stage"] + 1
+		var next_stage = min(current_stage + 1, max_stage)
 		var next_evolution_name = _get_current_evolution_name(ship_id, next_stage)
 		ascend.text = "Ascend to %s" % next_evolution_name
 		Void_Shard.text = _format_number(costs["void_shard_cost"])
@@ -480,7 +482,11 @@ func _update_satellite_ascend_button_visibility() -> void:
 
 func _update_upgrade_buttons_state() -> void:
 	var ship = GameManager.ships[selected_ship_index]
-	var is_max_level = ship["current_evolution_stage"] == ship["max_evolution_stage"] and ship["upgrade_count"] >= GameManager.ASCENSION_THRESHOLDS[ship["id"]][-1] + 5
+	var current_stage: int = int(ship.get("current_evolution_stage", 0))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
+	var is_max_level := false
+	if current_stage >= max_stage:
+		is_max_level = ship["upgrade_count"] >= _get_ship_max_upgrade_cap(ship)
 
 	if ship["can_ascend"] or is_max_level:
 		upgrade_crystals_button.disabled = true
@@ -576,9 +582,10 @@ func _can_upgrade_ship(ship: Dictionary, _ship_index: int) -> bool:
 		return false
 
 	# Check if ship is at max level
-	if ship["current_evolution_stage"] == ship["max_evolution_stage"]:
-		var last_threshold = GameManager.ASCENSION_THRESHOLDS[ship["id"]][-1]
-		if ship["upgrade_count"] >= last_threshold + 5:
+	var current_stage: int = int(ship.get("current_evolution_stage", 0))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
+	if current_stage >= max_stage:
+		if ship["upgrade_count"] >= _get_ship_max_upgrade_cap(ship):
 			return false
 	
 	return true
@@ -626,19 +633,32 @@ func _get_ship_upgrade_damage_increase(ship: Dictionary) -> int:
 func _check_ascension_eligibility(ship_index: int) -> void:
 	var ship = GameManager.ships[ship_index]
 	var ship_id = ship["id"]
-	var thresholds = GameManager.ASCENSION_THRESHOLDS[ship_id]
-	var current_stage = ship["current_evolution_stage"]
+	var current_stage: int = int(ship.get("current_evolution_stage", 0))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
 
-	if current_stage < thresholds.size() and ship["upgrade_count"] >= thresholds[current_stage]:
-		ship["can_ascend"] = true
+	# Final form cannot ascend again even if thresholds data has extra entries.
+	if current_stage >= max_stage:
+		ship["can_ascend"] = false
 		if ship_index == selected_ship_index:
 			update_ship_ui()
+		return
+
+	var thresholds: Array = _get_ship_thresholds_for_max_stage(ship_id, max_stage)
+	if current_stage < thresholds.size() and ship["upgrade_count"] >= int(thresholds[current_stage]):
+		ship["can_ascend"] = true
+	else:
+		ship["can_ascend"] = false
+
+	if ship_index == selected_ship_index:
+		update_ship_ui()
 
 func _manual_ascend_ship(ship_index: int) -> bool:
 	var ship = GameManager.ships[ship_index]
 	var costs = _get_current_upgrade_costs()
+	var current_stage: int = int(ship.get("current_evolution_stage", 0))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
 
-	if not ship["unlocked"] or not ship["can_ascend"]:
+	if not ship["unlocked"] or not ship["can_ascend"] or current_stage >= max_stage:
 		return false
 
 	var payment_result := transaction_service.try_pay_ascend_cost(GameManager, costs)
@@ -651,7 +671,7 @@ func _manual_ascend_ship(ship_index: int) -> bool:
 	ship["ascend_count"] += 1
 
 	var ship_id = ship["id"]
-	var new_stage = ship["current_evolution_stage"] + 1
+	var new_stage = min(current_stage + 1, max_stage)
 	ship["current_evolution_stage"] = new_stage
 	ship["display_name"] = _get_current_evolution_name(ship_id, new_stage)
 
@@ -937,10 +957,28 @@ func _get_current_satellite_evolution_name(satellite_id: String, stage: int) -> 
 		return "Satellite %s" % stage
 	return evolution_names[min(stage, evolution_names.size() - 1)]
 
+func _get_ship_thresholds_for_max_stage(ship_id: String, max_stage: int) -> Array:
+	var raw_thresholds: Array = GameManager.ASCENSION_THRESHOLDS.get(ship_id, [])
+	if max_stage <= 0:
+		return []
+	var thresholds_for_stages: Array = raw_thresholds.slice(0, min(max_stage, raw_thresholds.size()))
+	return thresholds_for_stages
+
+func _get_ship_last_threshold(ship: Dictionary) -> int:
+	var ship_id: String = str(ship.get("id", ""))
+	var max_stage: int = int(ship.get("max_evolution_stage", 0))
+	var thresholds: Array = _get_ship_thresholds_for_max_stage(ship_id, max_stage)
+	if thresholds.is_empty():
+		return 0
+	return int(thresholds[thresholds.size() - 1])
+
+func _get_ship_max_upgrade_cap(ship: Dictionary) -> int:
+	return _get_ship_last_threshold(ship) + 5
+
 func _get_next_evolution_requirements(ship_index: int) -> Dictionary:
 	var ship = GameManager.ships[ship_index]
 	var ship_id = ship["id"]
-	var thresholds = GameManager.ASCENSION_THRESHOLDS.get(ship_id, [])
+	var thresholds = _get_ship_thresholds_for_max_stage(ship_id, int(ship.get("max_evolution_stage", 0)))
 	var current_stage = ship["current_evolution_stage"]
 
 	if current_stage >= thresholds.size():
@@ -977,15 +1015,19 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8:
-				var ship_index = event.keycode - KEY_1
-				if ship_index < GameManager.ships.size():
-					selected_ship_index = ship_index
-					update_ship_ui()
+				var selected_index = event.keycode - KEY_1
+				if is_satellite_tab_active:
+					if selected_index < GameManager.satellites.size():
+						selected_satellite_index = selected_index
+						update_satellite_ui()
+				else:
+					if selected_index < GameManager.ships.size():
+						selected_ship_index = selected_index
+						update_ship_ui()
 			KEY_U:
-				_upgrade_ship(selected_ship_index, "crystals")
+				_upgrade_selected_item("crystals")
 			KEY_A:
-				if GameManager.ships[selected_ship_index]["can_ascend"]:
-					_manual_ascend_ship(selected_ship_index)
+				_ascend_selected_item()
 			KEY_R:
 				_debug_grant_resources()
 
@@ -1181,17 +1223,27 @@ func _upgrade_satellite(satellite_index: int, currency_type: String) -> bool:
 
 func _apply_satellite_stat_boost(satellite: Dictionary) -> void:
 	"""Apply damage bonus increase to satellite"""
+	if not satellite.has("base_damage"):
+		satellite["base_damage"] = int(satellite.get("damage_bonus", 0))
+	if not satellite.has("damage_bonus"):
+		satellite["damage_bonus"] = 0
+
 	var damage_increase := _get_satellite_upgrade_damage_increase(satellite)
-	satellite["damage_bonus"] += damage_increase
+	satellite["damage_bonus"] = int(satellite["damage_bonus"]) + damage_increase
 	
 	# Notify GameManager that satellite stats have been updated
-	GameManager.notify_satellite_stats_updated(satellite["id"], satellite["damage_bonus"])
+	GameManager.notify_satellite_stats_updated(satellite["id"], int(satellite["damage_bonus"]))
 
 func _get_satellite_upgrade_damage_increase(satellite: Dictionary) -> int:
 	var base_damage_boost = 2
 	var ascend_count = int(satellite.get("ascend_count", 0))
 	var stage_multiplier = 1.0 + (ascend_count * 0.2)
 	return int(base_damage_boost * stage_multiplier)
+
+func _get_satellite_total_damage(satellite: Dictionary) -> int:
+	var base_damage: int = int(satellite.get("base_damage", satellite.get("damage_bonus", 0)))
+	var damage_bonus: int = int(satellite.get("damage_bonus", 0))
+	return max(1, base_damage + damage_bonus)
 
 func _check_satellite_ascension_eligibility(satellite_index: int) -> void:
 	"""Check if satellite has reached ascension threshold"""
@@ -1222,7 +1274,11 @@ func _ascend_satellite(satellite_index: int) -> bool:
 
 	# Apply evolution bonus
 	var evolution_bonus = _get_satellite_evolution_bonus(satellite["id"], satellite["ascend_count"])
-	satellite["damage_bonus"] += evolution_bonus
+	if not satellite.has("base_damage"):
+		satellite["base_damage"] = int(satellite.get("damage_bonus", 0))
+	if not satellite.has("damage_bonus"):
+		satellite["damage_bonus"] = 0
+	satellite["damage_bonus"] = int(satellite["damage_bonus"]) + evolution_bonus
 
 	# Update rank if reached max evolution stage
 	if satellite["ascend_count"] >= satellite["max_evolution_stage"]:
@@ -1231,7 +1287,7 @@ func _ascend_satellite(satellite_index: int) -> bool:
 	satellite["can_ascend"] = false
 
 	# Notify GameManager that satellite stats have been updated
-	GameManager.notify_satellite_stats_updated(satellite["id"], satellite["damage_bonus"])
+	GameManager.notify_satellite_stats_updated(satellite["id"], int(satellite["damage_bonus"]))
 
 	power_up.play()
 	_show_message("Satellite %s rank increased to %s!" % [satellite["display_name"], satellite["rank"]])

@@ -1,0 +1,216 @@
+[gd_scene format=3 uid="uid://djv02b634b0pv"]
+
+[ext_resource type="Script" uid="uid://3kkbx61t50mq" path="res://MainScenes/Scripts/difficulty_selection.gd" id="1_6pu0t"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_ryqyk"]
+[ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="2_4d7dj"]
+[ext_resource type="Texture2D" uid="uid://c4so8sombbim3" path="res://Textures/guibuttons/BlueButton-Hover.png" id="3_6pu0t"]
+[ext_resource type="Texture2D" uid="uid://bo1qg7o4h20wu" path="res://Textures/guibuttons/YellowButton-Active.png" id="4_fqewj"]
+[ext_resource type="Texture2D" uid="uid://brytcb4y2wjx7" path="res://Textures/guibuttons/YellowButton-Hover.png" id="5_cxxqj"]
+[ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="5_fqewj"]
+[ext_resource type="Texture2D" uid="uid://crf8s3lmcu0hn" path="res://Textures/UI/Main_Menu/BTNs_Active/Menu_BTN.png" id="6_cxxqj"]
+[ext_resource type="Texture2D" uid="uid://bsc7wxa30tblr" path="res://Textures/guibuttons/BlackButton-Active.png" id="6_oypef"]
+[ext_resource type="Texture2D" uid="uid://wo8cmhmmr7wt" path="res://Textures/guibuttons/BlackButton-Hover.png" id="7_hpmds"]
+[ext_resource type="Texture2D" uid="uid://dnpcvc0hqf6d0" path="res://Textures/UI/Main_Menu/BTNs/Forward_BTN.png" id="9_wx5qn"]
+[ext_resource type="Texture2D" uid="uid://cf2u1w86trya3" path="res://Textures/UI/Main_Menu/BTNs_Active/Forward_BTN.png" id="10_0jvw8"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_mvld5"]
+font = ExtResource("1_ryqyk")
+font_size = 96
+font_color = Color(0, 18.892157, 0, 1)
+outline_size = 17
+outline_color = Color(18.892157, 0, 18.892157, 1)
+shadow_size = 43
+shadow_color = Color(0.25228724, 0, 0, 0.8392157)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4d7dj"]
+font = ExtResource("1_ryqyk")
+font_size = 120
+font_color = Color(0, 0.7473299, 0.33395478, 1)
+outline_size = 25
+shadow_size = 20
+
+[sub_resource type="LabelSettings" id="LabelSettings_6pu0t"]
+font = ExtResource("1_ryqyk")
+font_size = 120
+font_color = Color(1, 0.7490196, 0.33333334, 1)
+outline_size = 7
+outline_color = Color(0, 1, 1, 1)
+shadow_size = 20
+shadow_color = Color(1, 0.6156863, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_fqewj"]
+font = ExtResource("1_ryqyk")
+font_size = 120
+font_color = Color(1, 0, 0, 1)
+outline_size = 25
+outline_color = Color(1, 1, 0, 1)
+shadow_size = 20
+shadow_color = Color(0, 1, 0.5529412, 1)
+
+[node name="DifficultySelection" type="Control" unique_id=1508652828]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6pu0t")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=432037755]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -241.0
+offset_right = 313.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.490196)
+
+[node name="Panel" type="Panel" parent="." unique_id=1765455094]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -699.0
+offset_top = -561.0
+offset_right = 699.0
+offset_bottom = 561.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+
+[node name="LevelCompleted" type="Label" parent="Panel" unique_id=160737711]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.07388809
+anchor_top = 0.02356021
+anchor_right = 0.9591105
+anchor_bottom = 0.090314135
+text = "Select Difficulty"
+label_settings = SubResource("LabelSettings_mvld5")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="DescriptionLabel" type="Label" parent="Panel" unique_id=1502317810]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.056509297
+anchor_top = 1.0614973
+anchor_right = 0.9417317
+anchor_bottom = 1.1577541
+text = "Select Difficulty"
+label_settings = SubResource("LabelSettings_mvld5")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=894200381]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05937053
+anchor_top = 0.19493315
+anchor_right = 0.93454987
+anchor_bottom = 0.947924
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 600
+metadata/_edit_use_anchors_ = true
+
+[node name="Difficulty_buttons" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=215474424]
+layout_mode = 2
+size_flags_vertical = 8
+metadata/_edit_use_anchors_ = true
+
+[node name="Control" type="Control" parent="Panel/VBoxContainer/Difficulty_buttons" unique_id=2044025360]
+layout_mode = 2
+
+[node name="Easy" type="TextureButton" parent="Panel/VBoxContainer/Difficulty_buttons/Control" unique_id=333191101]
+layout_mode = 0
+offset_right = 416.0
+offset_bottom = 419.0
+scale = Vector2(0.6, 0.6)
+size_flags_horizontal = 3
+texture_normal = ExtResource("2_4d7dj")
+texture_pressed = ExtResource("3_6pu0t")
+texture_hover = ExtResource("3_6pu0t")
+
+[node name="Easy_label" type="Label" parent="Panel/VBoxContainer/Difficulty_buttons/Control/Easy" unique_id=544446784]
+layout_mode = 0
+offset_left = -120.0
+offset_top = 448.67
+offset_right = 546.0
+offset_bottom = 682.0034
+text = "Easy"
+label_settings = SubResource("LabelSettings_4d7dj")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Medium" type="TextureButton" parent="Panel/VBoxContainer/Difficulty_buttons/Control" unique_id=2123835605]
+layout_mode = 0
+offset_left = 500.0
+offset_right = 916.0
+offset_bottom = 419.0
+scale = Vector2(0.6, 0.6)
+texture_normal = ExtResource("4_fqewj")
+texture_pressed = ExtResource("5_cxxqj")
+texture_hover = ExtResource("5_cxxqj")
+
+[node name="Medium_label" type="Label" parent="Panel/VBoxContainer/Difficulty_buttons/Control/Medium" unique_id=1876255592]
+layout_mode = 0
+offset_left = -150.0
+offset_top = 448.67
+offset_right = 599.0
+offset_bottom = 682.0044
+text = "MEDIUM"
+label_settings = SubResource("LabelSettings_6pu0t")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hard" type="TextureButton" parent="Panel/VBoxContainer/Difficulty_buttons/Control" unique_id=197075526]
+layout_mode = 0
+offset_left = 950.0
+offset_right = 1366.0
+offset_bottom = 419.0
+scale = Vector2(0.6, 0.6)
+texture_normal = ExtResource("6_oypef")
+texture_pressed = ExtResource("7_hpmds")
+texture_hover = ExtResource("7_hpmds")
+
+[node name="Hard_label" type="Label" parent="Panel/VBoxContainer/Difficulty_buttons/Control/Hard" unique_id=224537387]
+layout_mode = 0
+offset_left = -85.0
+offset_top = 445.3367
+offset_right = 581.0
+offset_bottom = 678.67004
+text = "hard"
+label_settings = SubResource("LabelSettings_fqewj")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Menu_buttons" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=1730613891]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 800
+metadata/_edit_use_anchors_ = true
+
+[node name="Back" type="TextureButton" parent="Panel/VBoxContainer/Menu_buttons" unique_id=702309843]
+layout_mode = 2
+texture_normal = ExtResource("5_fqewj")
+texture_pressed = ExtResource("6_cxxqj")
+texture_hover = ExtResource("6_cxxqj")
+
+[node name="Start" type="TextureButton" parent="Panel/VBoxContainer/Menu_buttons" unique_id=1957930859]
+layout_mode = 2
+texture_normal = ExtResource("9_wx5qn")
+texture_pressed = ExtResource("10_0jvw8")
+texture_hover = ExtResource("10_0jvw8")
+
+[connection signal="button_down" from="Panel/VBoxContainer/Difficulty_buttons/Control/Easy" to="." method="_on_easy_pressed"]
+[connection signal="button_down" from="Panel/VBoxContainer/Difficulty_buttons/Control/Medium" to="." method="_on_normal_pressed"]
+[connection signal="button_down" from="Panel/VBoxContainer/Difficulty_buttons/Control/Hard" to="." method="_on_hard_pressed"]
+[connection signal="button_down" from="Panel/VBoxContainer/Menu_buttons/Back" to="." method="_on_back_pressed"]
+[connection signal="button_down" from="Panel/VBoxContainer/Menu_buttons/Start" to="." method="_on_start_pressed"]

@@ -97,6 +97,9 @@ func complete_level(current_level: int) -> void:
 	#	_play_ending_video()
 	#	should_transition_to_next_level = false
 	
+	# Increment completion count regardless of whether it's first time
+	increment_level_completion_count(current_level)
+
 	# Only add to completed levels if not already completed
 	if not completed_levels.has(current_level):
 		completed_levels.append(current_level)
@@ -208,10 +211,41 @@ func update_hud_visibility(level_num: int = get_current_level()) -> void:
 					hud.reset_charge()
 
 func is_level_unlocked(level: int) -> bool:
-	return level <= unlocked_levels
+	# Progressive level unlock system
+	# Level 1: Always unlocked (starting level)
+	# Levels 2-10: Unlocked after completing the previous level
+	# Levels 11-20: Unlocked after completing level 10
+	# Levels 21-30: Unlocked after completing level 20
+	
+	if level == 1:
+		# Starting level - always unlocked
+		return true
+	elif level <= 10:
+		# Easy levels 2-10 - unlocked after completing previous level
+		return is_level_completed(level - 1)
+	elif level <= 20:
+		# Medium levels 11-20 - unlocked after completing level 10
+		return is_level_completed(10)
+	elif level <= 30:
+		# Hard levels 21-30 - unlocked after completing level 20
+		return is_level_completed(20)
+	else:
+		# Beyond level 30 - use default unlock system
+		return level <= unlocked_levels
 
 func is_level_completed(level: int) -> bool:
 	return completed_levels.has(level)
+
+# Add functions for level completion count tracking
+func get_level_completion_count(level: int) -> int:
+	if gm.save_manager:
+		return gm.save_manager.get_level_completion_count(level)
+	return 0
+
+func increment_level_completion_count(level: int) -> void:
+	if gm.save_manager:
+		gm.save_manager.increment_level_completion_count(level)
+		gm.save_progress_if_enabled()
 
 func get_current_level() -> int:
 	var scene_path: String = gm.get_tree().current_scene.scene_file_path if gm.get_tree().current_scene else ""

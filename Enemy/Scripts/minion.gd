@@ -315,7 +315,7 @@ func fire():
 		if bullet.has_method("set_direction"):
 			bullet.set_direction(direction)
 	
-	get_tree().current_scene.call_deferred("add_child", bullet)
+	SceneSpawnService.spawn_child(bullet)
 	
 	if debug_mode:
 		print("BossMinion fired - Type: %s, Shadow: %s, Wave: %d" % [
@@ -403,7 +403,7 @@ func _exit_tree():
 # Shadow minions fire bullets when they die
 func _minion_death_burst():
 	var bullet_count = 3
-	var current_scene = get_tree().current_scene
+	var current_scene = SceneSpawnService._get_safe_current_scene()
 	if not current_scene:
 		if debug_mode:
 			print("BossMinion: No current scene for death burst, Wave: %d" % current_wave)
@@ -420,7 +420,7 @@ func _minion_death_burst():
 		if bullet.has_method("set_direction"):
 			bullet.set_direction(direction)
 		
-		current_scene.call_deferred("add_child", bullet)
+		SceneSpawnService.spawn_child(bullet)
 		
 		if debug_mode:
 			print("Shadow BossMinion death burst bullet %d queued, Wave: %d" % [i + 1, current_wave])

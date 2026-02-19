@@ -17,7 +17,7 @@ extends BaseShip
 
 # Super mode wave-pattern configuration
 @export var super_wave_count: int = 1  # Number of different wave patterns in super mode
-@export var super_wave_frequency: float = 0.1  # Increased wave frequency in super mode
+@export var super_wave_frequency: float = 0.15  # Reduced frequency for better balance
 
 # Wave pattern types
 enum WavePattern {
@@ -94,9 +94,9 @@ func _apply_ship_specific_stats() -> void:
 	shadow_wave_delay = 0.3  # Increased from 0.2 to 0.3 for slower firing
 	shadow_wave_spread = 45.0
 	
-	# Super mode configurations - Reduced power
+	# Super mode configurations - Balanced power
 	super_wave_count = 1
-	super_wave_frequency = 0.15  # Reduced frequency (slower firing)
+	super_wave_frequency = 0.15  # Balanced frequency for fair comparison
 	
 	# Set initial pattern
 	current_pattern = WavePattern.LEFT_RIGHT_WAVE
@@ -114,8 +114,8 @@ func shoot() -> void:
 		# Simplified shadow mode - same as Ship1
 		_shoot_shadow_mode()
 	elif is_super_mode and not is_shadow_mode:
-		# Use default super mode pattern instead of Ship3-specific wave pattern
-		_shoot_normal_bullets(plSuperBullet, super_mode_bullet_speed, GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage))
+		# Ship3-specific balanced super mode pattern
+		_shoot_super_mode()
 	else:
 		# Normal wave-pattern for regular mode
 		_shoot_normal_wave()
@@ -154,7 +154,7 @@ func _shoot_shadow_mode() -> void:
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 	
 	# Play shooting sound
 	if AudioManager:
@@ -218,7 +218,7 @@ func _fire_left_right_wave(bullet_scene: PackedScene, bullet_speed: float, bulle
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _fire_center_spread(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	"""Fire bullets in a center spread pattern"""
@@ -245,7 +245,7 @@ func _fire_center_spread(bullet_scene: PackedScene, bullet_speed: float, bullet_
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _fire_focused_beam(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	"""Fire bullets in a focused beam pattern"""
@@ -267,7 +267,7 @@ func _fire_focused_beam(bullet_scene: PackedScene, bullet_speed: float, bullet_d
 			int(bullet_damage * 1.5)
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _fire_shadow_wave_shot() -> void:
 	if current_wave_shot >= shadow_bullets_per_wave:
@@ -299,9 +299,36 @@ func _fire_shadow_wave_shot() -> void:
 	
 	current_wave_shot += 1
 
-func _fire_super_wave_shot() -> void:
-	# This function is no longer needed as we're using the default super pattern
-	pass
+func _shoot_super_mode() -> void:
+	# Ship3-specific balanced super mode with reduced bullet count
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/super2.tscn")
+	var bullet_speed: float = super_mode_bullet_speed
+	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
+	
+	# Reduced bullet count for balance - fire 3 bullets in a spread pattern
+	var super_bullet_count = 3
+	var spread_angle: float = deg_to_rad(30.0)  # 30 degree spread
+	var angle_step: float = spread_angle / float(super_bullet_count - 1)
+	var start_angle: float = -spread_angle / 2.0
+	
+	# Use center position for balanced spread
+	var center_pos = global_position
+	
+	for i in range(super_bullet_count):
+		var angle: float = start_angle + i * angle_step
+		var bullet: Node = BulletFactory.spawn_bullet(
+			bullet_scene,
+			center_pos,
+			angle,
+			bullet_speed,
+			bullet_damage
+		)
+		if bullet:
+			SceneSpawnService.spawn_child(bullet)
+	
+	# Play shooting sound
+	if AudioManager:
+		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
 
 func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Fire bullets based on current shadow wave pattern
@@ -330,7 +357,7 @@ func _fire_shadow_horizontal_wave(bullet_scene: PackedScene, bullet_speed: float
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _fire_shadow_vertical_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Vertical wave (top to bottom)
@@ -347,7 +374,7 @@ func _fire_shadow_vertical_wave(bullet_scene: PackedScene, bullet_speed: float, 
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _fire_shadow_diagonal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Diagonal wave (corners)
@@ -363,7 +390,7 @@ func _fire_shadow_diagonal_wave(bullet_scene: PackedScene, bullet_speed: float, 
 			bullet_damage
 		)
 		if bullet:
-			get_tree().current_scene.call_deferred("add_child", bullet)
+			SceneSpawnService.spawn_child(bullet)
 
 func _cycle_wave_pattern() -> void:
 	# Cycle through normal wave patterns
@@ -402,7 +429,7 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	# Call base implementation
 	super.apply_super_mode_effects(multiplier_div, duration)
 	
-	# Apply Ship3-specific super mode visual effects with reduced intensity
+	# Apply Ship3-specific super mode visual effects with balanced intensity
 	if sprite_2d:
-		sprite_2d.modulate = Color(1.2, 1.0, 0.2)  # Less intense golden tint for reduced power
+		sprite_2d.modulate = Color(1.0, 0.8, 0.0)  # Balanced golden tint for fair power
 		# Could add particle effects or other visual enhancements here

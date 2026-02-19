@@ -21,6 +21,8 @@ var level_scores: Dictionary = {}  # level_num -> score
 var level_lives: Dictionary = {}   # level_num -> lives
 # Added boss_levels_completed to track which boss levels have been completed
 var boss_levels_completed: Array = []  # Array of boss level numbers that have been completed
+# Added level_completion_counts to track how many times each level has been completed
+var level_completion_counts: Dictionary = {}  # level_num -> completion count
 
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
@@ -164,6 +166,7 @@ func _build_save_payload() -> Dictionary:
 			"shadow_mode_unlocked": gm.get_shadow_mode_unlocked_for_save(),
 			"shadow_mode_tutorial_shown": gm.get_shadow_mode_tutorial_shown_for_save(),
 			"completed_levels": gm.get_completed_levels_for_save(),
+			"level_completion_counts": level_completion_counts.duplicate(true),  # NEW
 			"level_scores": level_scores.duplicate(true),
 			"level_lives": level_lives.duplicate(true),
 			"boss_levels_completed": boss_levels_completed.duplicate(true)
@@ -250,6 +253,7 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	
 	level_scores = _dictionary_or_default(progress_data.get("level_scores", {}), {})
 	level_lives = _dictionary_or_default(progress_data.get("level_lives", {}), {})
+	level_completion_counts = _dictionary_or_default(progress_data.get("level_completion_counts", {}), {})
 	boss_levels_completed = _array_or_default(progress_data.get("boss_levels_completed", []), [])
 	ad_usage_count = max(0, int(ads_data.get("usage_count", 0)))
 	ad_last_used_time = max(0, int(ads_data.get("last_used_time", 0)))
@@ -299,6 +303,7 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	
 	level_scores = loaded_level_scores
 	level_lives = loaded_level_lives
+	level_completion_counts = {}
 	boss_levels_completed = loaded_boss_levels
 	ad_usage_count = max(0, int(loaded_ad_usage_count))
 	ad_last_used_time = max(0, int(loaded_ad_last_used_time))
@@ -330,6 +335,8 @@ func _normalize_loaded_state() -> void:
 		level_scores = {}
 	if not (level_lives is Dictionary):
 		level_lives = {}
+	if not (level_completion_counts is Dictionary):
+		level_completion_counts = {}
 	if not (boss_levels_completed is Array):
 		boss_levels_completed = []
 	
@@ -354,6 +361,14 @@ func _apply_data_validation() -> void:
 	
 	# Validate satellites data
 	for satellite in gm.satellites:
+		if not satellite.has("base_damage"):
+			# Legacy migration: old saves stored full attack in damage_bonus.
+			satellite["base_damage"] = max(1, int(satellite.get("damage_bonus", 5)))
+			satellite["damage_bonus"] = 0
+		if not satellite.has("damage_bonus"):
+			satellite["damage_bonus"] = 0
+		satellite["base_damage"] = max(1, int(satellite.get("base_damage", 5)))
+		satellite["damage_bonus"] = max(0, int(satellite.get("damage_bonus", 0)))
 		if not satellite.has("unlocked"):
 			satellite["unlocked"] = false
 		if not satellite.has("ascend_count"):
@@ -377,6 +392,8 @@ func reset_progress() -> void:
 	gm.void_shards_count = initial_resources["void_shards_count"]
 	level_scores = {}
 	level_lives = {}
+	# Reset level_completion_counts data
+	level_completion_counts = {}
 	# Reset boss_levels_completed data
 	boss_levels_completed = []
 	ad_usage_count = 0
@@ -398,6 +415,16 @@ func get_level_score(_level_num: int) -> int:
 func get_level_lives(_level_num: int) -> int:
 	# Always return 3 as lives start from 3 for each level
 	return 3
+
+# Add functions for level completion count tracking
+func get_level_completion_count(level_num: int) -> int:
+	return level_completion_counts.get(level_num, 0)
+
+func increment_level_completion_count(level_num: int) -> void:
+	var current_count = get_level_completion_count(level_num)
+	level_completion_counts[level_num] = current_count + 1
+	if autosave_progress:
+		save_progress()
 
 func _get_default_ships() -> Array:
 	var ships = gm.get_config_ships_data() if gm else []
@@ -435,7 +462,8 @@ func _get_default_satellites() -> Array:
 		"rank": "R",
 		"max_evolution_stage": 2,
 		"final_rank": "LR",
-		"damage_bonus": 5,
+		"base_damage": 5,
+		"damage_bonus": 0,
 		"upgrade_count": 0,
 		"ascend_count": 0,
 		"can_ascend": false,

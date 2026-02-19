@@ -88,7 +88,16 @@ func update_satellites_from_selection() -> void:
 
 func on_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void:
 	for satellite in satellites:
-		if satellite and is_instance_valid(satellite) and satellite.has_method("apply_damage_bonus"):
+		if not satellite or not is_instance_valid(satellite):
+			continue
+		var instance_satellite_id: String = ""
+		if satellite.has_method("get_satellite_id"):
+			instance_satellite_id = str(satellite.call("get_satellite_id"))
+		elif satellite.has_meta("satellite_id"):
+			instance_satellite_id = str(satellite.get_meta("satellite_id"))
+		if instance_satellite_id != satellite_id:
+			continue
+		if satellite.has_method("apply_damage_bonus"):
 			satellite.apply_damage_bonus(damage_bonus)
 	_debug("Updated damage bonus for satellites of type %s: +%d" % [satellite_id, damage_bonus])
 

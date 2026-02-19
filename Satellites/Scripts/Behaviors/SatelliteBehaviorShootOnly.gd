@@ -1,0 +1,4 @@
+extends SatelliteBehaviorBase
+class_name SatelliteBehaviorShootOnly
+
+# Intentionally inherits default behavior from SatelliteBehaviorBase.
