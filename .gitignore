@@ -26,3 +26,4 @@ mono_crash.*.jsonandroid/build/
 .augment/rules/byterover-rules.md*.aab
 Apks/
 .qoder/
+.vscode/
