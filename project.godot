@@ -82,7 +82,7 @@ folder_colors={
 "res://Bullet/": "pink",
 "res://Enemy/": "red",
 "res://Satellites/": "orange",
-"res://Ships/": "green",
+"res://Ships/": "teal",
 "res://Textures/": "green",
 "res://addons/": "gray",
 "res://data/": "yellow"

@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://bpkd6ipd873fr"]
-
-[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_2b04h"]
-
-[node name="Mob4" unique_id=1623952910 instance=ExtResource("1_2b04h")]
-enemy_type = "mob4"

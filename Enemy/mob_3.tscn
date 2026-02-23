@@ -3,15 +3,28 @@
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_j76ws"]
 [ext_resource type="Texture2D" uid="uid://sdb3op3gsunj" path="res://Textures/Enemy/Ship_1_C_Small_NoLight.png" id="2_n7j1q"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n7j1q"]
+size = Vector2(227.66669, 134)
+
 [node name="mob3" unique_id=1623952910 instance=ExtResource("1_j76ws")]
 enemy_type = "mob3"
 
 [node name="Sprite2D" parent="." index="0" unique_id=1747645234]
 texture = ExtResource("2_n7j1q")
 
-[node name="Enemy_Explosion" parent="." index="6" unique_id=310868200]
-frame = 14
-frame_progress = 1.0
+[node name="CollisionShape2D" parent="." index="1" unique_id=929163854]
+position = Vector2(-1.1666718, 7.3333335)
+shape = SubResource("RectangleShape2D_n7j1q")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-25.749693, -16.547655, 50.723366, 33.40348)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -82.0
+offset_top = -115.00001
+offset_right = 84.66667
+offset_bottom = -93.66668
 
 [node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
-visible = false
+position = Vector2(-3.6666818, 12.531258)
+scale = Vector2(1.7833334, 0.69459647)

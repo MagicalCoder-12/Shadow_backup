@@ -3,6 +3,25 @@
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_nah5n"]
 [ext_resource type="Script" uid="uid://b8l8ty3twy8ct" path="res://Enemy/Scripts/BouncerEnemy.gd" id="2_1pj6a"]
 
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_1pj6a"]
+load_path = "res://.godot/imported/Enemy_2Light.png-b969a2702685bda7b6349b48e7a656f6.ctex"
+
 [node name="BouncerEnemy" unique_id=1623952910 instance=ExtResource("1_nah5n")]
 script = ExtResource("2_1pj6a")
 enemy_type = "BouncerEnemy"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+texture = SubResource("CompressedTexture2D_1pj6a")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-23.508904, -22.462856, 47.46404, 46.764877)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -81.0
+offset_top = -145.0
+offset_right = 86.66667
+offset_bottom = -123.66667
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(3.0000267, -8.999969)
+scale = Vector2(1.9375, 0.93750024)
