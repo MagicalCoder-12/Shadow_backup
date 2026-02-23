@@ -10,6 +10,8 @@ height = 173.33333
 
 [node name="Sat_bullet1" type="Area2D" unique_id=1890584513]
 scale = Vector2(0.5, 0.5)
+collision_layer = 16
+collision_mask = 44
 script = ExtResource("1_adx2k")
 damage = 5
 

@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cnt8y6u2l5l6d"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_j76ws"]
+[ext_resource type="Texture2D" uid="uid://sdb3op3gsunj" path="res://Textures/Enemy/Ship_1_C_Small_NoLight.png" id="2_n7j1q"]
+
+[node name="mob3" unique_id=1623952910 instance=ExtResource("1_j76ws")]
+enemy_type = "mob3"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+texture = ExtResource("2_n7j1q")
+
+[node name="Enemy_Explosion" parent="." index="6" unique_id=310868200]
+frame = 14
+frame_progress = 1.0
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+visible = false

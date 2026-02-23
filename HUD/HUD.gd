@@ -28,8 +28,8 @@ func _ready():
 	if GameManager.player_manager:
 		attack_boost_count = GameManager.player_manager.player_stats.get("attack_level", 0)
 	
-	# Hide all power symbols initially
-	hide_all_power_symbols()
+	# Set all power symbols to silhouette initially
+	set_all_power_symbols_to_silhouette()
 	# Show power symbols based on initial attack level
 	update_power_symbols()
 	
@@ -66,48 +66,43 @@ func _on_level_loaded(_level_num: int):
 	"""Called when a new level is loaded"""
 	reset_hud_state()
 
-# Hide all power symbols initially
-func hide_all_power_symbols():
+# Set all power symbols to silhouette (grayed out) initially
+func set_all_power_symbols_to_silhouette():
 	if power_symbol:
-		power_symbol.hide()
+		power_symbol.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
 	if power_symbol_2:
-		power_symbol_2.hide()
+		power_symbol_2.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
 	if power_symbol_3:
-		power_symbol_3.hide()
+		power_symbol_3.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
 	if power_symbol_4:
-		power_symbol_4.hide()
+		power_symbol_4.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
 
-# Show power symbols based on attack boost count
+# Update power symbols based on attack boost count
 func update_power_symbols():
-	# Hide all symbols first
-	hide_all_power_symbols()
+	# Set all symbols to silhouette first
+	set_all_power_symbols_to_silhouette()
 	
-	# Show symbols based on attack boost count
-	match attack_boost_count:
-		1:
-			if power_symbol:
-				power_symbol.show()
-		2:
-			if power_symbol:
-				power_symbol.show()
-			if power_symbol_2:
-				power_symbol_2.show()
-		3:
-			if power_symbol:
-				power_symbol.show()
-			if power_symbol_2:
-				power_symbol_2.show()
-			if power_symbol_3:
-				power_symbol_3.show()
-		4:
-			if power_symbol:
-				power_symbol.show()
-			if power_symbol_2:
-				power_symbol_2.show()
-			if power_symbol_3:
-				power_symbol_3.show()
-			if power_symbol_4:
-				power_symbol_4.show()
+	# Colorize symbols based on attack boost count
+	if power_symbol:
+		if attack_boost_count >= 1:
+			power_symbol.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Full color
+		else:
+			power_symbol.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
+	if power_symbol_2:
+		if attack_boost_count >= 2:
+			power_symbol_2.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Full color
+		else:
+			power_symbol_2.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
+	if power_symbol_3:
+		if attack_boost_count >= 3:
+			power_symbol_3.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Full color
+		else:
+			power_symbol_3.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
+	if power_symbol_4:
+		if attack_boost_count >= 4:
+			power_symbol_4.modulate = Color(1.0, 1.0, 1.0, 1.0)  # Full color
+		else:
+			power_symbol_4.modulate = Color(0.5, 0.5, 0.5, 1.0)  # Grayed out
 
 func _load_hud_settings() -> void:
 	"""Load HUD settings from ConfigLoader"""
@@ -223,7 +218,7 @@ func update_button_visibility():
 # Reset HUD state for new level
 func reset_hud_state():
 	attack_boost_count = 0
-	hide_all_power_symbols()
+	update_power_symbols()  # This will set symbols to silhouette based on attack_boost_count (0)
 	reset_charge()
 	update_button_visibility()
 	start_timer()

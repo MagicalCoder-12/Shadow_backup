@@ -3,6 +3,11 @@ extends Node
 # Persistent audio player for background music
 var background_player: AudioStreamPlayer = AudioStreamPlayer.new()
 
+const BULLET_SFX_COOLDOWN_MS: int = 80
+const BULLET_SFX_VOLUME_DB: float = -12.0
+const BACKGROUND_BUS_MIN_DB: float = 0.0
+const BULLET_BUS_MAX_DB: float = -18.0
+
 # Audio bus indices
 var background_bus_idx: int = AudioServer.get_bus_index("Background")
 var bullet_bus_idx: int = AudioServer.get_bus_index("Bullet")
@@ -15,6 +20,7 @@ var current_background_music: AudioStream
 
 # Store original bus volumes for restoration
 var _original_bus_volumes: Dictionary = {}
+var _last_sfx_play_time_ms_by_bus: Dictionary = {}
 
 func _ready() -> void:
 	# Validate bus indices
@@ -27,6 +33,7 @@ func _ready() -> void:
 	# Configure background music player
 	background_player.bus = "Background"
 	add_child(background_player)
+	_apply_default_mix_targets()
 	print("AudioManager initialized with background player on Background bus")
 
 func play_background_music(stream: AudioStream, force_restart: bool = false) -> void:
@@ -67,12 +74,36 @@ func play_sound_effect(stream: AudioStream, bus: String) -> void:
 	if not stream:
 		push_error("No audio stream provided for sound effect")
 		return
+	if _should_throttle_sound_effect(bus):
+		return
 	var player = AudioStreamPlayer.new()
 	player.bus = bus
 	player.stream = stream
+	if bus == "Bullet":
+		player.volume_db = BULLET_SFX_VOLUME_DB
 	player.finished.connect(player.queue_free) # Auto-free when done
 	add_child(player)
 	player.play()
+
+func _should_throttle_sound_effect(bus: String) -> bool:
+	if bus != "Bullet":
+		return false
+	var now_ms: int = Time.get_ticks_msec()
+	var last_ms: int = int(_last_sfx_play_time_ms_by_bus.get(bus, -100000))
+	if now_ms - last_ms < BULLET_SFX_COOLDOWN_MS:
+		return true
+	_last_sfx_play_time_ms_by_bus[bus] = now_ms
+	return false
+
+func _apply_default_mix_targets() -> void:
+	if background_bus_idx != -1:
+		var current_bg_volume: float = AudioServer.get_bus_volume_db(background_bus_idx)
+		if current_bg_volume < BACKGROUND_BUS_MIN_DB:
+			AudioServer.set_bus_volume_db(background_bus_idx, BACKGROUND_BUS_MIN_DB)
+	if bullet_bus_idx != -1:
+		var current_bullet_volume: float = AudioServer.get_bus_volume_db(bullet_bus_idx)
+		if current_bullet_volume > BULLET_BUS_MAX_DB:
+			AudioServer.set_bus_volume_db(bullet_bus_idx, BULLET_BUS_MAX_DB)
 
 
 func mute_audio_buses(mute: bool, exclude_video: bool = false) -> void:

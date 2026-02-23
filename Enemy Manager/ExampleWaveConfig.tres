@@ -4,7 +4,3 @@
 
 [resource]
 script = ExtResource("1_waveconfig")
-difficulty = 0
-enemy_density = "Maximum"
-formation_center = Vector2(700, 600)
-formation_radius = 300.0

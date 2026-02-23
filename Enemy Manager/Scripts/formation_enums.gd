@@ -49,7 +49,8 @@ enum EnemyType {
 	FAST_ENEMY,
 	BOUNCER_ENEMY,
 	BOMBER_BUG,
-	OblivionTank,      
-	PhasePhantom,     
-	ShadowSentinel
+	OBLIVION_TANK,
+	PHASE_PHANTOM,
+	SHADOW_SENTINEL,
+	ELITE_ENEMY
 }

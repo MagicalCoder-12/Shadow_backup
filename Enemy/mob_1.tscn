@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://ybjcek06ctyd"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_eacbu"]
+[ext_resource type="Texture2D" uid="uid://b8r4u7aikv5rx" path="res://Textures/Enemy/Ship_1_D_Small_NoLight.png" id="2_2eoq1"]
+
+[node name="mob1" unique_id=1623952910 instance=ExtResource("1_eacbu")]
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+texture = ExtResource("2_2eoq1")

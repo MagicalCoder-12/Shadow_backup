@@ -1,6 +1,6 @@
 extends Control
 
-@onready var level_buttons: Node2D = $LevelButtons
+@onready var level_buttons: Control = $LevelButtons
 @onready var canvaslayer: CanvasLayer = $CanvasLayer
 @onready var difficulty_selection: Control = $CanvasLayer/DifficultySelection
 

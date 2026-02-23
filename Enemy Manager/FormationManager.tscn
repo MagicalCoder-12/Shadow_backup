@@ -4,4 +4,3 @@
 
 [node name="FormationManager" type="Node2D" unique_id=442573117]
 script = ExtResource("1_cojxs")
-debug_mode = true

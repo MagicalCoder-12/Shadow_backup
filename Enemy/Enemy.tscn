@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://bmlutcsqb2gte"]
 
-[ext_resource type="Script" uid="uid://co6kbijd10gf0" path="res://Enemy/Scripts/Enemy.gd" id="1_bjyvl"]
+[ext_resource type="Script" uid="uid://b7q1g4bmmfsf7" path="res://Enemy/Scripts/DefaultEnemy.gd" id="1_0388l"]
 [ext_resource type="Texture2D" uid="uid://dd500r0g4v3hq" path="res://Textures/Enemy/Ship_1_E_Small_NoLight.png" id="2_7jp3o"]
 [ext_resource type="Texture2D" uid="uid://dopawxl613yyd" path="res://Textures/Enemy/enemyUFO.png" id="2_epr5s"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="14_o5xt3"]
@@ -141,10 +141,8 @@ z_index = 100
 scale = Vector2(1.5, 1.5)
 collision_layer = 4
 collision_mask = 17
-script = ExtResource("1_bjyvl")
-speed = 700.0
+script = ExtResource("1_0388l")
 shadow_texture = ExtResource("2_7jp3o")
-ambush_probability = 0.5
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1747645234]
 texture = ExtResource("2_epr5s")

@@ -88,10 +88,16 @@ func _show_difficulty_selection() -> void:
 			var canvas_layer = current_node.get_node("CanvasLayer")
 			canvas_layer.show()
 		
-		difficulty_panel.show()
-		print("Level button: Showed difficulty selection panel")
-		
-		# Bring the panel to the front to ensure it's visible
-		difficulty_panel.grab_focus()
-	else:
-		print("Level button: Difficulty selection panel not found at CanvasLayer/DifficultySelection")
+			difficulty_panel.show()
+			print("Level button: Showed difficulty selection panel")
+			
+			# Focus a valid interactive control to avoid focus warnings on non-focusable roots.
+			if difficulty_panel.has_method("focus_default_control"):
+				difficulty_panel.focus_default_control()
+			elif difficulty_panel is Control:
+				var panel_control := difficulty_panel as Control
+				if panel_control.focus_mode == Control.FOCUS_NONE:
+					panel_control.focus_mode = Control.FOCUS_ALL
+				panel_control.grab_focus()
+		else:
+			print("Level button: Difficulty selection panel not found at CanvasLayer/DifficultySelection")

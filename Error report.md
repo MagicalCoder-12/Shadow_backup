@@ -1,134 +1,152 @@
-**Fix Progress Summary (Updated)**
+# Deep Scan Error Report
 
-Tracked remediation items in this report: **14**
+Generated: **2026-02-19 08:43:46 UTC**
+Scope: static scan of first-party gameplay code and scenes (`Autoloads`, `Bosses`, `Enemy`, `Enemy Manager`, `Levels`, `MainScenes`, `Ships`, `Spawner`, `Satellites`, `Bullet`).
+Method: code pattern scan (`rg/find/wc`) and hotspot review by size, coupling, scene mutation, persistence pressure, async/signal complexity.
 
-- Completed: **11**
-- Partial: **1**
-- Remaining: **2**
-- Completion (fully done items): **78.6%**
-- Remaining effort: **21.4%**
+## 1. Scan Summary
 
-**Completed**
+- GDScript files scanned: **126**
+- Scene files (`.tscn`) scanned: **106**
+- First-party GDScript LOC: **18,228**
+- `GameManager.` references: **417**
+- `get_tree().current_scene` references: **61**
+- Raw `call_deferred("add_child", ...)` calls: **43**
+- `SceneSpawnService.spawn_child(...)` calls: **26**
+- Save trigger callsites (`save_progress/request_save`): **37**
+- Async timer usages (`create_timer` patterns): **51**
+- Signal connection calls (`connect(...)`): **181**
 
-1. `Autoloads/Scripts/Managers/SaveManager.gd`  
-Status: **Completed**  
-Notes: Keyed payload save schema, legacy compatibility, backup fallback, and normalization added.
+## 2. Largest Code Hotspots
 
-2. `MainScenes/Scripts/game_over_screen.gd` + `Autoloads/Scripts/Core/GameManager.gd` crystal revive flow  
-Status: **Completed**  
-Notes: Crystal revives added with per-level limits and escalating cost; ad revive remains optional.
+Top first-party scripts by length:
 
-3. `MainScenes/Scripts/game_over_screen.gd` message and resource display  
-Status: **Completed**  
-Notes: Message label is visible from start and now updates by button interaction; resource labels now reflect current totals.
+1. `MainScenes/Scripts/upgrade_menu.gd` - **1416**
+2. `Bosses/Scripts/boss_1.gd` - **987**
+3. `Enemy Manager/Scripts/formation_manager.gd` - **909**
+4. `Bosses/Scripts/Boss3.gd` - **907**
+5. `Enemy Manager/Scripts/wave_manager.gd` - **828**
+6. `Autoloads/Scripts/Managers/AdManager.gd` - **811**
+7. `Bosses/Scripts/Boss2.gd` - **715**
+8. `Autoloads/Scripts/Core/GameManager.gd` - **614**
+9. `Levels/Scripts/Level.gd` - **613**
+10. `Ships/Scripts/Player.gd` - **612**
 
-4. Revive life-count bug (`Levels/Scripts/Level.gd`, `Autoloads/Scripts/Core/GameManager.gd`, `Autoloads/Scripts/Managers/PlayerManager.gd`)  
-Status: **Completed**  
-Notes: Revive now restores exactly **1 life**.
+## 3. High-Risk Findings
 
-5. `Autoloads/Scripts/Core/GameManager.gd` revive limit reset integration  
-Status: **Completed**  
-Notes: Revive counters reset at new run/new level boundaries.
+### A. `upgrade_menu.gd` remains a high-complexity UI/economy orchestrator
+- Severity: **High**
+- Evidence: `MainScenes/Scripts/upgrade_menu.gd` is 1416 lines and has the highest `GameManager` coupling count.
+- Risk: UI changes can still regress transaction/equip/save behavior in one edit path.
+- Status: **Partially improved** (services exist), but root script still carries heavy orchestration.
 
-6. `Autoloads/Scripts/Managers/AdManager.gd` race/lifecycle patch  
-Status: **Completed**  
-Notes: Request nonce tracking, stale-callback guards, dismiss-gated revive completion, timeout nonce checks, and `PROCESS_MODE_ALWAYS` handling are in place.
+### B. Boss scripts are still monolithic combat state machines
+- Severity: **High**
+- Evidence: `Bosses/Scripts/boss_1.gd` (987), `Bosses/Scripts/Boss3.gd` (907), `Bosses/Scripts/Boss2.gd` (715).
+- Risk: pattern tuning and bug fixes have high regression blast radius.
 
-7. `Autoloads/Scripts/Managers/AdManager.gd` rewarded ad show-failure handling  
-Status: **Completed**  
-Notes: Added and connected `rewarded_ad_failed_to_show_full_screen_content` and `rewarded_interstitial_ad_failed_to_show_full_screen_content`, with unified fail-safe finalize logic.
+### C. Enemy modularization is improved in base class, but subclass debt remains
+- Severity: **High**
+- Evidence:
+  - Base enemy services extracted:
+    - `Enemy/Scripts/Services/EnemyMovementService.gd`
+    - `Enemy/Scripts/Services/EnemyCombatService.gd`
+    - `Enemy/Scripts/Services/EnemyLifecycleService.gd`
+  - Still large subclass scripts:
+    - `Enemy/Scripts/SlowShooter.gd` (481)
+    - `Enemy/Scripts/minion.gd` (467)
+    - `Enemy/Scripts/FastEnemy.gd` (273)
+- Risk: subclass overrides can bypass or drift from base service contracts.
 
-8. `Autoloads/Scripts/Core/GameManager.gd` responsibility split (revive/currency/scene)  
-Status: **Completed**  
-Notes: Revive orchestration moved to `Autoloads/Scripts/Services/GameReviveService.gd`, scene routing moved to `Autoloads/Scripts/Services/GameSceneService.gd`, and currency/save helpers moved to `Autoloads/Scripts/Services/GameEconomyService.gd`.
+### D. Scene-tree mutation is not yet fully centralized
+- Severity: **High**
+- Evidence:
+  - Raw `current_scene.add_child(...)` still present in:
+    - `Satellites/Scripts/satellite.gd:164`
+    - `Satellites/Scripts/satellite.gd:167`
+    - `Autoloads/Scripts/Managers/LevelManager.gd:135`
+  - Raw `call_deferred("add_child", ...)` remains widespread in boss flows.
+- Risk: transition timing/null parent race conditions during scene changes.
 
-9. Save batching/debounce strategy (`Autoloads/Scripts/Managers/SaveManager.gd`)  
-Status: **Completed**  
-Notes: Added debounced save scheduling with configurable delay, pending-save coalescing, and force-save path for shutdown and recovery.
+### E. Global coupling through `GameManager` is still high
+- Severity: **Medium-High**
+- Evidence: **417** direct references.
+- Highest concentration:
+  - `MainScenes/Scripts/upgrade_menu.gd` (**74**)
+  - `Ships/Scripts/Player.gd` (**62**)
+  - `Levels/Scripts/Level.gd` (**60**)
+- Risk: hidden side effects and difficult unit-level isolation.
 
-10. `Autoloads/Scripts/Managers/ConfigLoader.gd` defaults + schema validation  
-Status: **Completed**  
-Notes: Defaults moved into versioned assets under `data/defaults/` and strict schema validation added to reject mismatched config shapes.
+### F. Persistence calls remain frequent from gameplay/UI flows
+- Severity: **Medium**
+- Evidence: **37** save trigger callsites, including frequent upgrade-level paths.
+- Risk: avoidable write pressure and state contention if events burst.
+- Note: debounce exists in SaveManager; callsite count is still worth reducing.
 
-11. Scene-safe spawn/effect API for enemy/boss scripts  
-Status: **Completed**  
-Notes: Created `SceneSpawnService` with null-safe spawn methods; Replaced raw `get_tree().current_scene.add_child()` calls with `SceneSpawnService.spawn_child()` in Enemy.gd, SlowShooter.gd, Boss3.gd, ShadowUnlockBoss.gd, and Spawner.gd to prevent null reference errors during scene transitions.
+### G. Signal lifecycle complexity is high
+- Severity: **Medium**
+- Evidence: **181** `connect(...)` calls in first-party scripts.
+- Highest connect-heavy files:
+  - `Enemy Manager/Scripts/wave_manager.gd` (17)
+  - `Autoloads/Scripts/Managers/AdManager.gd` (17)
+  - `Levels/Scripts/Level.gd` (15)
+- Risk: duplicate connections and disconnect ordering issues in long sessions.
 
----
+### H. Very large text scenes increase edit/load overhead
+- Severity: **Medium**
+- Evidence:
+  - `MainScenes/pause_menu.tscn` ~17.22 MB
+  - `MainScenes/game_over_screen.tscn` ~17.20 MB
+  - `MainScenes/upgrade_menu.tscn` ~6.54 MB
+- Risk: slower editor saves, merge churn, and runtime parsing overhead.
 
-**Deep Project Risk Audit**
+## 4. Recently Resolved Warnings
 
-Audit coverage:
-- **102** GDScript files scanned.
-- Largest scripts by size:
-`MainScenes/Scripts/upgrade_menu.gd` (**1686**), `Ships/Scripts/Player.gd` (**1052**), `Enemy/Scripts/Enemy.gd` (**981**), `Autoloads/Scripts/Managers/AdManager.gd` (**760**), `Autoloads/Scripts/Core/GameManager.gd` (**690**), `Levels/Scripts/Level.gd` (**613**).
-- Coupling indicators:
-project-wide `GameManager.` references: **584**.
-`MainScenes/Scripts/upgrade_menu.gd` refs: **139**.
-`Ships/Scripts/Player.gd` refs: **139**.
-- Async complexity indicators:
-`await ...create_timer(...)` usages: **38**.
-`save_progress(...)` call sites: **27**.
+- Enum cast warning fixed:
+  - `Enemy/Scripts/Enemy.gd:322` now casts int to enum (`as AttackPattern`).
+- Focus warning fixed:
+  - `Levels/Scripts/level_button.gd` no longer focuses non-focusable root control.
+  - `MainScenes/Scripts/difficulty_selection.gd` now exposes `focus_default_control()`.
 
-**High-Risk Elements (Prioritized)**
+## 5. Current Architecture Status
 
-1. **Critical** - `Autoloads/Scripts/Core/GameManager.gd` remains a high-fan-out orchestrator.  
-Evidence: 690-line script with global state, scene control, ads, currency, revive, save proxy, and shadow-mode orchestration.  
-Risk: high regression blast radius and difficult bug isolation.
+### Completed/Stable
+- Save schema + debounce (`SaveManager`) is in place.
+- AdManager show/load failure paths are guarded.
+- Player service extraction is in place.
+- Enemy base extraction is in place (movement/combat/lifecycle services).
 
-2. **High** - `MainScenes/Scripts/upgrade_menu.gd` is a monolith handling UI + economy + ad rewards + equip + save.  
-Evidence: 1686 lines, 139 `GameManager` references, frequent direct save calls.  
-Risk: UI fixes can break economy logic and vice versa.
+### Remaining Structural Work
+- Subclass enemy modularization (`SlowShooter`, `FastEnemy`, `BossMinion`).
+- Boss behavior extraction into pattern/state services.
+- Full scene-spawn unification via `SceneSpawnService`.
+- Further reduction of `GameManager` touchpoints from UI/combat scripts.
 
-3. **High** - `Ships/Scripts/Player.gd` is multi-responsibility (movement/combat/revive/satellites/modes/stats sync).  
-Evidence: 1052 lines, 139 `GameManager` references.  
-Risk: high fragility around revive/combat state transitions.
+## 6. Priority Backlog (Recommended)
 
-4. **High** - `Enemy/Scripts/Enemy.gd` bundles movement AI, attack patterns, shadow behavior, lifecycle, and rewards.  
-Evidence: 981 lines with many mode-specific branches.  
-Risk: balancing or AI fixes can cause hidden lifecycle regressions.
+### P0 (Do next)
+1. Replace remaining direct `current_scene.add_child` calls:
+   - `Satellites/Scripts/satellite.gd`
+   - `Autoloads/Scripts/Managers/LevelManager.gd`
+2. Standardize boss/minion spawn/effect paths onto `SceneSpawnService`.
 
-5. **High** - Scene-transition safety risk from direct `get_tree().current_scene.add_child(...)` usage in combat scripts.  
-Evidence: direct add-child calls in enemy and boss scripts during runtime effects/spawns.  
-Risk: null/current-scene churn during transitions causing intermittent runtime errors.  
-Status: **Partially Fixed** - Created SceneSpawnService, but 13 instances remain in ship/minion/wave scripts.
+### P1
+1. Extract `SlowShooter` into services:
+   - targeting/aim
+   - charge/defensive states
+   - special projectile behavior
+2. Extract `FastEnemy` rapid-fire/dive behavior into services.
+3. Extract `BossMinion` swarm/orbit/kamikaze logic into services.
 
-6. **Medium** - Save I/O is synchronous and called from many runtime paths.  
-Evidence: 27 save call sites across gameplay/UI managers.  
-Risk: unnecessary write pressure and potential save contention/stutter on low-end devices.
+### P2
+1. Split `upgrade_menu.gd` orchestration further (UI state controller vs domain facade).
+2. Convert very large text scenes to binary `.scn` or externalized resources where practical.
+3. Add signal connection audits in wave/boss lifecycle paths (connect once + explicit disconnect contracts).
 
-7. **Medium** - `Autoloads/Scripts/Managers/ConfigLoader.gd` still mixes loader + large embedded defaults.  
-Evidence: large fallback payload definitions inline.  
-Risk: config drift between JSON and hardcoded defaults; higher maintenance cost.
+## 7. Risk Snapshot
 
-8. **Medium** - `Autoloads/Scripts/Managers/SceneManager.gd` mixes scene loading with audio bus policy.  
-Evidence: scene transition logic plus bus mute/unmute orchestration in same unit.  
-Risk: scene-flow changes can unintentionally affect audio state.
+- Critical blockers found: **0** (static scan only)
+- High-risk items open: **4**
+- Medium-risk items open: **4**
+- Trend: **Improving**, but complexity remains concentrated in upgrade, boss, and enemy-subclass layers.
 
-9. **Medium** - `MainScenes/Scripts/authentication.gd` is largely placeholder flow.  
-Evidence: status-only handlers without actual auth service calls.  
-Risk: false-ready auth UI path and inconsistent production behavior.
-
----
-
-**Remaining High-Priority Fixes**
-
-1. `MainScenes/Scripts/upgrade_menu.gd`  
-Target: Separate transaction logic from UI rendering/state.
-Progress: Upgrade/purchase payment flows and cost computation are delegated to `MainScenes/Scripts/Services/UpgradeTransactionService.gd`, ad request orchestration plus usage/reward messaging is delegated to `MainScenes/Scripts/Services/UpgradeAdService.gd`, selection/equip logic is delegated to `MainScenes/Scripts/Services/UpgradeSelectionService.gd`, and currency/texture refresh logic is delegated to `MainScenes/Scripts/Services/UpgradeUIRefreshService.gd`, while `upgrade_menu.gd` retains UI rendering/state updates.
-
-2. `Ships/Scripts/Player.gd` + `Enemy/Scripts/Enemy.gd`  
-Target: Extract revive/combat/mode/state-machine modules.
-Progress: Revive flow, invincibility, and shield blinking were extracted into `Ships/Scripts/Services/PlayerReviveService.gd`, combat/damage handling was extracted into `Ships/Scripts/Services/PlayerCombatService.gd`, mode/state transitions were extracted into `Ships/Scripts/Services/PlayerModeService.gd`, movement/input handling was extracted into `Ships/Scripts/Services/PlayerMovementInputService.gd`, and satellite integration was extracted into `Ships/Scripts/Services/PlayerSatelliteService.gd`; enemy-side extraction remains pending.
-
-3. Scene-safe spawn/effect API for enemy/boss scripts  
-Target: Replace raw `current_scene.add_child` with guarded spawn facade.  
-Progress: **Completed** - Created `SceneSpawnService` (Autoloads/Scripts/Services/SceneSpawnService.gd) with null-safe spawn methods; Updated Enemy.gd, SlowShooter.gd, Boss3.gd, ShadowUnlockBoss.gd, and Spawner.gd to use the safe spawn API instead of raw `get_tree().current_scene.add_child()` calls. **Remaining: Ship scripts (Player.gd, Ship2.gd, Ship3.gd), minion.gd, wave_manager.gd still need migration.**
-
-4. Remaining scene tree access safety  
-Target: Replace remaining raw `get_tree().current_scene` calls with SceneSpawnService in all combat/spawn scripts.  
-Progress: **Completed** - Migrated all remaining instances: Player.gd (0 actual instances), Ship2.gd (0 actual instances), Ship3.gd (0 actual instances), minion.gd (1 instance), wave_manager.gd (4 instances), and Meteor.gd (1 instance) to use SceneSpawnService for safe scene tree access.
-
-5. Enemy Behavior and Performance Fixes  
-Target: Fix bomber enemy bomb spam causing performance issues, ensure consistent enemy shooting, and make all enemies shoot in shadow mode.  
-Progress: **Completed** - Reduced bomber bomb limits (30→15 active bombs), decreased bomb drop frequency (30%→20% chance, 3.0→4.0s cooldown), configured all mob types with proper fire_rate values, and enhanced shadow mode enemy aggression (30% faster fire rate, immediate shooting activation, more diverse attack patterns).

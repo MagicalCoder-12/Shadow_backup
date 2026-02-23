@@ -60,41 +60,55 @@ vertical_alignment = 1
 
 [node name="Firstbg" type="TextureRect" parent="." unique_id=1518371032]
 layout_mode = 0
-offset_left = -60.0
-offset_top = -75.0
-offset_right = 1665.0
-offset_bottom = 3239.0
+anchor_left = -0.048611112
+anchor_top = -0.0203125
+anchor_right = 1.19375
+anchor_bottom = 1.0121875
 texture = ExtResource("12_rr5ff")
+metadata/_edit_use_anchors_ = true
 
 [node name="Space2" type="TextureRect" parent="." unique_id=2086716154]
-layout_mode = 0
-offset_left = -68.0
-offset_top = -5896.0
-offset_right = 1668.0
-offset_bottom = -3003.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.058333334
+anchor_top = -1.8425
+anchor_right = 1.2027777
+anchor_bottom = -0.9603125
+offset_right = 0.00012207031
 texture = ExtResource("4_eiwrt")
+metadata/_edit_use_anchors_ = true
 
 [node name="Space3" type="TextureRect" parent="." unique_id=743646487]
 layout_mode = 0
-offset_left = -79.0
-offset_top = -8801.0
-offset_right = 1660.0
-offset_bottom = -5908.0
+anchor_left = -0.05486111
+anchor_top = -2.7503126
+anchor_right = 1.1993055
+anchor_bottom = -1.84625
 texture = SubResource("CompressedTexture2D_t0nxn")
+metadata/_edit_use_anchors_ = true
 
 [node name="Space" type="TextureRect" parent="." unique_id=2025764118]
 modulate = Color(0.777569, 0.584156, 0.35576, 1)
 layout_mode = 0
-offset_left = -86.0
-offset_top = -3165.0
-offset_right = 1668.0
-offset_bottom = -66.0
+anchor_left = -0.059722222
+anchor_top = -0.958125
+anchor_right = 1.2027777
+anchor_bottom = -0.020625
 texture = ExtResource("4_0bgbn")
+metadata/_edit_use_anchors_ = true
 
-[node name="Commingsoon" type="Sprite2D" parent="." unique_id=1755435077]
-position = Vector2(777, -9494)
+[node name="Commingsoon" type="TextureRect" parent="." unique_id=897825189]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.06458333
+anchor_top = -3.215
+anchor_right = 1.2159724
+anchor_bottom = -2.7514062
+offset_right = -820.0001
+offset_bottom = -459.5
 scale = Vector2(1.8007813, 1.44873)
 texture = ExtResource("2_6yc6o")
+metadata/_edit_use_anchors_ = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=417873767]
 position = Vector2(-45, -355)
@@ -103,145 +117,239 @@ zoom = Vector2(0.9, 0.9)
 script = ExtResource("4_86j4t")
 scroll_speed = 4.0
 
-[node name="LevelButtons" type="Node2D" parent="." unique_id=999596784]
+[node name="LevelButtons" type="Control" parent="." unique_id=630795878]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 scale = Vector2(1.1, 1.1)
 
 [node name="LevelButton1" parent="LevelButtons" unique_id=928726241 instance=ExtResource("2_njngi")]
-offset_left = 544.5455
-offset_top = 1983.6362
-offset_right = 644.54553
-offset_bottom = 2083.6362
+layout_mode = 0
+anchor_left = 0.37815657
+anchor_top = 0.61988634
+anchor_right = 0.54482335
+anchor_bottom = 0.6948863
+offset_right = -140.00006
+offset_bottom = -140.0
 locked = false
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton2" parent="LevelButtons" unique_id=1207979157 instance=ExtResource("2_njngi")]
-offset_left = 870.90906
-offset_top = 1550.0
-offset_right = 970.90906
-offset_bottom = 1650.0
+layout_mode = 0
+anchor_left = 0.60479796
+anchor_top = 0.484375
+anchor_right = 0.77146465
+anchor_bottom = 0.559375
+offset_right = -140.0
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton3" parent="LevelButtons" unique_id=1184433658 instance=ExtResource("2_njngi")]
-offset_left = 986.36365
-offset_top = 995.4545
-offset_right = 1086.3636
-offset_bottom = 1095.4546
+layout_mode = 0
+anchor_left = 0.68497473
+anchor_top = 0.31107953
+anchor_right = 0.8516414
+anchor_bottom = 0.3860796
+offset_left = 6.1035156e-05
+offset_right = -140.0
+offset_bottom = -140.00012
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton4" parent="LevelButtons" unique_id=489162615 instance=ExtResource("2_njngi")]
-offset_left = 910.0
-offset_top = 430.9091
-offset_right = 1010.0
-offset_bottom = 530.90906
+layout_mode = 0
+anchor_left = 0.6319444
+anchor_top = 0.1346591
+anchor_right = 0.7986111
+anchor_bottom = 0.2096591
+offset_left = 6.1035156e-05
+offset_top = -3.0517578e-05
+offset_right = -140.0
+offset_bottom = -140.00006
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton5" parent="LevelButtons" unique_id=1657403621 instance=ExtResource("2_njngi")]
-offset_left = 381.81818
-offset_top = 135.45454
-offset_right = 481.81818
-offset_bottom = 235.45454
+layout_mode = 0
+anchor_left = 0.2651515
+anchor_top = 0.042329546
+anchor_right = 0.5429293
+anchor_bottom = 0.16732953
+offset_right = -300.0
+offset_bottom = -300.0
 scale = Vector2(4, 4)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton6" parent="LevelButtons" unique_id=1422611650 instance=ExtResource("2_njngi")]
-offset_left = 341.81818
-offset_top = -429.99997
-offset_right = 441.81818
-offset_bottom = -329.99997
+layout_mode = 0
+anchor_left = 0.23737374
+anchor_top = -0.13437499
+anchor_right = 0.4040404
+anchor_bottom = -0.059374984
+offset_right = -140.0
+offset_bottom = -140.00002
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton7" parent="LevelButtons" unique_id=808774951 instance=ExtResource("2_njngi")]
-offset_left = 658.18176
-offset_top = -895.45447
-offset_right = 758.18176
-offset_bottom = -795.45447
+layout_mode = 0
+anchor_left = 0.45707068
+anchor_top = -0.27982953
+anchor_right = 0.62373734
+anchor_bottom = -0.20482951
+offset_top = 6.1035156e-05
+offset_right = -140.0
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton8" parent="LevelButtons" unique_id=1628937593 instance=ExtResource("2_njngi")]
-offset_left = 836.3636
-offset_top = -1452.7273
-offset_right = 936.3636
-offset_bottom = -1352.7273
+layout_mode = 0
+anchor_left = 0.58080804
+anchor_top = -0.4539773
+anchor_right = 0.74747473
+anchor_bottom = -0.37897727
+offset_right = -140.00006
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton9" parent="LevelButtons" unique_id=2004523865 instance=ExtResource("2_njngi")]
-offset_left = 590.9091
-offset_top = -1901.8182
-offset_right = 690.9091
-offset_bottom = -1801.8182
+layout_mode = 0
+anchor_left = 0.41035354
+anchor_top = -0.5943182
+anchor_right = 0.5770202
+anchor_bottom = -0.5193182
+offset_right = -140.0
+offset_bottom = -139.99988
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton10" parent="LevelButtons" unique_id=532649761 instance=ExtResource("2_njngi")]
-offset_left = 325.45456
-offset_top = -2761.8184
-offset_right = 425.45456
-offset_bottom = -2661.8184
+layout_mode = 0
+anchor_left = 0.22601011
+anchor_top = -0.8630682
+anchor_right = 0.57323235
+anchor_bottom = -0.7068182
+offset_right = -400.00003
+offset_bottom = -400.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton11" parent="LevelButtons" unique_id=88270582 instance=ExtResource("2_njngi")]
-offset_left = 740.90906
-offset_top = -3420.9092
-offset_right = 840.90906
-offset_bottom = -3320.9092
+layout_mode = 0
+anchor_left = 0.51452017
+anchor_top = -1.0690341
+anchor_right = 0.68118685
+anchor_bottom = -0.9940341
+offset_right = -140.0
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton12" parent="LevelButtons" unique_id=1701832332 instance=ExtResource("2_njngi")]
-offset_left = 322.72726
-offset_top = -3854.5454
-offset_right = 422.72726
-offset_bottom = -3754.5454
+layout_mode = 0
+anchor_left = 0.22411616
+anchor_top = -1.2045455
+anchor_right = 0.39078283
+anchor_bottom = -1.1295455
+offset_top = 0.00024414063
+offset_right = -140.00003
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton13" parent="LevelButtons" unique_id=204953941 instance=ExtResource("2_njngi")]
-offset_left = 562.72723
-offset_top = -4251.8184
-offset_right = 662.72723
-offset_bottom = -4151.8184
+layout_mode = 0
+anchor_left = 0.3907828
+anchor_top = -1.3286933
+anchor_right = 0.55744946
+anchor_bottom = -1.2536932
+offset_right = -140.0
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton14" parent="LevelButtons" unique_id=324119363 instance=ExtResource("2_njngi")]
-offset_left = 884.5455
-offset_top = -4618.1816
-offset_right = 984.5455
-offset_bottom = -4518.1816
+layout_mode = 0
+anchor_left = 0.6142677
+anchor_top = -1.4431818
+anchor_right = 0.7809344
+anchor_bottom = -1.3681817
+offset_right = -140.00006
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton15" parent="LevelButtons" unique_id=1921560665 instance=ExtResource("2_njngi")]
-offset_left = 374.54547
-offset_top = -5221.818
-offset_right = 474.54547
-offset_bottom = -5121.818
+layout_mode = 0
+anchor_left = 0.26010102
+anchor_top = -1.631818
+anchor_right = 0.6073232
+anchor_bottom = -1.475568
+offset_right = -400.0
+offset_bottom = -400.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton16" parent="LevelButtons" unique_id=243620135 instance=ExtResource("2_njngi")]
-offset_left = 519.09094
-offset_top = -6031.8184
-offset_right = 619.09094
-offset_bottom = -5931.8184
+layout_mode = 0
+anchor_left = 0.36047983
+anchor_top = -1.8849432
+anchor_right = 0.52714646
+anchor_bottom = -1.8099432
+offset_right = -139.99994
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton17" parent="LevelButtons" unique_id=1968550615 instance=ExtResource("2_njngi")]
-offset_left = 875.4545
-offset_top = -6397.2725
-offset_right = 975.4545
-offset_bottom = -6297.2725
+layout_mode = 0
+anchor_left = 0.60795456
+anchor_top = -1.9991477
+anchor_right = 0.77462125
+anchor_bottom = -1.9241476
+offset_left = -6.1035156e-05
+offset_right = -140.00006
+offset_bottom = -140.0
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton18" parent="LevelButtons" unique_id=2086307020 instance=ExtResource("2_njngi")]
-offset_left = 572.72723
-offset_top = -6873.636
-offset_right = 672.72723
-offset_bottom = -6773.636
+layout_mode = 0
+anchor_left = 0.39772725
+anchor_top = -2.1480112
+anchor_right = 0.56439394
+anchor_bottom = -2.0730114
+offset_top = -0.00048828125
+offset_right = -140.00006
+offset_bottom = -139.99951
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton19" parent="LevelButtons" unique_id=79918701 instance=ExtResource("2_njngi")]
-offset_left = 965.4544
-offset_top = -7252.727
-offset_right = 1065.4543
-offset_bottom = -7152.727
+layout_mode = 0
+anchor_left = 0.67045444
+anchor_top = -2.266477
+anchor_right = 0.8371211
+anchor_bottom = -2.1914773
+offset_top = -0.00048828125
+offset_right = -140.00012
+offset_bottom = -139.99951
+metadata/_edit_use_anchors_ = true
 
 [node name="LevelButton20" parent="LevelButtons" unique_id=1335457578 instance=ExtResource("2_njngi")]
-offset_left = 347.27277
-offset_top = -7902.7266
-offset_right = 447.27277
-offset_bottom = -7802.7266
+layout_mode = 0
+anchor_left = 0.24116164
+anchor_top = -2.469602
+anchor_right = 0.58838385
+anchor_bottom = -2.313352
+offset_right = -400.0
+offset_bottom = -400.0
 scale = Vector2(5, 5)
 texture_normal = ExtResource("7_lymsy")
 texture_pressed = ExtResource("8_5cbny")
 texture_hover = ExtResource("8_5cbny")
+metadata/_edit_use_anchors_ = true
 
 [node name="Start" type="AudioStreamPlayer" parent="." unique_id=54041180]
 stream = ExtResource("11_ptuj4")
@@ -251,11 +359,11 @@ parameters/looping = true
 
 [node name="Back" type="TextureButton" parent="CanvasLayer" unique_id=1971383770]
 anchors_preset = -1
-anchor_left = 0.010416667
-anchor_top = 0.85625
-anchor_right = 0.18541667
-anchor_bottom = 0.935
-offset_right = -42.0
+anchor_left = -0.0055555557
+anchor_top = 0.82125
+anchor_right = 0.16944446
+anchor_bottom = 0.9
+offset_right = -42.000015
 offset_bottom = -42.0
 grow_vertical = 0
 scale = Vector2(1.2, 1.2)
@@ -266,10 +374,10 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Shop" type="TextureButton" parent="CanvasLayer" unique_id=1429725650]
 anchors_preset = -1
-anchor_left = 0.80625
-anchor_top = 0.8540625
-anchor_right = 0.98125
-anchor_bottom = 0.9328125
+anchor_left = 0.83194447
+anchor_top = 0.820625
+anchor_right = 1.0069444
+anchor_bottom = 0.899375
 offset_right = -42.0
 offset_bottom = -42.0
 grow_horizontal = 0

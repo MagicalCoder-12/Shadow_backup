@@ -12,7 +12,7 @@ var revive_type: String = "none"
 var ad_revive_pending: bool = false
 var revive_timeout_timer: Timer
 var is_banner_showing: bool = false
-var enable_debug_logging: bool = true  # Toggle for debug messages
+var enable_debug_logging: bool = false  # Toggle for debug messages
 var _rewarded_ad_shown: bool = false  # Track if a rewarded ad has been shown
 var _initialized: bool = false
 var _banner_retry_count: int = 0

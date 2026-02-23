@@ -30,10 +30,44 @@ const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
 @export var entry_pattern: FormationEnums.EntryPattern = FormationEnums.EntryPattern.SIDE_CURVE
 
 # CORRECTED: Difficulty enum now matches the Enemy script
-@export var difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.NORMAL
+@export var difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.EASY
 
-@export_enum("mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug", "OblivionTank", "PhasePhantom","ShadowSentinel")
-var enemy_type: String = "mob1"
+const ENEMY_TYPE_TO_KEY: Dictionary = {
+	FormationEnums.EnemyType.MOB1: "mob1",
+	FormationEnums.EnemyType.MOB2: "mob2",
+	FormationEnums.EnemyType.MOB3: "mob3",
+	FormationEnums.EnemyType.MOB4: "mob4",
+	FormationEnums.EnemyType.SLOW_SHOOTER: "SlowShooter",	
+	FormationEnums.EnemyType.FAST_ENEMY: "FastEnemy",
+	FormationEnums.EnemyType.BOUNCER_ENEMY: "BouncerEnemy",
+	FormationEnums.EnemyType.BOMBER_BUG: "BomberBug",
+	FormationEnums.EnemyType.OBLIVION_TANK: "OblivionTank",
+	FormationEnums.EnemyType.PHASE_PHANTOM: "PhasePhantom",
+	FormationEnums.EnemyType.SHADOW_SENTINEL: "ShadowSentinel",
+	FormationEnums.EnemyType.ELITE_ENEMY: "EliteEnemy"
+}
+
+const ENEMY_KEY_TO_TYPE: Dictionary = {
+	"mob1": FormationEnums.EnemyType.MOB1,
+	"mob2": FormationEnums.EnemyType.MOB2,
+	"mob3": FormationEnums.EnemyType.MOB3,
+	"mob4": FormationEnums.EnemyType.MOB4,
+	"SlowShooter": FormationEnums.EnemyType.SLOW_SHOOTER,
+	"FastEnemy": FormationEnums.EnemyType.FAST_ENEMY,
+	"BouncerEnemy": FormationEnums.EnemyType.BOUNCER_ENEMY,
+	"BomberBug": FormationEnums.EnemyType.BOMBER_BUG,
+	"OblivionTank": FormationEnums.EnemyType.OBLIVION_TANK,
+	"PhasePhantom": FormationEnums.EnemyType.PHASE_PHANTOM,
+	"ShadowSentinel": FormationEnums.EnemyType.SHADOW_SENTINEL,
+	"EliteEnemy": FormationEnums.EnemyType.ELITE_ENEMY
+}
+
+var _enemy_type: FormationEnums.EnemyType = FormationEnums.EnemyType.MOB1
+@export var enemy_type: FormationEnums.EnemyType = FormationEnums.EnemyType.MOB1:
+	get:
+		return _enemy_type
+	set(value):
+		_enemy_type = _coerce_enemy_type(value)
 
 # NEW: Dedicated boss scene for boss waves
 # When set, this creates a boss wave with a single boss enemy
@@ -41,11 +75,11 @@ var enemy_type: String = "mob1"
 
 # Dynamic enemy count based on formation type
 @export_enum("Sparse", "Normal", "Dense", "Maximum")
-var enemy_density: String = "Normal"
+var enemy_density: String = "Sparse"
 
 # Formation parameters
 @export var formation_center: Vector2 = Vector2(640, 600)
-@export var formation_radius: float = 150.0
+@export var formation_radius: float = 300.0
 @export var formation_spacing: float = 100.0
 @export var spawn_delay: float = 0.3
 @export var entry_speed: float = 500.0
@@ -72,30 +106,64 @@ var formation_counts := {
 	FormationEnums.FormationType.DYNAMIC: [8, 12, 16, 20]        # New dynamic formation
 }
 
-# Paths to enemy scenes
-var enemy_paths := {
-	"mob1": preload("res://Enemy/mob1.tscn"),
-	"mob2": preload("res://Enemy/mob2.tscn"),
-	"mob3": preload("res://Enemy/mob3.tscn"),
-	"mob4": preload("res://Enemy/mob4.tscn"),
-	"SlowShooter": preload("res://Enemy/SlowShooter.tscn"),
-	"FastEnemy": preload("res://Enemy/FastEnemy.tscn"),
-	"BouncerEnemy": preload("res://Enemy/BouncerEnemy.tscn"),
-	"BomberBug" : preload("res://Enemy/BomberBug.tscn"),
-	"OblivionTank": preload("res://Enemy/OblivionTank.tscn"),            
-	"PhasePhantom": preload("res://Enemy/PhasePhantom.tscn"),
-	"ShadowSentinel":preload("res://Enemy/ShadowSentinel.tscn")
+const BASE_ENEMY_SCENE_PATH: String = "res://Enemy/Enemy.tscn"
+const ENEMY_TYPE_SCENE_PATHS: Dictionary = {
+	"mob1": "res://Enemy/mob_1.tscn",
+	"mob2": "res://Enemy/mob_2.tscn",
+	"mob3": "res://Enemy/mob_3.tscn"
 }
+var _cached_base_enemy_scene: PackedScene
+var _cached_enemy_type_scenes: Dictionary = {}
 
 # Returns the configured enemy or boss scene
 func get_enemy_scene() -> PackedScene:
 	if boss_scene:
 		return boss_scene
-	if enemy_paths.has(enemy_type):
-		return enemy_paths[enemy_type]
-	else:
-		push_warning("Invalid enemy_type '%s' in WaveConfig. Falling back to 'mob1'." % enemy_type)
-		return enemy_paths["mob1"]
+	var enemy_key: String = get_enemy_type_key()
+	var enemy_scene: PackedScene = _resolve_enemy_scene_for_type(enemy_key)
+	if enemy_scene:
+		return enemy_scene
+	if not ENEMY_KEY_TO_TYPE.has(enemy_key):
+		push_warning("Invalid enemy_type '%s' in WaveConfig. Using base enemy scene." % enemy_key)
+	return _resolve_base_enemy_scene()
+
+func _resolve_enemy_scene_for_type(enemy_key: String) -> PackedScene:
+	if not ENEMY_TYPE_SCENE_PATHS.has(enemy_key):
+		return null
+
+	if _cached_enemy_type_scenes.has(enemy_key):
+		var cached_scene: Variant = _cached_enemy_type_scenes[enemy_key]
+		if cached_scene is PackedScene and (cached_scene as PackedScene).can_instantiate():
+			return cached_scene as PackedScene
+
+	var scene_path: String = str(ENEMY_TYPE_SCENE_PATHS[enemy_key])
+	if not ResourceLoader.exists(scene_path):
+		push_warning("WaveConfig: Scene for enemy type '%s' not found at '%s'. Using base enemy scene." % [enemy_key, scene_path])
+		return null
+
+	var loaded_scene: Resource = load(scene_path)
+	if loaded_scene is PackedScene:
+		_cached_enemy_type_scenes[enemy_key] = loaded_scene
+		return loaded_scene as PackedScene
+
+	push_warning("WaveConfig: Failed loading scene '%s' for enemy type '%s'. Using base enemy scene." % [scene_path, enemy_key])
+	return null
+
+func _resolve_base_enemy_scene() -> PackedScene:
+	if _cached_base_enemy_scene and _cached_base_enemy_scene.can_instantiate():
+		return _cached_base_enemy_scene
+
+	if not ResourceLoader.exists(BASE_ENEMY_SCENE_PATH):
+		push_error("WaveConfig: Base enemy scene missing at '%s'" % BASE_ENEMY_SCENE_PATH)
+		return null
+
+	var loaded_scene: Resource = load(BASE_ENEMY_SCENE_PATH)
+	if loaded_scene is PackedScene:
+		_cached_base_enemy_scene = loaded_scene as PackedScene
+		return _cached_base_enemy_scene
+
+	push_error("WaveConfig: Failed to load PackedScene from '%s'" % BASE_ENEMY_SCENE_PATH)
+	return null
 
 # Get enemy count based on formation type and density
 func get_enemy_count() -> int:
@@ -144,6 +212,30 @@ func get_spawn_delay() -> float:
 func get_entry_speed() -> float:
 	return entry_speed
 
+func get_enemy_type_key() -> String:
+	return str(ENEMY_TYPE_TO_KEY.get(enemy_type, "mob1"))
+
+func set_enemy_type_from_key(enemy_key: String) -> void:
+	enemy_type = _coerce_enemy_type(enemy_key)
+
+func get_enemy_type_display_name() -> String:
+	var key: String = get_enemy_type_key()
+	return key if not key.is_empty() else "mob1"
+
+func _coerce_enemy_type(value) -> FormationEnums.EnemyType:
+	if typeof(value) == TYPE_STRING or typeof(value) == TYPE_STRING_NAME:
+		var enemy_key := str(value)
+		if ENEMY_KEY_TO_TYPE.has(enemy_key):
+			return ENEMY_KEY_TO_TYPE[enemy_key] as FormationEnums.EnemyType
+		return FormationEnums.EnemyType.MOB1
+
+	if typeof(value) == TYPE_INT:
+		var enemy_type_value := int(value)
+		if ENEMY_TYPE_TO_KEY.has(enemy_type_value):
+			return enemy_type_value as FormationEnums.EnemyType
+
+	return FormationEnums.EnemyType.MOB1
+
 # Debug helper to show what counts are available for current formation
 func get_available_counts() -> Array:
 	return formation_counts.get(formation_type, [6, 8, 12, 16])
@@ -177,4 +269,4 @@ func as_debug_string() -> String:
 	if boss_scene:
 		return "Boss Wave (%s)" % boss_scene.resource_path.get_file()
 	else:
-		return "%s (%s, %s)" % [enemy_type, FormationEnums.FormationType.keys()[formation_type], enemy_density]
+		return "%s (%s, %s)" % [get_enemy_type_display_name(), FormationEnums.FormationType.keys()[formation_type], enemy_density]

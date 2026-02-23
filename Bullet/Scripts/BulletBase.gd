@@ -14,7 +14,7 @@ class_name BulletBase
 @export var bullet_owner: String = "player"
 
 ## Groups this bullet can collide with.
-@export var collision_groups: Array[String] = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
+var collision_groups: Array[String] = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
 
 ## Pool key for object pooling.
 var pool_key: String = ""

@@ -1,8 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://kcipt3aydopg"]
+[gd_scene format=3 uid="uid://kcipt3aydopg"]
 
 [ext_resource type="Script" uid="uid://0mwkuh50glkb" path="res://Autoloads/Scripts/Systems/screen_loader.gd" id="1_8wpft"]
-[ext_resource type="Texture2D" uid="uid://dapq0qq6brbbf" path="res://Textures/Background/light1.jpg" id="1_adgqa"]
 [ext_resource type="Texture2D" uid="uid://cvrtu11v50sat" path="res://Textures/UI/Gprogress.png" id="1_hltvw"]
+[ext_resource type="Texture2D" uid="uid://bo2xweiq2jujd" path="res://Textures/Background/light1.png" id="2_e6hu4"]
 [ext_resource type="Texture2D" uid="uid://c72b8et6ml426" path="res://Textures/UI/bar_shadowround_small.png" id="2_uvjdd"]
 [ext_resource type="Texture2D" uid="uid://bmwjy2dcntfmx" path="res://Textures/UI/Blue.png" id="3_adgqa"]
 [ext_resource type="Texture2D" uid="uid://cn86ijkw1btfx" path="res://Textures/player/FinalPlayer.png" id="5_djfye"]
@@ -14,7 +14,7 @@
 font = ExtResource("6_e6hu4")
 font_size = 150
 
-[node name="ScreenLoader" type="Control" node_paths=PackedStringArray("progress_bar", "percentage_label")]
+[node name="ScreenLoader" type="Control" unique_id=890469777 node_paths=PackedStringArray("progress_bar", "percentage_label")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,19 +25,17 @@ script = ExtResource("1_8wpft")
 progress_bar = NodePath("LoaderCanvasLayer/ProgressBar")
 percentage_label = NodePath("LoaderCanvasLayer/Percentage_lable")
 
-[node name="LoaderCanvasLayer" type="CanvasLayer" parent="."]
+[node name="LoaderCanvasLayer" type="CanvasLayer" parent="." unique_id=1264814212]
 
-[node name="Background" type="TextureRect" parent="LoaderCanvasLayer"]
+[node name="Background" type="TextureRect" parent="LoaderCanvasLayer" unique_id=1785041675]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 59.0
-offset_bottom = 37.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("1_adgqa")
+texture = ExtResource("2_e6hu4")
 
-[node name="ProgressBar" type="TextureProgressBar" parent="LoaderCanvasLayer"]
+[node name="ProgressBar" type="TextureProgressBar" parent="LoaderCanvasLayer" unique_id=599910505]
 anchors_preset = -1
 anchor_left = 0.0825
 anchor_top = 0.814583
@@ -53,37 +51,61 @@ texture_over = ExtResource("2_uvjdd")
 texture_progress = ExtResource("3_adgqa")
 metadata/_edit_use_anchors_ = true
 
-[node name="Percentage_lable" type="Label" parent="LoaderCanvasLayer"]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -82.0
-offset_top = -266.0
-offset_right = 60.0
-offset_bottom = -129.0
+[node name="Percentage_lable" type="Label" parent="LoaderCanvasLayer" unique_id=1220902135]
+anchors_preset = -1
+anchor_left = 0.38854167
+anchor_top = 0.9065625
+anchor_right = 0.59618056
+anchor_bottom = 0.9596875
+offset_left = 78.5
+offset_top = 33.0
+offset_right = -78.5
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 100
 text = "0.0"
 label_settings = SubResource("LabelSettings_45pse")
 horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
 
-[node name="FinalPlayer" type="Sprite2D" parent="LoaderCanvasLayer"]
-position = Vector2(925, 1823)
-texture = ExtResource("5_djfye")
-
-[node name="Boss" type="Sprite2D" parent="LoaderCanvasLayer"]
-position = Vector2(559, 633)
+[node name="Boss" type="TextureRect" parent="LoaderCanvasLayer" unique_id=1132923311]
+anchors_preset = -1
+anchor_left = 0.04027778
+anchor_top = 0.005625
+anchor_right = 0.7513889
+anchor_bottom = 0.325625
 texture = ExtResource("6_14bkb")
+metadata/_edit_use_anchors_ = true
 
-[node name="B1" type="Sprite2D" parent="LoaderCanvasLayer/Boss"]
-position = Vector2(-180.859, 499.485)
+[node name="B1" type="TextureRect" parent="LoaderCanvasLayer/Boss" unique_id=448547778]
+layout_mode = 0
+anchor_left = 0.2060547
+anchor_top = 0.87890625
+anchor_right = 0.49544466
+anchor_bottom = 1.2008506
+offset_right = 102.66467
+offset_bottom = 293.32898
 scale = Vector2(0.742695, 0.529167)
 texture = ExtResource("8_m5fx1")
+metadata/_edit_use_anchors_ = true
 
-[node name="B2" type="Sprite2D" parent="LoaderCanvasLayer/Boss"]
-position = Vector2(170.45, 499.485)
+[node name="B2" type="TextureRect" parent="LoaderCanvasLayer/Boss" unique_id=2123117339]
+layout_mode = 0
+anchor_left = 0.53027344
+anchor_top = 0.8896485
+anchor_right = 0.79186785
+anchor_bottom = 1.1850655
+offset_right = 131.12732
+offset_bottom = 320.49292
 scale = Vector2(0.67136, 0.485565)
 texture = ExtResource("8_m5fx1")
+metadata/_edit_use_anchors_ = true
+
+[node name="FinalPlayer" type="TextureRect" parent="LoaderCanvasLayer" unique_id=2126749118]
+anchors_preset = -1
+anchor_left = 0.39652777
+anchor_top = 0.4471875
+anchor_right = 0.8715278
+anchor_bottom = 0.7671875
+texture = ExtResource("5_djfye")
+metadata/_edit_use_anchors_ = true

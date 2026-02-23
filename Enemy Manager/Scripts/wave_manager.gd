@@ -110,11 +110,6 @@ func _adjust_wave_difficulty(new_player_performance: float):
 			print("WaveManager: No wave config to adjust difficulty")
 		return
 	
-	if not formation_enums:
-		push_warning("WaveManager: formation_enums not found, defaulting to NORMAL difficulty")
-		current_wave_config.difficulty = FormationEnums.DifficultyLevel.NORMAL if formation_enums else 1
-		return
-	
 	if player_performance > 0.7:  # Player is doing well
 		# Increase difficulty
 		current_wave_config.difficulty = FormationEnums.DifficultyLevel.HARD
@@ -136,7 +131,7 @@ func _trigger_event_wave(event_type: String):
 	# Examples: Boss rushes, swarm attacks, elite enemy appearances
 	match event_type:
 		"swarm":
-			_spawn_enemy_swarm(10, "mob1")
+			_spawn_enemy_swarm(10, FormationEnums.EnemyType.MOB1)
 		"elite":
 			_spawn_elite_enemy()
 		_:
@@ -151,10 +146,10 @@ func _spawn_elite_enemy():
 	
 	# Create a temporary wave config for the elite enemy
 	var elite_config = WaveConfig.new()
-	elite_config.enemy_type = "EliteEnemy"
-	elite_config.formation_type = FormationEnums.FormationType.CIRCLE if formation_enums else 0
-	elite_config.entry_pattern = FormationEnums.EntryPattern.TOP_DIVE if formation_enums else 0
-	elite_config.difficulty = FormationEnums.DifficultyLevel.HARD if formation_enums else 2
+	elite_config.enemy_type = FormationEnums.EnemyType.ELITE_ENEMY
+	elite_config.formation_type = FormationEnums.FormationType.CIRCLE
+	elite_config.entry_pattern = FormationEnums.EntryPattern.TOP_DIVE
+	elite_config.difficulty = FormationEnums.DifficultyLevel.HARD
 	elite_config.formation_center = Vector2(640, 300)
 	elite_config.formation_radius = 100.0
 	
@@ -196,7 +191,7 @@ func _spawn_elite_enemy():
 	if debug_mode:
 		print("WaveManager: Elite enemy spawned")
 
-func _spawn_enemy_swarm(count: int, enemy_type: String):
+func _spawn_enemy_swarm(count: int, enemy_type: FormationEnums.EnemyType):
 	# Spawn a swarm of enemies
 	if not formation_manager_scene:
 		push_error("WaveManager: No formation manager scene assigned")
@@ -205,9 +200,9 @@ func _spawn_enemy_swarm(count: int, enemy_type: String):
 	# Create a temporary wave config for the swarm
 	var swarm_config = WaveConfig.new()
 	swarm_config.enemy_type = enemy_type
-	swarm_config.formation_type = FormationEnums.FormationType.CLUSTER if formation_enums else 0
-	swarm_config.entry_pattern = FormationEnums.EntryPattern.STAGGERED if formation_enums else 0
-	swarm_config.difficulty = FormationEnums.DifficultyLevel.NORMAL if formation_enums else 1
+	swarm_config.formation_type = FormationEnums.FormationType.CLUSTER
+	swarm_config.entry_pattern = FormationEnums.EntryPattern.STAGGERED
+	swarm_config.difficulty = FormationEnums.DifficultyLevel.NORMAL
 	swarm_config.formation_center = Vector2(640, 500)
 	swarm_config.formation_radius = 150.0
 	swarm_config.count = count  # Assuming WaveConfig has a count property

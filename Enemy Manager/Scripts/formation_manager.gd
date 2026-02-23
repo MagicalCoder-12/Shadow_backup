@@ -3,6 +3,11 @@ class_name FormationManager
 
 # Import formation_enums to access shared enums
 const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const ENEMY_MOVEMENT_SERVICE_SCRIPT := preload("res://Enemy/Scripts/Services/EnemyMovementService.gd")
+const BOMBER_ENEMY_SCRIPT := preload("res://Enemy/Scripts/BomberEnemy.gd")
+const FAST_ENEMY_SCRIPT := preload("res://Enemy/Scripts/FastEnemy.gd")
+const BOUNCER_ENEMY_SCRIPT := preload("res://Enemy/Scripts/BouncerEnemy.gd")
+const PHASE_PHANTOM_ENEMY_SCRIPT := preload("res://Enemy/Scripts/PhasePhantomEnemy.gd")
 
 signal formation_complete
 signal enemy_spawned(enemy: Enemy)
@@ -122,7 +127,7 @@ func spawn_formation(config: WaveConfig) -> void:
 		print("FormationManager: Starting formation spawn:")
 		print("  Type: ", FormationEnums.FormationType.keys()[current_wave_config.formation_type])
 		print("  Pattern: ", FormationEnums.EntryPattern.keys()[current_wave_config.entry_pattern])
-		print("  Enemy Type: ", current_wave_config.enemy_type)
+		print("  Enemy Type: ", current_wave_config.get_enemy_type_key())
 		print("  Count: ", adjusted_enemy_count)
 		print("  Difficulty: ", FormationEnums.DifficultyLevel.keys()[difficulty])
 		queue_redraw()
@@ -655,6 +660,10 @@ func _spawn_single_enemy(index: int) -> void:
 	if not enemy:
 		push_error("FormationManager: Enemy scene does not contain Enemy class at index %d" % index)
 		return
+
+	var script_override: Script = _resolve_enemy_script_override(current_wave_config.enemy_type)
+	if script_override and enemy.get_script() != script_override:
+		enemy.set_script(script_override)
 	
 	# Ensure we have valid positions
 	if index >= spawn_positions.size():
@@ -711,13 +720,52 @@ func _setup_enemy_formation_data(enemy: Enemy, index: int) -> void:
 			formation_pos_local = self.get_parent().to_local(formation_pos_global)
 		var start_delay = 0.0
 		var entry_path = entry_paths[index]
+		var resolved_movement_pattern: int = _resolve_enemy_movement_pattern(config)
 		enemy.assign_formation_slot({
 			"wave_config": config,
 			"formation_index": index,
 			"formation_position": formation_pos_local,
 			"start_delay": start_delay,
-			"entry_path": entry_path
+			"entry_path": entry_path,
+			"movement_pattern": resolved_movement_pattern
 		})
+
+func _resolve_enemy_movement_pattern(config: WaveConfig) -> int:
+	if not config:
+		return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_FORMATION_HOLD
+
+	match config.enemy_type:
+		FormationEnums.EnemyType.FAST_ENEMY:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_DIVE
+		FormationEnums.EnemyType.BOUNCER_ENEMY:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_SIDE_TO_SIDE
+		FormationEnums.EnemyType.PHASE_PHANTOM:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_DIVE
+		FormationEnums.EnemyType.ELITE_ENEMY:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_DIVE
+
+	match config.formation_type:
+		FormationEnums.FormationType.CIRCLE, FormationEnums.FormationType.DOUBLE_CIRCLE:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_CIRCLE
+		FormationEnums.FormationType.CLUSTER:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_SWARM_PATTERN
+		FormationEnums.FormationType.DYNAMIC, FormationEnums.FormationType.V_WAVE:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_SIDE_TO_SIDE
+		_:
+			return ENEMY_MOVEMENT_SERVICE_SCRIPT.MOVE_FORMATION_HOLD
+
+func _resolve_enemy_script_override(enemy_type: FormationEnums.EnemyType) -> Script:
+	match enemy_type:
+		FormationEnums.EnemyType.BOMBER_BUG:
+			return BOMBER_ENEMY_SCRIPT
+		FormationEnums.EnemyType.FAST_ENEMY:
+			return FAST_ENEMY_SCRIPT
+		FormationEnums.EnemyType.BOUNCER_ENEMY:
+			return BOUNCER_ENEMY_SCRIPT
+		FormationEnums.EnemyType.PHASE_PHANTOM:
+			return PHASE_PHANTOM_ENEMY_SCRIPT
+		_:
+			return null
 
 func _create_enemy_config(index: int) -> WaveConfig:
 	var config = current_wave_config.duplicate()

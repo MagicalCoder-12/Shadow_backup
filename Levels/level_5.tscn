@@ -14,30 +14,30 @@ formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_6kuwj"]
 script = ExtResource("2_uk1uv")
-enemy_type = "mob2"
+enemy_type = 1
 
 [sub_resource type="Resource" id="Resource_2ssk6"]
 script = ExtResource("2_uk1uv")
-enemy_type = "SlowShooter"
+enemy_type = 4
 
 [sub_resource type="Resource" id="Resource_f7vrv"]
 script = ExtResource("2_uk1uv")
-enemy_type = "BomberBug"
+enemy_type = 7
 
 [sub_resource type="Resource" id="Resource_vyn82"]
 script = ExtResource("2_uk1uv")
-enemy_type = "mob4"
+enemy_type = 3
 
 [sub_resource type="Resource" id="Resource_jpb46"]
 script = ExtResource("2_uk1uv")
-enemy_type = "mob3"
+enemy_type = 2
 
 [sub_resource type="Resource" id="Resource_lg8ot"]
 script = ExtResource("2_uk1uv")
 formation_type = 5
 entry_pattern = 6
 difficulty = 2
-enemy_type = "FastEnemy"
+enemy_type = 5
 enemy_density = "Maximum"
 
 [sub_resource type="Resource" id="Resource_7aytn"]

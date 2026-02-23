@@ -7,42 +7,42 @@
 script = ExtResource("2_5wub7")
 formation_type = 10
 difficulty = 3
-enemy_type = "BomberBug"
+enemy_type = 7
 enemy_density = "Maximum"
 
 [sub_resource type="Resource" id="Resource_f12pv"]
 script = ExtResource("2_5wub7")
 entry_pattern = 8
-enemy_type = "BouncerEnemy"
+enemy_type = 6
 
 [sub_resource type="Resource" id="Resource_vfios"]
 script = ExtResource("2_5wub7")
 formation_type = 8
-enemy_type = "BouncerEnemy"
+enemy_type = 6
 
 [sub_resource type="Resource" id="Resource_xg7bv"]
 script = ExtResource("2_5wub7")
 formation_type = 7
 entry_pattern = 11
 difficulty = 3
-enemy_type = "BomberBug"
+enemy_type = 7
 enemy_density = "Maximum"
 
 [sub_resource type="Resource" id="Resource_vbyrn"]
 script = ExtResource("2_5wub7")
-enemy_type = "BouncerEnemy"
+enemy_type = 6
 
 [sub_resource type="Resource" id="Resource_hkrpy"]
 script = ExtResource("2_5wub7")
-enemy_type = "FastEnemy"
+enemy_type = 5
 
 [sub_resource type="Resource" id="Resource_y1nks"]
 script = ExtResource("2_5wub7")
-enemy_type = "SlowShooter"
+enemy_type = 4
 
 [sub_resource type="Resource" id="Resource_pfqd1"]
 script = ExtResource("2_5wub7")
-enemy_type = "mob4"
+enemy_type = 3
 
 [node name="Level_11" instance=ExtResource("1_jerhw")]
 

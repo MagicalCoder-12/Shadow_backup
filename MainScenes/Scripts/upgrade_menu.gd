@@ -41,23 +41,23 @@ const UPGRADE_UI_REFRESH_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Ser
 @onready var Void_Shard: Label = $UI/Buy_Ascend/Ascend/HBoxContainer/Void_Shard
 
 @onready var ship_textures_ui = [
-	$ShipContainer/GridContainer/Ship1/S01,
-	$ShipContainer/GridContainer/Ship2/S02,
-	$ShipContainer/GridContainer/Ship3/S03,
-	$ShipContainer/GridContainer/Ship4/S04,
-	$ShipContainer/GridContainer/Ship5/S05,
-	$ShipContainer/GridContainer/Ship6/S06,
-	$ShipContainer/GridContainer/Ship7/S07,
-	$ShipContainer/GridContainer/Ship8/S08
+	$UI/ShipContainer/GridContainer/Ship1/S01,
+	$UI/ShipContainer/GridContainer/Ship2/S02,
+	$UI/ShipContainer/GridContainer/Ship3/S03,
+	$UI/ShipContainer/GridContainer/Ship4/S04,
+	$UI/ShipContainer/GridContainer/Ship5/S05,
+	$UI/ShipContainer/GridContainer/Ship6/S06,
+	$UI/ShipContainer/GridContainer/Ship7/S07,
+	$UI/ShipContainer/GridContainer/Ship8/S08
 ]
 
 @onready var satellite_textures_ui = [
-	$Satcontainer/GridContainer/sat1/Sat1Texture,
-	$Satcontainer/GridContainer/sat2/Sat2Texture,
-	$Satcontainer/GridContainer/sat3/Sat3Texture,
-	$Satcontainer/GridContainer/sat4/Sat4Texture,
-	$Satcontainer/GridContainer/sat5/Sat5Texture,
-	$Satcontainer/GridContainer/sat6/Sat6Texture
+	$UI/Satcontainer/GridContainer/sat1/Sat1Texture,
+	$UI/Satcontainer/GridContainer/sat2/Sat2Texture,
+	$UI/Satcontainer/GridContainer/sat3/Sat3Texture,
+	$UI/Satcontainer/GridContainer/sat4/Sat4Texture,
+	$UI/Satcontainer/GridContainer/sat5/Sat5Texture,
+	$UI/Satcontainer/GridContainer/sat6/Sat6Texture
 ]
 
 # ================================
@@ -175,8 +175,8 @@ func _initialize_ui() -> void:
 
 	# Set default tab to ships and show the ship container
 	is_satellite_tab_active = false
-	var sat_container = get_node("Satcontainer")
-	var ship_container = get_node("ShipContainer")
+	var sat_container = get_node("UI/Satcontainer")
+	var ship_container = get_node("UI/ShipContainer")
 	if sat_container and ship_container:
 		sat_container.hide()
 		ship_container.show()
@@ -1136,8 +1136,8 @@ func _on_visibility_changed() -> void:
 
 func _on_ships_pressed() -> void:
 	# Hide satellites container and show ship container
-	var sat_container = get_node("Satcontainer")
-	var ship_container = get_node("ShipContainer")
+	var sat_container = get_node("UI/Satcontainer")
+	var ship_container = get_node("UI/ShipContainer")
 	
 	if sat_container and ship_container:
 		sat_container.hide()
@@ -1151,8 +1151,8 @@ func _on_ships_pressed() -> void:
 
 func _on_satellites_pressed() -> void:
 	# Hide ship container and show satellites container
-	var sat_container = get_node("Satcontainer")
-	var ship_container = get_node("ShipContainer")
+	var sat_container = get_node("UI/Satcontainer")
+	var ship_container = get_node("UI/ShipContainer")
 	
 	if sat_container and ship_container:
 		ship_container.hide()

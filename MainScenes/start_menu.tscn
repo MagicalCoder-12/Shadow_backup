@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dgv64lgc6rm83"]
 
 [ext_resource type="Script" uid="uid://dkoa187w4j8tq" path="res://MainScenes/Scripts/start_menu.gd" id="1_4nus0"]
-[ext_resource type="Texture2D" uid="uid://bgk5kcsc8unv7" path="res://Textures/Background/light2.jpg" id="2_mccjh"]
+[ext_resource type="Texture2D" uid="uid://cumggs83o7vgi" path="res://Textures/Background/light2.png" id="2_xhavd"]
 [ext_resource type="Texture2D" uid="uid://cyh4wk5wujkxe" path="res://Textures/player/Splayer.png" id="3_3nkws"]
 [ext_resource type="Texture2D" uid="uid://bs84m6qvou1ht" path="res://Textures/Sprites/Missile/Missile_3_Flying_000.png" id="4_2r68k"]
 [ext_resource type="Texture2D" uid="uid://l4eg82jl4ujt" path="res://Textures/Sprites/Missile/Missile_3_Flying_001.png" id="5_xaceq"]
@@ -24,11 +24,9 @@
 [ext_resource type="Texture2D" uid="uid://cqolcxyapenoh" path="res://Textures/Lasers/bending_lightning/1/Fire-Wrath__05.png" id="14_cunrb"]
 [ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="14_n5c6h"]
 [ext_resource type="Texture2D" uid="uid://duq2cp68uwhdc" path="res://Textures/player/g-01.png" id="15_y3j5q"]
-[ext_resource type="AudioStream" uid="uid://ctac111ndd0mx" path="res://Textures/Music/Start.ogg" id="18_mccjh"]
 [ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="27_uvmca"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="28_5h8pl"]
 [ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="28_7q3m5"]
-[ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Textures/UI/Window.png" id="28_8ki65"]
 [ext_resource type="Texture2D" uid="uid://bffmdnkpcl45" path="res://Textures/UI/Exit_BTN.png" id="28_a5br4"]
 [ext_resource type="Texture2D" uid="uid://1gjtssyuvrgq" path="res://Textures/UI/Main_Menu/Table_01.png" id="28_x6b8c"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="29_gmpi2"]
@@ -113,43 +111,55 @@ texture = ExtResource("28_x6b8c")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xu6k0"]
 texture = ExtResource("28_x6b8c")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xufyx"]
-texture = ExtResource("28_8ki65")
-texture_margin_top = 100.0
-axis_stretch_horizontal = 2
-
 [sub_resource type="LabelSettings" id="LabelSettings_3vigk"]
 font = ExtResource("29_gmpi2")
-font_size = 55
-font_color = Color(1, 0.451458, 0.392, 1)
-outline_size = 5
-outline_color = Color(0, 0.560784, 0.384314, 1)
+font_size = 80
+outline_size = 10
+outline_color = Color(0.53420424, 0.23480225, 0.064707436, 1)
+shadow_size = 20
+shadow_color = Color(0, 0, 0, 1)
 
-[node name="Start_menu" type="Node2D" unique_id=1289019851]
+[node name="Start_menu" type="Control" unique_id=714182330]
 process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_4nus0")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1604341790]
-layer = -2
+layer = -1
 
 [node name="Background" type="TextureRect" parent="CanvasLayer" unique_id=1235124913]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 25.0
-offset_bottom = 125.0
+offset_left = -304.0
+offset_right = 304.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_mccjh")
+texture = ExtResource("2_xhavd")
 
-[node name="Splayer" type="Sprite2D" parent="CanvasLayer" unique_id=147132427]
-position = Vector2(724.99994, 2925)
+[node name="Splayer" type="TextureRect" parent="CanvasLayer" unique_id=190833123]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -465.99982
+offset_top = -335.0
+offset_right = 34.000244
+offset_bottom = 165.0
+grow_horizontal = 2
+grow_vertical = 0
 rotation = -0.888373
 scale = Vector2(1.3, 1.3)
 texture = ExtResource("3_3nkws")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Splayer" unique_id=664834390]
-position = Vector2(314.504, -147.35)
+position = Vector2(619.1485, 104.44801)
 rotation = 0.881391
 scale = Vector2(1.00926, 0.62542)
 sprite_frames = SubResource("SpriteFrames_f6g2d")
@@ -157,104 +167,158 @@ autoplay = "default"
 frame_progress = 0.0962794
 
 [node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Splayer" unique_id=1735350528]
-position = Vector2(184.149, -302.995)
+position = Vector2(445.99316, -103.74098)
 rotation = 0.881391
 scale = Vector2(1.00926, 0.62542)
 sprite_frames = SubResource("SpriteFrames_f6g2d")
 autoplay = "default"
 frame_progress = 0.385642
 
-[node name="Left" type="Sprite2D" parent="CanvasLayer/Splayer" unique_id=1231187768]
-position = Vector2(-154.09, -297.429)
+[node name="Left" type="TextureRect" parent="CanvasLayer/Splayer" unique_id=80086347]
+layout_mode = 0
+anchor_left = -0.065160245
+anchor_top = -0.38030854
+anchor_right = -0.065160245
+anchor_bottom = 0.38659918
+offset_left = 92.14902
+offset_right = 246.14902
+offset_bottom = -159.45386
 rotation = 0.923279
 scale = Vector2(1.62501, 1.36071)
 texture = ExtResource("14_n5c6h")
+metadata/_edit_use_anchors_ = true
 
-[node name="56" type="Sprite2D" parent="CanvasLayer/Splayer/Left" unique_id=780592987]
-position = Vector2(-2.39847, -125.993)
+[node name="56" type="TextureRect" parent="CanvasLayer/Splayer/Left" unique_id=1422825127]
+layout_mode = 0
+anchor_left = 0.28901762
+anchor_top = -0.57966036
+anchor_right = 0.7650762
+anchor_bottom = -0.57966036
+offset_top = 145.52332
+offset_right = 159.68698
+offset_bottom = 279.52332
 rotation = -1.57778
-scale = Vector2(0.622351, 0.554683)
-skew = -0.0380731
+scale = Vector2(0.622351, 0.55468297)
 texture = ExtResource("8_a8j06")
+metadata/_edit_use_anchors_ = true
 
-[node name="Right" type="Sprite2D" parent="CanvasLayer/Splayer/Left" unique_id=1470958523]
-position = Vector2(408.736, -5.93488)
+[node name="Right" type="TextureRect" parent="CanvasLayer/Splayer/Left" unique_id=845343256]
+layout_mode = 0
+anchor_left = 2.6541297
+anchor_top = -0.026494998
+anchor_right = 3.62406
+anchor_bottom = 0.7766155
+offset_right = -149.36923
+offset_bottom = -179.89674
 rotation = -0.0349061
 texture = ExtResource("15_y3j5q")
+metadata/_edit_use_anchors_ = true
 
-[node name="57" type="Sprite2D" parent="CanvasLayer/Splayer/Left/Right" unique_id=842212133]
-position = Vector2(-1.06235, -112.509)
+[node name="57" type="TextureRect" parent="CanvasLayer/Splayer/Left/Right" unique_id=490412065]
+layout_mode = 0
+anchor_left = 0.29636478
+anchor_top = -0.6715514
+anchor_right = 0.7230201
+anchor_bottom = -0.6715514
+offset_top = 139.97751
+offset_right = 171.98828
+offset_bottom = 273.9775
 rotation = -1.5708
 scale = Vector2(0.600761, 0.455315)
 texture = ExtResource("10_3pl5x")
+metadata/_edit_use_anchors_ = true
 
-[node name="Boss" type="Sprite2D" parent="CanvasLayer" unique_id=594763052]
-position = Vector2(763.5, 578.49994)
+[node name="Boss" type="TextureRect" parent="CanvasLayer" unique_id=1757328717]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -512.0
+offset_right = 512.0
+offset_bottom = 1024.0
+grow_horizontal = 2
 scale = Vector2(0.9365234, 0.9326172)
 texture = ExtResource("8_mccjh")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CanvasLayer/Boss" unique_id=863412291]
-position = Vector2(-428.035, 441.833)
+position = Vector2(162.3024, 1034.7224)
 scale = Vector2(2.31487, 2.39283)
 sprite_frames = SubResource("SpriteFrames_yhv5c")
 autoplay = "default"
 frame_progress = 0.354037
 
-[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Boss" unique_id=786019762]
-position = Vector2(487.935, 463.19)
-scale = Vector2(2.38891, 2.36935)
+[node name="AnimatedSprite2D2" type="AnimatedSprite2D" parent="CanvasLayer/Boss/AnimatedSprite2D" unique_id=786019762]
+position = Vector2(327.50134, -3.5848694)
+scale = Vector2(1.0319844, 0.99018735)
 sprite_frames = SubResource("SpriteFrames_yhv5c")
 autoplay = "default"
 frame_progress = 0.336242
 
-[node name="Start" type="AudioStreamPlayer" parent="." unique_id=254301913]
-stream = ExtResource("18_mccjh")
-parameters/looping = true
+[node name="Exit_panel" type="PanelContainer" parent="CanvasLayer" unique_id=601265510]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -525.0
+offset_top = -470.0
+offset_right = 539.0
+offset_bottom = 478.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
 
-[node name="Panel" type="Panel" parent="." unique_id=979008581]
-offset_left = 207.0
-offset_top = 1210.0
-offset_right = 1270.0
-offset_bottom = 2164.0
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1763636618]
+[node name="Start_panel" type="Panel" parent="." unique_id=979008581]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -299.5
-offset_top = -452.0
-offset_right = 202.5
-offset_bottom = 317.99994
+offset_left = -531.5
+offset_top = -477.0
+offset_right = 531.5
+offset_bottom = 477.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Start_panel" unique_id=1763636618]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.2638758
+anchor_top = 0.022012578
+anchor_right = 0.83057386
+anchor_bottom = 0.9675053
+offset_left = -28.999985
+offset_right = -105.2334
+offset_bottom = -150.33337
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.2, 1.2)
 theme_override_constants/separation = 80
 
-[node name="Welcome" type="Label" parent="Panel/VBoxContainer" unique_id=1183608425]
+[node name="Welcome" type="Label" parent="Start_panel/VBoxContainer" unique_id=1183608425]
 layout_mode = 2
 text = "Welcome "
 label_settings = SubResource("LabelSettings_w5iua")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Start_button" type="TextureButton" parent="Panel/VBoxContainer" unique_id=2064932340]
+[node name="Start_button" type="TextureButton" parent="Start_panel/VBoxContainer" unique_id=2064932340]
 layout_mode = 2
 texture_normal = ExtResource("8_5c6u1")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = ExtResource("8_5c6u1")
 stretch_mode = 0
 
-[node name="Exit" type="TextureButton" parent="Panel/VBoxContainer" unique_id=538877787]
+[node name="Exit" type="TextureButton" parent="Start_panel/VBoxContainer" unique_id=538877787]
 layout_mode = 2
 texture_normal = ExtResource("28_a5br4")
 texture_pressed = ExtResource("28_7q3m5")
 texture_hover = SubResource("CompressedTexture2D_75pxm")
 stretch_mode = 0
 
-[node name="Info" type="Button" parent="Panel/VBoxContainer" unique_id=1471731850]
+[node name="Info" type="Button" parent="Start_panel/VBoxContainer" unique_id=1471731850]
 custom_minimum_size = Vector2(100, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("28_5h8pl")
@@ -264,59 +328,55 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_kb1xe")
 theme_override_styles/focus = SubResource("StyleBoxTexture_xu6k0")
 text = "INFO"
 
-[node name="ExitUI" type="CanvasLayer" parent="." unique_id=937022876]
-
-[node name="Exit_panel" type="PanelContainer" parent="ExitUI" unique_id=601265510]
+[node name="Exit_panel" type="Panel" parent="." unique_id=835656065]
 visible = false
-anchors_preset = -1
-anchor_left = 0.162037
-anchor_top = 0.384167
-anchor_right = 0.859259
-anchor_bottom = 0.656667
-offset_left = 1.52588e-05
-offset_bottom = -0.00012207
+layout_mode = 0
+anchor_left = 0.13125
+anchor_top = 0.3540625
+anchor_right = 0.8659722
+anchor_bottom = 0.6490625
+offset_left = 1.5258789e-05
 metadata/_edit_use_anchors_ = true
 
-[node name="Panel2" type="Panel" parent="ExitUI/Exit_panel" unique_id=835656065]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_xufyx")
-
-[node name="Label" type="Label" parent="ExitUI/Exit_panel/Panel2" unique_id=829469678]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 0.17737
+[node name="Label" type="Label" parent="Exit_panel" unique_id=829469678]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.15689981
+anchor_top = 0.023305044
+anchor_right = 0.8570878
+anchor_bottom = 0.15804893
+grow_horizontal = 2
 text = "Are You Sure?"
 label_settings = SubResource("LabelSettings_3vigk")
 horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="Ok" type="TextureButton" parent="ExitUI/Exit_panel/Panel2" unique_id=2022968678]
-layout_mode = 0
-anchor_left = 0.122178
+[node name="Ok" type="TextureButton" parent="Exit_panel" unique_id=2022968678]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.122177996
 anchor_top = 0.46789
-anchor_right = 0.401062
-anchor_bottom = 0.788991
-offset_right = -25.0
-offset_bottom = -31.0
+anchor_right = 0.3195464
+anchor_bottom = 0.701743
 texture_normal = ExtResource("30_a8tdm")
 texture_pressed = ExtResource("31_d1ama")
 metadata/_edit_use_anchors_ = true
 
-[node name="Close" type="TextureButton" parent="ExitUI/Exit_panel/Panel2" unique_id=529949316]
+[node name="Close" type="TextureButton" parent="Exit_panel" unique_id=529949316]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.634794
-anchor_top = 0.464832
-anchor_right = 0.913679
-anchor_bottom = 0.785933
+anchor_top = 0.46483198
+anchor_right = 0.83216244
+anchor_bottom = 0.698685
 texture_normal = ExtResource("32_pni68")
 texture_pressed = ExtResource("33_rf5d1")
 texture_hover = ExtResource("33_rf5d1")
 metadata/_edit_use_anchors_ = true
 
-[connection signal="pressed" from="Panel/VBoxContainer/Start_button" to="." method="_on_start_button_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/Exit" to="." method="_on_exit_pressed"]
-[connection signal="pressed" from="Panel/VBoxContainer/Info" to="." method="_on_info_pressed"]
-[connection signal="pressed" from="ExitUI/Exit_panel/Panel2/Ok" to="." method="_on_ok_pressed"]
-[connection signal="pressed" from="ExitUI/Exit_panel/Panel2/Close" to="." method="_on_close_pressed"]
+[connection signal="pressed" from="Start_panel/VBoxContainer/Start_button" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="Start_panel/VBoxContainer/Exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="Start_panel/VBoxContainer/Info" to="." method="_on_info_pressed"]
+[connection signal="pressed" from="Exit_panel/Ok" to="." method="_on_ok_pressed"]
+[connection signal="pressed" from="Exit_panel/Close" to="." method="_on_close_pressed"]

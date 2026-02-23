@@ -14,7 +14,6 @@ enum SatelliteBehaviorMode {
 @export var behavior_mode: SatelliteBehaviorMode = SatelliteBehaviorMode.SHOOT_ONLY
 @export var fire_rate: float = 0.4
 @export var bullet_speed: float = 1500.0
-@export var damage_multiplier: float = 0.8
 @export var shadow_spread_angle: float = 15.0
 @export var shadow_fire_rate_multiplier: float = 0.7
 
@@ -132,7 +131,7 @@ func _on_timer_timeout() -> void:
 
 func _spawn_shot_at_angle(angle_deg: float, base_damage: int) -> void:
 	var spawn_position: Vector2 = nozzle.global_position if nozzle else global_position
-	var shot_damage: int = _compute_scaled_damage(base_damage)
+	var shot_damage: int = max(1, base_damage)
 	var bullet: Node = BulletFactory.spawn_bullet(
 		bullet_scene,
 		spawn_position,
@@ -151,9 +150,6 @@ func _spawn_shot_at_angle(angle_deg: float, base_damage: int) -> void:
 func _configure_spawned_bullet(bullet: Node, shot_damage: int) -> void:
 	if bullet.has_method("configure_from_satellite_weapon"):
 		bullet.call("configure_from_satellite_weapon", shot_damage)
-
-func _compute_scaled_damage(base_damage: int) -> int:
-	return max(1, int(float(base_damage) * damage_multiplier))
 
 func _attach_bullet_to_current_scene(bullet: Node) -> void:
 	var current_scene: Node = get_tree().current_scene

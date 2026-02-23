@@ -160,9 +160,8 @@ func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:
 	
 	# Check enemy type for non-boss waves
 	if not wave.is_boss_wave():
-		var valid_enemies = ["mob1", "mob2", "mob3", "mob4", "SlowShooter", "FastEnemy", "BouncerEnemy","BomberBug","ShadowSentinel","PhasePhantom","OblivionTank"]
-		if not wave.enemy_type in valid_enemies:
-			push_warning("LevelManager: Wave %d has invalid enemy_type '%s'" % [wave_index + 1, wave.enemy_type])
+		if not wave.enemy_type in formation_enums.EnemyType.values():
+			push_warning("LevelManager: Wave %d has invalid enemy_type '%s'" % [wave_index + 1, wave.get_enemy_type_key()])
 			return false
 	
 	if debug_mode:

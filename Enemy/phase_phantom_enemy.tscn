@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bg3ynxmc2c5dv"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_ysraw"]
+[ext_resource type="Script" uid="uid://o77jwp3txrh" path="res://Enemy/Scripts/PhasePhantomEnemy.gd" id="2_5uhwx"]
+
+[node name="PhasePhantomEnemy" unique_id=1623952910 instance=ExtResource("1_ysraw")]
+script = ExtResource("2_5uhwx")
+enemy_type = "PhasePhantom"

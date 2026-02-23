@@ -6,7 +6,7 @@
 [sub_resource type="Resource" id="Resource_hqkxu"]
 script = ExtResource("2_n8stu")
 difficulty = 0
-enemy_type = "BomberBug"
+enemy_type = 7
 enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
 
@@ -15,14 +15,14 @@ script = ExtResource("2_n8stu")
 formation_type = 1
 entry_pattern = 1
 difficulty = 0
-enemy_type = "BouncerEnemy"
+enemy_type = 6
 formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_xlq1s"]
 script = ExtResource("2_n8stu")
 formation_type = 2
 entry_pattern = 2
-enemy_type = "BouncerEnemy"
+enemy_type = 6
 formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_2p8tm"]
@@ -30,7 +30,7 @@ script = ExtResource("2_n8stu")
 formation_type = 3
 entry_pattern = 3
 difficulty = 0
-enemy_type = "mob4"
+enemy_type = 3
 enemy_density = "Sparse"
 formation_center = Vector2(640, 300)
 
@@ -38,22 +38,22 @@ formation_center = Vector2(640, 300)
 script = ExtResource("2_n8stu")
 formation_type = 4
 entry_pattern = 4
-enemy_type = "SlowShooter"
+enemy_type = 4
 formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_30275"]
 script = ExtResource("2_n8stu")
-enemy_type = "PhasePhantom"
+enemy_type = 9
 formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_ihop3"]
 script = ExtResource("2_n8stu")
-enemy_type = "mob3"
+enemy_type = 2
 formation_center = Vector2(640, 300)
 
 [sub_resource type="Resource" id="Resource_bs27r"]
 script = ExtResource("2_n8stu")
-enemy_type = "ShadowSentinel"
+enemy_type = 10
 formation_center = Vector2(640, 300)
 
 [node name="Level_8" instance=ExtResource("1_8dfjl")]

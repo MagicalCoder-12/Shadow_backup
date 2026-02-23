@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://dula0etnafhc4"]
+[gd_scene format=3 uid="uid://dula0etnafhc4"]
 
 [ext_resource type="Script" uid="uid://cubfji48ol10x" path="res://MainScenes/Scripts/shop.gd" id="1_q5gon"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vc4pe"]
@@ -18,7 +18,7 @@ font = ExtResource("2_xiv02")
 font_size = 100
 font_color = Color(1, 0.27451, 0, 1)
 
-[node name="Shop" type="Control"]
+[node name="Shop" type="Control" unique_id=633235119]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,25 +27,39 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_q5gon")
 
-[node name="Bg1" type="Sprite2D" parent="."]
+[node name="Bg1" type="TextureRect" parent="." unique_id=965869537]
 modulate = Color(0.88654685, 0.68012446, 0.7006819, 1)
-position = Vector2(718.00006, 1629)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -416.0
+offset_bottom = -2171.3455
+grow_horizontal = 2
+grow_vertical = 2
 scale = Vector2(1.5234376, 3.2226563)
 texture = ExtResource("2_ofht4")
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
-layout_mode = 0
-offset_left = 334.0
-offset_top = 1093.0
-offset_right = 1134.0
-offset_bottom = 2125.0
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=106408674]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -516.0
+offset_right = 400.0
+offset_bottom = 516.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_t3pkw")
 
-[node name="Panel" type="Panel" parent="PanelContainer"]
+[node name="Panel" type="Panel" parent="PanelContainer" unique_id=106434520]
 layout_mode = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="Shop" type="Label" parent="PanelContainer/Panel"]
+[node name="Shop" type="Label" parent="PanelContainer/Panel" unique_id=493253148]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -60,7 +74,7 @@ text = "Shop"
 label_settings = SubResource("LabelSettings_sxll5")
 horizontal_alignment = 1
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/Panel"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/Panel" unique_id=1870106151]
 layout_mode = 0
 offset_left = 71.0
 offset_top = 246.0
@@ -68,7 +82,7 @@ offset_right = 728.0
 offset_bottom = 549.0
 alignment = 1
 
-[node name="Label" type="Label" parent="PanelContainer/Panel/VBoxContainer2"]
+[node name="Label" type="Label" parent="PanelContainer/Panel/VBoxContainer2" unique_id=202807807]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 text = "Shop Coming soon"
@@ -77,15 +91,18 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Back" type="TextureButton" parent="."]
+[node name="Back" type="TextureButton" parent="." unique_id=1677045636]
 layout_mode = 0
-offset_left = 570.0
-offset_top = 1767.0
-offset_right = 865.0
-offset_bottom = 2030.0
+anchor_left = 0.39583334
+anchor_top = 0.5521875
+anchor_right = 0.6006944
+anchor_bottom = 0.634375
+offset_right = 6.1035156e-05
+offset_bottom = 0.00012207031
 texture_normal = ExtResource("3_2la7e")
 texture_pressed = ExtResource("4_b3jih")
 texture_hover = ExtResource("4_b3jih")
 stretch_mode = 0
+metadata/_edit_use_anchors_ = true
 
 [connection signal="pressed" from="Back" to="." method="_on_back_pressed"]

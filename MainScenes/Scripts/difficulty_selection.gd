@@ -32,6 +32,16 @@ func _ready():
 func set_target_level(level_num: int) -> void:
 	target_level = level_num
 
+func focus_default_control() -> void:
+	if easy_button:
+		if easy_button.focus_mode == Control.FOCUS_NONE:
+			easy_button.focus_mode = Control.FOCUS_ALL
+		easy_button.grab_focus()
+		return
+	if focus_mode == Control.FOCUS_NONE:
+		focus_mode = Control.FOCUS_ALL
+	grab_focus()
+
 func _update_description(difficulty: FormationEnums.DifficultyLevel) -> void:
 	selected_difficulty = difficulty
 	
