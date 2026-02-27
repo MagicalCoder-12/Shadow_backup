@@ -11,7 +11,7 @@ const POWERUP_SCENES = [
 ]
 
 # Import formation_enums to access shared enums
-const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://EnemyManager/Scripts/formation_enums.gd")
 
 # Signals for wave progression and events
 signal wave_started(current_wave: int, total_waves: int)

@@ -14,6 +14,11 @@ const EBULLET: PackedScene = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET: PackedScene = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB: PackedScene = preload("res://Bullet/Ebullet/Bomb.tscn")
 const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")
+const FIRE_TIMER_MIN_WAIT: float = 0.08
+const FIRE_INTERVAL_JITTER_MIN: float = 0.9
+const FIRE_INTERVAL_JITTER_MAX: float = 1.15
+const FIRE_SLOT_STAGGER_STEP: float = 0.035
+const FIRE_SLOT_STAGGER_MOD: int = 5
 
 var _enemy: Node = null
 
@@ -27,8 +32,16 @@ func reset_enemy_type_state() -> void:
 func setup_fire_timer() -> void:
 	if not _enemy or not _enemy.fire_timer:
 		return
+	_enemy.fire_timer.stop()
 	_enemy.fire_timer.one_shot = false
-	_enemy.fire_timer.wait_time = 1.0 / maxf(0.01, float(_enemy.fire_rate))
+	var base_wait_time: float = 1.0 / maxf(0.01, float(_enemy.fire_rate))
+	var jittered_wait_time: float = base_wait_time * randf_range(FIRE_INTERVAL_JITTER_MIN, FIRE_INTERVAL_JITTER_MAX)
+	var formation_slot_phase: float = 0.0
+	if _enemy.formation_index is int:
+		formation_slot_phase = float(int(_enemy.formation_index) % FIRE_SLOT_STAGGER_MOD) * FIRE_SLOT_STAGGER_STEP
+	_enemy.fire_timer.wait_time = maxf(FIRE_TIMER_MIN_WAIT, jittered_wait_time + formation_slot_phase)
+	_enemy.can_shoot = false
+	_enemy.shoot_cooldown = randf_range(0.05, _enemy.fire_timer.wait_time)
 	var timeout_callable := Callable(_enemy, "_on_fire_timer_timeout")
 	if not _enemy.fire_timer.timeout.is_connected(timeout_callable):
 		_enemy.fire_timer.timeout.connect(timeout_callable)
@@ -66,6 +79,12 @@ func on_fire_timer_timeout() -> void:
 	if not _enemy.can_shoot:
 		return
 	var pattern: int = select_weighted_attack_pattern()
+	if pattern == PATTERN_BURST_SHOT:
+		# Lock shooting immediately so a second timer tick cannot overlap this burst.
+		_enemy.can_shoot = false
+		await fire_burst_shot(2, 0.12)
+		apply_shooting_cooldown()
+		return
 	execute_attack_pattern(pattern)
 	apply_shooting_cooldown()
 
@@ -163,10 +182,16 @@ func fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI / 6.0) -> 
 		bullet.rotation = direction.angle() + PI / 2.0
 		SceneSpawnService.spawn_child(bullet)
 
-func fire_burst_shot(burst_count: int = 2, _burst_delay: float = 0.15) -> void:
+func fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15) -> void:
 	if not _enemy:
 		return
-	for i in range(burst_count):
+	var safe_count: int = max(1, burst_count)
+	var safe_delay: float = maxf(0.01, burst_delay)
+	for i in range(safe_count):
+		if not _enemy or not _enemy.is_alive:
+			return
+		if not _enemy.get_tree():
+			return
 		var bullet_scene: PackedScene = SHADOW_EBULLET if _enemy.is_shadow_enemy else EBULLET
 		var bullet: Node = bullet_scene.instantiate()
 		if not bullet:
@@ -174,11 +199,13 @@ func fire_burst_shot(burst_count: int = 2, _burst_delay: float = 0.15) -> void:
 		var direction: Vector2 = Vector2(0, 1)
 		if is_instance_valid(_enemy.player_reference):
 			direction = (_enemy.player_reference.global_position - _enemy.global_position).normalized()
-		var angle_variation: float = (i - (burst_count - 1) / 2.0) * 0.05
+		var angle_variation: float = (i - (safe_count - 1) / 2.0) * 0.05
 		direction = direction.rotated(angle_variation)
 		bullet.global_position = _enemy.global_position
 		bullet.rotation = direction.angle() + PI / 2.0
 		SceneSpawnService.spawn_child(bullet)
+		if i < safe_count - 1:
+			await _enemy.get_tree().create_timer(safe_delay).timeout
 
 func drop_bomb() -> void:
 	if not _enemy:

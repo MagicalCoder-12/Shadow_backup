@@ -8,9 +8,13 @@ const ENEMY_COMBAT_SERVICE_SCRIPT := preload("res://Enemy/Scripts/Services/Enemy
 const ENEMY_LIFECYCLE_SERVICE_SCRIPT := preload("res://Enemy/Scripts/Services/EnemyLifecycleService.gd")
 
 # --- Signals ---
+@warning_ignore("unused_signal")
 signal died
+@warning_ignore("unused_signal")
 signal enemy_died(payload)
+@warning_ignore("unused_signal")
 signal formation_reached
+@warning_ignore("unused_signal")
 signal shadow_state_changed(is_shadow: bool)
 
 # --- Node References ---

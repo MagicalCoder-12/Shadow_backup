@@ -2,7 +2,7 @@ extends Node2D
 class_name FormationManager
 
 # Import formation_enums to access shared enums
-const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://EnemyManager/Scripts/formation_enums.gd")
 const ENEMY_MOVEMENT_SERVICE_SCRIPT := preload("res://Enemy/Scripts/Services/EnemyMovementService.gd")
 const BOMBER_ENEMY_SCRIPT := preload("res://Enemy/Scripts/BomberEnemy.gd")
 const FAST_ENEMY_SCRIPT := preload("res://Enemy/Scripts/FastEnemy.gd")
@@ -660,10 +660,17 @@ func _spawn_single_enemy(index: int) -> void:
 	if not enemy:
 		push_error("FormationManager: Enemy scene does not contain Enemy class at index %d" % index)
 		return
-
+		
 	var script_override: Script = _resolve_enemy_script_override(current_wave_config.enemy_type)
 	if script_override and enemy.get_script() != script_override:
 		enemy.set_script(script_override)
+		
+	# Set the difficulty level on the enemy instance
+	var level_selection_manager = get_node("/root/LevelSelectionManager")
+	if level_selection_manager and level_selection_manager.selected_difficulty != null:
+		enemy.current_difficulty = level_selection_manager.selected_difficulty
+		if debug_mode:
+			print("FormationManager: Set enemy difficulty to %s" % FormationEnums.DifficultyLevel.keys()[level_selection_manager.selected_difficulty])
 	
 	# Ensure we have valid positions
 	if index >= spawn_positions.size():

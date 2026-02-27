@@ -1,12 +1,18 @@
 shader_type canvas_item;
 
-uniform vec2 direction = vec2(0.0, 1.0); // Vertical scrolling
-uniform float speed_scale = 0.04;       // Adjust speed as needed
+uniform vec2 direction = vec2(0.0, -1.5); // Vertical scrolling
+uniform float speed_scale = 0.1;        // Scroll speed
+uniform float brightness : hint_range(0.0, 2.0) = 1.0; // Brightness control
 
 void fragment() {
-    // Calculate the movement offset based on time and speed
+    // Calculate movement offset
     vec2 move = direction * TIME * speed_scale;
 
-    // Use the UV coordinates with the movement offset to sample the texture
-    COLOR = texture(TEXTURE, fract(UV + move));
+    // Sample texture with scrolling
+    vec4 col = texture(TEXTURE, fract(UV + move));
+
+    // Apply brightness multiplier
+    col.rgb = mix(vec3(0.0), col.rgb, brightness);
+
+    COLOR = col;
 }

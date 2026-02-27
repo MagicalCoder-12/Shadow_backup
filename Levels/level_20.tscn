@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://pashsvmfo5yv"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_g1d3d"]
-[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_3xxbo"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_3xxbo"]
 [ext_resource type="PackedScene" uid="uid://bvb27mesmd4mo" path="res://Bosses/Boss1.tscn" id="3_4dlhd"]
 
 [sub_resource type="Resource" id="Resource_joty3"]

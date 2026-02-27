@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b2dr1w4bni0qf"]
+[gd_scene format=3 uid="uid://b2dr1w4bni0qf"]
 
 [ext_resource type="Script" uid="uid://ddr4wdg1jkxig" path="res://MainScenes/Scripts/level_completed.gd" id="1_6ya2a"]
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_vwgn2"]
@@ -35,7 +35,7 @@ line_spacing = 0.0
 font = ExtResource("3_vwgn2")
 font_size = 90
 
-[node name="LevelCompleted" type="Control"]
+[node name="LevelCompleted" type="Control" unique_id=1460521049]
 process_mode = 3
 z_index = 10
 layout_mode = 3
@@ -46,7 +46,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_6ya2a")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1709879698]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -55,7 +55,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.490196)
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=2116937236]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.06666666
@@ -66,45 +66,50 @@ grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
 
-[node name="LevelCompleted" type="Label" parent="Panel"]
-layout_mode = 0
-offset_left = 33.0
-offset_top = 36.0
-offset_right = 1175.0
-offset_bottom = 138.0
+[node name="LevelCompleted" type="Label" parent="Panel" unique_id=522860895]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.028997514
+anchor_top = 0.01954652
+anchor_right = 0.975145
+anchor_bottom = 0.099296324
+grow_horizontal = 2
 text = "Level Completed"
 label_settings = SubResource("LabelSettings_syrab")
 horizontal_alignment = 1
 vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1656889757]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.06545153
 anchor_top = 0.1556962
-anchor_right = 0.9527755
+anchor_right = 0.9693455
 anchor_bottom = 0.9607596
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 100
 metadata/_edit_use_anchors_ = true
 
-[node name="Score" type="Label" parent="Panel/VBoxContainer"]
+[node name="Score" type="Label" parent="Panel/VBoxContainer" unique_id=1028991342]
 layout_mode = 2
 text = "Score: 000000"
 label_settings = SubResource("LabelSettings_mjsg3")
 vertical_alignment = 1
 
-[node name="Coins" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="Coins" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=530603016]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Coin_texture" type="TextureRect" parent="Panel/VBoxContainer/Coins"]
+[node name="Coin_texture" type="TextureRect" parent="Panel/VBoxContainer/Coins" unique_id=421421212]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.0
 texture = ExtResource("4_20gqo")
 
-[node name="Coins" type="Label" parent="Panel/VBoxContainer/Coins"]
+[node name="Coins" type="Label" parent="Panel/VBoxContainer/Coins" unique_id=1595710731]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -113,16 +118,16 @@ label_settings = SubResource("LabelSettings_exqyw")
 vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="Crystals" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="Crystals" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=1602850925]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Crystal_texture" type="TextureRect" parent="Panel/VBoxContainer/Crystals"]
+[node name="Crystal_texture" type="TextureRect" parent="Panel/VBoxContainer/Crystals" unique_id=1100503539]
 custom_minimum_size = Vector2(125, 0)
 layout_mode = 2
 texture = ExtResource("5_qo8e3")
 
-[node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystals"]
+[node name="Crystals" type="Label" parent="Panel/VBoxContainer/Crystals" unique_id=1350216418]
 custom_minimum_size = Vector2(10, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -130,37 +135,40 @@ text = "Crystals: 0"
 label_settings = SubResource("LabelSettings_3ol6k")
 autowrap_mode = 2
 
-[node name="Gap" type="Control" parent="Panel/VBoxContainer"]
+[node name="Gap" type="Control" parent="Panel/VBoxContainer" unique_id=870927989]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=806916576]
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_vertical = 10
 theme_override_constants/separation = 200
 metadata/_edit_use_anchors_ = true
 
-[node name="Map" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+[node name="Map" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer" unique_id=2050567256]
 layout_mode = 2
+size_flags_horizontal = 3
 texture_normal = ExtResource("4_etx2i")
 texture_pressed = ExtResource("5_a4r2w")
 texture_hover = ExtResource("5_a4r2w")
 
-[node name="Restart" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+[node name="Restart" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer" unique_id=1313656730]
 layout_mode = 2
+size_flags_horizontal = 3
 texture_normal = ExtResource("5_jnrss")
 texture_pressed = ExtResource("6_xrh6e")
 texture_hover = ExtResource("6_xrh6e")
 
-[node name="Next" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer"]
+[node name="Next" type="TextureButton" parent="Panel/VBoxContainer/HBoxContainer" unique_id=907467467]
 layout_mode = 2
+size_flags_horizontal = 3
 texture_normal = ExtResource("6_hha4d")
 texture_pressed = ExtResource("9_4da8t")
 texture_hover = ExtResource("9_4da8t")
 
-[node name="CountUpTimer" type="Timer" parent="."]
+[node name="CountUpTimer" type="Timer" parent="." unique_id=1131197001]
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=167813503]
 stream = ExtResource("12_8j3bx")
 
 [connection signal="pressed" from="Panel/VBoxContainer/HBoxContainer/Map" to="." method="_on_map_pressed"]

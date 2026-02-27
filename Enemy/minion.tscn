@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://b5o6nplvqi7ta"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_vbdck"]
+[ext_resource type="Texture2D" uid="uid://barpagio6gedv" path="res://Textures/Enemy/Enemy_1_B_Medium_NoLight.png" id="2_3atd1"]
+[ext_resource type="Texture2D" uid="uid://dh7udanucf0xp" path="res://Textures/Enemy/Enemy_1_A_Small_NoLight.png" id="2_j5nl5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3atd1"]
+radius = 203.84308
+
+[node name="Minion" unique_id=1623952910 instance=ExtResource("1_vbdck")]
+shadow_texture = ExtResource("2_j5nl5")
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_3atd1")
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=929163854]
+position = Vector2(0, -31)
+shape = SubResource("CircleShape2D_3atd1")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-40.009277, -33.52776, 84.13153, 63.257843)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -157.0
+offset_top = -261.0
+offset_right = 167.0
+offset_bottom = -209.33334
+
+[node name="Enemy_Explosion" parent="." index="6" unique_id=310868200]
+position = Vector2(-1.9999621, -2.9999962)
+scale = Vector2(1, 1)
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(-1.0000134, -33.000004)
+scale = Vector2(2.81875, 1.35625)

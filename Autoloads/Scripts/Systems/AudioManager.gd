@@ -5,7 +5,8 @@ var background_player: AudioStreamPlayer = AudioStreamPlayer.new()
 
 const BULLET_SFX_COOLDOWN_MS: int = 80
 const BULLET_SFX_VOLUME_DB: float = -12.0
-const BACKGROUND_BUS_MIN_DB: float = 0.0
+const BACKGROUND_MENU_VOLUME_DB: float = -8.0
+const BACKGROUND_LEVEL_VOLUME_DB: float = -14.0
 const BULLET_BUS_MAX_DB: float = -18.0
 
 # Audio bus indices
@@ -97,13 +98,18 @@ func _should_throttle_sound_effect(bus: String) -> bool:
 
 func _apply_default_mix_targets() -> void:
 	if background_bus_idx != -1:
-		var current_bg_volume: float = AudioServer.get_bus_volume_db(background_bus_idx)
-		if current_bg_volume < BACKGROUND_BUS_MIN_DB:
-			AudioServer.set_bus_volume_db(background_bus_idx, BACKGROUND_BUS_MIN_DB)
+		# Start from a moderate menu mix instead of boosting BGM to 0 dB.
+		AudioServer.set_bus_volume_db(background_bus_idx, BACKGROUND_MENU_VOLUME_DB)
 	if bullet_bus_idx != -1:
 		var current_bullet_volume: float = AudioServer.get_bus_volume_db(bullet_bus_idx)
 		if current_bullet_volume > BULLET_BUS_MAX_DB:
 			AudioServer.set_bus_volume_db(bullet_bus_idx, BULLET_BUS_MAX_DB)
+
+func set_gameplay_mix(enabled: bool) -> void:
+	if background_bus_idx == -1:
+		return
+	var target_volume: float = BACKGROUND_LEVEL_VOLUME_DB if enabled else BACKGROUND_MENU_VOLUME_DB
+	AudioServer.set_bus_volume_db(background_bus_idx, target_volume)
 
 
 func mute_audio_buses(mute: bool, exclude_video: bool = false) -> void:

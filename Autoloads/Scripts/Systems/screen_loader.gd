@@ -2,11 +2,17 @@ extends Control
 
 @export var progress_bar: TextureProgressBar
 @export var percentage_label: Label
+@onready var loader_canvas_layer: CanvasLayer = $LoaderCanvasLayer
 
 var target_scene_path: String = ""
 var loading_finished: bool = false
 var min_loading_time: float = 1.0  # Minimum time to show loader (for smooth UX)
 var loading_start_time: float
+
+func _ready() -> void:
+	# Keep transition UI rendering above gameplay/UI CanvasLayers.
+	if loader_canvas_layer:
+		loader_canvas_layer.layer = 100
 
 func start_load(scene_path: String):
 	target_scene_path = scene_path

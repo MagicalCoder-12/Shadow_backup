@@ -45,20 +45,28 @@ func level_state(value: bool) -> void:
 
 func _on_pressed():
 	if not locked:
-		# Stop the map sound before changing scenes
+		# Stop the map sound
 		var map_scene = get_tree().current_scene
 		if map_scene.has_node("map"):
 			var map_audio = map_scene.get_node("map")
 			if map_audio and map_audio.is_playing():
 				map_audio.stop()
 		
+		# Store the selected level path globally
+		var level_path = "res://Levels/level_%d.tscn" % level_num
+		var level_selection_manager = get_node("/root/LevelSelectionManager")
+		if level_selection_manager:
+			level_selection_manager.set_selected_level(level_path)
+			if level_selection_manager.has_method("request_level_preload"):
+				level_selection_manager.request_level_preload(level_path)
+		else:
+			push_error("LevelSelectionManager not available")
+		
 		# Emit signal to notify listeners (like map scene) that level was selected
 		level_selected.emit(level_num)
 		
-		# Show difficulty selection before loading level
+		# Show difficulty selection panel without changing scenes
 		_show_difficulty_selection()
-		
-		# OLD CODE: GameManager.load_level(level_num)
 
 func _show_difficulty_selection() -> void:
 	# Show the existing difficulty selection panel by traversing up the scene tree
@@ -87,17 +95,33 @@ func _show_difficulty_selection() -> void:
 		if current_node.has_node("CanvasLayer"):
 			var canvas_layer = current_node.get_node("CanvasLayer")
 			canvas_layer.show()
+			canvas_layer.visible = true
 		
 			difficulty_panel.show()
+			difficulty_panel.visible = true
 			print("Level button: Showed difficulty selection panel")
 			
-			# Focus a valid interactive control to avoid focus warnings on non-focusable roots.
-			if difficulty_panel.has_method("focus_default_control"):
-				difficulty_panel.focus_default_control()
-			elif difficulty_panel is Control:
-				var panel_control := difficulty_panel as Control
-				if panel_control.focus_mode == Control.FOCUS_NONE:
-					panel_control.focus_mode = Control.FOCUS_ALL
-				panel_control.grab_focus()
+			# Bring the panel to the front to ensure it's visible
+			if difficulty_panel is Control:
+				# Make sure it's at the top of the z-index
+				difficulty_panel.z_index = 100
+				
+				# Ensure the panel is enabled and can receive input
+				difficulty_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+				difficulty_panel.focus_mode = Control.FOCUS_ALL
+				difficulty_panel.grab_focus()
+				
+				# Make sure the panel is properly positioned in the scene tree
+				difficulty_panel.set_process(true)
+				difficulty_panel.set_physics_process(true)
+		
+		# Focus a valid interactive control to avoid focus warnings on non-focusable roots.
+		if difficulty_panel.has_method("focus_default_control"):
+			difficulty_panel.focus_default_control()
+		elif difficulty_panel is Control:
+			var panel_control := difficulty_panel as Control
+			if panel_control.focus_mode == Control.FOCUS_NONE:
+				panel_control.focus_mode = Control.FOCUS_ALL
+			panel_control.grab_focus()
 		else:
 			print("Level button: Difficulty selection panel not found at CanvasLayer/DifficultySelection")

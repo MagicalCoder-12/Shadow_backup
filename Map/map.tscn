@@ -388,7 +388,6 @@ texture_pressed = ExtResource("16_t5i76")
 metadata/_edit_use_anchors_ = true
 
 [node name="DifficultySelection" parent="CanvasLayer" unique_id=1508652828 instance=ExtResource("16_xoeuw")]
-visible = false
 
 [connection signal="pressed" from="CanvasLayer/Back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/Shop" to="." method="_on_shop_pressed"]

@@ -1,54 +1,63 @@
 extends Control
 
 # Import formation_enums to access shared enums
-const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://EnemyManager/Scripts/formation_enums.gd")
 
 @onready var easy_button: TextureButton = $Panel/VBoxContainer/Difficulty_buttons/Control/Easy
 @onready var medium_button: TextureButton = $Panel/VBoxContainer/Difficulty_buttons/Control/Medium
 @onready var hard_button: TextureButton = $Panel/VBoxContainer/Difficulty_buttons/Control/Hard
 @onready var back_button: TextureButton = $Panel/VBoxContainer/Menu_buttons/Back
 @onready var start_button: TextureButton = $Panel/VBoxContainer/Menu_buttons/Start
-@onready var description_label: Label = $Panel/DescriptionLabel
+@onready var description_label: RichTextLabel = $Panel/DescriptionLabel
 
-var selected_difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.NORMAL
+const NORMAL_UNLOCK_LEVEL: int = 10
+const HARD_UNLOCK_LEVEL: int = 20
+
+var selected_difficulty: FormationEnums.DifficultyLevel = FormationEnums.DifficultyLevel.EASY
 var target_level: int = 1
 
 func _ready():
-	# Connect button signals
+	# Connect button signals only if not already connected
 	if easy_button:
-		easy_button.pressed.connect(_on_easy_pressed)
+		if not easy_button.pressed.is_connected(_on_easy_pressed):
+			easy_button.pressed.connect(_on_easy_pressed)
+			
 	if medium_button:
-		medium_button.pressed.connect(_on_normal_pressed)
-	if hard_button:
-		hard_button.pressed.connect(_on_hard_pressed)
-	if back_button:
-		back_button.pressed.connect(_on_back_pressed)
-	if start_button:
-		start_button.pressed.connect(_on_start_pressed)
-	
-	# Set up difficulty descriptions
-	_update_description(FormationEnums.DifficultyLevel.NORMAL)
+		if not medium_button.pressed.is_connected(_on_normal_pressed):
+			medium_button.pressed.connect(_on_normal_pressed)
 
+	if hard_button:
+		if not hard_button.pressed.is_connected(_on_hard_pressed):
+			hard_button.pressed.connect(_on_hard_pressed)
+
+	if back_button:
+		if not back_button.pressed.is_connected(_on_back_pressed):
+			back_button.pressed.connect(_on_back_pressed)
+
+	if start_button:
+		if not start_button.pressed.is_connected(_on_start_pressed):
+			start_button.pressed.connect(_on_start_pressed)
+
+	if not visibility_changed.is_connected(_on_visibility_changed):
+		visibility_changed.connect(_on_visibility_changed)
+
+	_refresh_difficulty_locks()
+	_update_description(FormationEnums.DifficultyLevel.EASY)
+	
 func set_target_level(level_num: int) -> void:
 	target_level = level_num
+	_refresh_difficulty_locks()
+	_ensure_valid_selected_difficulty()
 
-func focus_default_control() -> void:
-	if easy_button:
-		if easy_button.focus_mode == Control.FOCUS_NONE:
-			easy_button.focus_mode = Control.FOCUS_ALL
-		easy_button.grab_focus()
-		return
-	if focus_mode == Control.FOCUS_NONE:
-		focus_mode = Control.FOCUS_ALL
-	grab_focus()
 
 func _update_description(difficulty: FormationEnums.DifficultyLevel) -> void:
 	selected_difficulty = difficulty
 	
 	var descriptions = {
-		FormationEnums.DifficultyLevel.EASY: "Enemies have reduced health, damage, and speed.\nLower enemy count and slower fire rates.\nPerfect for beginners.",
-		FormationEnums.DifficultyLevel.NORMAL: "Standard challenge with balanced enemy stats.\nRecommended for average players.",
-		FormationEnums.DifficultyLevel.HARD: "Enemies have increased health, damage, and speed.\nHigher enemy count and faster fire rates.\nFor experienced players.",
+		FormationEnums.DifficultyLevel.EASY: "[color=green]Enemies have reduced health, damage, and speed.[/color]",
+		(FormationEnums.DifficultyLevel.NORMAL): "[color=yellow]Ships with atleast [b][color=red]ONE[/color][/b] ascension are recommended[/color]",
+		FormationEnums.DifficultyLevel.HARD: "[color=orange]Enemies are tough.\nShips with [b][color=red]max[/color][/b] ascension are recommended.[/color]",
+		FormationEnums.DifficultyLevel.NIGHTMARE: "[color=red]Ships with max ascensions are required to beat enemies.[/color]",
 	}
 	
 	# Update description label
@@ -58,18 +67,108 @@ func _on_easy_pressed() -> void:
 	_update_description(FormationEnums.DifficultyLevel.EASY)
 
 func _on_normal_pressed() -> void:
+	if not _is_difficulty_unlocked(FormationEnums.DifficultyLevel.NORMAL):
+		_show_unlock_requirement(FormationEnums.DifficultyLevel.NORMAL)
+		return
 	_update_description(FormationEnums.DifficultyLevel.NORMAL)
 
 func _on_hard_pressed() -> void:
+	if not _is_difficulty_unlocked(FormationEnums.DifficultyLevel.HARD):
+		_show_unlock_requirement(FormationEnums.DifficultyLevel.HARD)
+		return
 	_update_description(FormationEnums.DifficultyLevel.HARD)
-
 
 func _on_back_pressed() -> void:
 	hide()
 
 func _on_start_pressed() -> void:
-	# Load the level with the selected difficulty
+	if not _is_difficulty_unlocked(selected_difficulty):
+		_show_unlock_requirement(selected_difficulty)
+		return
+
+	# Get the LevelSelectionManager instance
+	var level_selection_manager = get_node("/root/LevelSelectionManager")
+	if not level_selection_manager:
+		push_error("LevelSelectionManager not available")
+		hide()
+		return
+	
+	# Store the selected difficulty globally
+	level_selection_manager.set_selected_difficulty(selected_difficulty)
 	if GameManager:
 		GameManager.set_current_difficulty(selected_difficulty)
-		GameManager.load_level(target_level)
+	
+	# Load enemy data from JSON file based on difficulty
+	if level_selection_manager.load_enemy_data_for_difficulty():
+		print("Difficulty selection: Enemy data loaded successfully")
+		
+		# Emit signal that difficulty selection is complete
+		level_selection_manager.difficulty_selection_complete.emit()
+		
+		# Load the level with the selected difficulty and enemy data
+		if level_selection_manager.selected_level_path != "":
+			var level_path: String = level_selection_manager.selected_level_path
+			var preloaded_level: PackedScene = null
+			if level_selection_manager.has_method("get_preloaded_level"):
+				preloaded_level = level_selection_manager.get_preloaded_level(level_path)
+			if preloaded_level:
+				get_tree().change_scene_to_packed(preloaded_level)
+			else:
+				get_tree().change_scene_to_file(level_path)
+		else:
+			print("Error: No level path selected")
+			hide()
+	else:
+		print("Error: Failed to load enemy data")
 		hide()
+
+func _on_visibility_changed() -> void:
+	if visible:
+		_refresh_difficulty_locks()
+		_ensure_valid_selected_difficulty()
+
+func _refresh_difficulty_locks() -> void:
+	if easy_button:
+		easy_button.disabled = false
+		easy_button.modulate = Color(1, 1, 1, 1)
+
+	var normal_unlocked: bool = _is_difficulty_unlocked(FormationEnums.DifficultyLevel.NORMAL)
+	if medium_button:
+		medium_button.disabled = not normal_unlocked
+		medium_button.modulate = Color(1, 1, 1, 1) if normal_unlocked else Color(0.45, 0.45, 0.45, 1)
+
+	var hard_unlocked: bool = _is_difficulty_unlocked(FormationEnums.DifficultyLevel.HARD)
+	if hard_button:
+		hard_button.disabled = not hard_unlocked
+		hard_button.modulate = Color(1, 1, 1, 1) if hard_unlocked else Color(0.45, 0.45, 0.45, 1)
+
+func _ensure_valid_selected_difficulty() -> void:
+	if not _is_difficulty_unlocked(selected_difficulty):
+		_update_description(FormationEnums.DifficultyLevel.EASY)
+		return
+	_update_description(selected_difficulty)
+
+func _is_difficulty_unlocked(difficulty: FormationEnums.DifficultyLevel) -> bool:
+	match difficulty:
+		FormationEnums.DifficultyLevel.EASY:
+			return true
+		FormationEnums.DifficultyLevel.NORMAL:
+			return _is_level_completed(NORMAL_UNLOCK_LEVEL)
+		FormationEnums.DifficultyLevel.HARD:
+			return _is_level_completed(HARD_UNLOCK_LEVEL)
+		_:
+			return false
+
+func _is_level_completed(level_num: int) -> bool:
+	if not GameManager:
+		return false
+	return GameManager.is_level_completed(level_num)
+
+func _show_unlock_requirement(difficulty: FormationEnums.DifficultyLevel) -> void:
+	match difficulty:
+		FormationEnums.DifficultyLevel.NORMAL:
+			description_label.text = "[color=orange]Normal unlocks after completing Level %d.[/color]" % NORMAL_UNLOCK_LEVEL
+		FormationEnums.DifficultyLevel.HARD:
+			description_label.text = "[color=orange]Hard unlocks after completing Level %d.[/color]" % HARD_UNLOCK_LEVEL
+		_:
+			description_label.text = "Select a difficulty level"

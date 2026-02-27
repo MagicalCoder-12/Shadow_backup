@@ -1,11 +1,10 @@
 [gd_scene format=3 uid="uid://ce0cslus5mqjn"]
 
-[ext_resource type="Texture2D" uid="uid://b72lfco6hnnbt" path="res://Textures/Background/BG loop 1.png" id="1_jcyqe"]
-[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_2hkqn"]
+[ext_resource type="Texture2D" uid="uid://dmbvmcm87n25f" path="res://Textures/Background/BG loop 1.png" id="1_jcyqe"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_2hkqn"]
 [ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://MainScenes/Background.gdshader" id="3_l63sq"]
 [ext_resource type="PackedScene" uid="uid://ci2dx8vxi2rne" path="res://Spawner/Spawner.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://s66mklagl4fy" path="res://HUD/HUD.tscn" id="5"]
-[ext_resource type="Texture2D" uid="uid://d0hfl38rap3wf" path="res://Textures/UI/Main_Menu/BTNs/Pause_BTN.png" id="5_n47iw"]
 [ext_resource type="Script" uid="uid://dpnyrqh01dtb7" path="res://Camera/ShakeCam.gd" id="6"]
 [ext_resource type="PackedScene" uid="uid://bog23u7rvkoy" path="res://MainScenes/pause_menu.tscn" id="7_c1kre"]
 [ext_resource type="PackedScene" uid="uid://c6uejmh8c7koe" path="res://MainScenes/game_over_screen.tscn" id="8_uq0sc"]
@@ -13,14 +12,14 @@
 [ext_resource type="Script" uid="uid://cpbimcnuu67io" path="res://Levels/Scripts/Level.gd" id="11_awp4e"]
 [ext_resource type="PackedScene" uid="uid://b2dr1w4bni0qf" path="res://MainScenes/level_completed.tscn" id="13_23710"]
 [ext_resource type="PackedScene" uid="uid://b8xr1xabni0qf" path="res://MainScenes/boss_clear.tscn" id="13_boss_clear"]
-[ext_resource type="PackedScene" uid="uid://ch5yid0u7nwuh" path="res://Enemy Manager/wave_manager.tscn" id="13_nmwl1"]
+[ext_resource type="PackedScene" uid="uid://ch5yid0u7nwuh" path="res://EnemyManager/wave_manager.tscn" id="13_nmwl1"]
 [ext_resource type="AudioStream" uid="uid://dpnvp4i23xweo" path="res://Textures/Music/GameSong (mp3cut.net).mp3" id="15_c7pbv"]
-[ext_resource type="Resource" uid="uid://bdrda1o20x0t7" path="res://Enemy Manager/ExampleWaveConfig.tres" id="15_k2bse"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d18cs"]
 shader = ExtResource("3_l63sq")
 shader_parameter/direction = Vector2(0, -1.5)
 shader_parameter/speed_scale = 0.1
+shader_parameter/brightness = 0.70000003325
 
 [sub_resource type="LabelSettings" id="LabelSettings_4qcx6"]
 font = ExtResource("10_k2bse")
@@ -30,21 +29,105 @@ font_size = 100
 font = ExtResource("10_k2bse")
 font_size = 100
 
-[sub_resource type="Resource" id="Resource_34erp"]
+[sub_resource type="Resource" id="Resource_2hkqn"]
 script = ExtResource("2_2hkqn")
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
-[sub_resource type="Resource" id="Resource_k2bse"]
+[sub_resource type="Resource" id="Resource_34erp"]
 script = ExtResource("2_2hkqn")
 formation_type = 1
 entry_pattern = 1
 enemy_type = 1
+enemy_density = "Dense"
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
-[sub_resource type="Resource" id="Resource_c7pbv"]
+[sub_resource type="Resource" id="Resource_k2bse"]
 script = ExtResource("2_2hkqn")
 formation_type = 2
 entry_pattern = 2
 enemy_type = 2
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_c7pbv"]
+script = ExtResource("2_2hkqn")
+formation_type = 3
+entry_pattern = 3
+enemy_type = 3
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_77l7m"]
+script = ExtResource("2_2hkqn")
+formation_type = 4
+entry_pattern = 4
+enemy_type = 4
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_1rr3k"]
+script = ExtResource("2_2hkqn")
+formation_type = 5
+entry_pattern = 5
+enemy_type = 5
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_hsj5a"]
+script = ExtResource("2_2hkqn")
+formation_type = 6
+entry_pattern = 6
+enemy_type = 6
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_w38ni"]
+script = ExtResource("2_2hkqn")
+formation_type = 7
+entry_pattern = 7
+enemy_type = 7
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_uclwg"]
+script = ExtResource("2_2hkqn")
+formation_type = 8
+entry_pattern = 8
+enemy_type = 8
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_8x6gh"]
+script = ExtResource("2_2hkqn")
+formation_type = 9
+entry_pattern = 9
+enemy_type = 9
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_442u8"]
+script = ExtResource("2_2hkqn")
+formation_type = 10
+entry_pattern = 10
+enemy_type = 10
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_fxl23"]
+script = ExtResource("2_2hkqn")
+formation_type = 10
+entry_pattern = 11
+enemy_type = 11
+enemy_density = "Dense"
+metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
+
+[sub_resource type="Resource" id="Resource_xg5g8"]
+script = ExtResource("2_2hkqn")
+formation_type = 10
+entry_pattern = 12
+enemy_type = 11
+enemy_density = "Dense"
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Animation" id="Animation_qw32v"]
@@ -92,7 +175,7 @@ material = SubResource("ShaderMaterial_d18cs")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -148.89636
+offset_right = -43.411987
 offset_bottom = -2480.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -110,18 +193,6 @@ offset_bottom = 54.0
 
 [node name="GameOverScreen" parent="CanvasLayer" unique_id=974250478 instance=ExtResource("8_uq0sc")]
 visible = false
-
-[node name="Pause" type="Button" parent="CanvasLayer" unique_id=385579551 groups=["UI"]]
-process_mode = 3
-anchors_preset = -1
-anchor_left = 0.8173611
-anchor_top = 0.008125
-anchor_right = 0.9874998
-anchor_bottom = 0.0846875
-icon = ExtResource("5_n47iw")
-flat = true
-icon_alignment = 1
-metadata/_edit_use_anchors_ = true
 
 [node name="PauseMenu" parent="CanvasLayer" unique_id=648681525 instance=ExtResource("7_c1kre")]
 modulate = Color(1, 1, 1, 0)
@@ -194,13 +265,10 @@ position = Vector2(549, 68)
 
 [node name="LevelManager" type="Node2D" parent="." unique_id=302384067]
 script = ExtResource("11_awp4e")
-waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_34erp"), SubResource("Resource_k2bse"), SubResource("Resource_c7pbv"), ExtResource("15_k2bse"), ExtResource("15_k2bse"), ExtResource("15_k2bse")])
-debug_mode = true
+waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_2hkqn"), SubResource("Resource_34erp"), SubResource("Resource_k2bse"), SubResource("Resource_c7pbv"), SubResource("Resource_77l7m"), SubResource("Resource_1rr3k"), SubResource("Resource_hsj5a"), SubResource("Resource_w38ni"), SubResource("Resource_uclwg"), SubResource("Resource_8x6gh"), SubResource("Resource_442u8"), SubResource("Resource_fxl23"), SubResource("Resource_xg5g8")])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1771068070]
 process_mode = 3
 libraries/ = SubResource("AnimationLibrary_ymc22")
 
 [node name="WaveManager" parent="." unique_id=790346136 instance=ExtResource("13_nmwl1")]
-
-[connection signal="pressed" from="CanvasLayer/Pause" to="LevelManager" method="_on_pause_pressed"]

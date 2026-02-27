@@ -79,8 +79,9 @@ func on_shadow_mode_activated() -> void:
 		_enemy.fire_timer.wait_time = (1.0 / _enemy.fire_rate) * 0.7
 	_enemy.speed = _enemy.original_speed * 1.3
 	_enemy.vertical_speed = _enemy.original_vertical_speed * 1.3
-	_enemy.can_shoot = true
-	_enemy.shoot_cooldown = 0.0
+	# Avoid synchronized volleys when shadow mode toggles for many enemies.
+	_enemy.can_shoot = false
+	_enemy.shoot_cooldown = randf_range(0.08, 0.45)
 	if _enemy.sprite and _enemy.sprite.scale.x < 1.0:
 		_enemy.sprite.scale = Vector2(1.0, 1.0)
 	if _enemy.sprite:

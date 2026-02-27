@@ -2,7 +2,25 @@
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_ysraw"]
 [ext_resource type="Script" uid="uid://o77jwp3txrh" path="res://Enemy/Scripts/PhasePhantomEnemy.gd" id="2_5uhwx"]
+[ext_resource type="Texture2D" uid="uid://xb66xeunibxm" path="res://Textures/Enemy/Enemy_4_B_Medium_NoLight.png" id="3_ekd0s"]
 
 [node name="PhasePhantomEnemy" unique_id=1623952910 instance=ExtResource("1_ysraw")]
 script = ExtResource("2_5uhwx")
 enemy_type = "PhasePhantom"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("3_ekd0s")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-29.823862, -33.52776, 64.16812, 72.86134)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -153.0
+offset_top = -267.0
+offset_right = 170.0
+offset_bottom = -204.0
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(15, 6.000004)
+scale = Vector2(2.73125, 1.3118814)

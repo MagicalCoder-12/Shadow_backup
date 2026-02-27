@@ -4,6 +4,7 @@
 [ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_ryqyk"]
 [ext_resource type="Texture2D" uid="uid://ba8v6jremmj86" path="res://Textures/guibuttons/BlueButton-Active.png" id="2_4d7dj"]
 [ext_resource type="Texture2D" uid="uid://c4so8sombbim3" path="res://Textures/guibuttons/BlueButton-Hover.png" id="3_6pu0t"]
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="3_fqewj"]
 [ext_resource type="Texture2D" uid="uid://bo1qg7o4h20wu" path="res://Textures/guibuttons/YellowButton-Active.png" id="4_fqewj"]
 [ext_resource type="Texture2D" uid="uid://brytcb4y2wjx7" path="res://Textures/guibuttons/YellowButton-Hover.png" id="5_cxxqj"]
 [ext_resource type="Texture2D" uid="uid://d2tjgyu02wyvf" path="res://Textures/UI/Main_Menu/BTNs/Menu_BTN.png" id="5_fqewj"]
@@ -95,15 +96,23 @@ horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
-[node name="DescriptionLabel" type="Label" parent="Panel" unique_id=1502317810]
+[node name="DescriptionLabel" type="RichTextLabel" parent="Panel" unique_id=1874488195]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.056509297
+anchor_left = 0.0042918455
 anchor_top = 1.0614973
-anchor_right = 0.9417317
-anchor_bottom = 1.1577541
-text = "Select Difficulty"
-label_settings = SubResource("LabelSettings_mvld5")
+anchor_right = 0.9992847
+anchor_bottom = 1.3698752
+theme_override_fonts/normal_font = ExtResource("3_fqewj")
+theme_override_fonts/bold_font = ExtResource("3_fqewj")
+theme_override_fonts/bold_italics_font = ExtResource("3_fqewj")
+theme_override_fonts/italics_font = ExtResource("3_fqewj")
+theme_override_fonts/mono_font = ExtResource("3_fqewj")
+theme_override_font_sizes/normal_font_size = 100
+theme_override_font_sizes/bold_font_size = 120
+bbcode_enabled = true
+text = "[color=green]Select difficulty"
+fit_content = true
 horizontal_alignment = 1
 vertical_alignment = 1
 metadata/_edit_use_anchors_ = true

@@ -1,0 +1,115 @@
+{
+	"version": 1.0,
+	"data": {
+		"mob1": {
+			"score": 80.0,
+			"max_health": 120.0,
+			"damage_amount": 1.0,
+			"speed": 250.0,
+			"vertical_speed": 500.0,
+			"fire_rate": 1.8,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"mob2": {
+			"score": 80.0,
+			"max_health": 160.0,
+			"damage_amount": 1.0,
+			"speed": 200.0,
+			"vertical_speed": 250.0,
+			"fire_rate": 1.8,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"mob3": {
+			"score": 80.0,
+			"max_health": 200.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 320.0,
+			"fire_rate": 1.1,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"SlowShooter": {
+			"score": 120.0,
+			"max_health": 320.0,
+			"damage_amount": 1.0,
+			"speed": 200.0,
+			"vertical_speed": 240.0,
+			"fire_rate": 2.5,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"FastEnemy": {
+			"score": 120.0,
+			"max_health": 80.0,
+			"damage_amount": 1.0,
+			"speed": 240.0,
+			"vertical_speed": 480.0,
+			"fire_rate": 1.5,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"BouncerEnemy": {
+			"score": 160.0,
+			"max_health": 320.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 240.0,
+			"fire_rate": 2.5,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"BomberBug": {
+			"score": 240.0,
+			"max_health": 80.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 320.0,
+			"fire_rate": 0.6,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"OblivionTank": {
+			"score": 80.0,
+			"max_health": 480.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 320.0,
+			"fire_rate": 1.2,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"PhasePhantom": {
+			"score": 80.0,
+			"max_health": 400.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 320.0,
+			"fire_rate": 1.2,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"ShadowSentinel": {
+			"score": 80.0,
+			"max_health": 480.0,
+			"damage_amount": 1.0,
+			"speed": 160.0,
+			"vertical_speed": 320.0,
+			"fire_rate": 1.2,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		},
+		"EliteEnemy": {
+			"score": 200.0,
+			"max_health": 360.0,
+			"damage_amount": 1.0,
+			"speed": 208.0,
+			"vertical_speed": 400.0,
+			"fire_rate": 1.6,
+			"entry_speed_multiplier": 1.0,
+			"shadow_spawn_probability": 0.2
+		}
+	}
+}

@@ -26,6 +26,15 @@ progress_bar = NodePath("LoaderCanvasLayer/ProgressBar")
 percentage_label = NodePath("LoaderCanvasLayer/Percentage_lable")
 
 [node name="LoaderCanvasLayer" type="CanvasLayer" parent="." unique_id=1264814212]
+layer = 100
+
+[node name="Cover" type="ColorRect" parent="LoaderCanvasLayer" unique_id=208141991]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
 
 [node name="Background" type="TextureRect" parent="LoaderCanvasLayer" unique_id=1785041675]
 anchors_preset = 15

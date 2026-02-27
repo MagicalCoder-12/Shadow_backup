@@ -164,9 +164,8 @@ func _on_next_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_next_pressed called")
 	if GameManager:
-		# Complete the level properly before going to map
-		current_level = GameManager.get_current_level()
-		GameManager.complete_current_level()
+		# Ensure completion is committed exactly once before leaving the screen.
+		_commit_level_completion_if_needed()
 		GameManager.score = 0
 		if debug:
 			print("[LevelCompleted Debug] Level completed after %d, going to map!" % current_level)
@@ -180,12 +179,21 @@ func _on_map_pressed() -> void:
 	if debug:
 		print("[LevelCompleted Debug] _on_map_pressed called")
 	if GameManager:
+		# Ensure completion is committed when leaving via Map button as well.
+		_commit_level_completion_if_needed()
 		GameManager.change_scene(GameManager.get_map_scene_path())
 		if debug:
 			print("[LevelCompleted Debug] Warping to map scene, hyperspace engaged!")
 	else:
 		if debug:
 			print("[LevelCompleted Debug] Error: GameManager missing, can't warp to map!")
+
+func _commit_level_completion_if_needed() -> void:
+	if not GameManager:
+		return
+	current_level = GameManager.get_current_level()
+	if not GameManager.is_level_completed(current_level):
+		GameManager.complete_current_level()
 
 func _on_restart_pressed() -> void:
 	if debug:

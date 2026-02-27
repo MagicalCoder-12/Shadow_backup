@@ -1,7 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://d2550fg3euhqj"]
+[gd_scene format=3 uid="uid://d2550fg3euhqj"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_jerhw"]
-[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://Enemy Manager/Scripts/WaveConfig.gd" id="2_5wub7"]
+[ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_5wub7"]
 
 [sub_resource type="Resource" id="Resource_80uvy"]
 script = ExtResource("2_5wub7")

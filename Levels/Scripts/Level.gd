@@ -7,7 +7,6 @@ extends Node
 @onready var boss_clear: Control = $"../CanvasLayer/BossClear"
 @onready var hud: Control = $"../CanvasLayer/HUD"
 @onready var animation_player: AnimationPlayer = $"../AnimationPlayer"
-@onready var pause_button: Button = $"../CanvasLayer/Pause"
 @onready var wave_manager: WaveManager = $"../WaveManager"
 
 # Wave Details UI
@@ -61,13 +60,10 @@ func _ready():
 		var shadow_button = hud.get_node_or_null("ShadowModeButton")
 		if not shadow_button:
 			push_warning("ShadowModeButton not found in HUD")
-
-	# Pause button
-	if not pause_button:
-		push_error("PauseButton not found")
-	else:
-		if not pause_button.pressed.is_connected(_on_pause_pressed):
-			pause_button.pressed.connect(_on_pause_pressed)
+		if hud.has_signal("pause_requested"):
+			var pause_requested_callable := Callable(self, "_on_pause_pressed")
+			if not hud.is_connected("pause_requested", pause_requested_callable):
+				hud.connect("pause_requested", pause_requested_callable)
 
 	# Connect signals
 	if not GameManager.game_over_triggered.is_connected(_game_over_triggered):
@@ -118,10 +114,6 @@ func _ready():
 	
 	# Fallback player spawning
 	_check_and_spawn_player()
-	
-	# Ensure debug_mode is enabled for testing
-	debug_mode = true
-	print("Level debug mode enabled")
 
 # === WAVE VALIDATION ===
 func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:

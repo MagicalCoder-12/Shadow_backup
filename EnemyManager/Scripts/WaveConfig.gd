@@ -19,7 +19,7 @@ extends Resource
 class_name WaveConfig
 
 # Import formation_enums to access shared enums
-const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://EnemyManager/Scripts/formation_enums.gd")
 
 # Import shared enums (from your shared enum script, e.g., formation_enums.gd)
 @export var formation_type: FormationEnums.FormationType = FormationEnums.FormationType.CIRCLE:

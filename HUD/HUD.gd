@@ -1,10 +1,11 @@
 extends Control
 
 var pLifeIcon := preload("uid://ceg6sboym3t71")
+signal pause_requested
 
 @onready var lifeContainer := $LifeContainer
 @onready var scoreLabel := $Score
-@onready var timer_label: Label = $TextureRect/Timer  
+@onready var timer_label: Label = $time/Timer  
 @onready var shadow_mode_button: ShadowModeButton = $ShadowModeButton
 @onready var h_box_container: HBoxContainer = $HBoxContainer
 @onready var power_symbol: TextureRect = $HBoxContainer/PowerSymbol
@@ -165,7 +166,7 @@ func set_lives(lives: int):
 # Updates the score display
 func _on_score_updated(new_score: int):
 	if scoreLabel:
-		scoreLabel.text = "Score: %d" % new_score
+		scoreLabel.text = "Score: %03d" % new_score
 
 # Updates the player life count
 func _on_player_life_changed(life: int):
@@ -253,3 +254,7 @@ func _on_ship_stats_updated(ship_id: String, new_damage: int):
 		
 		# Ensure count doesn't exceed the number of power symbols we have
 		attack_boost_count = min(attack_boost_count, 4)
+
+
+func _on_pause_button_down() -> void:
+	pause_requested.emit()

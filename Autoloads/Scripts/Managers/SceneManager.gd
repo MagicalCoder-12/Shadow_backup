@@ -28,18 +28,20 @@ func change_scene(scene_path: String) -> void:
 	
 	gm.scene_change_started.emit()
 	var root: Node = gm.get_tree().current_scene
+	var viewport_root: Window = gm.get_tree().root
 	
 	# Update stars before transitioning to map scene
 	if scene_path == MAP_SCENE:
 		_prepare_map_scene()
 	
-	if root:
-		if root.get_node_or_null("LoaderCanvasLayer"):
+	if root and viewport_root:
+		if viewport_root.get_node_or_null("LoaderCanvasLayer"):
 			return
 		
 		var loader: Node = LOADER_SCENE.instantiate()
 		loader.name = "LoaderCanvasLayer"
-		root.add_child(loader)
+		loader.process_mode = Node.PROCESS_MODE_ALWAYS
+		viewport_root.add_child(loader)
 		
 		# Mute all buses except Background and Master
 		for bus in range(AudioServer.bus_count):
@@ -58,13 +60,14 @@ func _prepare_map_scene() -> void:
 
 func handle_node_added(node: Node) -> void:
 	if node is Control and node.name == "LoaderCanvasLayer":
-		node.z_index = 100
+		node.z_index = 4096
 	
 	if node == gm.get_tree().current_scene:
 		var scene_path = node.scene_file_path if node.scene_file_path else ""
 		
 		if scene_path == START_SCREEN_SCENE or scene_path == MAP_SCENE or scene_path == UPGRADE_MENU:
 			AudioManager.play_background_music(BACKGROUND_MUSIC, false)
+			AudioManager.set_gameplay_mix(false)
 			if AudioManager.background_player:
 				AudioManager.background_player.stream.loop = true
 				AudioManager.background_player.stream_paused = false
@@ -72,6 +75,7 @@ func handle_node_added(node: Node) -> void:
 			AudioManager.mute_bus("Bullet", true)
 			AudioManager.mute_bus("Explosion", true)
 		else:
+			AudioManager.set_gameplay_mix(true)
 			if AudioManager.background_player:
 				AudioManager.background_player.stream.loop = false
 			

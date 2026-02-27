@@ -54,9 +54,9 @@ func hide_all_stars():
 		var button = buttons[i]
 		
 		# Hide all star types
-		var star_bronze = button.get_node_or_null("Star_bronze")
-		var star_silver = button.get_node_or_null("Star_silver")
-		var star_gold = button.get_node_or_null("Star_gold")
+		var star_bronze = _get_star_sprite(button, "Star_bronze")
+		var star_silver = _get_star_sprite(button, "Star_silver")
+		var star_gold = _get_star_sprite(button, "Star_gold")
 		
 		if star_bronze:
 			star_bronze.hide()
@@ -105,18 +105,7 @@ func _initialize_level_buttons():
 		
 		# 4. Connect signals safely
 		if button.has_signal("level_selected"):
-			# Connect to GameManager
-			if not button.is_connected("level_selected", Callable(GameManager, "_on_level_selected")):
-				var success = button.connect(
-					"level_selected",
-					Callable(GameManager, "_on_level_selected"),
-					CONNECT_DEFERRED | CONNECT_PERSIST
-				)
-				
-				if success != OK:
-					push_error("Failed to connect signal 'level_selected' for button: ", button.name)
-			
-			# Connect to local handler to hide canvas layer
+			# Connect to local handler to show difficulty selection
 			if not button.is_connected("level_selected", Callable(self, "_on_level_button_pressed")):
 				button.connect(
 					"level_selected",
@@ -155,10 +144,10 @@ func update_stars():
 		var level_num = i + 1
 		
 		# Get the star sprites from the button
-		if button.has_node("Star_bronze"):
-			var star_bronze: Sprite2D = button.get_node("Star_bronze")
-			var star_silver: Sprite2D = button.get_node("Star_silver")
-			var star_gold: Sprite2D = button.get_node("Star_gold")
+		var star_bronze: Sprite2D = _get_star_sprite(button, "Star_bronze")
+		var star_silver: Sprite2D = _get_star_sprite(button, "Star_silver")
+		var star_gold: Sprite2D = _get_star_sprite(button, "Star_gold")
+		if star_bronze and star_silver and star_gold:
 			
 			var completion_count = GameManager.level_manager.get_level_completion_count(level_num)
 			
@@ -187,8 +176,25 @@ func update_stars():
 					star.hide()
 
 # Called when a level is completed and a star is earned
-func _on_level_star_earned():
+func _on_level_star_earned(_level_num: int = 0):
 	update_stars()
+
+func _get_star_sprite(button: Node, star_name: String) -> Sprite2D:
+	if button == null:
+		return null
+
+	# Current level button layout stores stars under the `Stars` child node.
+	var nested_path := "Stars/%s" % star_name
+	var nested_star := button.get_node_or_null(nested_path)
+	if nested_star is Sprite2D:
+		return nested_star as Sprite2D
+
+	# Backward-compat fallback for layouts where stars are direct children.
+	var direct_star := button.get_node_or_null(star_name)
+	if direct_star is Sprite2D:
+		return direct_star as Sprite2D
+
+	return null
 
 func _on_back_pressed() -> void:
 	canvaslayer.hide()
@@ -198,7 +204,19 @@ func _on_shop_pressed() -> void:
 	canvaslayer.hide()
 	GameManager.change_scene(Shop)
 
-# Hide canvas layer when a level button is pressed
+# Show difficulty selection panel when a level button is pressed
 func _on_level_button_pressed(_level_num: int) -> void:
+	# Find and show the difficulty selection panel
 	if canvaslayer:
-		canvaslayer.hide()
+		# Look for the difficulty selection panel in the canvas layer
+		if canvaslayer.has_node("DifficultySelection"):
+			var difficulty_panel = canvaslayer.get_node("DifficultySelection")
+			difficulty_panel.show()
+			# Set the target level for the difficulty panel
+			if difficulty_panel.has_method("set_target_level"):
+				difficulty_panel.set_target_level(_level_num)
+				print("Map: Set target level to ", _level_num)
+		else:
+			print("Map: DifficultySelection panel not found in canvaslayer")
+	else:
+		print("Map: CanvasLayer not found")

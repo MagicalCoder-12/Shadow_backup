@@ -1,7 +1,7 @@
 extends Node2D
 
 # Import formation_enums to access shared enums
-const FormationEnums = preload("res://Enemy Manager/Scripts/formation_enums.gd")
+const FormationEnums = preload("res://EnemyManager/Scripts/formation_enums.gd")
 
 # Revive state tracking
 var is_revive_pending: bool = false

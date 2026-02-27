@@ -23,8 +23,6 @@ func init_movement_patterns() -> void:
 	load_movement_settings_from_config()
 	_circle_angle = 0.0
 	_swarm_center = _enemy.formation_position if _enemy.formation_position != Vector2.ZERO else _enemy.global_position
-	_enemy.can_shoot = true
-	_enemy.shoot_cooldown = 0.0
 
 func load_attack_settings_from_config() -> void:
 	if not _enemy:
