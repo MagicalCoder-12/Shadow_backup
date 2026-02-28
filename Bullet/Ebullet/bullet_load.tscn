@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://dtfffn45trq7o"]
+
+[ext_resource type="Texture2D" uid="uid://nttt0kb1psnd" path="res://Textures/Sprites/M484BulletCollection1.png" id="1_h7xlt"]
+[ext_resource type="Shader" uid="uid://r42o7dyqyhav" path="res://Bullet/Ebullet/bullet_load.gdshader" id="1_o4ph2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7xqxp"]
+shader = ExtResource("1_o4ph2")
+shader_parameter/charge = 1.0
+shader_parameter/pulse_speed = 6.0
+shader_parameter/intensity = 1.5
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o4ph2"]
+atlas = ExtResource("1_h7xlt")
+region = Rect2(271.37354, 298.5299, 21.921844, 21.666931)
+
+[node name="BulletLoad" type="Node2D" unique_id=560465536]
+
+[node name="ChargeGlow" type="Sprite2D" parent="." unique_id=782520941]
+material = SubResource("ShaderMaterial_7xqxp")
+scale = Vector2(0.9285714, 0.97619045)
+texture = SubResource("AtlasTexture_o4ph2")

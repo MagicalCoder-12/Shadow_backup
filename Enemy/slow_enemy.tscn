@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://ctwmgg6oaqtqr"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_u1bgn"]
+[ext_resource type="Texture2D" uid="uid://d3t72ormm0rcd" path="res://Textures/Enemy/enemyShip.png" id="2_1i38w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1i38w"]
+size = Vector2(179, 92)
+
+[node name="SlowEnemy" unique_id=1623952910 instance=ExtResource("1_u1bgn")]
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+texture = ExtResource("2_1i38w")
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=929163854]
+position = Vector2(-3.5, -3)
+shape = SubResource("RectangleShape2D_1i38w")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-18.755707, -10.771638, 37.210716, 20.250862)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -82.0
+offset_top = -91.0
+offset_right = 85.66667
+offset_bottom = -69.66667
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(-2.0000162, -2.500001)
+scale = Vector2(1.375, 0.49062496)

@@ -21,19 +21,19 @@
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
-		"mob3": {
-			"score": 80.0,
-			"max_health": 200.0,
-			"damage_amount": 1.0,
-			"speed": 160.0,
-			"vertical_speed": 320.0,
-			"fire_rate": 1.1,
-			"entry_speed_multiplier": 1.0,
-			"shadow_spawn_probability": 0.2
-		},
-		"SlowShooter": {
-			"score": 120.0,
-			"max_health": 320.0,
+			"mob3": {
+				"score": 80.0,
+				"max_health": 200.0,
+				"damage_amount": 1.0,
+				"speed": 160.0,
+				"vertical_speed": 320.0,
+				"fire_rate": 1.1,
+				"entry_speed_multiplier": 1.0,
+				"shadow_spawn_probability": 0.2
+			},
+			"SlowShooter": {
+				"score": 120.0,
+				"max_health": 320.0,
 			"damage_amount": 1.0,
 			"speed": 200.0,
 			"vertical_speed": 240.0,

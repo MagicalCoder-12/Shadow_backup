@@ -31,103 +31,48 @@ font_size = 100
 
 [sub_resource type="Resource" id="Resource_2hkqn"]
 script = ExtResource("2_2hkqn")
-enemy_density = "Dense"
+enemy_type = 11
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_34erp"]
 script = ExtResource("2_2hkqn")
-formation_type = 1
-entry_pattern = 1
-enemy_type = 1
-enemy_density = "Dense"
+enemy_type = 10
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_k2bse"]
 script = ExtResource("2_2hkqn")
-formation_type = 2
-entry_pattern = 2
-enemy_type = 2
-enemy_density = "Dense"
+enemy_type = 9
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_c7pbv"]
 script = ExtResource("2_2hkqn")
-formation_type = 3
-entry_pattern = 3
-enemy_type = 3
-enemy_density = "Dense"
+enemy_type = 8
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_77l7m"]
 script = ExtResource("2_2hkqn")
-formation_type = 4
-entry_pattern = 4
-enemy_type = 4
-enemy_density = "Dense"
+enemy_type = 7
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_1rr3k"]
 script = ExtResource("2_2hkqn")
-formation_type = 5
-entry_pattern = 5
-enemy_type = 5
-enemy_density = "Dense"
+formation_type = 2
+enemy_type = 6
+enemy_density = "Maximum"
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_hsj5a"]
 script = ExtResource("2_2hkqn")
-formation_type = 6
-entry_pattern = 6
-enemy_type = 6
-enemy_density = "Dense"
+enemy_type = 5
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_w38ni"]
 script = ExtResource("2_2hkqn")
-formation_type = 7
-entry_pattern = 7
-enemy_type = 7
-enemy_density = "Dense"
+enemy_type = 4
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Resource" id="Resource_uclwg"]
 script = ExtResource("2_2hkqn")
-formation_type = 8
-entry_pattern = 8
-enemy_type = 8
-enemy_density = "Dense"
-metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
-
-[sub_resource type="Resource" id="Resource_8x6gh"]
-script = ExtResource("2_2hkqn")
-formation_type = 9
-entry_pattern = 9
-enemy_type = 9
-enemy_density = "Dense"
-metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
-
-[sub_resource type="Resource" id="Resource_442u8"]
-script = ExtResource("2_2hkqn")
-formation_type = 10
-entry_pattern = 10
-enemy_type = 10
-enemy_density = "Dense"
-metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
-
-[sub_resource type="Resource" id="Resource_fxl23"]
-script = ExtResource("2_2hkqn")
-formation_type = 10
-entry_pattern = 11
-enemy_type = 11
-enemy_density = "Dense"
-metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
-
-[sub_resource type="Resource" id="Resource_xg5g8"]
-script = ExtResource("2_2hkqn")
-formation_type = 10
-entry_pattern = 12
-enemy_type = 11
-enemy_density = "Dense"
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [sub_resource type="Animation" id="Animation_qw32v"]
@@ -265,7 +210,7 @@ position = Vector2(549, 68)
 
 [node name="LevelManager" type="Node2D" parent="." unique_id=302384067]
 script = ExtResource("11_awp4e")
-waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_2hkqn"), SubResource("Resource_34erp"), SubResource("Resource_k2bse"), SubResource("Resource_c7pbv"), SubResource("Resource_77l7m"), SubResource("Resource_1rr3k"), SubResource("Resource_hsj5a"), SubResource("Resource_w38ni"), SubResource("Resource_uclwg"), SubResource("Resource_8x6gh"), SubResource("Resource_442u8"), SubResource("Resource_fxl23"), SubResource("Resource_xg5g8")])
+waves = Array[ExtResource("2_2hkqn")]([SubResource("Resource_2hkqn"), SubResource("Resource_34erp"), SubResource("Resource_k2bse"), SubResource("Resource_c7pbv"), SubResource("Resource_77l7m"), SubResource("Resource_1rr3k"), SubResource("Resource_hsj5a"), SubResource("Resource_w38ni"), SubResource("Resource_uclwg")])
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1771068070]
 process_mode = 3

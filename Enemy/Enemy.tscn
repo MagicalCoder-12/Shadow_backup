@@ -181,7 +181,6 @@ speed_scale = 6.0
 [node name="FireTimer" type="Timer" parent="." unique_id=103449956]
 wait_time = 2.0
 one_shot = true
-autostart = false
 
 [node name="ShadowCoreShield" type="AnimatedSprite2D" parent="." unique_id=2064230564]
 position = Vector2(1.333334, -1.3333435)

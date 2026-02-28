@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://05gucqppwbyy"]
+[gd_scene format=3 uid="uid://05gucqppwbyy"]
 
 [ext_resource type="Script" uid="uid://dpwah0otox5lg" path="res://Bullet/Scripts/bomb.gd" id="1_4iuhc"]
 [ext_resource type="Texture2D" uid="uid://ba8y41i3mxjlf" path="res://Textures/Sprites/Bombs/Bomb_3_Idle_000.png" id="2_lkd4l"]
@@ -6,24 +6,28 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_0afi6"]
 radius = 112.821
 
-[node name="Bomb" type="Area2D" groups=["EnemyBullet", "enemy_bullet"]]
-scale = Vector2(0.5, 0.5)
+[node name="Bomb" type="Area2D" unique_id=7229084 groups=["EnemyBullet", "enemy_bullet"]]
 collision_layer = 64
 script = ExtResource("1_4iuhc")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1026310107]
 position = Vector2(0, 1)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_lkd4l")
 region_rect = Rect2(0, 0, 123, 129)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1003038033]
 position = Vector2(0.5, 2.5)
 shape = SubResource("CircleShape2D_0afi6")
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="." unique_id=1883380788]
 wait_time = 3.0
 one_shot = true
 
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=884065308]
+position = Vector2(-62, -54)
+rect = Rect2(-10, -16, 148, 150)
+
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

@@ -44,7 +44,6 @@ enum EnemyType {
 	MOB1,
 	MOB2,
 	MOB3,
-	MOB4,
 	SLOW_SHOOTER,
 	FAST_ENEMY,
 	BOUNCER_ENEMY,

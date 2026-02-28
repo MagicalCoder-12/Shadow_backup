@@ -47,7 +47,6 @@ signal shadow_state_changed(is_shadow: bool)
 	"mob1",
 	"mob2",
 	"mob3",
-	"mob4",
 	"SlowShooter",
 	"FastEnemy",
 	"BouncerEnemy",

@@ -13,14 +13,20 @@ const DIFF_NIGHTMARE: int = 3
 const EBULLET: PackedScene = preload("res://Bullet/Ebullet/Enemy_Bullet.tscn")
 const SHADOW_EBULLET: PackedScene = preload("res://Bullet/Ebullet/shadow_enemy_bullet.tscn")
 const BOMB: PackedScene = preload("res://Bullet/Ebullet/Bomb.tscn")
+const BULLET_LOAD_EFFECT: PackedScene = preload("res://Bullet/Ebullet/bullet_load.tscn")
 const BOMB_SCRIPT = preload("res://Bullet/Scripts/bomb.gd")
 const FIRE_TIMER_MIN_WAIT: float = 0.08
 const FIRE_INTERVAL_JITTER_MIN: float = 0.9
 const FIRE_INTERVAL_JITTER_MAX: float = 1.15
 const FIRE_SLOT_STAGGER_STEP: float = 0.035
 const FIRE_SLOT_STAGGER_MOD: int = 5
+const CHARGE_EFFECT_DURATION: float = 0.35
+const CHARGE_EFFECT_SCALE_START: Vector2 = Vector2(1.6, 1.6)
+const CHARGE_EFFECT_SCALE_END: Vector2 = Vector2(3.1, 3.1)
+const CHARGE_EFFECT_Z_OFFSET: int = 30
 
 var _enemy: Node = null
+var _is_firing_sequence_active: bool = false
 
 func configure(enemy: Node) -> void:
 	_enemy = enemy
@@ -72,21 +78,30 @@ func handle_bomber_shooting() -> void:
 		_enemy.call("register_bomb_drop", _enemy.time_since_spawn)
 
 func on_fire_timer_timeout() -> void:
-	if not _enemy:
+	if not _enemy or not is_instance_valid(_enemy):
 		return
 	if not _enemy.is_alive or not _enemy.arrived_at_formation or not is_instance_valid(_enemy.player_reference):
 		return
+	if _is_firing_sequence_active:
+		return
 	if not _enemy.can_shoot:
+		return
+	_is_firing_sequence_active = true
+	_enemy.can_shoot = false
+	await play_pre_shot_charge_effect()
+	if not _enemy or not is_instance_valid(_enemy) or not _enemy.is_alive:
+		_is_firing_sequence_active = false
 		return
 	var pattern: int = select_weighted_attack_pattern()
 	if pattern == PATTERN_BURST_SHOT:
 		# Lock shooting immediately so a second timer tick cannot overlap this burst.
-		_enemy.can_shoot = false
 		await fire_burst_shot(2, 0.12)
 		apply_shooting_cooldown()
+		_is_firing_sequence_active = false
 		return
 	execute_attack_pattern(pattern)
 	apply_shooting_cooldown()
+	_is_firing_sequence_active = false
 
 func select_weighted_attack_pattern() -> int:
 	if not _enemy:
@@ -218,6 +233,72 @@ func drop_bomb() -> void:
 	if bomb_instance:
 		bomb_instance.global_position = _enemy.global_position
 		SceneSpawnService.spawn_child(bomb_instance)
+
+func play_pre_shot_charge_effect() -> void:
+	if not _enemy or not is_instance_valid(_enemy) or not _enemy.is_alive:
+		return
+
+	var charge_positions: Array[Vector2] = _resolve_charge_positions()
+	var spawned_effects: Array[Node2D] = []
+	for charge_pos in charge_positions:
+		var effect_instance: Node2D = BULLET_LOAD_EFFECT.instantiate() as Node2D
+		if not effect_instance:
+			continue
+		effect_instance.global_position = charge_pos
+		var spawned: Node = SceneSpawnService.spawn_child(effect_instance)
+		if not spawned or not (spawned is Node2D):
+			continue
+		var effect_node: Node2D = spawned as Node2D
+		_prepare_charge_effect(effect_node)
+		spawned_effects.append(effect_node)
+
+	if is_instance_valid(_enemy) and _enemy.get_tree():
+		await _enemy.get_tree().create_timer(CHARGE_EFFECT_DURATION).timeout
+
+	for effect in spawned_effects:
+		if is_instance_valid(effect):
+			effect.queue_free()
+
+func _prepare_charge_effect(effect: Node2D) -> void:
+	if not effect:
+		return
+	effect.z_as_relative = false
+	effect.z_index = int(_enemy.z_index) + CHARGE_EFFECT_Z_OFFSET
+	effect.scale = CHARGE_EFFECT_SCALE_START
+	effect.modulate.a = 0.95
+	var glow_sprite: Sprite2D = effect.get_node_or_null("ChargeGlow") as Sprite2D
+	if glow_sprite:
+		glow_sprite.z_as_relative = false
+		glow_sprite.z_index = effect.z_index + 1
+		if glow_sprite.material:
+			glow_sprite.material = glow_sprite.material.duplicate()
+		if glow_sprite.material is ShaderMaterial:
+			var shader_material: ShaderMaterial = glow_sprite.material as ShaderMaterial
+			shader_material.set_shader_parameter("charge", 0.0)
+			var charge_tween := effect.create_tween()
+			charge_tween.tween_method(_set_charge_shader_value.bind(shader_material), 0.0, 1.0, CHARGE_EFFECT_DURATION)
+	var scale_tween := effect.create_tween()
+	scale_tween.tween_property(effect, "scale", CHARGE_EFFECT_SCALE_END, CHARGE_EFFECT_DURATION)
+
+func _set_charge_shader_value(value: float, shader_material: ShaderMaterial) -> void:
+	if not shader_material:
+		return
+	shader_material.set_shader_parameter("charge", value)
+
+func _resolve_charge_positions() -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	if not _enemy or not is_instance_valid(_enemy):
+		return positions
+
+	if _enemy.firing_positions:
+		for child in _enemy.firing_positions.get_children():
+			if child is Node2D:
+				positions.append((child as Node2D).global_position)
+
+	if positions.is_empty():
+		positions.append(_enemy.global_position)
+
+	return positions
 
 func _is_bomber_enemy() -> bool:
 	if not _enemy:

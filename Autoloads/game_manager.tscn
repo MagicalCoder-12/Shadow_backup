@@ -2,9 +2,11 @@
 
 [ext_resource type="Script" uid="uid://quqr01hwnao4" path="res://Autoloads/Scripts/Core/GameManager.gd" id="1_dmm7s"]
 [ext_resource type="Script" uid="uid://cblp4rc4tnx77" path="res://addons/AdmobPlugin/Admob.gd" id="2_40v6j"]
+[ext_resource type="PackedScene" uid="uid://pc4ms7p3xhud" path="res://MainScenes/upgrade_menu.tscn" id="2_mx4pe"]
 
 [node name="GameManager" type="Node2D" unique_id=2082259744 groups=["GameManager"]]
 script = ExtResource("1_dmm7s")
+upgrade_menu_scene = ExtResource("2_mx4pe")
 
 [node name="ShadowModeTimer" type="Timer" parent="." unique_id=301455201]
 one_shot = true

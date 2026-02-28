@@ -146,7 +146,7 @@ func revert_shadow_mode_effects() -> void:
 	if stats and not _is_super_mode_active():
 		stats["bullet_damage"] = get_balanced_bullet_damage(int(stats.get("base_bullet_damage", _get_default_bullet_damage())))
 
-	_set_active_bullet_scene(_normal_bullet_scene)
+	_set_active_bullet_scene(_get_normal_bullet_scene())
 
 func apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool) -> void:
 	if super_mode_active and not _is_super_mode_active():
@@ -228,7 +228,7 @@ func on_super_mode_timeout() -> void:
 	_restore_normal_damage()
 	_restore_normal_fire_delay()
 	_cleanup_super_mode_spawn_points()
-	_set_active_bullet_scene(_normal_bullet_scene)
+	_set_active_bullet_scene(_get_normal_bullet_scene())
 
 	if _sprite:
 		if _is_shadow_mode_active():
@@ -281,6 +281,16 @@ func _set_player_speed(new_speed: float) -> void:
 func _set_active_bullet_scene(scene: PackedScene) -> void:
 	if _owner:
 		_owner.set("plBullet", scene)
+
+func _get_normal_bullet_scene() -> PackedScene:
+	# Prefer the owner's current normal bullet to avoid stale cached scene references.
+	if _owner:
+		var owner_normal_scene: Variant = _owner.get("plNormalBullet")
+		if owner_normal_scene is PackedScene:
+			var scene := owner_normal_scene as PackedScene
+			if scene.can_instantiate():
+				return scene
+	return _normal_bullet_scene
 
 func _get_stats() -> Dictionary:
 	if _game_manager and _game_manager.player_manager:

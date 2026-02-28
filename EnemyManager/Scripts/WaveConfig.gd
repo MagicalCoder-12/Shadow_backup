@@ -36,7 +36,6 @@ const ENEMY_TYPE_TO_KEY: Dictionary = {
 	FormationEnums.EnemyType.MOB1: "mob1",
 	FormationEnums.EnemyType.MOB2: "mob2",
 	FormationEnums.EnemyType.MOB3: "mob3",
-	FormationEnums.EnemyType.MOB4: "mob4",
 	FormationEnums.EnemyType.SLOW_SHOOTER: "SlowShooter",	
 	FormationEnums.EnemyType.FAST_ENEMY: "FastEnemy",
 	FormationEnums.EnemyType.BOUNCER_ENEMY: "BouncerEnemy",
@@ -51,7 +50,6 @@ const ENEMY_KEY_TO_TYPE: Dictionary = {
 	"mob1": FormationEnums.EnemyType.MOB1,
 	"mob2": FormationEnums.EnemyType.MOB2,
 	"mob3": FormationEnums.EnemyType.MOB3,
-	"mob4": FormationEnums.EnemyType.MOB4,
 	"SlowShooter": FormationEnums.EnemyType.SLOW_SHOOTER,
 	"FastEnemy": FormationEnums.EnemyType.FAST_ENEMY,
 	"BouncerEnemy": FormationEnums.EnemyType.BOUNCER_ENEMY,
@@ -110,7 +108,15 @@ const BASE_ENEMY_SCENE_PATH: String = "res://Enemy/Enemy.tscn"
 const ENEMY_TYPE_SCENE_PATHS: Dictionary = {
 	"mob1": "res://Enemy/mob_1.tscn",
 	"mob2": "res://Enemy/mob_2.tscn",
-	"mob3": "res://Enemy/mob_3.tscn"
+	"mob3": "res://Enemy/mob_3.tscn",
+	"SlowShooter": "res://Enemy/minion.tscn",
+	"FastEnemy": "res://Enemy/fast_enemy.tscn",
+	"BouncerEnemy": "res://Enemy/bouncer_enemy.tscn",
+	"BomberBug": "res://Enemy/bomber.tscn",
+	"OblivionTank": "res://Enemy/minion.tscn",
+	"PhasePhantom": "res://Enemy/phase_phantom_enemy.tscn",
+	"ShadowSentinel": "res://Enemy/minion.tscn",
+	"EliteEnemy": "res://Enemy/minion.tscn"
 }
 var _cached_base_enemy_scene: PackedScene
 var _cached_enemy_type_scenes: Dictionary = {}

@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://b6mm1vdmhspxk"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_0gwgn"]
+[ext_resource type="Texture2D" uid="uid://5cigitycfpru" path="res://Textures/Enemy/AntuZ/SpaceShips/E-12.png" id="2_nwytj"]
+[ext_resource type="Texture2D" uid="uid://cpc24aljn15vg" path="res://Textures/Enemy/AntuZ/SpaceShips/H-12.png" id="3_turg3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nwytj"]
+size = Vector2(193, 200)
+
+[node name="EliteEnemy" unique_id=1623952910 instance=ExtResource("1_0gwgn")]
+shadow_texture = ExtResource("2_nwytj")
+enemy_type = "EliteEnemy"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+texture = ExtResource("3_turg3")
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=929163854]
+position = Vector2(1.5, -24)
+shape = SubResource("RectangleShape2D_nwytj")
+
+[node name="VisibleOnScreenNotifier2D" parent="." index="2" unique_id=1167556555]
+rect = Rect2(-18.755707, -30.813726, 38.22926, 48.226276)
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -94.0
+offset_top = -177.0
+offset_right = 96.0
+offset_bottom = -154.66667
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(4.500013, 5.0000134)
+scale = Vector2(1.5843751, 0.91875005)

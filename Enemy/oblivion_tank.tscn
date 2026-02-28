@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://b6mn811vjhouj"]
+
+[ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_nebws"]
+[ext_resource type="Texture2D" uid="uid://xb66xeunibxm" path="res://Textures/Enemy/Enemy_4_B_Medium_NoLight.png" id="2_gfw5h"]
+[ext_resource type="Texture2D" uid="uid://txu0h8ko1k7a" path="res://Textures/Enemy/Enemy_4_D_Medium_NoLight.png" id="2_kym76"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gfw5h"]
+radius = 129.13947
+
+[node name="OblivionTank" unique_id=1623952910 instance=ExtResource("1_nebws")]
+shadow_texture = ExtResource("2_kym76")
+enemy_type = "OblivionTank"
+
+[node name="Sprite2D" parent="." index="0" unique_id=1747645234]
+position = Vector2(-1.5, -2.5)
+scale = Vector2(1, 1)
+texture = ExtResource("2_gfw5h")
+
+[node name="CollisionShape2D" parent="." index="1" unique_id=929163854]
+shape = SubResource("CircleShape2D_gfw5h")
+
+[node name="HealthBar" parent="." index="4" unique_id=59855080]
+offset_left = -86.0
+offset_top = -132.0
+offset_right = 81.66667
+offset_bottom = -110.66667
+
+[node name="ShadowCoreShield" parent="." index="8" unique_id=2064230564]
+position = Vector2(-3, 3)
+scale = Vector2(1.65, 0.9093749)

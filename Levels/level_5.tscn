@@ -12,7 +12,7 @@ difficulty = 2
 enemy_density = "Maximum"
 formation_center = Vector2(640, 300)
 
-[sub_resource type="Resource" id="Resource_6kuwj"]
+[sub_resource type="Resource" id="Resource_pses1"]
 script = ExtResource("2_uk1uv")
 enemy_type = 1
 
@@ -40,7 +40,7 @@ difficulty = 2
 enemy_type = 5
 enemy_density = "Maximum"
 
-[sub_resource type="Resource" id="Resource_7aytn"]
+[sub_resource type="Resource" id="Resource_u0s3x"]
 script = ExtResource("2_uk1uv")
 formation_type = 1
 entry_pattern = 1
@@ -52,4 +52,4 @@ formation_center = Vector2(640, 300)
 
 [node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 5
-waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_dvmrr"), SubResource("Resource_6kuwj"), SubResource("Resource_2ssk6"), SubResource("Resource_f7vrv"), SubResource("Resource_vyn82"), SubResource("Resource_jpb46"), SubResource("Resource_lg8ot"), SubResource("Resource_7aytn")])
+waves = Array[ExtResource("2_uk1uv")]([SubResource("Resource_dvmrr"), SubResource("Resource_pses1"), SubResource("Resource_2ssk6"), SubResource("Resource_f7vrv"), SubResource("Resource_vyn82"), SubResource("Resource_jpb46"), SubResource("Resource_lg8ot"), SubResource("Resource_u0s3x")])

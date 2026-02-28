@@ -2,13 +2,14 @@
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_vbdck"]
 [ext_resource type="Texture2D" uid="uid://barpagio6gedv" path="res://Textures/Enemy/Enemy_1_B_Medium_NoLight.png" id="2_3atd1"]
-[ext_resource type="Texture2D" uid="uid://dh7udanucf0xp" path="res://Textures/Enemy/Enemy_1_A_Small_NoLight.png" id="2_j5nl5"]
+[ext_resource type="Texture2D" uid="uid://dujjjlua63eyy" path="res://Textures/Enemy/Enemy_1_D_Medium_NoLight.png" id="2_j5nl5"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_3atd1"]
 radius = 203.84308
 
 [node name="Minion" unique_id=1623952910 instance=ExtResource("1_vbdck")]
 shadow_texture = ExtResource("2_j5nl5")
+enemy_type = "EliteEnemy"
 
 [node name="Sprite2D" parent="." index="0" unique_id=1747645234]
 scale = Vector2(1.5, 1.5)
@@ -22,9 +23,9 @@ shape = SubResource("CircleShape2D_3atd1")
 rect = Rect2(-40.009277, -33.52776, 84.13153, 63.257843)
 
 [node name="HealthBar" parent="." index="4" unique_id=59855080]
-offset_left = -157.0
-offset_top = -261.0
-offset_right = 167.0
+offset_left = -181.0
+offset_top = -248.0
+offset_right = 193.0
 offset_bottom = -209.33334
 
 [node name="Enemy_Explosion" parent="." index="6" unique_id=310868200]
