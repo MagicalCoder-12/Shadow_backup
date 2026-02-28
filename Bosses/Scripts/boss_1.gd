@@ -44,7 +44,6 @@ enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
 @export var wave_frequency: float = 0.5
 
 # Node references
-@onready var marker_2d: Marker2D = $Boss/Marker2D
 @onready var left: Marker2D = $Boss/Left
 @onready var right: Marker2D = $Boss/Right
 @onready var center: Marker2D = $Boss/Center
@@ -662,7 +661,14 @@ func _spawn_minion() -> void:
 		print("Error: Failed to instantiate minion")
 		return
 	
-	var spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
+	# Safe spawn position selection with fallback
+	var spawn_pos: Vector2
+	if minion_spawn_positions.size() > 0:
+		spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
+	else:
+		# Fallback to a default offset if spawn positions not initialized
+		spawn_pos = global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
+		print("Warning: minion_spawn_positions empty, using fallback spawn position")
 	minion.global_position = spawn_pos
 	
 	var movement_type = _get_minion_movement_type()
@@ -849,7 +855,8 @@ func fire_homing_missiles() -> void:
 	else:
 		target_pos = global_position + Vector2(0, 1000)
 		
-	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
+	# REDUCED SPEED: Slowed down homing missiles to be more avoidable
+	var speed_multiplier = 0.85 if current_phase == BossPhase.ENRAGED else 0.7 if current_phase == BossPhase.PHASE2 else 0.6
 	
 	for marker in [left, right]:
 		if not marker or not is_instance_valid(marker):
@@ -861,10 +868,16 @@ func fire_homing_missiles() -> void:
 				var angle = randf_range(-PI / 6, PI / 6)
 				bullet.rotation = angle
 				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
-				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
+				# REDUCED SPEED: Using lower speed values
+				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier * 0.8) # Further reduced
 				if bullet.has_method("set_target"):
-					bullet.set_target(target_pos + Vector2(randf_range(-50, 50), randf_range(-50, 50)))
-				if bullet.has_method("set_turn_rate"): bullet.set_turn_rate(0.05 if current_phase == BossPhase.ENRAGED else 0.04)
+					# Add some randomness to target position to make them less accurate
+					var random_offset = Vector2(randf_range(-100, 100), randf_range(-100, 100))
+					bullet.set_target(target_pos + random_offset)
+				# REDUCED TURN RATE: Slower turning for better dodgeability
+				if bullet.has_method("set_turn_rate"): 
+					var turn_rate = 0.03 if current_phase == BossPhase.ENRAGED else 0.025 if current_phase == BossPhase.PHASE2 else 0.02
+					bullet.set_turn_rate(turn_rate)
 				if bullet.has_method("set_damage"): bullet.set_damage(1)
 				get_tree().current_scene.call_deferred("add_child", bullet)
 				var bullet_ref = weakref(bullet)
@@ -873,7 +886,7 @@ func fire_homing_missiles() -> void:
 					if b and is_instance_valid(b):
 						b.queue_free()
 				)
-				print("Spawned homing missile from %s" % marker.name)
+				print("Spawned homing missile from %s (Speed: %.1f)" % [marker.name, bullet_speed * speed_multiplier * 0.8])
 			else:
 				print("Error: Failed to instantiate bullet for homing missile")
 
@@ -915,7 +928,8 @@ func fire_energy_ball() -> void:
 		print("Error: Cannot spawn energy balls, energy_ball_scene invalid")
 		return
 	
-	var markers = [left, center, right]
+	# CHANGED: Only spawn one energy ball from the center marker
+	var markers = [center]  # Only use center marker for energy ball
 	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
 	var damage_multiplier = 1.0
 	if current_phase == BossPhase.ENRAGED:
@@ -923,23 +937,23 @@ func fire_energy_ball() -> void:
 	elif current_phase == BossPhase.PHASE2:
 		damage_multiplier = 1.5
 	
-	for marker in markers:
-		if not marker or not is_instance_valid(marker):
-			continue
+	# Only spawn one energy ball
+	if center and is_instance_valid(center):
 		var energy_ball = energy_ball_scene.instantiate()
 		if energy_ball:
-			energy_ball.global_position = marker.global_position
+			energy_ball.global_position = center.global_position
 			var player = get_tree().get_first_node_in_group("Player")
 			var target_pos = player.global_position if player else global_position + Vector2(0, 1000)
-			var direction = (target_pos - marker.global_position).normalized()
+			var direction = (target_pos - center.global_position).normalized()
 			if energy_ball.has_method("set_direction"):
 				energy_ball.set_direction(direction)
+			# REDUCED SPEED: Slowed down energy ball
 			if energy_ball.has_method("set_speed"):
-				energy_ball.set_speed(200.0 * speed_multiplier)
+				energy_ball.set_speed(150.0 * speed_multiplier)  # Reduced from 200.0
 			if energy_ball.has_method("set_damage"):
 				energy_ball.set_damage(int(3 * damage_multiplier))
 			get_tree().current_scene.call_deferred("add_child", energy_ball)
-			print("Spawned energy ball from %s" % marker.name)
+			print("Spawned single energy ball from center marker")
 		else:
 			print("Error: Failed to instantiate energy ball")
 

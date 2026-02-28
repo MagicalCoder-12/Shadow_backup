@@ -1,21 +1,24 @@
-[gd_scene load_steps=4 format=3 uid="uid://dm6ml8jsvscck"]
+[gd_scene format=3 uid="uid://dm6ml8jsvscck"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_dxnh8"]
 [ext_resource type="Texture2D" uid="uid://py6eihk45hm2" path="res://Textures/Satellite/Sat_textures/Sat3.png" id="2_drpyb"]
+[ext_resource type="Script" uid="uid://ca0gcbycx5tpk" path="res://Satellites/Scripts/satellite.gd" id="2_jyajn"]
 [ext_resource type="Texture2D" uid="uid://ds30r8lbt0m1l" path="res://Textures/Satellite/Ship3/Parts/ship3_tail.png" id="3_drpyb"]
 
-[node name="Satellite3" instance=ExtResource("1_dxnh8")]
+[node name="Satellite3" unique_id=619641657 instance=ExtResource("1_dxnh8")]
+script = ExtResource("2_jyajn")
+behavior_mode = 1
 
-[node name="Sprite2D" parent="." index="0"]
+[node name="Sprite2D" parent="." index="0" unique_id=327435845]
 texture = ExtResource("2_drpyb")
 
-[node name="Ship2Detail" parent="." index="1"]
+[node name="Ship2Detail" parent="." index="1" unique_id=956193229]
 texture = ExtResource("3_drpyb")
 
-[node name="Nozel" parent="." index="3"]
+[node name="Nozel" parent="." index="3" unique_id=2088982984]
 position = Vector2(1, -47)
 
-[node name="CPUParticles2D" parent="." index="4"]
+[node name="CPUParticles2D" parent="." index="4" unique_id=2073059673]
 position = Vector2(-19, 36)
 emission_sphere_radius = 6.0
 gravity = Vector2(-50, 0)

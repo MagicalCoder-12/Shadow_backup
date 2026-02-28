@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://bu2h4t53ean2a"]
+[gd_scene format=3 uid="uid://bu2h4t53ean2a"]
 
 [ext_resource type="Script" uid="uid://dyk25sf0xsm6r" path="res://Bullet/Boss_bullet/Scripts/tractor_beam.gd" id="1_lwjbf"]
 [ext_resource type="Texture2D" uid="uid://b5i7d8y6mboyh" path="res://Textures/Lasers/tractor_beam/00.png" id="1_treae"]
@@ -25,17 +25,17 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_01dnr"]
 size = Vector2(133, 196)
 
-[node name="TractorBeam" type="Area2D"]
+[node name="TractorBeam" type="Area2D" unique_id=1217926997]
 script = ExtResource("1_lwjbf")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=594448722]
 sprite_frames = SubResource("SpriteFrames_67k5w")
 frame_progress = 0.3146398
 
-[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=2074445303]
 position = Vector2(-1, -8.00001)
 scale = Vector2(7.7, 11.5)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1116987203]
 position = Vector2(-2.5, -13)
 shape = SubResource("RectangleShape2D_01dnr")

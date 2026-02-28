@@ -412,8 +412,14 @@ func _spawn_minion() -> void:
 		print("Error: Failed to instantiate minion")
 		return
 	
-	# Set spawn position
-	var spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
+	# Set spawn position with safety check
+	var spawn_pos: Vector2
+	if minion_spawn_positions.size() > 0:
+		spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
+	else:
+		# Fallback to a default offset if spawn positions not initialized
+		spawn_pos = global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
+		print("Warning: minion_spawn_positions empty, using fallback spawn position")
 	minion.global_position = spawn_pos
 	
 	# Set minion properties based on phase

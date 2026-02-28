@@ -3,18 +3,20 @@ extends Control
 @onready var level_buttons: Control = $LevelButtons
 @onready var canvaslayer: CanvasLayer = $CanvasLayer
 @onready var difficulty_selection: Control = $CanvasLayer/DifficultySelection
+@onready var difficulty_unlocked: Control = $CanvasLayer/difficultyUnlocked
 
 const Start_screen = "res://MainScenes/start_menu.tscn"
 const Shop = "res://MainScenes/upgrade_menu.tscn"
 
 # Configuration for world-level format
 @export var levels_per_world: int = 10
-
+var difficulty_unlocked_showed: bool = false
 # Called when the node enters the scene tree
 func _ready():
 	# Hide stars immediately to prevent flickering during transition
 	hide_all_stars()
-	
+	if difficulty_unlocked:
+		difficulty_unlocked.hide()
 	# Hide difficulty selection panel initially
 	if difficulty_selection:
 		difficulty_selection.hide()
@@ -41,11 +43,36 @@ func _ready():
 	GameManager.level_star_earned.connect(_on_level_star_earned)
 
 	get_tree().get_root().connect("go_back_requested", _on_back_pressed)
+	
+	# Check if difficulty selection should be shown (after level 10 completion)
+	_check_and_show_difficulty_unlocked()
 
 # Hide banner ad when leaving the map scene
 func _exit_tree() -> void:
 	if GameManager and GameManager.ad_manager:
 		GameManager.ad_manager.hide_banner_ad()
+
+# Check and show difficulty unlock notification if level 10 is completed
+func _check_and_show_difficulty_unlocked():
+	# Check if player has completed level 10 and hasn't shown the difficulty unlock yet
+	if GameManager and GameManager.save_manager:
+		var completed_levels = GameManager.save_manager.completed_levels
+		if completed_levels.has(10) and not GameManager.save_manager.difficulty_unlocked_showed:
+			# Show difficulty unlock notification
+			_show_difficulty_unlocked()
+			# Mark as shown
+			GameManager.save_manager.difficulty_unlocked_showed = true
+			GameManager.save_progress()
+			print("Map: Difficulty selection unlocked notification shown")
+
+# Show difficulty unlock notification
+func _show_difficulty_unlocked():
+	if difficulty_unlocked:
+		difficulty_unlocked.show()
+		# Auto-hide after a few seconds
+		await get_tree().create_timer(3.0).timeout
+		if difficulty_unlocked and is_inside_tree():
+			difficulty_unlocked.hide()
 
 # Hide all stars immediately to prevent flickering during transition
 func hide_all_stars():

@@ -24,6 +24,9 @@ var boss_levels_completed: Array = []  # Array of boss level numbers that have b
 # Added level_completion_counts to track how many times each level has been completed
 var level_completion_counts: Dictionary = {}  # level_num -> completion count
 
+# Added: Difficulty selection unlock tracking
+var difficulty_unlocked_showed: bool = false
+
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
@@ -169,7 +172,8 @@ func _build_save_payload() -> Dictionary:
 			"level_completion_counts": level_completion_counts.duplicate(true),  # NEW
 			"level_scores": level_scores.duplicate(true),
 			"level_lives": level_lives.duplicate(true),
-			"boss_levels_completed": boss_levels_completed.duplicate(true)
+			"boss_levels_completed": boss_levels_completed.duplicate(true),
+			"difficulty_unlocked_showed": difficulty_unlocked_showed
 		},
 		"player": {
 			"lives": gm.player_lives,
@@ -255,6 +259,7 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	level_lives = _dictionary_or_default(progress_data.get("level_lives", {}), {})
 	level_completion_counts = _dictionary_or_default(progress_data.get("level_completion_counts", {}), {})
 	boss_levels_completed = _array_or_default(progress_data.get("boss_levels_completed", []), [])
+	difficulty_unlocked_showed = bool(progress_data.get("difficulty_unlocked_showed", false))
 	ad_usage_count = max(0, int(ads_data.get("usage_count", 0)))
 	ad_last_used_time = max(0, int(ads_data.get("last_used_time", 0)))
 	
@@ -305,6 +310,7 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	level_lives = loaded_level_lives
 	level_completion_counts = {}
 	boss_levels_completed = loaded_boss_levels
+	difficulty_unlocked_showed = false
 	ad_usage_count = max(0, int(loaded_ad_usage_count))
 	ad_last_used_time = max(0, int(loaded_ad_last_used_time))
 	
@@ -396,6 +402,8 @@ func reset_progress() -> void:
 	level_completion_counts = {}
 	# Reset boss_levels_completed data
 	boss_levels_completed = []
+	# Reset difficulty_unlocked_showed data
+	difficulty_unlocked_showed = false
 	ad_usage_count = 0
 	ad_last_used_time = 0
 	if autosave_progress:

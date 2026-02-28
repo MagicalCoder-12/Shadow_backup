@@ -1,8 +1,36 @@
-[gd_scene load_steps=7 format=3 uid="uid://cgmerubllpsfd"]
+[gd_scene format=3 uid="uid://cgmerubllpsfd"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_vltjo"]
 [ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/Satellite/Sat_textures/Sat6.png" id="2_bcenv"]
+[ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite2.gd" id="2_te12o"]
 [ext_resource type="Texture2D" uid="uid://dr5twcq8nsfyg" path="res://Textures/Satellite/Ship6/Parts/ship6_body2.png" id="3_e5bgx"]
+
+[sub_resource type="Animation" id="Animation_e5bgx"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Ship2Detail:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-3.5762787e-07, 46.999996)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Ship2Detail:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.5564051]
+}
 
 [sub_resource type="Animation" id="Animation_te12o"]
 resource_name = "shoot"
@@ -32,59 +60,32 @@ tracks/1/keys = {
 "values": [1.5564051, 1.2189828, 1.5730902]
 }
 
-[sub_resource type="Animation" id="Animation_e5bgx"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Ship2Detail:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(-3.5762787e-07, 46.999996)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Ship2Detail:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.5564051]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ekefw"]
 _data = {
 &"RESET": SubResource("Animation_e5bgx"),
 &"shoot": SubResource("Animation_te12o")
 }
 
-[node name="Satellite6" instance=ExtResource("1_vltjo")]
+[node name="Satellite6" unique_id=96160696 instance=ExtResource("1_vltjo")]
+scale = Vector2(0.7, 0.7)
+script = ExtResource("2_te12o")
 
-[node name="Sprite2D" parent="." index="0"]
+[node name="Sprite2D" parent="." index="0" unique_id=327435845]
 rotation = 4.712389
 texture = ExtResource("2_bcenv")
 
-[node name="Ship2Detail" parent="." index="1"]
+[node name="Ship2Detail" parent="." index="1" unique_id=956193229]
 position = Vector2(-3.5762787e-07, 46.999996)
 rotation = 1.5564051
 texture = ExtResource("3_e5bgx")
 
-[node name="AnimationPlayer" parent="." index="2"]
-libraries = {
-&"": SubResource("AnimationLibrary_ekefw")
-}
+[node name="AnimationPlayer" parent="." index="2" unique_id=1395619866]
+libraries/ = SubResource("AnimationLibrary_ekefw")
 
-[node name="Nozel" parent="." index="3"]
+[node name="Nozel" parent="." index="3" unique_id=2088982984]
 position = Vector2(-2, -62)
 
-[node name="CPUParticles2D" parent="." index="4"]
+[node name="CPUParticles2D" parent="." index="4" unique_id=2073059673]
 position = Vector2(-2, 89)
 emission_sphere_radius = 7.0
 gravity = Vector2(0, 60)

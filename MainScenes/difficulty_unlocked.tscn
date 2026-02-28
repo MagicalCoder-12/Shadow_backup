@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://cb4y2g0ulc7gu"]
+
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_c8ncn"]
+[ext_resource type="Script" uid="uid://shw626mnyx1q" path="res://MainScenes/Scripts/difficulty_unlocked.gd" id="2_c8ncn"]
+[ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Textures/UI/Neon _CONTINUE_ Button Glowing.png" id="2_rqy0g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wesok"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_32lft"]
+bg_color = Color(0.0705882, 0.945098, 0.360784, 1)
+border_width_left = 20
+
+[sub_resource type="LabelSettings" id="LabelSettings_shob5"]
+font_size = 91
+font_color = Color(1, 1, 0, 1)
+outline_size = 4
+outline_color = Color(1, 0, 1, 0.760784)
+
+[node name="difficultyUnlocked" type="Control" unique_id=587873446]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_c8ncn")
+
+[node name="color_rect" type="ColorRect" parent="." unique_id=1111894450]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.368627)
+
+[node name="PanelContainer" type="PanelContainer" parent="color_rect" unique_id=711918972]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_wesok")
+
+[node name="Panel" type="Panel" parent="color_rect/PanelContainer" unique_id=1346841793]
+layout_mode = 2
+
+[node name="ContinueButton" type="Button" parent="color_rect/PanelContainer/Panel" unique_id=274432207]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -339.0
+offset_top = -455.0
+offset_right = 355.0
+offset_bottom = -156.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_hover_color = Color(0, 1, 0, 0.686275)
+theme_override_colors/font_hover_pressed_color = Color(0, 1, 0, 1)
+theme_override_colors/icon_hover_pressed_color = Color(1, 0, 1, 1)
+theme_override_fonts/font = ExtResource("1_c8ncn")
+theme_override_font_sizes/font_size = 100
+theme_override_styles/focus = SubResource("StyleBoxFlat_32lft")
+icon = ExtResource("2_rqy0g")
+flat = true
+clip_text = true
+icon_alignment = 1
+expand_icon = true
+
+[node name="text" type="RichTextLabel" parent="color_rect/PanelContainer/Panel" unique_id=1881779618]
+layout_mode = 0
+anchor_top = 0.085625
+anchor_right = 0.9861111
+anchor_bottom = 0.8003125
+theme_override_font_sizes/normal_font_size = 80
+theme_override_font_sizes/bold_font_size = 90
+theme_override_font_sizes/italics_font_size = 100
+bbcode_enabled = true
+text = "[center]
+[color=#bbbbbb]You've conquered[/color] [color=#6ec1ff][b]Easy Mode[/b][/color]!
+
+[color=#bbbbbb]A new challenge awaits…[/color]
+
+[color=#ffd700][b]Normal Difficulty Unlocked![/b][/color]
+
+[color=#aaaaaa]Clear a level in[/color] [color=#6ec1ff][b]Easy[/b][/color]
+[color=#aaaaaa]to gain access to[/color]
+[color=#ff5555][b]Hard Mode[/b][/color] — if you dare.
+[/center]"
+fit_content = true
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="title" type="Label" parent="color_rect" unique_id=91882184]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.98125
+anchor_bottom = 0.080625
+grow_horizontal = 2
+text = "You’ve unlocked Normal Mode!"
+label_settings = SubResource("LabelSettings_shob5")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="color_rect/PanelContainer/Panel/ContinueButton" to="." method="_on_continue_button_pressed"]

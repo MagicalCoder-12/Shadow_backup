@@ -597,8 +597,13 @@ func _on_level_manager_boss_defeated() -> void:
 func _input(event):
 	if debug_mode and event.is_action_pressed("debug_next_level"):
 		_unlock_next_level_debug()
+	if event.is_action_pressed("dev_win"):
+		_dev_win()
 
 func _unlock_next_level_debug():
 	print("Debug: Unlocking next level")
 	var current_level = GameManager.level_manager.get_current_level()
 	GameManager.level_manager.unlock_next_level(current_level)
+
+func _dev_win():
+	GameManager.dev_win()

@@ -1,12 +1,14 @@
-[gd_scene load_steps=3 format=3 uid="uid://c5cv6n74q0x71"]
+[gd_scene format=3 uid="uid://c5cv6n74q0x71"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_fnloc"]
 [ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/Satellite/Sat_textures/Sat4.png" id="2_6pvqj"]
+[ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite2.gd" id="2_sc5mr"]
 
-[node name="Satellite4" instance=ExtResource("1_fnloc")]
+[node name="Satellite4" unique_id=18778003 instance=ExtResource("1_fnloc")]
+script = ExtResource("2_sc5mr")
 
-[node name="Sprite2D" parent="." index="0"]
+[node name="Sprite2D" parent="." index="0" unique_id=327435845]
 texture = ExtResource("2_6pvqj")
 
-[node name="Nozel" parent="." index="3"]
+[node name="Nozel" parent="." index="3" unique_id=2088982984]
 position = Vector2(-2, -59)

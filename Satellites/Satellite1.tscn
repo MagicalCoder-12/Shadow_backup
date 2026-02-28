@@ -65,7 +65,11 @@ _data = {
 &"shoot": SubResource("Animation_4nk4h")
 }
 
-[node name="Satellite1" type="Node2D" unique_id=2003450190]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pk3iq"]
+size = Vector2(46, 94)
+
+[node name="Satellite1" type="Area2D" unique_id=1473170715]
+collision_mask = 44
 script = ExtResource("1_fg3ep")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=327435845]
@@ -101,5 +105,9 @@ color = Color(0, 1, 0, 1)
 [node name="Timer" type="Timer" parent="." unique_id=2143997534]
 one_shot = true
 autostart = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=18061884]
+position = Vector2(2, 6)
+shape = SubResource("RectangleShape2D_pk3iq")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

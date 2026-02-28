@@ -105,6 +105,10 @@ func complete_level(current_level: int) -> void:
 		completed_levels.append(current_level)
 		gm.level_star_earned.emit(current_level)
 		gm.save_progress_if_enabled()
+		
+		# Check if level 10 is completed for the first time to unlock difficulty selection
+		if current_level == 10:
+			_unlock_difficulty_selection()
 	
 	# For boss levels, emit the level_completed signal to show boss clear screen
 	# For non-boss levels, also emit the level_completed signal
@@ -119,6 +123,14 @@ func complete_level(current_level: int) -> void:
 	
 	if should_transition_to_next_level:
 		is_level_just_completed = false
+
+func _unlock_difficulty_selection() -> void:
+	# Trigger difficulty unlock notification when level 10 is completed
+	# This will show the difficulty_unlocked UI on the next map visit
+	if gm.save_manager:
+		gm.save_manager.difficulty_unlocked_showed = false
+		gm.save_progress_if_enabled()
+	print("LevelManager: Difficulty selection unlocked after completing level 10")
 
 func _show_shadow_mode_tutorial() -> void:
 	var current_scene = gm.get_tree().current_scene

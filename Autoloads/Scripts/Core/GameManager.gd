@@ -86,6 +86,9 @@ const SATELLITE_ASCENSION_THRESHOLDS: Dictionary = {
 	"Satellite6": [3, 6, 9, 12, 15]
 }
 
+# Debug/Developer settings
+var enable_dev_win: bool = true  # Debug utility: allow instant level completion with "W" key
+
 # Bullet constants for compatibility
 const DEFAULT_BULLET_SPEED: float = 600.0
 const DEFAULT_BULLET_DAMAGE: int = 10
@@ -612,3 +615,49 @@ func _on_prepare_map_scene() -> void:
 	# This function is called before transitioning to the map scene
 	# It ensures stars are updated before the scene transition
 	pass
+
+# Debug utility: instantly complete the current level
+# Only active when enable_dev_win is true (development/debug mode)
+func dev_win() -> void:
+	if not enable_dev_win:
+		return
+	
+	# Only process if we're in a level scene
+	var current_scene = get_tree().current_scene
+	if not current_scene:
+		return
+	
+	print("[DEV_WIN] Triggering instant level completion")
+	
+	# Trigger the same flow as a legitimate win
+	# 1. Get current level
+	var current_level = get_current_level()
+	if current_level > 0:
+		# 2. Clear any existing enemies and bullets to prevent interference
+		_clear_all_enemies_and_bullets()
+		
+		# 3. Trigger level completion through LevelManager
+		# This will: emit victory_pose, show UI, calculate score, transition, etc.
+		level_manager.complete_level(current_level)
+		print("[DEV_WIN] Level %d completed" % current_level)
+	else:
+		print("[DEV_WIN] Not in a level (level=%d), ignoring dev_win request" % current_level)
+
+# Helper to clear enemies and bullets for clean level completion
+func _clear_all_enemies_and_bullets() -> void:
+	# Clear all enemies
+	for enemy in get_tree().get_nodes_in_group("Enemy"):
+		if enemy and is_instance_valid(enemy):
+			enemy.queue_free()
+	
+	# Clear all enemy bullets
+	for bullet in get_tree().get_nodes_in_group("EnemyBullet"):
+		if bullet and is_instance_valid(bullet):
+			bullet.queue_free()
+	
+	# Clear all boss enemies
+	for boss in get_tree().get_nodes_in_group("Boss"):
+		if boss and is_instance_valid(boss):
+			boss.queue_free()
+	
+	print("[DEV_WIN] Cleared enemies and bullets")
