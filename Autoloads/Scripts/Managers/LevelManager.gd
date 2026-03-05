@@ -109,6 +109,19 @@ func complete_level(current_level: int) -> void:
 		# Check if level 10 is completed for the first time to unlock difficulty selection
 		if current_level == 10:
 			_unlock_difficulty_selection()
+		
+		# Check if level 20 is completed in NORMAL to unlock hard difficulty
+		if current_level == 20:
+			var diff_name = _get_difficulty_name_from_value(gm.current_difficulty) if gm and "current_difficulty" in gm else ""
+			if diff_name == "Normal":
+				_unlock_hard_difficulty_selection()
+		
+		# Check and update difficulty tier completion
+		_check_tier_completion()
+	
+	# Track difficulty-specific level completion (ALWAYS track, even if level was already completed)
+	# This tracks the highest difficulty completed for each level
+	_track_difficulty_completion(current_level)
 	
 	# For boss levels, emit the level_completed signal to show boss clear screen
 	# For non-boss levels, also emit the level_completed signal
@@ -131,6 +144,101 @@ func _unlock_difficulty_selection() -> void:
 		gm.save_manager.difficulty_unlocked_showed = false
 		gm.save_progress_if_enabled()
 	print("LevelManager: Difficulty selection unlocked after completing level 10")
+
+func _unlock_hard_difficulty_selection() -> void:
+	# Trigger hard difficulty unlock notification when level 20 is completed
+	# This will show the hard_difficulty_unlocked UI on the next map visit
+	if gm.save_manager:
+		gm.save_manager.hard_difficulty_unlocked_showed = false
+		gm.save_progress_if_enabled()
+	print("LevelManager: Hard difficulty selection unlocked after completing level 20")
+
+# Track level completion in the specific difficulty
+func _track_difficulty_completion(level_num: int) -> void:
+	if not gm or not gm.save_manager:
+		print("LevelManager: _track_difficulty_completion - no gm or save_manager")
+		return
+	
+	# Get current difficulty from GameManager
+	var difficulty = null
+	if gm and "current_difficulty" in gm:
+		difficulty = gm.current_difficulty
+	
+	print("LevelManager: _track_difficulty_completion - level=%d, current_difficulty=%s (type=%s)" % [level_num, difficulty, typeof(difficulty) if difficulty != null else "null"])
+	
+	# Try to get difficulty name using the enum directly from GameManager
+	var difficulty_name = ""
+	if difficulty != null:
+		difficulty_name = _get_difficulty_name_from_value(difficulty)
+	
+	print("LevelManager: _track_difficulty_completion - difficulty_name=%s" % difficulty_name)
+	
+	if difficulty_name != "":
+		gm.save_manager.mark_level_completed_in_difficulty(level_num, difficulty_name)
+		print("LevelManager: Level %d completed in %s" % [level_num, difficulty_name])
+
+# Get difficulty name from enum value
+func _get_difficulty_name_from_value(difficulty) -> String:
+	# Direct integer comparison (Godot enums are integers internally)
+	var diff_int = int(difficulty)
+	print("LevelManager: difficulty as int = %d" % diff_int)
+	
+	# EASY = 0, NORMAL = 1, HARD = 2
+	if diff_int == 0:
+		return "Easy"
+	elif diff_int == 1:
+		return "Normal"
+	elif diff_int == 2:
+		return "Hard"
+	
+	# Try string comparison as fallback
+	var diff_str = str(difficulty)
+	if diff_str.contains("EASY"):
+		return "Easy"
+	elif diff_str.contains("NORMAL"):
+		return "Normal"
+	elif diff_str.contains("HARD"):
+		return "Hard"
+	
+	print("LevelManager: Could not determine difficulty from value: %s" % diff_str)
+	return ""
+
+# Get difficulty name string from enum (kept for backwards compatibility)
+func _get_difficulty_name(difficulty) -> String:
+	return _get_difficulty_name_from_value(difficulty)
+
+# Check and update difficulty tier completion status
+func _check_tier_completion() -> void:
+	if not gm or not gm.save_manager:
+		return
+	
+	# Check Easy tier completion (all levels 1-10 must be completed)
+	if not gm.save_manager.easy_tier_completed:
+		if _is_easy_tier_completed():
+			gm.save_manager.easy_tier_completed = true
+			gm.save_progress_if_enabled()
+			print("LevelManager: Easy tier fully completed!")
+	
+	# Check Normal tier completion (all levels 1-20 must be completed)
+	if not gm.save_manager.normal_tier_completed:
+		if _is_normal_tier_completed():
+			gm.save_manager.normal_tier_completed = true
+			gm.save_progress_if_enabled()
+			print("LevelManager: Normal tier fully completed!")
+
+# Check if Easy tier is fully completed (all levels 1-10)
+func _is_easy_tier_completed() -> bool:
+	for level in range(1, 11):
+		if not completed_levels.has(level):
+			return false
+	return true
+
+# Check if Normal tier is fully completed (all levels 1-20)
+func _is_normal_tier_completed() -> bool:
+	for level in range(1, 21):
+		if not completed_levels.has(level):
+			return false
+	return true
 
 func _show_shadow_mode_tutorial() -> void:
 	var current_scene = gm.get_tree().current_scene
@@ -226,8 +334,8 @@ func is_level_unlocked(level: int) -> bool:
 	# Progressive level unlock system
 	# Level 1: Always unlocked (starting level)
 	# Levels 2-10: Unlocked after completing the previous level
-	# Levels 11-20: Unlocked after completing level 10
-	# Levels 21-30: Unlocked after completing level 20
+	# Levels 11-20: Unlocked after completing the previous level (starting with level 10)
+	# Levels 21-30: Unlocked after completing the previous level (starting with level 20)
 	
 	if level == 1:
 		# Starting level - always unlocked
@@ -236,17 +344,31 @@ func is_level_unlocked(level: int) -> bool:
 		# Easy levels 2-10 - unlocked after completing previous level
 		return is_level_completed(level - 1)
 	elif level <= 20:
-		# Medium levels 11-20 - unlocked after completing level 10
-		return is_level_completed(10)
+		# Levels 11-20 - unlocked after completing the previous level
+		# Level 11 requires level 10, level 12 requires level 11, etc.
+		return is_level_completed(level - 1)
 	elif level <= 30:
-		# Hard levels 21-30 - unlocked after completing level 20
-		return is_level_completed(20)
+		# Levels 21-30 - unlocked after completing the previous level
+		# Level 21 requires level 20, level 22 requires level 21, etc.
+		return is_level_completed(level - 1)
 	else:
 		# Beyond level 30 - use default unlock system
 		return level <= unlocked_levels
 
 func is_level_completed(level: int) -> bool:
 	return completed_levels.has(level)
+
+# Public function to check if Easy tier is fully completed
+func is_easy_tier_completed() -> bool:
+	if gm and gm.save_manager:
+		return gm.save_manager.easy_tier_completed
+	return _is_easy_tier_completed()
+
+# Public function to check if Normal tier is fully completed
+func is_normal_tier_completed() -> bool:
+	if gm and gm.save_manager:
+		return gm.save_manager.normal_tier_completed
+	return _is_normal_tier_completed()
 
 # Add functions for level completion count tracking
 func get_level_completion_count(level: int) -> int:

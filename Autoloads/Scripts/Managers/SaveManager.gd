@@ -26,6 +26,25 @@ var level_completion_counts: Dictionary = {}  # level_num -> completion count
 
 # Added: Difficulty selection unlock tracking
 var difficulty_unlocked_showed: bool = false
+var hard_difficulty_unlocked_showed: bool = false
+
+# Added: Difficulty tier completion tracking
+# Easy tier = levels 1-10, Normal tier = levels 1-20, Hard tier = levels 1-30
+var easy_tier_completed: bool = false
+var normal_tier_completed: bool = false
+
+# Added: Per-difficulty level completion tracking
+# Tracks which levels have been completed in each difficulty
+var levels_completed_easy: Array = []
+var levels_completed_normal: Array = []
+var levels_completed_hard: Array = []
+
+# Tracks the highest difficulty completed for each level (0=none, 1=easy, 2=normal, 3=hard)
+var level_highest_difficulty: Dictionary = {}
+
+# Added: Global unlock flags
+var normal_globally_unlocked: bool = false
+var hard_globally_unlocked: bool = false
 
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
@@ -173,7 +192,16 @@ func _build_save_payload() -> Dictionary:
 			"level_scores": level_scores.duplicate(true),
 			"level_lives": level_lives.duplicate(true),
 			"boss_levels_completed": boss_levels_completed.duplicate(true),
-			"difficulty_unlocked_showed": difficulty_unlocked_showed
+			"difficulty_unlocked_showed": difficulty_unlocked_showed,
+			"hard_difficulty_unlocked_showed": hard_difficulty_unlocked_showed,
+			"easy_tier_completed": easy_tier_completed,
+			"normal_tier_completed": normal_tier_completed,
+			"levels_completed_easy": levels_completed_easy.duplicate(true),
+			"levels_completed_normal": levels_completed_normal.duplicate(true),
+			"levels_completed_hard": levels_completed_hard.duplicate(true),
+			"normal_globally_unlocked": normal_globally_unlocked,
+			"hard_globally_unlocked": hard_globally_unlocked,
+			"level_highest_difficulty": level_highest_difficulty.duplicate(true)
 		},
 		"player": {
 			"lives": gm.player_lives,
@@ -260,6 +288,15 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	level_completion_counts = _dictionary_or_default(progress_data.get("level_completion_counts", {}), {})
 	boss_levels_completed = _array_or_default(progress_data.get("boss_levels_completed", []), [])
 	difficulty_unlocked_showed = bool(progress_data.get("difficulty_unlocked_showed", false))
+	hard_difficulty_unlocked_showed = bool(progress_data.get("hard_difficulty_unlocked_showed", false))
+	easy_tier_completed = bool(progress_data.get("easy_tier_completed", false))
+	normal_tier_completed = bool(progress_data.get("normal_tier_completed", false))
+	levels_completed_easy = _array_or_default(progress_data.get("levels_completed_easy", []), [])
+	levels_completed_normal = _array_or_default(progress_data.get("levels_completed_normal", []), [])
+	levels_completed_hard = _array_or_default(progress_data.get("levels_completed_hard", []), [])
+	normal_globally_unlocked = bool(progress_data.get("normal_globally_unlocked", false))
+	hard_globally_unlocked = bool(progress_data.get("hard_globally_unlocked", false))
+	level_highest_difficulty = _dictionary_or_default(progress_data.get("level_highest_difficulty", {}), {})
 	ad_usage_count = max(0, int(ads_data.get("usage_count", 0)))
 	ad_last_used_time = max(0, int(ads_data.get("last_used_time", 0)))
 	
@@ -311,6 +348,15 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	level_completion_counts = {}
 	boss_levels_completed = loaded_boss_levels
 	difficulty_unlocked_showed = false
+	hard_difficulty_unlocked_showed = false
+	easy_tier_completed = false
+	normal_tier_completed = false
+	levels_completed_easy = []
+	levels_completed_normal = []
+	levels_completed_hard = []
+	normal_globally_unlocked = false
+	hard_globally_unlocked = false
+	level_highest_difficulty = {}
 	ad_usage_count = max(0, int(loaded_ad_usage_count))
 	ad_last_used_time = max(0, int(loaded_ad_last_used_time))
 	
@@ -404,6 +450,15 @@ func reset_progress() -> void:
 	boss_levels_completed = []
 	# Reset difficulty_unlocked_showed data
 	difficulty_unlocked_showed = false
+	hard_difficulty_unlocked_showed = false
+	easy_tier_completed = false
+	normal_tier_completed = false
+	levels_completed_easy = []
+	levels_completed_normal = []
+	levels_completed_hard = []
+	level_highest_difficulty = {}
+	normal_globally_unlocked = false
+	hard_globally_unlocked = false
 	ad_usage_count = 0
 	ad_last_used_time = 0
 	if autosave_progress:
@@ -480,3 +535,81 @@ func _get_default_satellites() -> Array:
 		"texture": "res://Textures/player/Sat_textures/Sat1.png",
 		"purchase_cost": 0
 	}]
+
+# Functions for difficulty-specific level completion tracking
+# Mark a level as completed in a specific difficulty
+# Also tracks highest difficulty completed for that level
+func mark_level_completed_in_difficulty(level_num: int, difficulty: String) -> void:
+	print("SaveManager: mark_level_completed_in_difficulty called - level=%d, difficulty=%s" % [level_num, difficulty])
+	
+	var difficulty_value = 0
+	match difficulty:
+		"Easy", "EASY":
+			difficulty_value = 1
+			if not levels_completed_easy.has(level_num):
+				levels_completed_easy.append(level_num)
+				# Check if Level 10 Easy is completed to unlock Normal globally
+				if level_num == 10:
+					normal_globally_unlocked = true
+					print("SaveManager: NORMAL GLOBALLY UNLOCKED (Level 10 Easy completed)")
+				print("SaveManager: Level %d marked as completed in Easy" % level_num)
+		"Normal", "NORMAL":
+			difficulty_value = 2
+			if not levels_completed_normal.has(level_num):
+				levels_completed_normal.append(level_num)
+				# Check if Level 20 Normal is completed to unlock Hard globally
+				if level_num == 20:
+					hard_globally_unlocked = true
+					print("SaveManager: HARD GLOBALLY UNLOCKED (Level 20 Normal completed)")
+				print("SaveManager: Level %d marked as completed in Normal" % level_num)
+		"Hard", "HARD":
+			difficulty_value = 3
+			if not levels_completed_hard.has(level_num):
+				levels_completed_hard.append(level_num)
+				print("SaveManager: Level %d marked as completed in Hard" % level_num)
+		_:
+			print("SaveManager: WARNING - Unknown difficulty '%s'" % difficulty)
+	
+	# Update highest difficulty if this is higher than previous
+	var current_highest = level_highest_difficulty.get(level_num, 0)
+	if difficulty_value > current_highest:
+		level_highest_difficulty[level_num] = difficulty_value
+		print("SaveManager: Level %d highest difficulty updated to %s (was %d)" % [level_num, difficulty, current_highest])
+	
+	if autosave_progress:
+		save_progress()
+
+# Get the star level for a level (0=none, 1=Bronze, 2=Silver, 3=Gold)
+func get_level_star(level_num: int) -> int:
+	return level_highest_difficulty.get(level_num, 0)
+
+# Debug function to check all tracked completions
+func debug_print_completions() -> void:
+	print("=== SaveManager Debug ===")
+	print("levels_completed_easy: %s" % levels_completed_easy)
+	print("levels_completed_normal: %s" % levels_completed_normal)
+	print("levels_completed_hard: %s" % levels_completed_hard)
+	print("level_highest_difficulty: %s" % level_highest_difficulty)
+	print("normal_globally_unlocked: %s" % normal_globally_unlocked)
+	print("hard_globally_unlocked: %s" % hard_globally_unlocked)
+	print("=========================")
+
+# Check if a level is completed in a specific difficulty
+func is_level_completed_in_difficulty(level_num: int, difficulty: String) -> bool:
+	match difficulty:
+		"Easy", "EASY":
+			return levels_completed_easy.has(level_num)
+		"Normal", "NORMAL":
+			return levels_completed_normal.has(level_num)
+		"Hard", "HARD":
+			return levels_completed_hard.has(level_num)
+	return false
+
+# Check if Normal difficulty is globally unlocked
+func is_normal_globally_unlocked() -> bool:
+	return normal_globally_unlocked
+
+# Check if Hard difficulty is globally unlocked
+func is_hard_globally_unlocked() -> bool:
+	return hard_globally_unlocked
+

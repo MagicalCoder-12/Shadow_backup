@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cvp3h6kj6bqrh"]
+
+[ext_resource type="PackedScene" uid="uid://cb4y2g0ulc7gu" path="res://MainScenes/difficulty_unlocked.tscn" id="1_8q6u1"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_brq81"]
+font_size = 91
+font_color = Color(0.972549, 0.4745098, 0, 1)
+outline_size = 4
+outline_color = Color(1, 0, 1, 0.760784)
+
+[node name="harddifficultyUnlocked" unique_id=587873446 instance=ExtResource("1_8q6u1")]
+
+[node name="text" parent="color_rect/PanelContainer/Panel" parent_id_path=PackedInt32Array(1346841793) index="1" unique_id=1881779618]
+text = "[center]
+[color=#bbbbbb]You've conquered[/color] [color=#6ec1ff][b]Normal  Mode[/b][/color]!
+
+[color=#bbbbbb]A pro challenge awaits…[/color]
+
+[color=#ffd700][b]HARD Difficulty Unlocked![/b][/color]
+
+[color=#aaaaaa]Clear a level in[/color] [color=#6ec1ff][b]Normal[/b][/color]
+[color=#aaaaaa]to gain access to[/color]
+[color=#ff5555][b]Hard Mode[/b][/color] —Only for pro players 🫡👑.
+[/center]"
+
+[node name="title" parent="color_rect" parent_id_path=PackedInt32Array(1111894450) index="1" unique_id=91882184]
+text = "You’ve unlocked Hard Mode!"
+label_settings = SubResource("LabelSettings_brq81")

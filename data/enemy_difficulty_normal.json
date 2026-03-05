@@ -3,7 +3,7 @@
 	"data": {
 		"mob1": {
 			"score": 100.0,
-			"max_health": 150.0,
+			"max_health": 250.0,
 			"damage_amount": 1.0,
 			"speed": 300.0,
 			"vertical_speed": 600.0,
@@ -13,7 +13,7 @@
 		},
 		"mob2": {
 			"score": 100.0,
-			"max_health": 200.0,
+			"max_health": 260.0,
 			"damage_amount": 1.0,
 			"speed": 250.0,
 			"vertical_speed": 300.0,
@@ -32,7 +32,7 @@
 				"shadow_spawn_probability": 0.3
 			},
 			"SlowShooter": {
-				"score": 150.0,
+				"score": 180.0,
 				"max_health": 400.0,
 			"damage_amount": 1.0,
 			"speed": 250.0,
@@ -52,7 +52,7 @@
 			"shadow_spawn_probability": 0.3
 		},
 		"BouncerEnemy": {
-			"score": 200.0,
+			"score": 260.0,
 			"max_health": 400.0,
 			"damage_amount": 1.0,
 			"speed": 200.0,
@@ -103,7 +103,7 @@
 		},
 		"EliteEnemy": {
 			"score": 250.0,
-			"max_health": 450.0,
+			"max_health": 460.0,
 			"damage_amount": 1.0,
 			"speed": 260.0,
 			"vertical_speed": 500.0,

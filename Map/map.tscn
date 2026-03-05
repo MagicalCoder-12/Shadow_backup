@@ -17,6 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://cnsxlue1203ri" path="res://Textures/UI/Main_Menu/BTNs_Active/Shop_BTN.png" id="16_t5i76"]
 [ext_resource type="PackedScene" uid="uid://djv02b634b0pv" path="res://MainScenes/difficulty_selection.tscn" id="16_xoeuw"]
 [ext_resource type="PackedScene" uid="uid://cb4y2g0ulc7gu" path="res://MainScenes/difficulty_unlocked.tscn" id="17_tgjig"]
+[ext_resource type="PackedScene" uid="uid://cvp3h6kj6bqrh" path="res://MainScenes/harddifficulty_unlocked.tscn" id="18_5ps16"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_bmidu"]
 font = ExtResource("2_3g1qk")
@@ -391,6 +392,8 @@ metadata/_edit_use_anchors_ = true
 [node name="DifficultySelection" parent="CanvasLayer" unique_id=1508652828 instance=ExtResource("16_xoeuw")]
 
 [node name="difficultyUnlocked" parent="CanvasLayer" unique_id=587873446 instance=ExtResource("17_tgjig")]
+
+[node name="harddifficultyUnlocked" parent="CanvasLayer" unique_id=1641347548 instance=ExtResource("18_5ps16")]
 
 [connection signal="pressed" from="CanvasLayer/Back" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/Shop" to="." method="_on_shop_pressed"]

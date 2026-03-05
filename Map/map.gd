@@ -4,19 +4,21 @@ extends Control
 @onready var canvaslayer: CanvasLayer = $CanvasLayer
 @onready var difficulty_selection: Control = $CanvasLayer/DifficultySelection
 @onready var difficulty_unlocked: Control = $CanvasLayer/difficultyUnlocked
+@onready var harddifficulty_unlocked: Control = $CanvasLayer/harddifficultyUnlocked
 
 const Start_screen = "res://MainScenes/start_menu.tscn"
 const Shop = "res://MainScenes/upgrade_menu.tscn"
 
 # Configuration for world-level format
 @export var levels_per_world: int = 10
-var difficulty_unlocked_showed: bool = false
 # Called when the node enters the scene tree
 func _ready():
 	# Hide stars immediately to prevent flickering during transition
 	hide_all_stars()
 	if difficulty_unlocked:
 		difficulty_unlocked.hide()
+	if harddifficulty_unlocked:
+		harddifficulty_unlocked.hide()
 	# Hide difficulty selection panel initially
 	if difficulty_selection:
 		difficulty_selection.hide()
@@ -55,15 +57,24 @@ func _exit_tree() -> void:
 # Check and show difficulty unlock notification if level 10 is completed
 func _check_and_show_difficulty_unlocked():
 	# Check if player has completed level 10 and hasn't shown the difficulty unlock yet
-	if GameManager and GameManager.save_manager:
-		var completed_levels = GameManager.save_manager.completed_levels
-		if completed_levels.has(10) and not GameManager.save_manager.difficulty_unlocked_showed:
+	if GameManager and GameManager.save_manager and GameManager.level_manager:
+		# Check for normal difficulty unlock (level 10)
+		if GameManager.is_level_completed(10) and not GameManager.save_manager.difficulty_unlocked_showed:
 			# Show difficulty unlock notification
 			_show_difficulty_unlocked()
 			# Mark as shown
 			GameManager.save_manager.difficulty_unlocked_showed = true
 			GameManager.save_progress()
 			print("Map: Difficulty selection unlocked notification shown")
+		
+		# Check for hard difficulty unlock (level 20)
+		if GameManager.is_level_completed(20) and not GameManager.save_manager.hard_difficulty_unlocked_showed:
+			# Show hard difficulty unlock notification
+			_show_hard_difficulty_unlocked()
+			# Mark as shown
+			GameManager.save_manager.hard_difficulty_unlocked_showed = true
+			GameManager.save_progress()
+			print("Map: Hard difficulty selection unlocked notification shown")
 
 # Show difficulty unlock notification
 func _show_difficulty_unlocked():
@@ -73,6 +84,15 @@ func _show_difficulty_unlocked():
 		await get_tree().create_timer(3.0).timeout
 		if difficulty_unlocked and is_inside_tree():
 			difficulty_unlocked.hide()
+
+# Show hard difficulty unlock notification
+func _show_hard_difficulty_unlocked():
+	if harddifficulty_unlocked:
+		harddifficulty_unlocked.show()
+		# Auto-hide after a few seconds
+		await get_tree().create_timer(3.0).timeout
+		if harddifficulty_unlocked and is_inside_tree():
+			harddifficulty_unlocked.hide()
 
 # Hide all stars immediately to prevent flickering during transition
 func hide_all_stars():
@@ -176,20 +196,25 @@ func update_stars():
 		var star_gold: Sprite2D = _get_star_sprite(button, "Star_gold")
 		if star_bronze and star_silver and star_gold:
 			
-			var completion_count = GameManager.level_manager.get_level_completion_count(level_num)
+			# Get star level based on highest difficulty completed
+			# 0 = none, 1 = Easy (Bronze), 2 = Normal (Silver), 3 = Hard (Gold)
+			var star_level = 0
+			if GameManager and GameManager.save_manager:
+				star_level = GameManager.save_manager.get_level_star(level_num)
 			
 			# Hide all stars initially
 			star_bronze.hide()
 			star_silver.hide()
 			star_gold.hide()
 			
-			# Show appropriate star based on completion count
-			if completion_count >= 1:
+			# Show appropriate star based on highest difficulty completed
+			# 1 = Bronze (Easy completed), 2 = Silver (Normal completed), 3 = Gold (Hard completed)
+			if star_level >= 1:
 				star_bronze.show()
-			if completion_count >= 2:
+			if star_level >= 2:
 				star_bronze.hide()
 				star_silver.show()
-			if completion_count >= 3:
+			if star_level >= 3:
 				star_bronze.hide()
 				star_silver.hide()
 				star_gold.show()

@@ -1,7 +1,7 @@
 {
 	"schema_version": 1,
 	"data": {
-				"mob1": {
+			"mob1": {
 			"score": 100,
 			"max_health": 150,
 			"damage_amount": 1,

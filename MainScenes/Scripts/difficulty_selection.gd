@@ -151,13 +151,57 @@ func _ensure_valid_selected_difficulty() -> void:
 func _is_difficulty_unlocked(difficulty: FormationEnums.DifficultyLevel) -> bool:
 	match difficulty:
 		FormationEnums.DifficultyLevel.EASY:
+			# Easy is always unlocked for all levels
 			return true
 		FormationEnums.DifficultyLevel.NORMAL:
-			return _is_level_completed(NORMAL_UNLOCK_LEVEL)
+			# Normal is unlocked if:
+			# 1. Level 10 Easy is completed (global unlock)
+			# AND
+			# 2. Target level L Easy is completed (per-level unlock)
+			var global_unlock = _is_normal_globally_unlocked()
+			var per_level_unlock = _is_level_completed_in_difficulty(target_level, "Easy")
+			print("DifficultySelection: Normal check - global=%s, level_%d_easy=%s" % [global_unlock, target_level, per_level_unlock])
+			return global_unlock and per_level_unlock
 		FormationEnums.DifficultyLevel.HARD:
-			return _is_level_completed(HARD_UNLOCK_LEVEL)
+			# Hard is unlocked if:
+			# 1. Level 20 Normal is completed (global unlock)
+			# AND
+			# 2. Target level L Normal is completed (per-level unlock)
+			var global_unlock = _is_hard_globally_unlocked()
+			var per_level_unlock = _is_level_completed_in_difficulty(target_level, "Normal")
+			print("DifficultySelection: Hard check - global=%s, level_%d_normal=%s" % [global_unlock, target_level, per_level_unlock])
+			return global_unlock and per_level_unlock
 		_:
 			return false
+
+# Check global unlock status from SaveManager
+func _is_normal_globally_unlocked() -> bool:
+	if not GameManager or not GameManager.save_manager:
+		return false
+	return GameManager.save_manager.is_normal_globally_unlocked()
+
+func _is_hard_globally_unlocked() -> bool:
+	if not GameManager or not GameManager.save_manager:
+		return false
+	return GameManager.save_manager.is_hard_globally_unlocked()
+
+# Check if a level is completed in a specific difficulty
+func _is_level_completed_in_difficulty(level_num: int, difficulty: String) -> bool:
+	if not GameManager or not GameManager.save_manager:
+		return false
+	return GameManager.save_manager.is_level_completed_in_difficulty(level_num, difficulty)
+
+# Check if Easy tier is fully completed (all levels 1-10)
+func _is_easy_tier_completed() -> bool:
+	if not GameManager or not GameManager.save_manager:
+		return false
+	return GameManager.save_manager.easy_tier_completed
+
+# Check if Normal tier is fully completed (all levels 1-20)
+func _is_normal_tier_completed() -> bool:
+	if not GameManager or not GameManager.save_manager:
+		return false
+	return GameManager.save_manager.normal_tier_completed
 
 func _is_level_completed(level_num: int) -> bool:
 	if not GameManager:
@@ -167,8 +211,24 @@ func _is_level_completed(level_num: int) -> bool:
 func _show_unlock_requirement(difficulty: FormationEnums.DifficultyLevel) -> void:
 	match difficulty:
 		FormationEnums.DifficultyLevel.NORMAL:
-			description_label.text = "[color=orange]Normal unlocks after completing Level %d.[/color]" % NORMAL_UNLOCK_LEVEL
+			var global_unlocked = _is_normal_globally_unlocked()
+			var level_completed_easy = _is_level_completed_in_difficulty(target_level, "Easy")
+			
+			if not global_unlocked:
+				description_label.text = "[color=orange]Complete Level 10 in Easy to unlock Normal difficulty.[/color]"
+			elif not level_completed_easy:
+				description_label.text = "[color=orange]Complete Level %d in Easy first.[/color]" % target_level
+			else:
+				description_label.text = "[color=orange]Complete Level %d in Easy first.[/color]" % target_level
 		FormationEnums.DifficultyLevel.HARD:
-			description_label.text = "[color=orange]Hard unlocks after completing Level %d.[/color]" % HARD_UNLOCK_LEVEL
+			var global_unlocked = _is_hard_globally_unlocked()
+			var level_completed_normal = _is_level_completed_in_difficulty(target_level, "Normal")
+			
+			if not global_unlocked:
+				description_label.text = "[color=orange]Complete Level 20 in Normal to unlock Hard difficulty.[/color]"
+			elif not level_completed_normal:
+				description_label.text = "[color=orange]Complete Level %d in Normal first.[/color]" % target_level
+			else:
+				description_label.text = "[color=orange]Complete Level %d in Normal first.[/color]" % target_level
 		_:
 			description_label.text = "Select a difficulty level"

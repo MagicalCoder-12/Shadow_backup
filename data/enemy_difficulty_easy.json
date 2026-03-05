@@ -7,7 +7,7 @@
 			"damage_amount": 1.0,
 			"speed": 250.0,
 			"vertical_speed": 500.0,
-			"fire_rate": 1.8,
+			"fire_rate": 3.0,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -17,7 +17,7 @@
 			"damage_amount": 1.0,
 			"speed": 200.0,
 			"vertical_speed": 250.0,
-			"fire_rate": 1.8,
+			"fire_rate": 3.0,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -27,7 +27,7 @@
 				"damage_amount": 1.0,
 				"speed": 160.0,
 				"vertical_speed": 320.0,
-				"fire_rate": 1.1,
+				"fire_rate": 3.0,
 				"entry_speed_multiplier": 1.0,
 				"shadow_spawn_probability": 0.2
 			},
@@ -37,7 +37,7 @@
 			"damage_amount": 1.0,
 			"speed": 200.0,
 			"vertical_speed": 240.0,
-			"fire_rate": 2.5,
+			"fire_rate": 5.0,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -47,7 +47,7 @@
 			"damage_amount": 1.0,
 			"speed": 240.0,
 			"vertical_speed": 480.0,
-			"fire_rate": 1.5,
+			"fire_rate": 1.0,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -57,7 +57,7 @@
 			"damage_amount": 1.0,
 			"speed": 160.0,
 			"vertical_speed": 240.0,
-			"fire_rate": 2.5,
+			"fire_rate": 3.5,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -65,7 +65,7 @@
 			"score": 240.0,
 			"max_health": 80.0,
 			"damage_amount": 1.0,
-			"speed": 160.0,
+			"speed": 360.0,
 			"vertical_speed": 320.0,
 			"fire_rate": 0.6,
 			"entry_speed_multiplier": 1.0,
@@ -75,9 +75,9 @@
 			"score": 80.0,
 			"max_health": 480.0,
 			"damage_amount": 1.0,
-			"speed": 160.0,
+			"speed": 260.0,
 			"vertical_speed": 320.0,
-			"fire_rate": 1.2,
+			"fire_rate": 4.2,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -87,7 +87,7 @@
 			"damage_amount": 1.0,
 			"speed": 160.0,
 			"vertical_speed": 320.0,
-			"fire_rate": 1.2,
+			"fire_rate": 4.2,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -97,7 +97,7 @@
 			"damage_amount": 1.0,
 			"speed": 160.0,
 			"vertical_speed": 320.0,
-			"fire_rate": 1.2,
+			"fire_rate": 3.2,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		},
@@ -107,7 +107,7 @@
 			"damage_amount": 1.0,
 			"speed": 208.0,
 			"vertical_speed": 400.0,
-			"fire_rate": 1.6,
+			"fire_rate": 2.6,
 			"entry_speed_multiplier": 1.0,
 			"shadow_spawn_probability": 0.2
 		}

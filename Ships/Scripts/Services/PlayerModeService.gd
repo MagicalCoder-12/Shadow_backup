@@ -95,8 +95,8 @@ func on_shadow_mode_activated() -> void:
 	apply_shadow_mode_effects()
 
 func on_shadow_mode_deactivated() -> void:
-	if not _is_shadow_mode_active():
-		return
+	# Always revert shadow mode effects regardless of current state
+	# This ensures the ship properly resets even if the state is inconsistent
 	_set_shadow_mode_active(false)
 	revert_shadow_mode_effects()
 
