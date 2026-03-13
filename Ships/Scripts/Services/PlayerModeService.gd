@@ -149,11 +149,24 @@ func revert_shadow_mode_effects() -> void:
 	_set_active_bullet_scene(_get_normal_bullet_scene())
 
 func apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool) -> void:
-	if super_mode_active and not _is_super_mode_active():
+	var was_shadow_active: bool = _is_shadow_mode_active()
+	var was_super_active: bool = _is_super_mode_active()
+
+	if was_super_active and not super_mode_active:
+		_set_super_mode_active(false)
+		on_super_mode_timeout()
+
+	if was_shadow_active and not shadow_mode_active:
+		_set_shadow_mode_active(false)
+		revert_shadow_mode_effects()
+
+	if shadow_mode_active and not was_shadow_active:
+		_set_shadow_mode_active(true)
+		apply_shadow_mode_effects()
+
+	if super_mode_active and not was_super_active:
 		_set_super_mode_active(true)
-		apply_super_mode_effects(2.0, 10.0)
-	elif shadow_mode_active and not _is_shadow_mode_active():
-		on_shadow_mode_activated()
+		apply_super_mode_effects(2.0, 2.0)
 
 func activate_super_mode(multiplier_div: float, duration: float) -> void:
 	_set_super_mode_active(true)
@@ -340,6 +353,18 @@ func get_balanced_upgrade_gain(base_gain: int, attack_level: int, max_attack_lev
 
 func use_ship2_mode_swap() -> bool:
 	return bool(_player_balance.get("ship2_mode_swap_enabled", true))
+
+func is_shadow_mode_active() -> bool:
+	return _is_shadow_mode_active()
+
+func is_super_mode_active() -> bool:
+	return _is_super_mode_active()
+
+func set_shadow_mode_active(active: bool) -> void:
+	_set_shadow_mode_active(active)
+
+func set_super_mode_active(active: bool) -> void:
+	_set_super_mode_active(active)
 
 func _apply_player_balance_settings(balance_settings: Dictionary) -> void:
 	if balance_settings.is_empty():

@@ -313,7 +313,7 @@ func unlock_shadow_mode() -> void:
 		gm.save_progress_if_enabled()
 		update_hud_visibility()
 
-func activate_shadow_mode(duration: float = 2.0) -> void:
+func activate_shadow_mode(duration: float) -> void:
 	if shadow_mode_unlocked:
 		gm.request_shadow_mode_activate(duration, "LevelManager.activate_shadow_mode")
 

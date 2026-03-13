@@ -40,6 +40,7 @@ var pattern_cooldown_timer: Timer
 # Wave-pattern state tracking for shadow mode
 var shadow_current_pattern: WavePattern = WavePattern.SHADOW_HORIZONTAL
 var shadow_current_wave: int = 0
+var shadow_current_shot: int = 0
 var is_shadow_wave_firing: bool = false
 var shadow_wave_timer: Timer
 var shadow_wave_cooldown_timer: Timer
@@ -90,7 +91,7 @@ func _apply_ship_specific_stats() -> void:
 	
 	# Shadow mode configurations - reduced bullet count
 	shadow_wave_count = 3
-	shadow_bullets_per_wave = 1  # Reduced from 9 to 5
+	shadow_bullets_per_wave = 2
 	shadow_wave_delay = 0.3  # Increased from 0.2 to 0.3 for slower firing
 	shadow_wave_spread = 45.0
 	
@@ -101,6 +102,12 @@ func _apply_ship_specific_stats() -> void:
 	# Set initial pattern
 	current_pattern = WavePattern.LEFT_RIGHT_WAVE
 	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	if wave_timer:
+		wave_timer.wait_time = wave_fire_delay
+	if pattern_cooldown_timer:
+		pattern_cooldown_timer.wait_time = pattern_cooldown
+	if shadow_wave_timer:
+		shadow_wave_timer.wait_time = shadow_wave_delay
 	
 	_debug_log("Applied Ship3-specific stats")
 
@@ -135,30 +142,16 @@ func _shoot_normal_wave() -> void:
 		wave_timer.start()
 
 func _shoot_shadow_mode() -> void:
-	# Simplified shadow mode - fire bullets like Ship1, not using wave patterns
-	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
-	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * 1.2  # shadow_speed_multiplier
-	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
-	
-	# Fire bullets in circular pattern like Ship1 (reduced count)
-	var bullet_count = 8  # Reduced from Ship1's 25 to a more manageable amount
-	var angle_step: float = 360.0 / float(bullet_count)
-	for i in range(bullet_count):
-		var angle: float = deg_to_rad(i * angle_step)
-		var offset: Vector2 = Vector2(cos(angle), sin(angle)) * 5.0  # spawn_point_offset
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			global_position + offset,
-			angle,
-			bullet_speed,
-			bullet_damage
-		)
-		if bullet:
-			SceneSpawnService.spawn_child(bullet)
-	
-	# Play shooting sound
-	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+	if is_shadow_wave_firing or not shadow_wave_cooldown_timer.is_stopped():
+		return
+
+	is_shadow_wave_firing = true
+	shadow_current_wave = 0
+	shadow_current_shot = 0
+	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	_fire_shadow_wave_shot()
+	if is_shadow_wave_firing and shadow_wave_timer:
+		shadow_wave_timer.start()
 
 func _fire_wave_shot() -> void:
 	if current_wave_shot >= shots_per_wave:
@@ -270,21 +263,18 @@ func _fire_focused_beam(bullet_scene: PackedScene, bullet_speed: float, bullet_d
 			SceneSpawnService.spawn_child(bullet)
 
 func _fire_shadow_wave_shot() -> void:
-	if current_wave_shot >= shadow_bullets_per_wave:
-		# Wave complete, cycle to next pattern
-		shadow_wave_timer.stop()
-		
+	if not is_shadow_wave_firing:
+		return
+
+	if shadow_current_shot >= shadow_bullets_per_wave:
+		shadow_current_wave += 1
 		if shadow_current_wave >= shadow_wave_count:
-			# All waves complete, start cooldown
-			is_shadow_wave_firing = false
-			shadow_wave_cooldown_timer.start()
+			_reset_shadow_wave_state()
+			if shadow_wave_cooldown_timer:
+				shadow_wave_cooldown_timer.start()
 			return
-		else:
-			# Cycle to next shadow pattern
-			_cycle_shadow_wave_pattern()
-			current_wave_shot = 0
-			shadow_wave_timer.start()
-			return
+		_cycle_shadow_wave_pattern()
+		shadow_current_shot = 0
 	
 	# Fire shadow bullets with wave pattern
 	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")  # Distinct shadow bullet
@@ -297,7 +287,7 @@ func _fire_shadow_wave_shot() -> void:
 	if AudioManager:
 		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
 	
-	current_wave_shot += 1
+	shadow_current_shot += 1
 
 func _shoot_super_mode() -> void:
 	# Ship3-specific balanced super mode with reduced bullet count
@@ -345,7 +335,7 @@ func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, b
 func _fire_shadow_horizontal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Horizontal wave (left to right)
 	var positions = [-0.8, -0.4, 0.0, 0.4, 0.8]
-	var y_offset = positions[current_wave_shot % positions.size()] * 100
+	var y_offset = positions[shadow_current_shot % positions.size()] * 100
 	
 	for child in firing_positions.get_children():
 		var offset: Vector2 = Vector2(0, y_offset)
@@ -362,7 +352,7 @@ func _fire_shadow_horizontal_wave(bullet_scene: PackedScene, bullet_speed: float
 func _fire_shadow_vertical_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Vertical wave (top to bottom)
 	var positions = [-0.8, -0.4, 0.0, 0.4, 0.8]
-	var x_offset = positions[current_wave_shot % positions.size()] * 100
+	var x_offset = positions[shadow_current_shot % positions.size()] * 100
 	
 	for child in firing_positions.get_children():
 		var offset: Vector2 = Vector2(x_offset, 0)
@@ -379,7 +369,7 @@ func _fire_shadow_vertical_wave(bullet_scene: PackedScene, bullet_speed: float, 
 func _fire_shadow_diagonal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Diagonal wave (corners)
 	var angles = [PI/4, 3*PI/4, 5*PI/4, 7*PI/4]
-	var angle = angles[current_wave_shot % angles.size()]
+	var angle = angles[shadow_current_shot % angles.size()]
 	
 	for child in firing_positions.get_children():
 		var bullet: Node = BulletFactory.spawn_bullet(
@@ -433,3 +423,24 @@ func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	if sprite_2d:
 		sprite_2d.modulate = Color(1.0, 0.8, 0.0)  # Balanced golden tint for fair power
 		# Could add particle effects or other visual enhancements here
+
+func revert_shadow_mode_effects() -> void:
+	super.revert_shadow_mode_effects()
+	_reset_shadow_wave_state()
+	if GameManager.player_manager.player_stats.get("is_super_mode_active", false) and sprite_2d:
+		sprite_2d.modulate = Color(1.0, 0.8, 0.0)
+
+func _on_super_mode_timeout() -> void:
+	super._on_super_mode_timeout()
+	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and sprite_2d:
+		sprite_2d.modulate = Color(0.3, 1.0, 0.3)
+
+func _reset_shadow_wave_state() -> void:
+	is_shadow_wave_firing = false
+	shadow_current_wave = 0
+	shadow_current_shot = 0
+	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	if shadow_wave_timer:
+		shadow_wave_timer.stop()
+	if shadow_wave_cooldown_timer:
+		shadow_wave_cooldown_timer.stop()

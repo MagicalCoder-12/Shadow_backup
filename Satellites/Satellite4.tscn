@@ -1,14 +1,68 @@
 [gd_scene format=3 uid="uid://c5cv6n74q0x71"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_fnloc"]
+[ext_resource type="Script" uid="uid://ca0gcbycx5tpk" path="res://Satellites/Scripts/satellite.gd" id="2_0sdta"]
 [ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/Satellite/Sat_textures/Sat4.png" id="2_6pvqj"]
-[ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite2.gd" id="2_sc5mr"]
+[ext_resource type="Texture2D" uid="uid://bp6lerdnlsfti" path="res://Textures/Satellite/Ship4/Parts/ship4_tail.png" id="4_0sdta"]
+
+[sub_resource type="Animation" id="Animation_cxgup"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Ship2Detail:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-2.0000005, -44)]
+}
+
+[sub_resource type="Animation" id="Animation_rqacw"]
+resource_name = "shoot"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Ship2Detail:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.53, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(-2.0000005, -44), Vector2(-2, -50), Vector2(-2, -44)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_q1biw"]
+_data = {
+&"RESET": SubResource("Animation_cxgup"),
+&"shoot": SubResource("Animation_rqacw")
+}
 
 [node name="Satellite4" unique_id=18778003 instance=ExtResource("1_fnloc")]
-script = ExtResource("2_sc5mr")
+script = ExtResource("2_0sdta")
+behavior_mode = 1
 
 [node name="Sprite2D" parent="." index="0" unique_id=327435845]
 texture = ExtResource("2_6pvqj")
 
+[node name="Ship2Detail" parent="." index="1" unique_id=956193229]
+position = Vector2(-2.0000005, -44)
+rotation = 1.5649625
+texture = ExtResource("4_0sdta")
+
+[node name="AnimationPlayer" parent="." index="2" unique_id=1395619866]
+libraries/ = SubResource("AnimationLibrary_q1biw")
+
 [node name="Nozel" parent="." index="3" unique_id=2088982984]
 position = Vector2(-2, -59)
+
+[node name="CPUParticles2D" parent="." index="4" unique_id=2073059673]
+position = Vector2(-7, 78)
+color = Color(0.5803922, 0.68235296, 0.46666667, 1)
+
+[node name="CollisionShape2D" parent="." index="6" unique_id=18061884]
+position = Vector2(-1.25, -3.25)

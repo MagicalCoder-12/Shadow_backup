@@ -745,12 +745,12 @@ func _on_attack_timer_timeout() -> void:
 	match current_phase:
 		BossPhase.PHASE1:
 			if randf() < 0.5:
-				fire_homing_missiles()
+				fire_energy_ball()
 			else:
 				fire_bullet_hell()
 		BossPhase.PHASE2:
 			if randf() < 0.5:
-				fire_energy_ball()
+				fire_homing_missiles()
 			else:
 				fire_bullet_hell()
 		BossPhase.ENRAGED:

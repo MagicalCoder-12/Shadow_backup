@@ -7,7 +7,6 @@
 
 [node name="Satellite3" unique_id=619641657 instance=ExtResource("1_dxnh8")]
 script = ExtResource("2_jyajn")
-behavior_mode = 1
 
 [node name="Sprite2D" parent="." index="0" unique_id=327435845]
 texture = ExtResource("2_drpyb")

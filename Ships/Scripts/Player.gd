@@ -27,7 +27,7 @@ var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  
 @export var smoothness: float = 0.3
 @export var normal_fire_delay: float = 0.3
 @export var boundary_padding: float = 10.0
-@export var max_life: int = 4
+@export var max_life: int = 3
 @export var shadow_speed_multiplier: float = 1.2
 @export var shadow_fire_delay_multiplier: float = 0.1
 @export var spread_angle_increment: float = 10.0
@@ -44,7 +44,8 @@ var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  
 
 # Local variables
 var is_alive: bool = true
-var lives: int = 2  # Synced with GameManager
+var death_in_progress: bool = false
+var lives: int = 3  # Synced with GameManager
 var original_texture: Texture2D
 var original_speed: float
 var super_mode_timer: Timer
@@ -71,26 +72,26 @@ func _initialize_player() -> void:
 	# Sync lives with GameManager
 	lives = GameManager.player_lives
 	GameManager.save_progress_if_enabled()
-	
+
 	sprite_2d.show()
 	# Cache original speed
 	original_speed = speed
-	
+
 	# Set ship_id and apply stats and texture from PlayerManager
 	ship_id = GameManager.player_manager.selected_ship_id
 	_apply_ship_stats()
 	_debug_log("Player initialized with ship_id: " + ship_id)
-	
+
 	# Add to Player group
 	add_to_group("Player")
-	
+
 	if revive_shiled:
 		revive_shiled.visible = false
-	
+
 	# Initialize ship-specific base stats
 	GameManager.player_manager.player_stats["base_bullet_damage"] = base_bullet_damage
 	GameManager.player_manager.player_stats["bullet_damage"] = base_bullet_damage
-	
+
 	# Ensure we have the latest upgraded damage if available
 	var current_ship_damage = GameManager.player_manager.player_stats.get("base_bullet_damage", base_bullet_damage)
 	if current_ship_damage != base_bullet_damage:
@@ -165,7 +166,7 @@ func _connect_signals() -> void:
 			level_manager.Victory_pose.connect(_on_victory_pose)
 		else:
 			_debug_log("LevelManager does not have Victory_pose signal")
-	
+
 	# Connect to Level node
 	var level_node = get_tree().get_first_node_in_group("Level")
 	if level_node and level_node.has_signal("Victory_pose"):
@@ -177,13 +178,13 @@ func _connect_signals() -> void:
 			level_node = level_node.get_parent()
 			if level_node == null:
 				break
-		
+
 		if level_node and level_node.has_signal("Victory_pose"):
 			level_node.Victory_pose.connect(_on_victory_pose)
 			_debug_log("Connected to Level node by hierarchy traversal")
 		else:
 			_debug_log("Could not find Level node with Victory_pose signal")
-	
+
 	# Connect GameManager signals
 	GameManager.on_player_life_changed.connect(_on_player_life_changed)
 	GameManager.game_over_triggered.connect(_on_game_over_triggered)
@@ -240,10 +241,14 @@ func get_health_percent() -> float:
 	return float(lives) / float(max_life)
 
 func _on_shadow_mode_activated() -> void:
-	mode_service.on_shadow_mode_activated()
+	if mode_service.is_shadow_mode_active():
+		return
+	mode_service.set_shadow_mode_active(true)
+	apply_shadow_mode_effects()
 
 func _on_shadow_mode_deactivated() -> void:
-	mode_service.on_shadow_mode_deactivated()
+	mode_service.set_shadow_mode_active(false)
+	revert_shadow_mode_effects()
 
 func apply_shadow_mode_effects() -> void:
 	mode_service.apply_shadow_mode_effects()
@@ -258,7 +263,7 @@ func shoot() -> void:
 	var bullet_damage: int = mode_service.get_balanced_bullet_damage(
 		GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	)
-	
+
 	# Check if this is Ship2 to apply swapped behavior
 	if ship_id == "Ship2" and mode_service.use_ship2_mode_swap():
 		# For Ship2, swap the bullet types and patterns
@@ -332,20 +337,18 @@ func clamp_position() -> void:
 	movement_input_service.clamp_position()
 
 func damage(amount: int) -> void:
-	if combat_service.should_ignore_damage(revive_service, GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)):
+	if death_in_progress or combat_service.should_ignore_damage(revive_service, GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)):
 		return
 
 	combat_service.save_current_stats(GameManager)
 	lives = combat_service.update_lives_after_damage(GameManager, lives, amount)
 	_debug_log("Player damaged, lives: " + str(lives))
-	combat_service.setup_damage_collision(self)
-	revive_service.start_damage_invincibility(DAMAGE_INVINCIBILITY_DURATION)
-	
+
 	if lives > 0:
+		combat_service.setup_damage_collision(self)
+		revive_service.start_damage_invincibility(DAMAGE_INVINCIBILITY_DURATION)
 		_play_death_animation()
 		combat_service.handle_survival(self, sprite_2d, self)
-	else:
-		_handle_death()
 
 func _play_death_animation() -> void:
 	if death_animation:
@@ -358,21 +361,24 @@ func _play_death_animation() -> void:
 		push_error("Cannot emit death animation: DeathAnimation is null")
 
 func _handle_death() -> void:
+	if death_in_progress:
+		return
+	death_in_progress = true
+	is_alive = false
 	sprite_2d.visible = false
 	_play_death_animation()
-	
-	is_alive = false
+
 	var death_anim_duration: float = max(0.6, death_animation.lifetime) if death_animation else 1.0
 	await get_tree().create_timer(death_anim_duration).timeout
-	GameManager.game_over_triggered.emit()
-	_remove_all_satellites()
-	queue_free()
+	if not is_inside_tree():
+		return
+	GameManager.trigger_game_over()
 
 func revive(Player_lives: int) -> void:
 	self.lives = Player_lives
 	GameManager.player_lives = Player_lives
 	_debug_log("Player revived with " + str(Player_lives) + " lives")
-	
+
 	set_physics_process(true)
 	set_process(true)
 
@@ -402,6 +408,7 @@ func _setup_revival_state_before_invincibility() -> void:
 		death_animation.emitting = false
 
 	revive_service.prepare_revival_state()
+	death_in_progress = false
 	is_alive = true
 	GameManager.request_game_over_clear("Player._setup_revival_state")
 	_debug_log("Revival state setup complete; waiting for Player_revive animation")
@@ -410,11 +417,6 @@ func set_lives(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
 	GameManager.player_lives = lives
 	_debug_log("Player lives set to: " + str(lives))
-	
-	if lives <= 0:
-		is_alive = false
-		queue_free()
-		GameManager.game_over_triggered.emit()
 
 func set_stats(attack_level_value: int, bullet_damage_value: int, base_bullet_damage_value: int, shadow_mode_active: bool, super_mode_active: bool = false) -> void:
 	_reset_firing_positions()
@@ -464,13 +466,13 @@ func apply_bullet_damage_increase(amount: int) -> void:
 	GameManager.player_manager.player_stats["bullet_damage"] = next_base_damage
 	GameManager.player_manager.player_stats["attack_level"] += 1
 	add_firing_position(GameManager.player_manager.player_stats["attack_level"])
-	
+
 	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
 		var shadow_multiplier: float = float(GameManager.get_game_settings_section("player_balance").get("shadow_damage_multiplier", 1.75))
 		GameManager.player_manager.player_stats["bullet_damage"] = mode_service.get_balanced_bullet_damage(
 			int(GameManager.player_manager.player_stats["base_bullet_damage"] * shadow_multiplier)
 		)
-	
+
 	# Notify GameManager that ship stats have been updated
 	GameManager.notify_ship_stats_updated(ship_id, GameManager.player_manager.player_stats["base_bullet_damage"])
 
@@ -490,7 +492,8 @@ func add_firing_position(level: int) -> void:
 	firing_positions.add_child(mirror_marker)
 
 func activate_super_mode(multiplier_div: float, duration: float) -> void:
-	mode_service.activate_super_mode(multiplier_div, duration)
+	mode_service.set_super_mode_active(true)
+	apply_super_mode_effects(multiplier_div, duration)
 
 func apply_super_mode_effects(multiplier_div: float, duration: float) -> void:
 	mode_service.apply_super_mode_effects(multiplier_div, duration)
@@ -504,40 +507,39 @@ func _on_super_mode_timeout() -> void:
 func _on_player_life_changed(new_lives: int) -> void:
 	lives = clamp(new_lives, 0, max_life)
 	_debug_log("Player lives updated via signal: " + str(lives))
-	
+
 	if lives <= 0:
-		is_alive = false
-		queue_free()
-		GameManager.game_over_triggered.emit()
+		_handle_death()
 
 func increase_life(amount: int) -> void:
 	if amount <= 0:
 		return
-		
+
 	lives = min(3, lives + amount)  # Cap lives at 3
 	GameManager.player_lives = lives
 	_debug_log("Player lives increased to: " + str(lives))
-	
+
 	GameManager.save_progress_if_enabled()
 
 func _on_game_over_triggered() -> void:
 	is_alive = false
+	death_in_progress = false
 	_remove_all_satellites()
 	queue_free()
-	
+
 func _on_victory_pose():
 	_debug_log("Playing victory pose animation")
 	if animation_player:
 		animation_player.play("Player_sweep")
 	else:
 		_debug_log("AnimationPlayer not found, cannot play victory pose")
-		
+
 func _on_level_completed(_level_num):
 	input_enabled = false
 	GameManager.player_manager.player_stats["attack_level"] = 0
 	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.default_bullet_damage
 	GameManager.save_progress_if_enabled()
-	
+
 	# When level is completed, update satellites to reflect any changes made in the upgrade menu
 	update_satellites_from_selection()
 
@@ -574,18 +576,18 @@ func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
-	
+
 	# Handle enemy collision (direct contact damage)
 	if area.is_in_group("Enemy") or area.is_in_group("Enemies"):
 		_handle_enemy_collision(area)
-		
+
 	if area is Powerup:
 		area.applyPowerup(self)
 
 	# Handle enemy bullet collision
 	elif area.is_in_group("EnemyBullet"):
 		_handle_enemy_bullet_collision(area)
-	
+
 	# Handle boss collision
 	elif area.is_in_group("Boss"):
 		_handle_enemy_collision(area)
@@ -594,7 +596,7 @@ func _handle_enemy_collision(enemy: Area2D) -> void:
 	"""Handle direct collision with enemy ships"""
 	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
-	
+
 	# Deal damage to player
 	combat_service.apply_enemy_contact(enemy, Callable(self, "damage"))
 	_debug_log("Player collided with enemy: %s" % enemy.name)
@@ -603,9 +605,9 @@ func _handle_enemy_bullet_collision(bullet: Area2D) -> void:
 	"""Handle collision with enemy bullets"""
 	if not combat_service.can_process_collision(is_alive, revive_service):
 		return
-	
+
 	# Deal damage to player
-	var bullet_damage := combat_service.apply_bullet_hit(bullet, Callable(self, "damage"))
+	var bullet_damage: int = combat_service.apply_bullet_hit(bullet, Callable(self, "damage"))
 	_debug_log("Player hit by bullet: %s (damage: %d)" % [bullet.name, bullet_damage])
 
 func is_just_revived() -> bool:

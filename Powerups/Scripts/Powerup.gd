@@ -11,7 +11,7 @@ enum PowerupType {
 @export var powerupMoveSpeed: float = 500
 @export var damage_increase_amount: int = 10
 @export var super_mode_multiplier: float = 1.5  # Reduced from 2.0 to 1.5
-@export var super_mode_duration: float = 5.0
+@export var super_mode_duration: float = 2.0
 @export var life_increase_amount: int = 1  # New: Amount to increase player life
 
 func _physics_process(delta: float) -> void:

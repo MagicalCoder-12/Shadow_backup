@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://duyk73vshldut"]
+[gd_scene format=3 uid="uid://duyk73vshldut"]
 
-[ext_resource type="Script" path="res://Bosses/Scripts/Muzzel_flash.gd" id="1_3of1h"]
+[ext_resource type="Script" uid="uid://cdn8j7whvymu0" path="res://Bosses/Scripts/Muzzel_flash.gd" id="1_3of1h"]
 
-[node name="muzzle_flash" type="Node2D"]
+[node name="muzzle_flash" type="Node2D" unique_id=176746583]
 script = ExtResource("1_3of1h")
 
-[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+[node name="CPUParticles2D" type="CPUParticles2D" parent="." unique_id=132312322]
 emitting = false
 amount = 100
 one_shot = true

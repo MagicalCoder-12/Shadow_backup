@@ -14,7 +14,7 @@ const DEFAULT_MAX_AD_REVIVES_PER_LEVEL: int = 1
 const DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL: int = 2
 const DEFAULT_CRYSTAL_REVIVE_BASE_COST: int = 10
 const DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT: int = 10
-# 🔁 SIGNALS
+# SIGNALS
 @warning_ignore("unused_signal")
 signal ad_reward_granted(ad_type: String)
 signal currency_updated(currency_type: String, new_amount: int)
@@ -53,7 +53,7 @@ signal prepare_map_scene()
 @warning_ignore("unused_signal")
 signal player_manager_satellites_changed()
 
-# 🔒 CONSTANTS
+# CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"
 const GROUP_BOSS: String = "Boss"
 const SUPER_MODE_SPAWN_COUNT: int = 25
@@ -93,14 +93,14 @@ var enable_dev_win: bool = true  # Debug utility: allow instant level completion
 const DEFAULT_BULLET_SPEED: float = 600.0
 const DEFAULT_BULLET_DAMAGE: int = 10
 
-# 🧠 MANAGERS - Now using autoload references
+# MANAGERS - Now using autoload references
 var save_manager: SaveManager
 var ad_manager: AdManager
 var scene_manager: SceneManager
 var player_manager: PlayerManager
 var level_manager: LevelManager
 
-# 🔒 PERSISTENT GAME STATE
+# PERSISTENT GAME STATE
 var _score: int = 0
 var score: int:
 	get: return _score
@@ -116,9 +116,6 @@ var player_lives: int:
 	set(value):
 		_player_lives = max(0, value)
 		on_player_life_changed.emit(_player_lives)
-		# Removed saving per-level lives as it's not needed
-		if _player_lives == 0 and not level_manager.is_level_just_completed:
-			trigger_game_over()
 
 var is_paused: bool = false:
 	set(value):
@@ -179,7 +176,7 @@ func _ready() -> void:
 
 	# Wait for autoloads to initialize
 	await get_tree().process_frame
-	
+
 	# Initialize other components
 	player_manager.initialize()
 	scene_manager.initialize()
@@ -206,25 +203,28 @@ func _exit_tree() -> void:
 			shadow_mode_timer.timeout.disconnect(_on_shadow_mode_timer_timeout)
 		shadow_mode_timer.stop()
 		shadow_mode_timer.queue_free()
-	
+
 	# Disconnect node_added signal
 	if get_tree().node_added.is_connected(_on_node_added):
 		get_tree().node_added.disconnect(_on_node_added)
-	
+
 	# Disconnect prepare_map_scene signal
 	if prepare_map_scene.is_connected(_on_prepare_map_scene):
 		prepare_map_scene.disconnect(_on_prepare_map_scene)
-	
+
 	# Disconnect revive_completed signal
 	if revive_completed.is_connected(_on_revive_completed):
 		revive_completed.disconnect(_on_revive_completed)
 
 func trigger_game_over() -> void:
+	if game_over or (level_manager and level_manager.is_level_just_completed):
+		return
+	game_over = true
 	AudioManager.mute_bus("Bullet", true)
 	AudioManager.mute_bus("Explosion", true)
 	# Banner ad will be shown by AdManager when appropriate
 	# if ad_manager.is_initialized:
-	# 	ad_manager.show_banner_ad()
+	#     ad_manager.show_banner_ad()
 	game_over_triggered.emit()
 
 func request_game_over(_source: String = "") -> void:
@@ -291,7 +291,7 @@ func set_shadow_mode_unlocked(value: bool, _source: String = "") -> void:
 func set_shadow_mode_tutorial_shown(value: bool, _source: String = "") -> void:
 	shadow_mode_state.shadow_mode_tutorial_shown = value
 
-func request_shadow_mode_activate(duration: float = 2.0, _source: String = "") -> void:
+func request_shadow_mode_activate(duration: float, _source: String = "") -> void:
 	if level_manager and shadow_mode_state.shadow_mode_unlocked:
 		shadow_mode_state.shadow_mode_enabled = true
 		shadow_mode_state.shadow_mode_remaining_time = duration
@@ -319,19 +319,19 @@ func reset_game() -> void:
 	game_won = false
 	coins_collected_this_level = 0
 	crystals_collected_this_level = 0
-	
+
 	# Reset all audio state to prevent BGM overlap
 	AudioManager.reset_audio_state()
-	
+
 	# Reset state managers
 	level_manager.reset_level_state()
 	player_manager.reset_player_stats()
 	player_manager.set_spawn_position()
 	ad_manager.reset_ad_state()
-	
+
 	# Ensure game tree is unpaused
 	get_tree().paused = false
-	
+
 
 
 # Reset score and lives for each level (per-level progression)
@@ -341,12 +341,12 @@ func reset_for_new_level() -> void:
 	_score = 0
 	_player_lives = 3
 	reset_revive_limits_for_level()
-	
+
 	coins_collected_this_level = 0
 	crystals_collected_this_level = 0
 	score_updated.emit(_score)
 	on_player_life_changed.emit(_player_lives)
-	
+
 	# Reset player stats to default values to ensure special modes don't carry over between levels
 	if player_manager:
 		player_manager.reset_player_stats()
@@ -406,7 +406,7 @@ func revive_player(lives: int = 1) -> void:
 func spawn_player(lives: int) -> void:
 	player_manager.spawn_player(lives)
 
-func activate_shadow_mode(duration: float = 5.0) -> void:
+func activate_shadow_mode(duration: float) -> void:
 	request_shadow_mode_activate(duration, "GameManager.activate_shadow_mode")
 
 func unlock_shadow_mode() -> void:
@@ -621,21 +621,21 @@ func _on_prepare_map_scene() -> void:
 func dev_win() -> void:
 	if not enable_dev_win:
 		return
-	
+
 	# Only process if we're in a level scene
 	var current_scene = get_tree().current_scene
 	if not current_scene:
 		return
-	
+
 	print("[DEV_WIN] Triggering instant level completion")
-	
+
 	# Trigger the same flow as a legitimate win
 	# 1. Get current level
 	var current_level = get_current_level()
 	if current_level > 0:
 		# 2. Clear any existing enemies and bullets to prevent interference
 		_clear_all_enemies_and_bullets()
-		
+
 		# 3. Trigger level completion through LevelManager
 		# This will: emit victory_pose, show UI, calculate score, transition, etc.
 		level_manager.complete_level(current_level)
@@ -649,15 +649,15 @@ func _clear_all_enemies_and_bullets() -> void:
 	for enemy in get_tree().get_nodes_in_group("Enemy"):
 		if enemy and is_instance_valid(enemy):
 			enemy.queue_free()
-	
+
 	# Clear all enemy bullets
 	for bullet in get_tree().get_nodes_in_group("EnemyBullet"):
 		if bullet and is_instance_valid(bullet):
 			bullet.queue_free()
-	
+
 	# Clear all boss enemies
 	for boss in get_tree().get_nodes_in_group("Boss"):
 		if boss and is_instance_valid(boss):
 			boss.queue_free()
-	
+
 	print("[DEV_WIN] Cleared enemies and bullets")

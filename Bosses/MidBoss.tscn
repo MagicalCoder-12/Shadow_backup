@@ -139,8 +139,6 @@ collision_mask = 17
 script = ExtResource("1_mwcmj")
 max_health = 30000
 phase_transition_health = 15000
-base_attack_interval_p1 = 3.5
-base_attack_interval_p2 = 2.5
 projectile_scene = ExtResource("2_uo67q")
 move_speed = 500.0
 

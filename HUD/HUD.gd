@@ -207,7 +207,7 @@ func _on_shadow_mode_requested():
 	if current_level < 5 or not GameManager.level_manager.shadow_mode_unlocked:
 		return
 	if shadow_mode_button and shadow_mode_button.is_ready and not GameManager.level_manager.shadow_mode_enabled:
-		GameManager.activate_shadow_mode(5.0)
+		GameManager.activate_shadow_mode(3.5)
 
 # Updates button visibility
 func update_button_visibility():

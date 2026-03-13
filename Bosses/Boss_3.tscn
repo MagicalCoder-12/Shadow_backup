@@ -87,7 +87,6 @@ max_health = 40000
 stage_2_max_health = 80000
 
 [node name="Boss" type="Sprite2D" parent="." unique_id=495763300]
-position = Vector2(27.499979, -14.1836)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_vvmta")
 
@@ -100,11 +99,9 @@ position = Vector2(176.49687, 30.12239)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="Center" type="Marker2D" parent="Boss" unique_id=1101537731]
-position = Vector2(-2.8364658, 87.455734)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=340037053]
-position = Vector2(34.00001, -9.249968)
 scale = Vector2(42.6428, -39.0882)
 shape = SubResource("RectangleShape2D_kpgky")
 
@@ -113,10 +110,10 @@ shape = SubResource("RectangleShape2D_kpgky")
 [node name="PhaseTimer" type="Timer" parent="." unique_id=2075437308]
 
 [node name="HealthBar" parent="." unique_id=1528784623 instance=ExtResource("3_r0gn5")]
-offset_left = -419.0
-offset_top = -296.0
-offset_right = 452.0
-offset_bottom = -246.0
+offset_left = -259.0
+offset_top = -255.0
+offset_right = 270.0
+offset_bottom = -217.0
 texture_under = ExtResource("4_bn1uh")
 texture_progress = ExtResource("5_mw6p5")
 

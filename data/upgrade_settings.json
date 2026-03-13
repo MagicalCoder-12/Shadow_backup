@@ -29,17 +29,17 @@
 		"10": {
 			"coins": 2000,
 			"crystals": 80,
-			"void_shards": 60
+			"void_shards": 100
 		},
 		"15": {
 			"coins": 3500,
 			"crystals": 100,
-			"void_shards": 70
+			"void_shards": 100
 		},
 		"20": {
 			"coins": 5000,
 			"crystals": 110,
-			"void_shards": 80
+			"void_shards": 100
 		}
 	},
 	

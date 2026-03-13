@@ -311,6 +311,8 @@ func _on_super_mode_timeout() -> void:
 	is_super_bursting = false
 	if super_burst_timer:
 		super_burst_timer.stop()
+	if GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and sprite_2d:
+		sprite_2d.modulate = Color(0.7, 0.3, 1.0)
 
 func revert_shadow_mode_effects() -> void:
 	# Call parent implementation
@@ -318,6 +320,8 @@ func revert_shadow_mode_effects() -> void:
 	
 	# Ship2-specific shadow mode cleanup
 	is_shadow_bursting = false
+	current_burst_sequence = 0
+	current_burst_shot = 0
 	if shadow_burst_timer:
 		shadow_burst_timer.stop()
 	if shadow_sequence_timer:

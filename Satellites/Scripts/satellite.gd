@@ -31,6 +31,8 @@ var _behavior: SatelliteBehaviorBase = null
 
 func _ready() -> void:
 	original_fire_rate = maxf(0.05, fire_rate)
+	if not _uses_bullet_shooting():
+		is_shooting_active = false
 	_initialize_timer()
 	_initialize_behavior()
 	_connect_signals()
@@ -62,7 +64,7 @@ func _initialize_timer() -> void:
 	timer.wait_time = original_fire_rate
 	if not timer.timeout.is_connected(_on_timer_timeout):
 		timer.timeout.connect(_on_timer_timeout)
-	if is_shooting_active:
+	if is_shooting_active and _uses_bullet_shooting():
 		timer.start()
 	else:
 		timer.stop()
@@ -97,6 +99,9 @@ func _validate_scene_setup() -> void:
 	if nozzle == null:
 		push_warning("Satellite %s is missing Nozel node; using satellite origin as fire point." % name)
 
+	if not _uses_bullet_shooting():
+		return
+
 	if not bullet_scene or not bullet_scene.can_instantiate():
 		push_error("Satellite %s has invalid bullet_scene; disabling shooting." % name)
 		is_shooting_active = false
@@ -104,6 +109,8 @@ func _validate_scene_setup() -> void:
 			timer.stop()
 
 func _play_shoot_animation_if_available() -> void:
+	if not _uses_bullet_shooting():
+		return
 	if animation_player == null:
 		return
 	if animation_player.has_animation("shoot"):
@@ -112,6 +119,8 @@ func _play_shoot_animation_if_available() -> void:
 		animation_player.play("Shoot")
 
 func _on_timer_timeout() -> void:
+	if not _uses_bullet_shooting():
+		return
 	if not is_shooting_active:
 		return
 	if not bullet_scene or not bullet_scene.can_instantiate():
@@ -166,7 +175,7 @@ func _get_current_satellite_total_damage() -> int:
 	return max(1, satellite_base_damage + satellite_damage_bonus)
 
 func set_shooting_active(active: bool) -> void:
-	is_shooting_active = active
+	is_shooting_active = active and _uses_bullet_shooting()
 	if timer == null:
 		return
 	if is_shooting_active:
@@ -178,11 +187,12 @@ func _on_shadow_mode_activated() -> void:
 	if is_shadow_mode_active:
 		return
 	is_shadow_mode_active = true
-	fire_rate = maxf(0.05, original_fire_rate * shadow_fire_rate_multiplier)
-	if timer:
-		timer.wait_time = fire_rate
-		if is_shooting_active:
-			timer.start()
+	if _uses_bullet_shooting():
+		fire_rate = maxf(0.05, original_fire_rate * shadow_fire_rate_multiplier)
+		if timer:
+			timer.wait_time = fire_rate
+			if is_shooting_active:
+				timer.start()
 	if _behavior:
 		_behavior.on_shadow_mode_changed(true)
 
@@ -190,13 +200,17 @@ func _on_shadow_mode_deactivated() -> void:
 	if not is_shadow_mode_active:
 		return
 	is_shadow_mode_active = false
-	fire_rate = original_fire_rate
-	if timer:
-		timer.wait_time = fire_rate
-		if is_shooting_active:
-			timer.start()
+	if _uses_bullet_shooting():
+		fire_rate = original_fire_rate
+		if timer:
+			timer.wait_time = fire_rate
+			if is_shooting_active:
+				timer.start()
 	if _behavior:
 		_behavior.on_shadow_mode_changed(false)
+
+func _uses_bullet_shooting() -> bool:
+	return behavior_mode == SatelliteBehaviorMode.SHOOT_ONLY
 
 func set_satellite_id(id: String) -> void:
 	satellite_id = id

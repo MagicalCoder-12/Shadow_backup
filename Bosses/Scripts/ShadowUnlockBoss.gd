@@ -1,9 +1,6 @@
 extends Area2D
 class_name ShadowUnlockBoss
 
-## Simplified AI Boss with two-phase system + initial descent
-## Phase 1: Simple spiral pattern
-## Phase 2: Converging storm pattern with HellPatternBullet
 
 # Boss Phases (added DESCENT)
 enum BossPhase {
@@ -19,8 +16,8 @@ enum BossPhase {
 @export var base_attack_interval_p1: float = 2.5  # Phase 1 attack speed
 @export var base_attack_interval_p2: float = 1.2  # Phase 2 attack speed (faster)
 @export var projectile_scene: PackedScene
-@export var move_speed: float = 150.0
-@export var descent_target_y: float = 400.0  # Pixels below top of screen
+@export var move_speed: float = 400.0
+@export var descent_target_y: float = 700.0  # Pixels below top of screen
 
 ## Visual Components - Different sprites for each phase
 var normal_boss_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png")
@@ -146,7 +143,7 @@ func _execute_phase_transition() -> void:
 	effect.global_position = global_position
 	sprite_2d.texture = shadow_boss_sprite
 	
-	await get_tree().create_timer(2.5).timeout  # Slightly longer for drama
+	await get_tree().create_timer(2.0).timeout  # Slightly longer for drama
 	
 	current_phase = BossPhase.PHASE_2
 	attack_timer.wait_time = base_attack_interval_p2
@@ -161,30 +158,18 @@ func _execute_attack_pattern() -> void:
 	
 	_show_muzzle_flash()
 	
-	# Swapped the patterns to match the description.
-	# Phase 1 should be the spiral, Phase 2 the storm.
 	if current_phase == BossPhase.PHASE_1:
-		_pattern_p1_spiral_wave()
+		_pattern_p1_converging_storm()
 	else: # PHASE_2
-		_pattern_p2_converging_storm()
-
+		_pattern_p2_spiral_wave()
+		
 func _show_muzzle_flash() -> void:
 	var flash = MUZZLE_FLASH.instantiate()
 	if flash:
 		flash.global_position = nozzel.global_position
 		SceneSpawnService.spawn_child(flash)
 
-func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
-	# Create a small visual effect when bullets are fired
-	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
-	if effect_scene and effect_scene.can_instantiate():
-		var effect = effect_scene.instantiate()
-		effect.global_position = spawn_position
-		if effect.has_method("set_color"):
-			effect.set_color(color)
-		get_tree().current_scene.call_deferred("add_child", effect)
-
-func _pattern_p1_spiral_wave() -> void:
+func _pattern_p2_spiral_wave() -> void:
 	var bullet_count = 3
 	var spiral_arms = 2
 	
@@ -196,7 +181,6 @@ func _pattern_p1_spiral_wave() -> void:
 				var angle = (Time.get_ticks_msec() * 0.001 * 1.5) + (arm * PI) + (i * 0.4)
 				bullet.global_position = nozzel.global_position
 				bullet.global_rotation = angle
-				# Use HomingBullet methods instead of direct property access
 				if bullet.has_method("set_speed"):
 					bullet.set_speed(600 + (i * 8))
 				else:
@@ -215,14 +199,9 @@ func _pattern_p1_spiral_wave() -> void:
 						bullet.set_direction(Vector2.DOWN)
 				_add_bullet_to_scene(bullet)
 
-func _pattern_p2_converging_storm() -> void:
+func _pattern_p1_converging_storm() -> void:
 	# Load the [heck] pattern scene directly for Phase 2
 	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
-	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
-		# Fallback to regular bullet pattern if [heck] pattern not available
-		_fallback_p2_pattern()
-		return
-	
 	# Use HellPatternBullet for Phase 2 (360-degree pattern, no homing)
 	var bullet_count = 25  # Number of bullets in the 360-degree pattern
 	var speed_variation = 600.0  # Base speed for HellPatternBullet
@@ -250,32 +229,7 @@ func _pattern_p2_converging_storm() -> void:
 				bullet.set_damage(2)  # Set damage for phase 2
 			_add_bullet_to_scene(bullet)
 
-# Fallback pattern for Phase 2 when HellPatternBullet is not available
-func _fallback_p2_pattern() -> void:
-	var bullet_count = 16
-	var speed_variation = 600.0
-	
-	for i in range(bullet_count):
-		var bullet = _create_bullet()
-		if bullet:
-			# Spawn all bullets from the nozzle position
-			var start_pos = nozzel.global_position
-			
-			# Set direction to go outward in 360 degrees (no homing)
-			var angle = (i * 2.0 * PI / bullet_count)
-			var direction = Vector2(cos(angle), sin(angle))
-			
-			# Configure bullet
-			bullet.global_position = start_pos
-			bullet.global_rotation = direction.angle()
-			if bullet.has_method("set_direction"):
-				bullet.set_direction(direction)
-			else:
-				# Fallback for other bullet types
-				bullet.direction = direction
-			if bullet.has_method("set_speed"):
-				bullet.set_speed(speed_variation + randf_range(-50, 50))
-			_add_bullet_to_scene(bullet)
+
 
 func _add_bullet_to_scene(bullet: Node) -> void:
 	if not bullet:
@@ -351,4 +305,3 @@ func _on_area_entered(area: Area2D) -> void:
 
 func set_invincible(invincible: bool) -> void:
 	is_invincible = invincible
-	print("Boss invincibility set to: %s" % invincible)

@@ -63,12 +63,8 @@ script = ExtResource("1_5c45g")
 max_health = 40000
 stage_1_sprite = ExtResource("2_1ldl7")
 stage_2_sprite = ExtResource("3_hse6t")
-attack_interval = 6.0
-bullet_speed = 400.0
-max_minions = 10
 
 [node name="Boss" type="Sprite2D" parent="." unique_id=2081093799]
-position = Vector2(-23.721592, 161.06999)
 scale = Vector2(2, 1.71875)
 texture = ExtResource("2_1ldl7")
 region_rect = Rect2(0, 0, 192, 704)
@@ -82,12 +78,10 @@ position = Vector2(40.02825, 136.46118)
 scale = Vector2(0.602051, 0.604004)
 
 [node name="Center" type="Marker2D" parent="Boss" unique_id=734164256]
-position = Vector2(-1.1781075, 93.27173)
 scale = Vector2(0.602051, 0.604004)
 gizmo_extents = 685.7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1072229698]
-position = Vector2(-26, 132.00002)
 scale = Vector2(42.6428, -39.0882)
 shape = SubResource("RectangleShape2D_kpgky")
 
@@ -96,10 +90,10 @@ shape = SubResource("RectangleShape2D_kpgky")
 [node name="PhaseTimer" type="Timer" parent="." unique_id=760617791]
 
 [node name="HealthBar" parent="." unique_id=1693350386 instance=ExtResource("3_r0gn5")]
-offset_left = -325.0
-offset_top = -168.0
-offset_right = 326.0
-offset_bottom = -131.0
+offset_left = -222.0
+offset_top = -329.0
+offset_right = 261.0
+offset_bottom = -292.0
 texture_under = ExtResource("4_bn1uh")
 texture_progress = ExtResource("5_mw6p5")
 

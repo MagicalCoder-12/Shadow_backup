@@ -1,13 +1,18 @@
 extends SatelliteBehaviorBase
 class_name SatelliteBehaviorLaunchAttack
 
-const DASH_SPEED: float = 900.0
-const DASH_DURATION: float = 0.35
+const DASH_SPEED: float = 1200.0
+const DASH_MAX_DURATION: float = 2.0
 const RETURN_SPEED: float = 650.0
 const RETURN_STOP_DISTANCE: float = 2.0
 const DASH_COOLDOWN: float = 1.75
 const SHADOW_DASH_COOLDOWN: float = 1.15
-const DAMAGE_AMOUNT: int = 1  # Adjust damage as needed
+const SHADOW_DASH_SPEED_MULTIPLIER: float = 1.1
+const DASH_SPEED_PER_UPGRADE: float = 0.05
+const DASH_SPEED_PER_ASCEND: float = 0.18
+const DASH_SPEED_MAX_MULTIPLIER: float = 2.4
+const DAMAGE_AMOUNT: int = 1
+const MIN_HIT_THRESHOLD: float = 42.0
 
 enum DashState {
 	IDLE,
@@ -69,18 +74,17 @@ func _process_dash(delta: float) -> void:
 		return
 
 	# Move toward target
-	_satellite.global_position = _satellite.global_position.move_toward(_target.global_position, DASH_SPEED * delta)
+	_satellite.global_position = _satellite.global_position.move_toward(_target.global_position, _get_current_dash_speed() * delta)
 	
 	# Check for collision with target
 	if not _has_hit_target and _check_collision_with_target():
 		_deal_damage_to_target()
 		_has_hit_target = true
-		# Optionally, you can end the dash early if you want
-		# _state = DashState.RETURNING
-		# return
+		_state = DashState.RETURNING
+		return
 	
 	_dash_elapsed += delta
-	if _dash_elapsed >= DASH_DURATION:
+	if _dash_elapsed >= DASH_MAX_DURATION:
 		_state = DashState.RETURNING
 
 func _process_return(delta: float) -> void:
@@ -100,47 +104,34 @@ func _check_collision_with_target() -> bool:
 	if _target == null or not is_instance_valid(_target):
 		return false
 	
-	# Check if satellite is close enough to hit the target
-	# You can adjust this threshold or use actual collision shapes
-	var hit_threshold: float = 20.0  # Adjust based on your game's scale
-	
-	# Option 1: Simple distance check
+	var sat_radius: float = _get_collision_radius(_satellite)
+	var target_radius: float = _get_collision_radius(_target)
+	var hit_threshold: float = maxf(MIN_HIT_THRESHOLD, sat_radius + target_radius)
 	var distance_to_target = _satellite.global_position.distance_to(_target.global_position)
 	if distance_to_target <= hit_threshold:
 		return true
-	
-	# Option 2: If you want to use collision shapes (more accurate)
-	# This requires that both satellite and target have CollisionShape2D nodes
-	# if _satellite.has_node("CollisionShape2D") and _target.has_node("CollisionShape2D"):
-	#     var sat_shape = _satellite.get_node("CollisionShape2D") as CollisionShape2D
-	#     var target_shape = _target.get_node("CollisionShape2D") as CollisionShape2D
-	#     if sat_shape and target_shape:
-	#         var sat_rect = sat_shape.shape.get_rect()
-	#         var target_rect = target_shape.shape.get_rect()
-	#         sat_rect.position = _satellite.global_position - sat_rect.size * 0.5
-	#         target_rect.position = _target.global_position - target_rect.size * 0.5
-	#         return sat_rect.intersects(target_rect)
-	
 	return false
 
 func _deal_damage_to_target() -> void:
 	if _target == null or not is_instance_valid(_target):
 		return
+
+	var damage_amount: int = _resolve_dash_damage()
 	
 	# Check if the target has a damage handling method
 	if _target.has_method("take_damage"):
-		_target.take_damage(DAMAGE_AMOUNT)
+		_target.take_damage(damage_amount)
 	elif _target.has_method("damage"):
-		_target.damage(DAMAGE_AMOUNT)
+		_target.damage(damage_amount)
 	elif _target.has_signal("damage_taken"):
 		# Emit a damage signal if that's how your game handles it
-		_target.emit_signal("damage_taken", DAMAGE_AMOUNT)
+		_target.emit_signal("damage_taken", damage_amount)
 	else:
 		# Fallback: Try to call a common damage method
 		var damage_methods = ["hit", "on_hit", "receive_damage", "apply_damage"]
 		for method in damage_methods:
 			if _target.has_method(method):
-				_target.call(method, DAMAGE_AMOUNT)
+				_target.call(method, damage_amount)
 				break
 
 func _find_nearest_enemy() -> Node2D:
@@ -154,7 +145,11 @@ func _find_nearest_enemy() -> Node2D:
 		var enemy: Node2D = enemy_node as Node2D
 		if not is_instance_valid(enemy):
 			continue
+		if enemy == _satellite:
+			continue
 		if enemy.is_in_group("Meteor"):
+			continue
+		if not enemy.has_method("damage") and not enemy.has_method("take_damage"):
 			continue
 		var distance: float = _satellite.global_position.distance_to(enemy.global_position)
 		if distance < closest_distance:
@@ -165,3 +160,71 @@ func _find_nearest_enemy() -> Node2D:
 
 func _get_dash_cooldown() -> float:
 	return SHADOW_DASH_COOLDOWN if _is_shadow_mode_active else DASH_COOLDOWN
+
+func _resolve_dash_damage() -> int:
+	if _satellite and _satellite.has_method("_get_current_satellite_total_damage"):
+		var value: Variant = _satellite.call("_get_current_satellite_total_damage")
+		if value is int:
+			return max(DAMAGE_AMOUNT, int(value))
+		if value is float:
+			return max(DAMAGE_AMOUNT, int(round(value)))
+	return DAMAGE_AMOUNT
+
+func _get_current_dash_speed() -> float:
+	var speed_multiplier: float = 1.0
+	var upgrade_data: Dictionary = _get_satellite_upgrade_data()
+	if not upgrade_data.is_empty():
+		var upgrade_count: int = max(0, int(upgrade_data.get("upgrade_count", 0)))
+		var ascend_count: int = max(0, int(upgrade_data.get("ascend_count", 0)))
+		speed_multiplier += (float(upgrade_count) * DASH_SPEED_PER_UPGRADE)
+		speed_multiplier += (float(ascend_count) * DASH_SPEED_PER_ASCEND)
+
+	speed_multiplier = clampf(speed_multiplier, 1.0, DASH_SPEED_MAX_MULTIPLIER)
+	if _is_shadow_mode_active:
+		speed_multiplier *= SHADOW_DASH_SPEED_MULTIPLIER
+
+	return DASH_SPEED * speed_multiplier
+
+func _get_satellite_upgrade_data() -> Dictionary:
+	var satellite_id: String = _get_satellite_id()
+	if satellite_id.is_empty():
+		return {}
+	if GameManager == null:
+		return {}
+	if not (GameManager.satellites is Array):
+		return {}
+
+	for satellite_data in GameManager.satellites:
+		if not (satellite_data is Dictionary):
+			continue
+		if str(satellite_data.get("id", "")) == satellite_id:
+			return satellite_data
+
+	return {}
+
+func _get_satellite_id() -> String:
+	if _satellite and _satellite.has_method("get_satellite_id"):
+		return str(_satellite.call("get_satellite_id"))
+	if _satellite and _satellite.has_meta("satellite_id"):
+		return str(_satellite.get_meta("satellite_id"))
+	return ""
+
+func _get_collision_radius(node: Node2D) -> float:
+	if node == null:
+		return 0.0
+
+	var collision_shape: CollisionShape2D = node.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if collision_shape == null or collision_shape.shape == null:
+		return 24.0
+
+	var shape: Shape2D = collision_shape.shape
+	if shape is CircleShape2D:
+		return (shape as CircleShape2D).radius
+	if shape is RectangleShape2D:
+		var size: Vector2 = (shape as RectangleShape2D).size
+		return maxf(size.x, size.y) * 0.5
+	if shape is CapsuleShape2D:
+		var capsule: CapsuleShape2D = shape as CapsuleShape2D
+		return maxf(capsule.radius, capsule.height * 0.5)
+
+	return 24.0

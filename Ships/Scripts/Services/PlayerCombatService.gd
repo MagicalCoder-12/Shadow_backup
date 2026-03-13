@@ -47,10 +47,13 @@ func handle_survival(owner: Node, sprite: CanvasItem, collision_owner: Node) -> 
 			cam.shake(20)
 
 func get_bullet_damage(bullet: Area2D) -> int:
+	if not bullet:
+		return 1
 	if bullet.has_method("get_damage"):
 		return int(bullet.get_damage())
-	if bullet.has_variable("damage"):
-		return int(bullet.damage)
+	for property in bullet.get_property_list():
+		if property.get("name", "") == "damage":
+			return int(bullet.get("damage"))
 	return 1
 
 func apply_enemy_contact(enemy: Area2D, damage_callback: Callable) -> void:
