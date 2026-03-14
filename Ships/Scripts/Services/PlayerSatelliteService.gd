@@ -1,6 +1,12 @@
 extends RefCounted
 class_name PlayerSatelliteService
 
+const DEFAULT_SHIP_VISUAL_SIZE := Vector2(160.0, 120.0)
+const DEFAULT_SATELLITE_VISUAL_SIZE := Vector2(96.0, 96.0)
+const SATELLITE_SIZE_RATIO: float = 0.8
+const MIN_EDGE_GAP: float = 8.0
+const EDGE_GAP_RATIO: float = 0.04
+
 var _owner: Node2D
 var _sprite: Sprite2D
 var _game_manager: Node
@@ -58,7 +64,6 @@ func add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
 		return
 
 	satellite.name = "Satellite%d" % position_index
-	satellite.position = calculate_satellite_offset(position_index)
 	_owner.add_child(satellite)
 	satellites.append(satellite)
 
@@ -69,6 +74,7 @@ func add_satellite(satellite_scene: PackedScene, position_index: int) -> void:
 	else:
 		satellite.set_meta("satellite_id", satellite_id)
 
+	refresh_satellite_layout()
 	_debug("Added satellite %s at offset %s" % [satellite.name, str(satellite.position)])
 
 func remove_all_satellites() -> void:
@@ -86,6 +92,25 @@ func update_satellites_from_selection() -> void:
 	remove_all_satellites()
 	add_satellites_from_selection()
 
+func refresh_satellite_layout() -> void:
+	if not _owner:
+		return
+
+	var ship_bounds := _get_ship_visual_bounds_local()
+	var ship_visual_size := ship_bounds.size if ship_bounds.size != Vector2.ZERO else DEFAULT_SHIP_VISUAL_SIZE
+
+	for index in range(satellites.size()):
+		var satellite := satellites[index]
+		if not satellite or not is_instance_valid(satellite):
+			continue
+
+		_fit_satellite_to_ship(satellite, ship_visual_size)
+		satellite.position = _calculate_satellite_position_for_bounds(
+			_get_satellite_visual_bounds_local(satellite),
+			ship_bounds,
+			index
+		)
+
 func on_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void:
 	for satellite in satellites:
 		if not satellite or not is_instance_valid(satellite):
@@ -102,23 +127,15 @@ func on_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> void
 	_debug("Updated damage bonus for satellites of type %s: +%d" % [satellite_id, damage_bonus])
 
 func calculate_satellite_offset(position_index: int) -> Vector2:
-	if not _sprite:
-		push_warning("Sprite2D not found, using default offset")
-		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	var ship_bounds := _get_ship_visual_bounds_local()
+	var satellite_bounds := Rect2(-DEFAULT_SATELLITE_VISUAL_SIZE * 0.5, DEFAULT_SATELLITE_VISUAL_SIZE * SATELLITE_SIZE_RATIO)
 
-	var texture_size := Vector2.ZERO
-	if _sprite.texture:
-		texture_size = _sprite.texture.get_size()
-	else:
-		push_warning("No texture found on player sprite, using default offset")
-		return Vector2(-120, 0) if position_index == 0 else Vector2(120, 0)
+	if position_index >= 0 and position_index < satellites.size():
+		var satellite := satellites[position_index]
+		if satellite and is_instance_valid(satellite):
+			satellite_bounds = _get_satellite_visual_bounds_local(satellite)
 
-	var scaled_size = texture_size * _sprite.scale
-	var padding: float = 10.0
-	var offset_x = (scaled_size.x / 2.0) + padding
-	if position_index == 0:
-		return Vector2(-offset_x, 0)
-	return Vector2(offset_x, 0)
+	return _calculate_satellite_position_for_bounds(satellite_bounds, ship_bounds, position_index)
 
 func _get_selected_satellite_id(index: int) -> String:
 	var satellite_id := "Satellite1"
@@ -132,3 +149,93 @@ func _get_selected_satellite_id(index: int) -> String:
 func _debug(message: String) -> void:
 	if _debug_callback.is_valid():
 		_debug_callback.call(message)
+
+func _fit_satellite_to_ship(satellite: Node2D, ship_visual_size: Vector2) -> void:
+	if satellite.has_method("apply_ship_relative_size"):
+		satellite.call("apply_ship_relative_size", ship_visual_size, SATELLITE_SIZE_RATIO)
+		return
+
+	var satellite_bounds := _get_satellite_visual_bounds_local(satellite)
+	if ship_visual_size == Vector2.ZERO or satellite_bounds.size == Vector2.ZERO:
+		return
+
+	var target_size := ship_visual_size * SATELLITE_SIZE_RATIO
+	var scale_factor_x := target_size.x / satellite_bounds.size.x if satellite_bounds.size.x > 0.0 else 1.0
+	var scale_factor_y := target_size.y / satellite_bounds.size.y if satellite_bounds.size.y > 0.0 else 1.0
+	var scale_factor := minf(scale_factor_x, scale_factor_y)
+	if not is_finite(scale_factor) or scale_factor <= 0.0:
+		return
+
+	satellite.scale *= scale_factor
+
+func _calculate_satellite_position_for_bounds(satellite_bounds: Rect2, ship_bounds: Rect2, position_index: int) -> Vector2:
+	var safe_ship_bounds := ship_bounds
+	if safe_ship_bounds.size == Vector2.ZERO:
+		safe_ship_bounds = Rect2(-DEFAULT_SHIP_VISUAL_SIZE * 0.5, DEFAULT_SHIP_VISUAL_SIZE)
+
+	var safe_satellite_bounds := satellite_bounds
+	if safe_satellite_bounds.size == Vector2.ZERO:
+		safe_satellite_bounds = Rect2(-DEFAULT_SATELLITE_VISUAL_SIZE * 0.5, DEFAULT_SATELLITE_VISUAL_SIZE)
+
+	var edge_gap := maxf(MIN_EDGE_GAP, safe_ship_bounds.size.x * EDGE_GAP_RATIO)
+	var position_y := safe_ship_bounds.get_center().y - safe_satellite_bounds.get_center().y
+
+	if position_index == 0:
+		var left_x := safe_ship_bounds.position.x - edge_gap - safe_satellite_bounds.size.x - safe_satellite_bounds.position.x
+		return Vector2(left_x, position_y)
+
+	var right_x := safe_ship_bounds.end.x + edge_gap - safe_satellite_bounds.position.x
+	return Vector2(right_x, position_y)
+
+func _get_ship_visual_bounds_local() -> Rect2:
+	if not _sprite or _sprite.texture == null:
+		return Rect2()
+
+	var visible_rect := _get_texture_visible_rect(_sprite.texture)
+	var texture_size := _sprite.texture.get_size()
+	var top_left := _sprite.offset
+	if _sprite.centered:
+		top_left -= texture_size * 0.5
+
+	var raw_rect := Rect2(top_left + visible_rect.position, visible_rect.size)
+	return _transform_rect(raw_rect, _sprite.transform)
+
+func _get_satellite_visual_bounds_local(satellite: Node2D) -> Rect2:
+	if satellite.has_method("get_visual_bounds_local"):
+		var bounds: Variant = satellite.call("get_visual_bounds_local")
+		if bounds is Rect2:
+			return bounds
+	return Rect2(-DEFAULT_SATELLITE_VISUAL_SIZE * 0.5, DEFAULT_SATELLITE_VISUAL_SIZE)
+
+func _get_texture_visible_rect(texture: Texture2D) -> Rect2:
+	var texture_size := texture.get_size()
+	var image := texture.get_image()
+	if image == null or image.is_empty():
+		return Rect2(Vector2.ZERO, texture_size)
+
+	var used_rect := image.get_used_rect()
+	if used_rect.size == Vector2i.ZERO:
+		return Rect2(Vector2.ZERO, texture_size)
+
+	return Rect2(Vector2(used_rect.position), Vector2(used_rect.size))
+
+func _transform_rect(rect: Rect2, transform_2d: Transform2D) -> Rect2:
+	var corners := PackedVector2Array([
+		transform_2d * rect.position,
+		transform_2d * Vector2(rect.position.x + rect.size.x, rect.position.y),
+		transform_2d * Vector2(rect.position.x, rect.position.y + rect.size.y),
+		transform_2d * (rect.position + rect.size)
+	])
+
+	var min_x := corners[0].x
+	var max_x := corners[0].x
+	var min_y := corners[0].y
+	var max_y := corners[0].y
+
+	for point in corners:
+		min_x = minf(min_x, point.x)
+		max_x = maxf(max_x, point.x)
+		min_y = minf(min_y, point.y)
+		max_y = maxf(max_y, point.y)
+
+	return Rect2(Vector2(min_x, min_y), Vector2(max_x - min_x, max_y - min_y))

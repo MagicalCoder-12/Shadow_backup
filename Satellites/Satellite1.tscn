@@ -69,6 +69,7 @@ _data = {
 size = Vector2(54.5, 127.5)
 
 [node name="Satellite1" type="Area2D" unique_id=1473170715]
+collision_layer = 256
 collision_mask = 44
 script = ExtResource("1_fg3ep")
 

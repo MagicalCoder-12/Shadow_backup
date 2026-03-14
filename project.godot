@@ -168,6 +168,7 @@ pointing/emulate_touch_from_mouse=true
 2d_physics/layer_6="Boss"
 2d_physics/layer_7="Enemy_Bullets"
 2d_physics/layer_8="Boss_Bullets"
+2d_physics/layer_9="Satellite"
 
 [mono]
 

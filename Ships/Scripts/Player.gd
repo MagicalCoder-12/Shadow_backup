@@ -554,6 +554,7 @@ func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:
 		if not GameManager.player_manager.player_stats.get("is_shadow_mode_active", false) and not GameManager.player_manager.player_stats.get("is_super_mode_active", false):
 			GameManager.player_manager.player_stats["bullet_damage"] = new_damage
 		mode_service.update_ship_context(ship_id, original_texture, original_speed)
+		satellite_service.refresh_satellite_layout()
 		_debug_log("Ship stats updated: damage is now %d for ship %s" % [new_damage, ship_id])
 
 func _on_player_manager_satellites_changed() -> void:

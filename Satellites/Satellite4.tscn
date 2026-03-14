@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c5cv6n74q0x71"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_fnloc"]
-[ext_resource type="Script" uid="uid://ca0gcbycx5tpk" path="res://Satellites/Scripts/satellite.gd" id="2_0sdta"]
+[ext_resource type="Script" path="res://Satellites/Scripts/satellite4.gd" id="2_0sdta"]
 [ext_resource type="Texture2D" uid="uid://ciqlvvm4sau4q" path="res://Textures/Satellite/Sat_textures/Sat4.png" id="2_6pvqj"]
 [ext_resource type="Texture2D" uid="uid://bp6lerdnlsfti" path="res://Textures/Satellite/Ship4/Parts/ship4_tail.png" id="4_0sdta"]
 
