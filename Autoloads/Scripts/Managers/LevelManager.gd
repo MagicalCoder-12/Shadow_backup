@@ -164,7 +164,10 @@ func _track_difficulty_completion(level_num: int) -> void:
 	if gm and "current_difficulty" in gm:
 		difficulty = gm.current_difficulty
 	
-	print("LevelManager: _track_difficulty_completion - level=%d, current_difficulty=%s (type=%s)" % [level_num, difficulty, typeof(difficulty) if difficulty != null else "null"])
+	var difficulty_type_label := "null"
+	if difficulty != null:
+		difficulty_type_label = str(typeof(difficulty))
+	print("LevelManager: _track_difficulty_completion - level=%d, current_difficulty=%s (type=%s)" % [level_num, difficulty, difficulty_type_label])
 	
 	# Try to get difficulty name using the enum directly from GameManager
 	var difficulty_name = ""
@@ -438,9 +441,6 @@ func _on_all_waves_cleared() -> void:
 
 func _on_boss_defeated() -> void:
 	gm.score += 1000
-	var current_level: int = get_current_level()
-	if current_level == 5:
-		unlock_shadow_mode()
 	
 	# Emit boss_defeated signal for the Level scene to handle
 	boss_defeated.emit()

@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://onxgp8r6bpl0"]
+[gd_scene format=3 uid="uid://dpbpiarnq8dd1"]
 
-[ext_resource type="Script" path="res://Bosses/Scripts/ShadowUnlockBoss.gd" id="1_mwcmj"]
+[ext_resource type="Script" uid="uid://ba6ipukbj1oyx" path="res://Bosses/Scripts/Boss0.gd" id="1_mwcmj"]
 [ext_resource type="PackedScene" uid="uid://nhpymmsystt2" path="res://Bullet/Boss_bullet/homing_bullet.tscn" id="2_uo67q"]
 [ext_resource type="Texture2D" uid="uid://bna0irko30tcn" path="res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png" id="3_lya23"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_uo67q"]
@@ -19,7 +19,7 @@ loop_mode = 2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:scale")
+tracks/0/path = NodePath("Boss:scale")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -31,7 +31,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:flip_v")
+tracks/1/path = NodePath("Boss:flip_v")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -43,7 +43,7 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Sprite2D:flip_h")
+tracks/2/path = NodePath("Boss:flip_h")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
@@ -58,7 +58,7 @@ length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:scale")
+tracks/0/path = NodePath("Boss:scale")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -70,7 +70,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:flip_v")
+tracks/1/path = NodePath("Boss:flip_v")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -82,7 +82,7 @@ tracks/1/keys = {
 tracks/2/type = "value"
 tracks/2/imported = false
 tracks/2/enabled = true
-tracks/2/path = NodePath("Sprite2D:flip_h")
+tracks/2/path = NodePath("Boss:flip_h")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
@@ -132,7 +132,7 @@ particles_anim_h_frames = 5
 particles_anim_v_frames = 3
 particles_anim_loop = false
 
-[node name="ShadowUnlockBoss" type="Area2D" unique_id=1219053579 groups=["Boss"]]
+[node name="Boss0" type="Area2D" unique_id=1219053579 groups=["Boss"]]
 scale = Vector2(1.5, 1.5)
 collision_layer = 32
 collision_mask = 17
@@ -142,14 +142,14 @@ phase_transition_health = 15000
 projectile_scene = ExtResource("2_uo67q")
 move_speed = 500.0
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=247342668]
+[node name="Boss" type="Sprite2D" parent="." unique_id=247342668]
 position = Vector2(-4.00001, -49.8939)
 scale = Vector2(2, 2)
 texture = ExtResource("3_lya23")
 flip_h = true
 flip_v = true
 
-[node name="Nozzel" type="Node2D" parent="Sprite2D" unique_id=226300391]
+[node name="Nozzel" type="Node2D" parent="Boss" unique_id=226300391]
 position = Vector2(-1.01274, 52.9777)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1728112889]
@@ -194,10 +194,5 @@ volume_db = 24.0
 [node name="PhaseChange" type="AudioStreamPlayer2D" parent="." unique_id=1383365985]
 position = Vector2(-269, 21)
 stream = ExtResource("8_rkkp3")
-
-[node name="PatternTimer" type="Timer" parent="." unique_id=1409772822]
-autostart = true
-
-[node name="AITimer" type="Timer" parent="." unique_id=579965918]
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]

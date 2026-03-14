@@ -393,9 +393,6 @@ func _on_boss_defeated() -> void:
 		GameManager.score += 1000
 		var current_level: int = GameManager.level_manager.get_current_level()
 		print("Level.gd: Current level is %d" % current_level)
-		if current_level == 5:
-			print("Level.gd: Unlocking shadow mode for level 5")
-			GameManager.level_manager.unlock_shadow_mode()
 		
 		# Check if this is the first time completing this boss level
 		var boss_levels_completed = GameManager.save_manager.boss_levels_completed
