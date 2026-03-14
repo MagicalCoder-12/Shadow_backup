@@ -2,99 +2,172 @@ extends Area2D
 class_name EnergyBall
 
 ## Speed of the energy ball in pixels per second.
-@export var speed: float = 1200.0
+@export var speed: float = 600.0
 
 ## Damage dealt to the player.
 @export var damage: int = 1
 
 ## Direction of movement.
-var direction: Vector2 = Vector2.ZERO
+@export var direction: Vector2 = Vector2.DOWN
 
-## Velocity vector of the energy ball.
-var velocity: Vector2 = Vector2.ZERO
+## Minimum lifetime of the energy ball in seconds.
+@export var min_lifetime: float = 2.0
 
-## Lifetime of the energy ball in seconds.
-@export var lifetime: float = 5.0
+## Maximum lifetime of the energy ball in seconds.
+@export var max_lifetime: float = 3.5
+
+## Radius of the explosion damage area.
+@export var explosion_radius: float = 60.0
+
+## Enable/Disable visual explosion.
+@export var show_explosion_vfx: bool = true
+
+## Color of the explosion shape.
+@export var explosion_color: Color = Color(1, 0.8, 0.2)
 
 ## Internal timer for tracking lifetime.
 var _lifetime_timer: float = 0.0
 
+## Lifetime selected for this spawned instance.
+var lifetime: float = 2.5
+
+## Flag to prevent multiple explosions
+var _is_exploding: bool = false
+
+## Cache the collision shape
+var _collision_shape: CollisionShape2D
+
+
 func _ready() -> void:
-	if speed <= 0:
-		print("Warning: EnergyBall speed is non-positive. Setting to 1200.0.")
-		speed = 1200.0
-	if damage <= 0:
-		print("Warning: EnergyBall damage is non-positive. Setting to 1.")
-		damage = 1
-	if lifetime <= 0:
-		print("Warning: EnergyBall lifetime is non-positive. Setting to 5.0.")
-		lifetime = 5.0
+	_collision_shape = $CollisionShape2D if has_node("CollisionShape2D") else null
+	
+	if direction.length() > 0:
+		direction = direction.normalized()
+
+	if min_lifetime <= 0.0:
+		min_lifetime = 2.5
+	if max_lifetime < min_lifetime:
+		max_lifetime = min_lifetime
+	lifetime = randf_range(min_lifetime, max_lifetime)
+	
+	if not area_entered.is_connected(_on_area_entered):
+		area_entered.connect(_on_area_entered)
+
 
 func _physics_process(delta: float) -> void:
+	if _is_exploding:
+		return
+
 	# Move the energy ball
-	if direction != Vector2.ZERO:
-		velocity = direction * speed
-	global_position += velocity * delta
-	
-	# Handle lifetime
+	position += direction * speed * delta
+
+	# Track lifetime
 	_lifetime_timer += delta
 	if _lifetime_timer >= lifetime:
 		explode()
-		queue_free()
 
-## Sets the direction of the energy ball.
-func set_direction(dir: Vector2) -> void:
-	direction = dir.normalized()
 
-## Sets the speed of the energy ball.
-func set_speed(new_speed: float) -> void:
-	if new_speed <= 0:
-		print("Warning: EnergyBall speed cannot be non-positive. Setting to 1200.0.")
-		speed = 1200.0
-	else:
-		speed = new_speed
-
-## Sets the lifetime of the energy ball.
-func set_lifetime(time: float) -> void:
-	if time <= 0:
-		print("Warning: EnergyBall lifetime cannot be non-positive. Setting to 5.0.")
-		lifetime = 5.0
-	else:
-		lifetime = time
-		_lifetime_timer = 0.0
-
-## Returns the damage value of the energy ball.
-func get_damage() -> int:
-	return damage
-
-## Sets the damage value of the energy ball.
-func set_damage(new_damage: int) -> void:
-	if new_damage <= 0:
-		print("Warning: EnergyBall damage is non-positive. Setting to 1.")
-		damage = 1
-	else:
-		damage = new_damage
-
-## Handles collision with the player.
 func _on_area_entered(area: Area2D) -> void:
+	if _is_exploding:
+		return
+		
 	if area.is_in_group("Player"):
-		# Check if player is in grace period after revival
 		if area.has_method("is_just_revived") and area.is_just_revived():
 			return
-		area.call("damage", damage)
+		
+		_apply_damage(area)
 		explode()
-		queue_free()
 
-## Frees the energy ball when it exits the screen.
-func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
+
+func explode() -> void:
+	if _is_exploding:
+		return
+	
+	_is_exploding = true
+	
+	# --- PERFORMANCE OPTIMIZATION ---
+	# We disable physics here because the ball no longer needs to move.
+	# THIS DOES NOT AFFECT DAMAGE because we use Math (distance_to), 
+	# not Physics (get_overlapping_areas).
+	set_physics_process(false)
+	set_process(false)
+	
+	# Disable collision shape so it doesn't interfere with other physics objects
+	if _collision_shape:
+		_collision_shape.disabled = true
+	
+	# Remove from physics layers entirely
+	collision_layer = 0
+	collision_mask = 0
+	
+	# --- DAMAGE CHECK ---
+	# This runs immediately. It uses math, so it works even though physics is disabled.
+	_deal_explosion_damage()
+	
+	# --- VISUALS ---
+	var visual_duration: float = 0.0
+	if show_explosion_vfx:
+		visual_duration = _create_explosion_shape()
+	
+	# --- CLEANUP ---
+	# Wait for visuals to finish, then free. 
+	# The node stays in the tree during 'await', so global_position remains valid.
+	if visual_duration > 0.0:
+		await get_tree().create_timer(visual_duration).timeout
+	
 	queue_free()
 
-## Creates an explosion effect when the energy ball is destroyed.
-func explode() -> void:
-	# Create explosion particles
-	var explosion_scene = preload("res://Bosses/phase_transition_effect.tscn")
-	if explosion_scene and explosion_scene.can_instantiate():
-		var explosion = explosion_scene.instantiate()
-		explosion.global_position = global_position
-		explosion.scale = Vector2(0.3, 0.3) # Smaller explosion
-		get_tree().current_scene.call_deferred("add_child", explosion)
+
+func _deal_explosion_damage() -> void:
+	var players = get_tree().get_nodes_in_group("Player")
+	
+	for player in players:
+		if not is_instance_valid(player) or not player is Node2D:
+			continue
+			
+		# MATH-BASED CHECK: 
+	 # This does not require the Physics Server or active CollisionShapes.
+		# It works even if physics is disabled on this node.
+		if global_position.distance_to(player.global_position) <= explosion_radius:
+			if player.has_method("is_just_revived") and player.is_just_revived():
+				continue
+			
+			_apply_damage(player)
+
+
+func _create_explosion_shape() -> float:
+	var visual_duration: float = 0.4
+	
+	var visual_node = ExplosionVisual.new()
+	visual_node.color = explosion_color
+	visual_node.radius = explosion_radius
+	visual_node.position = Vector2.ZERO
+	
+	add_child(visual_node)
+	
+	var tween = create_tween()
+	tween.tween_property(visual_node, "scale", Vector2.ONE * 1.5, visual_duration).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(visual_node, "modulate:a", 0.0, visual_duration).set_ease(Tween.EASE_OUT)
+	
+	tween.tween_callback(visual_node.queue_free)
+	
+	return visual_duration
+
+
+func _apply_damage(area: Area2D) -> void:
+	if area.has_method("damage"):
+		area.call("damage", damage)
+
+
+func _on_visible_on_screen_notifier_2d_screen_exited() -> void:
+	if not _is_exploding:
+		queue_free()
+
+
+class ExplosionVisual extends Node2D:
+	var color: Color = Color.WHITE
+	var radius: float = 50.0
+	
+	func _draw() -> void:
+		draw_circle(Vector2.ZERO, radius, color)
+		draw_arc(Vector2.ZERO, radius, 0, TAU, 32, color, 2.0, true)
