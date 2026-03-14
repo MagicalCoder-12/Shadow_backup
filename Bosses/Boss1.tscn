@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://bvb27mesmd4mo"]
+[gd_scene format=3 uid="uid://buulyv2qq725c"]
 
-[ext_resource type="Script" uid="uid://dt71mm3mbywpo" path="res://Bosses/Scripts/boss_1.gd" id="1_5c45g"]
+[ext_resource type="Script" uid="uid://dsvmiohvp40q3" path="res://Bosses/Scripts/boss_1.gd" id="1_0eiam"]
 [ext_resource type="Texture2D" uid="uid://ir5mieiluqnf" path="res://Textures/Boss/oldBossGFX/oldAQUARIUS2.png" id="2_1ldl7"]
-[ext_resource type="Texture2D" uid="uid://6rcpb722fd5f" path="res://Textures/Boss/oldBossGFX/oldAQUARIUS12.png" id="3_hse6t"]
+[ext_resource type="Texture2D" uid="uid://dfd3been3hi5l" path="res://Textures/Boss/oldBossGFX/oldLIBRA14.png" id="2_hse6t"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_r0gn5"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="4_bn1uh"]
 [ext_resource type="Texture2D" uid="uid://hcsvihieifv7" path="res://Textures/UI/Main_Menu/Boss_HP_Bar_2.png" id="5_mw6p5"]
@@ -59,10 +59,10 @@ _data = {
 [node name="Boss1" type="Area2D" unique_id=343965748 groups=["Boss"]]
 collision_layer = 32
 collision_mask = 17
-script = ExtResource("1_5c45g")
-max_health = 40000
-stage_1_sprite = ExtResource("2_1ldl7")
-stage_2_sprite = ExtResource("3_hse6t")
+script = ExtResource("1_0eiam")
+pattern_pause_short = 0.5
+pattern_pause_medium = 1.0
+phase_2_texture = ExtResource("2_hse6t")
 
 [node name="Boss" type="Sprite2D" parent="." unique_id=2081093799]
 scale = Vector2(2, 1.71875)

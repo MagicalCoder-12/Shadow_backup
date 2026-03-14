@@ -1,1001 +1,168 @@
-extends Area2D
+extends BossBase
+class_name Boss1
 
-signal boss_defeated
-signal phase_changed
-signal descent_completed
-signal enemy_died(payload)
 
-enum BossPhase { INTRO, PHASE1, PHASE2, ENRAGED }
+const HOMING_BULLET_SCENE := preload("res://Bullet/Boss_bullet/homing_bullet.tscn")
+const ENERGY_BALL_SCENE := preload("res://Bullet/Boss_bullet/energy_ball.tscn")
+const HELL_PATTERN_SCENE := preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
+const MUZZLE_FLASH_SCENE := preload("res://Bosses/muzzle_flash.tscn")
 
-# Boss stats
-@export var max_health: int = 30000
-@export var stage_2_max_health: int = 60000
-@export var stage_1_sprite: Texture2D = preload("res://Textures/Boss/B1.png")
-@export var stage_2_sprite: Texture2D = preload("res://Textures/Boss/Final_boss.png")
-@export var projectile_scene: PackedScene = preload("res://Bullet/Boss_bullet/homing_bullet.tscn")
-@export var move_speed: float = 250.0
-@export var move_range: float = 400.0
-@export var attack_interval: float = 4.0
-@export var dash_speed: float = 800.0
-@export var dash_duration: float = 0.3
-@export var dash_interval: float = 6.0
-@export var invincibility_duration: float = 3.0
-@export var bullet_lifetime: float = 3.0
-@export var bullet_speed: float = 350.0
+@export var boss_id: String = "Boss1"
+@export var pattern_pause_short: float = 0.18
+@export var pattern_pause_medium: float = 0.35
+@export var hover_width: float = 220.0
+@export var hover_height: float = 56.0
+@export var phase_2_texture: Texture2D
 
-# Minion system properties
-@export var minion_scene: PackedScene = preload("res://Enemy/minion.tscn")
-@export var max_minions: int = 6
-@export var minion_spawn_interval: float = 8.0
-@export var minion_spawn_distance: float = 200.0
-@export var phase2_minion_boost: int = 2
-@export var enraged_minion_boost: int = 3
-
-# Enhanced movement properties
-@export var vertical_movement_range: float = 300.0
-@export var movement_pattern_change_interval: float = 10.0
-@export var min_y_position: float = 150.0
-@export var max_y_position: float = 400.0
-
-# Enhanced bullet hell properties
-@export var spiral_bullet_count: int = 24
-@export var spiral_rotation_speed: float = 0.5
-@export var wave_amplitude: float = 50.0
-@export var wave_frequency: float = 0.5
-
-# Node references
-@onready var left: Marker2D = $Boss/Left
-@onready var right: Marker2D = $Boss/Right
-@onready var center: Marker2D = $Boss/Center
-@onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
-@onready var attack_timer: Timer = $AttackTimer
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var phase_timer: Timer = $PhaseTimer
 @onready var minion_spawn_timer: Timer = $MinionSpawnTimer
-@onready var movement_pattern_timer: Timer = $MovementPatternTimer
-@onready var boss_death: AudioStreamPlayer = $BossDeath
-@onready var phase_change: AudioStreamPlayer2D = $PhaseChange
-@onready var boss_death_particles: CPUParticles2D = $BossDeathParticles
-@onready var health_bar: TextureProgressBar = $HealthBar
-@onready var sprite_2d: Sprite2D = $Boss
-
-var boss_music: AudioStreamPlayer
-
-# State variables
-var current_health: int
-var current_phase: BossPhase = BossPhase.INTRO
-var move_direction: float = 0.0
-var last_position: Vector2
-var defeated: bool = false
-var is_invincible: bool = false
-var dash_cooldown: float = 0.0
-var effects_layer: Node
-var shadow_mode_active: bool = false
-
-# Movement pattern system
-enum MovementPattern { HORIZONTAL_SWING, VERTICAL_SWING, CIRCULAR, RANDOM_WALK, DIAGONAL_SWEEP }
-var current_movement_pattern: MovementPattern = MovementPattern.HORIZONTAL_SWING
-var movement_pattern_timer_value: float = 0.0
-var target_position: Vector2 = Vector2.ZERO
-var movement_speed_multiplier: float = 1.0
-
-# Bullet hell pattern tracking
-var spiral_angle_offset: float = 0.0
-var wave_timer: float = 0.0
-
-# Minion management
-var active_minions: Array[Node] = []
-var minion_spawn_positions: Array[Vector2] = []
-var minions_spawned_this_phase: int = 0
 
 func _ready() -> void:
-	add_to_group("Boss")
-	
-	# Validate properties
-	if max_health <= 0: max_health = 30000
-	if stage_2_max_health <= 0: stage_2_max_health = 60000
-	if attack_interval <= 0: attack_interval = 4.0
-	if move_speed <= 0: move_speed = 250.0
-	if move_range <= 0: move_range = 400.0
-	
-	if boss_death: boss_death.process_mode = PROCESS_MODE_ALWAYS
-	if phase_change: phase_change.process_mode = PROCESS_MODE_ALWAYS
-	if boss_music: boss_music.process_mode = PROCESS_MODE_ALWAYS
+	super._ready()
 
-	current_health = max_health
-	health_bar.max_value = max_health
-	health_bar.value = max_health
-	sprite_2d.texture = stage_1_sprite
-	attack_timer.wait_time = attack_interval
-	attack_timer.start()
-	
-	# Initialize movement system
-	last_position = Vector2.ZERO
-	movement_pattern_timer = Timer.new()
-	movement_pattern_timer.wait_time = movement_pattern_change_interval
-	movement_pattern_timer.autostart = true
-	movement_pattern_timer.timeout.connect(_on_movement_pattern_timeout)
-	add_child(movement_pattern_timer)
-	
-	# Set initial position
-	start_movement()
-	
-	# Tween for INTRO animation
-	sprite_2d.scale = Vector2(0.0, 0.0)
-	var tween = create_tween()
-	tween.tween_property(sprite_2d, "scale", Vector2(2.0, 2.0), 2.0).set_trans(Tween.TRANS_ELASTIC)
-	phase_timer.start(2.0)
+func get_enemy_type_id() -> String:
+	return boss_id
 
-func _setup_minion_spawn_timer() -> void:
-	if not minion_spawn_timer:
-		minion_spawn_timer = Timer.new()
-		add_child(minion_spawn_timer)
-		minion_spawn_timer.timeout.connect(_on_minion_spawn_timer_timeout)
-	minion_spawn_timer.wait_time = minion_spawn_interval
-	minion_spawn_timer.start()
+func get_phase_1_pattern_ids() -> Array[StringName]:
+	return [&"fan_burst", &"aimed_dual"]
 
-func _initialize_minion_spawn_positions() -> void:
-	var spawn_angles = [0, PI/3, 2*PI/3, PI, 4*PI/3, 5*PI/3]
-	for angle in spawn_angles:
-		var pos = Vector2(cos(angle), sin(angle)) * minion_spawn_distance
-		minion_spawn_positions.append(pos)
+func get_phase_2_pattern_ids() -> Array[StringName]:
+	return [&"wide_fan_stagger", &"twin_spiral"]
 
-func start_movement() -> void:
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var center_x: float = viewport_size.x / 2
-	
-	# Start above screen, then move to battle position
-	global_position = Vector2(center_x, -200)
-	
-	var tween = create_tween()
-	# Move to initial battle position (center top)
-	tween.tween_property(self, "global_position", Vector2(center_x, min_y_position + 50), 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	# Emit signal when descent is complete
-	tween.tween_callback(func(): descent_completed.emit())
-
-func _physics_process(delta: float) -> void:
-	if defeated: return
-	
-	# Update phase-based multipliers
-	var phase_speed_multiplier = 1.0
-	match current_phase:
-		BossPhase.PHASE1: phase_speed_multiplier = 1.0
-		BossPhase.PHASE2: phase_speed_multiplier = 1.3
-		BossPhase.ENRAGED: phase_speed_multiplier = 1.6
-	
-	var shadow_speed_multiplier = 1.5 if shadow_mode_active else 1.0
-	movement_speed_multiplier = phase_speed_multiplier * shadow_speed_multiplier
-	
-	# Update timers
-	dash_cooldown -= delta
-	movement_pattern_timer_value += delta
-	wave_timer += delta
-	
-	# Execute current movement pattern
-	execute_movement_pattern(delta)
-	
-	# Check for dash
-	if dash_cooldown <= 0.0 and randf() < 0.1 * delta and current_phase != BossPhase.INTRO:
-		perform_dash()
-	
-	# Update minion management
-	_update_minion_management()
-
-func execute_movement_pattern(delta: float) -> void:
-	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
-	var center_x = viewport_rect.size.x / 2
-	var center_y = (min_y_position + max_y_position) / 2
-	var half_width = move_range / 2
-	var half_height = vertical_movement_range / 2
-	
-	match current_movement_pattern:
-		MovementPattern.HORIZONTAL_SWING:
-			# Horizontal sine wave movement
-			var t = Time.get_ticks_msec() / 1000.0
-			var offset_x = sin(t * 2.0) * half_width
-			var constrained_y = clamp(global_position.y, min_y_position, max_y_position)
-			target_position = Vector2(center_x + offset_x, constrained_y)
-			
-		MovementPattern.VERTICAL_SWING:
-			# Vertical sine wave movement
-			var t = Time.get_ticks_msec() / 1000.0
-			var offset_y = sin(t * 2.0) * half_height
-			var constrained_y = clamp(center_y + offset_y, min_y_position, max_y_position)
-			target_position = Vector2(center_x, constrained_y)
-			
-		MovementPattern.CIRCULAR:
-			# Circular movement around center
-			var t = Time.get_ticks_msec() / 1000.0
-			var radius = min(half_width, half_height) * 0.8
-			var angle = t * 1.5
-			var circle_x = center_x + cos(angle) * radius
-			var circle_y = center_y + sin(angle) * radius
-			circle_y = clamp(circle_y, min_y_position, max_y_position)
-			target_position = Vector2(circle_x, circle_y)
-			
-		MovementPattern.RANDOM_WALK:
-			# Random walk within bounds
-			if movement_pattern_timer_value > 1.0:
-				var random_x = center_x + randf_range(-half_width, half_width)
-				var random_y = randf_range(min_y_position, max_y_position)
-				target_position = Vector2(random_x, random_y)
-				movement_pattern_timer_value = 0.0
-			
-		MovementPattern.DIAGONAL_SWEEP:
-			# Diagonal sweeping movement
-			var t = Time.get_ticks_msec() / 1000.0
-			var offset = sin(t * 1.5) * half_width
-			var y_offset = cos(t * 1.5) * half_height
-			var constrained_y = clamp(center_y + y_offset, min_y_position, max_y_position)
-			target_position = Vector2(center_x + offset, constrained_y)
-	
-	# Smoothly move towards target position
-	var direction = (target_position - global_position).normalized()
-	var speed = move_speed * movement_speed_multiplier
-	global_position += direction * speed * delta
-	
-	# Keep boss within screen bounds
-	global_position.x = clamp(global_position.x, 100, viewport_rect.size.x - 100)
-	global_position.y = clamp(global_position.y, min_y_position, max_y_position)
-	
-	# Update move direction for animations
-	var current_position = global_position
-	move_direction = 1.0 if current_position.x > last_position.x else -1.0 if current_position.x < last_position.x else 0.0
-	last_position = current_position
-
-
-func _on_movement_pattern_timeout() -> void:
-	if defeated or current_phase == BossPhase.INTRO:
-		return
-	
-	# Cycle through movement patterns
-	current_movement_pattern = (current_movement_pattern + 1) as MovementPattern
-	if current_movement_pattern >= MovementPattern.keys().size() as int:
-		current_movement_pattern = 0 as MovementPattern
-	movement_pattern_timer_value = 0.0
-	print("Boss changed movement pattern to: %s" % MovementPattern.keys()[current_movement_pattern])
-
-func perform_dash() -> void:
-	if defeated: return
-	
-	dash_cooldown = dash_interval * (0.7 if current_phase == BossPhase.ENRAGED else 1.0)
-	
-	# Choose dash direction based on current phase
-	var dash_direction: Vector2
-	if current_phase == BossPhase.ENRAGED:
-		# In enraged phase, dash towards player
-		var player = get_tree().get_first_node_in_group("Player")
-		if player:
-			dash_direction = (player.global_position - global_position).normalized()
-		else:
-			# Random direction if no player
-			var angle = randf() * 2 * PI
-			dash_direction = Vector2(cos(angle), sin(angle))
-	else:
-		# Horizontal dash in earlier phases
-		var horizontal_dir = 1.0 if randi() % 2 == 0 else -1.0
-		var vertical_dir = 1.0 if randi() % 2 == 0 else -1.0
-		dash_direction = Vector2(horizontal_dir, 0.2 * vertical_dir)
-		dash_direction = dash_direction.normalized()
-	
-	var dash_distance = move_range * 0.6
-	var target_pos = global_position + dash_direction * dash_distance
-	
-	# Keep within bounds
-	var viewport = get_viewport().get_visible_rect()
-	target_pos.x = clamp(target_pos.x, 100, viewport.size.x - 100)
-	target_pos.y = clamp(target_pos.y, min_y_position, max_y_position)
-	
-	var tween = create_tween()
-	tween.tween_property(self, "global_position", target_pos, dash_duration).set_trans(Tween.TRANS_QUAD)
-	await tween.finished
-
-func _update_minion_management() -> void:
-	active_minions = active_minions.filter(func(minion): return is_instance_valid(minion) and (not minion.has_method("is_alive") or minion.is_alive))
-	
-	for minion in active_minions:
-		if minion.has_method("set_boss_reference"):
-			minion.set_boss_reference(self)
-
-func fire_bullet_hell() -> void:
-	# Load the hell pattern scene
-	var hell_pattern_scene = preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
-	if not hell_pattern_scene or not hell_pattern_scene.can_instantiate():
-		print("Error: Cannot spawn hell pattern bullets, hell_pattern_scene invalid")
-		# Fallback to regular bullets
-		fire_spread_shot()
-		return
-
-	# Adjust bullet count and patterns based on phase
-	var base_bullet_count = 8
-	var speed_multiplier = 1.0
-	var damage_multiplier = 1.0
-	
-	match current_phase:
-		BossPhase.PHASE1:
-			base_bullet_count = 12
-			speed_multiplier = 1.0
-			damage_multiplier = 1.5
-		BossPhase.PHASE2:
-			base_bullet_count = 18
-			speed_multiplier = 1.3
-			damage_multiplier = 2.0
-		BossPhase.ENRAGED:
-			base_bullet_count = 24
-			speed_multiplier = 1.6
-			damage_multiplier = 2.5
-
-	# Get player reference for targeting
-	var player = get_tree().get_first_node_in_group("Player")
-	var player_pos = player.global_position if player else Vector2.ZERO
-	
-	# Different bullet hell patterns based on phase and randomness
-	var pattern_type = 0
-	if current_phase == BossPhase.PHASE1:
-		pattern_type = randi() % 2 # Spiral or Wave
-	elif current_phase == BossPhase.PHASE2:
-		pattern_type = randi() % 3 # Spiral, Wave, or Concentric
-	else: # ENRAGED
-		pattern_type = randi() % 5 # All patterns + more intense versions
-
-	match pattern_type:
-		0: # SPIRAL PATTERN
-			fire_spiral_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-		1: # WAVE PATTERN
-			fire_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-		2: # CONCENTRIC CIRCLES
-			fire_concentric_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-		3: # HOMING WAVE (ENRAGED ONLY)
-			fire_homing_wave_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-		4: # CHAOS PATTERN (ENRAGED ONLY)
-			fire_chaos_pattern(hell_pattern_scene, base_bullet_count, speed_multiplier, damage_multiplier, player_pos)
-
-func fire_spiral_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	spiral_angle_offset += 0.1 * (2.0 if current_phase == BossPhase.ENRAGED else 1.0)
-	
-	var markers = get_valid_markers()
-	if markers.size() == 0: return
-	
-	for marker in markers:
-		for i in range(int(bullet_count / markers.size())):
-			var bullet = scene.instantiate()
-			if not bullet: continue
-			
-			bullet.global_position = marker.global_position
-			
-			var angle = (2 * PI * i / (bullet_count / markers.size())) + spiral_angle_offset
-			var direction = Vector2(cos(angle), sin(angle))
-			
-			if bullet.has_method("set_direction"): bullet.set_direction(direction)
-			if bullet.has_method("set_speed"): bullet.set_speed(200.0 * speed_mult)
-			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
-			
-			get_tree().current_scene.call_deferred("add_child", bullet)
-			spawn_bullet_effect(marker.global_position, Color.YELLOW)
-
-func fire_wave_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	var markers = get_valid_markers()
-	if markers.size() == 0: return
-	
-	for marker in markers:
-		for i in range(int(bullet_count / markers.size())):
-			var bullet = scene.instantiate()
-			if not bullet: continue
-			
-			bullet.global_position = marker.global_position
-			
-			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
-			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
-			var base_angle = PI / 2 # Downward
-			var direction = Vector2(cos(base_angle), sin(base_angle)).rotated(deg_to_rad(wave_offset / 50))
-			
-			if bullet.has_method("set_direction"): bullet.set_direction(direction)
-			if bullet.has_method("set_speed"): bullet.set_speed(180.0 * speed_mult)
-			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
-			
-			get_tree().current_scene.call_deferred("add_child", bullet)
-			var hue = normalized_i
-			spawn_bullet_effect(marker.global_position, Color8(int(255*hue), int(255*(1-hue)), 255, 255))
-
-func fire_concentric_pattern(scene, bullet_count, speed_mult, damage_mult, _target_pos):
-	var markers = get_valid_markers()
-	if markers.size() == 0: return
-	
-	var rings = 2 if current_phase == BossPhase.ENRAGED else 1
-	var bullets_per_ring = int(bullet_count / (markers.size() * rings))
-	
-	for marker in markers:
-		for ring in range(rings):
-			var ring_speed_mult = speed_mult * (1.0 + ring * 0.3)
-			for i in range(bullets_per_ring):
-				var bullet = scene.instantiate()
-				if not bullet: continue
-				
-				bullet.global_position = marker.global_position
-				
-				var angle = (2 * PI * i / bullets_per_ring) + (ring * PI / bullets_per_ring)
-				var direction = Vector2(cos(angle), sin(angle))
-				
-				if bullet.has_method("set_direction"): bullet.set_direction(direction)
-				if bullet.has_method("set_speed"): bullet.set_speed(220.0 * ring_speed_mult)
-				if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
-				
-				get_tree().current_scene.call_deferred("add_child", bullet)
-				var color = Color.BLUE if ring == 0 else Color.RED
-				spawn_bullet_effect(marker.global_position, color)
-
-func fire_homing_wave_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
-	var markers = get_valid_markers()
-	if markers.size() == 0: return
-	
-	for marker in markers:
-		for i in range(int(bullet_count / markers.size())):
-			var bullet = scene.instantiate()
-			if not bullet: continue
-			
-			bullet.global_position = marker.global_position
-			
-			var normalized_i = float(i) / (bullet_count / markers.size() - 1) if bullet_count > markers.size() else 0.5
-			var wave_offset = sin(normalized_i * 2 * PI + wave_timer * wave_frequency) * wave_amplitude
-			var base_angle = PI / 2
-			var initial_direction = Vector2(cos(base_angle), sin(base_angle)).rotated(deg_to_rad(wave_offset / 50))
-			
-			if bullet.has_method("set_direction"): bullet.set_direction(initial_direction)
-			if bullet.has_method("set_speed"): bullet.set_speed(160.0 * speed_mult)
-			if bullet.has_method("set_damage"): bullet.set_damage(int(2 * damage_mult))
-			
-			if bullet.has_method("set_target") and target_pos != Vector2.ZERO:
-				bullet.set_target(target_pos)
-				if bullet.has_method("set_turn_rate"):
-					bullet.set_turn_rate(0.03 * (1.5 if current_phase == BossPhase.ENRAGED else 1.0))
-			
-			get_tree().current_scene.call_deferred("add_child", bullet)
-			spawn_bullet_effect(marker.global_position, Color.PURPLE)
-
-func fire_chaos_pattern(scene, bullet_count, speed_mult, damage_mult, target_pos):
-	var markers = get_valid_markers()
-	if markers.size() == 0: return
-	
-	var total_bullets = bullet_count * 2
-	var bullets_per_marker = int(total_bullets / markers.size())
-	
-	for marker in markers:
-		for i in range(bullets_per_marker):
-			var bullet = scene.instantiate()
-			if not bullet: continue
-			
-			bullet.global_position = marker.global_position
-			
-			var random_angle = randf() * 2 * PI
-			var random_direction = Vector2(cos(random_angle), sin(random_angle))
-			
-			if randf() < 0.3 and target_pos != Vector2.ZERO:
-				var to_player = (target_pos - marker.global_position).normalized()
-				random_direction = random_direction.lerp(to_player, 0.7)
-			
-			if bullet.has_method("set_direction"): bullet.set_direction(random_direction)
-			if bullet.has_method("set_speed"): bullet.set_speed(250.0 * speed_mult * (0.8 + randf() * 0.4))
-			if bullet.has_method("set_damage"): bullet.set_damage(int(3 * damage_mult))
-			
-			get_tree().current_scene.call_deferred("add_child", bullet)
-			
-			var random_color = Color(randf(), randf(), randf())
-			spawn_bullet_effect(marker.global_position, random_color)
-
-func get_valid_markers() -> Array:
-	var markers = []
-	if left and is_instance_valid(left): markers.append(left)
-	if center and is_instance_valid(center): markers.append(center)
-	if right and is_instance_valid(right): markers.append(right)
-	return markers
-
-func spawn_bullet_effect(spawn_position: Vector2, color: Color) -> void:
-	var effect_scene = preload("res://Bosses/muzzle_flash.tscn")
-	if effect_scene and effect_scene.can_instantiate():
-		var effect = effect_scene.instantiate()
-		effect.global_position = spawn_position
-		if effect.has_method("set_color"):
-			effect.set_color(color)
-		if effects_layer:
-			effects_layer.call_deferred("add_child", effect)
-		else:
-			get_tree().current_scene.call_deferred("add_child", effect)
-
-func set_invincible(invincible: bool) -> void:
-	is_invincible = invincible
-	print("Boss invincibility set to: %s" % invincible)
-
-func take_damage(amount: int) -> void:
-	if defeated or is_invincible or amount <= 0:
-		if defeated: print("Boss already defeated, ignoring damage")
-		elif is_invincible: print("Boss is invincible, ignoring damage: %d" % amount)
-		else: print("Warning: take_damage received non-positive amount: %d" % amount)
-		return
-
-	current_health -= amount
-	health_bar.value = current_health
-	print("Boss health: %d/%d (Phase: %s)" % [current_health, health_bar.max_value, BossPhase.keys()[current_phase]])
-
-	if current_phase == BossPhase.PHASE1 and current_health <= 0:
-		is_invincible = true
-		phase_change.play()
-		await phase_change.finished
-		enter_phase(BossPhase.PHASE2)
-		await get_tree().create_timer(invincibility_duration).timeout
-		is_invincible = false
-	elif current_phase == BossPhase.PHASE2 and current_health <= stage_2_max_health * 0.3:
-		is_invincible = true
-		phase_change.play()
-		await phase_change.finished
-		enter_phase(BossPhase.ENRAGED)
-		await get_tree().create_timer(invincibility_duration).timeout
-		is_invincible = false
-
-	if current_health <= 0 and current_phase != BossPhase.PHASE1:
-		defeated = true
-		attack_timer.stop()
-		phase_timer.stop()
-		minion_spawn_timer.stop()
-		movement_pattern_timer.stop()
-		boss_death_particles.emitting = true
-		boss_death.play()
-		
-		if boss_music and boss_music.playing:
-			boss_music.stop()
-		
-		_destroy_all_minions()
-		
-		var particle_lifetime = boss_death_particles.lifetime if boss_death_particles else 1.0
-		await get_tree().create_timer(particle_lifetime).timeout
-		if boss_death:
-			await boss_death.finished
-		var payload = {
-			"enemy_type": "boss_1",
-			"is_boss": true,
-			"base_score": 0,
-			"is_shadow_enemy": false,
-			"shadow_score_multiplier": 1.0,
-			"global_position": global_position
-		}
-		enemy_died.emit(payload)
-		boss_defeated.emit()
-		queue_free()
-
-func enter_phase(phase: BossPhase) -> void:
-	current_phase = phase
-	phase_changed.emit(phase)
-	
-	var phase_multiplier = 1.0
-	match phase:
-		BossPhase.PHASE1:
-			health_bar.max_value = max_health
-			health_bar.value = current_health
-			sprite_2d.texture = stage_1_sprite
-			attack_timer.wait_time = attack_interval
-			phase_multiplier = 1.0
-		BossPhase.PHASE2:
-			current_health = stage_2_max_health
-			health_bar.max_value = stage_2_max_health
-			health_bar.value = current_health
-			sprite_2d.texture = stage_2_sprite
-			attack_timer.wait_time = attack_interval * 0.7
-			phase_multiplier = 1.2
-			spawn_phase_transition_effect()
-			_spawn_phase_minions()
-		BossPhase.ENRAGED:
-			attack_timer.wait_time = attack_interval * 0.5
-			phase_multiplier = 1.5
-			spawn_phase_transition_effect()
-			_spawn_phase_minions()
-	
-	is_invincible = true
-	print("Boss is now invincible for 5 seconds after phase change")
-	await get_tree().create_timer(5.0).timeout
-	is_invincible = false
-	
-	_adjust_minion_spawn_rate()
-	
-	var tween = create_tween()
-	tween.tween_property(sprite_2d, "scale", sprite_2d.scale * 1.2, 0.3).set_trans(Tween.TRANS_SINE)
-	tween.tween_property(sprite_2d, "scale", sprite_2d.scale, 0.3).set_trans(Tween.TRANS_SINE)
-	attack_timer.start(attack_interval * phase_multiplier * (0.7 if shadow_mode_active else 1.0))
-	print("Entered phase: %s" % BossPhase.keys()[phase])
-
-func _adjust_minion_spawn_rate() -> void:
-	var spawn_rate_multiplier = 1.0
-	match current_phase:
-		BossPhase.PHASE1:
-			spawn_rate_multiplier = 1.0
-		BossPhase.PHASE2:
-			spawn_rate_multiplier = 0.8
-		BossPhase.ENRAGED:
-			spawn_rate_multiplier = 0.6
-	
-	if shadow_mode_active:
-		spawn_rate_multiplier *= 0.7
-	
-	minion_spawn_timer.wait_time = minion_spawn_interval * spawn_rate_multiplier
-
-func _spawn_phase_minions() -> void:
-	var minions_to_spawn = 2
-	if current_phase == BossPhase.PHASE2:
-		minions_to_spawn += phase2_minion_boost
-	elif current_phase == BossPhase.ENRAGED:
-		minions_to_spawn += enraged_minion_boost
-	
-	for i in range(minions_to_spawn):
-		if active_minions.size() < get_max_minions():
-			_spawn_minion()
-			await get_tree().create_timer(0.5).timeout # Stagger spawns
-
-func get_max_minions() -> int:
-	var base_max = max_minions
-	if current_phase == BossPhase.PHASE2:
-		base_max += phase2_minion_boost
-	elif current_phase == BossPhase.ENRAGED:
-		base_max += enraged_minion_boost
-	return base_max
-
-func spawn_phase_transition_effect() -> void:
-	var effect_scene = preload("res://Bosses/phase_transition_effect.tscn")
-	if effect_scene and effect_scene.can_instantiate():
-		var effect = effect_scene.instantiate()
-		effect.global_position = global_position
-		if effects_layer:
-			effects_layer.call_deferred("add_child", effect)
-		else:
-			get_tree().current_scene.call_deferred("add_child", effect)
-	else:
-		print("Warning: phase_transition_effect.tscn not found or invalid")
-
-func _spawn_minion() -> void:
-	if not minion_scene or not minion_scene.can_instantiate():
-		print("Error: Cannot spawn minion, minion_scene invalid")
-		return
-	
-	if active_minions.size() >= get_max_minions():
-		print("Max minions reached, cannot spawn more")
-		return
-	
-	var minion = minion_scene.instantiate()
-	if not minion:
-		print("Error: Failed to instantiate minion")
-		return
-	
-	# Safe spawn position selection with fallback
-	var spawn_pos: Vector2
-	if minion_spawn_positions.size() > 0:
-		spawn_pos = global_position + minion_spawn_positions[randi() % minion_spawn_positions.size()]
-	else:
-		# Fallback to a default offset if spawn positions not initialized
-		spawn_pos = global_position + Vector2(randf_range(-200, 200), randf_range(-200, 200))
-		print("Warning: minion_spawn_positions empty, using fallback spawn position")
-	minion.global_position = spawn_pos
-	
-	var movement_type = _get_minion_movement_type()
-	if minion.has_method("set_movement_type"):
-		minion.set_movement_type(movement_type)
-	
-	if minion.has_method("set_boss_reference"):
-		minion.set_boss_reference(self)
-	
-	if minion.has_signal("boss_minion_died"):
-		minion.boss_minion_died.connect(_on_minion_died)
-	
-	get_tree().current_scene.call_deferred("add_child", minion)
-	active_minions.append(minion)
-	
-	var movement_type_name = "Unknown"
-	if minion.has_method("get_movement_type"):
-		var type_idx = minion.get_movement_type()
-		var movement_types = ["SWARM", "ORBIT", "KAMIKAZE", "GUARD"]
-		if type_idx >= 0 and type_idx < movement_types.size():
-			movement_type_name = movement_types[type_idx]
-	print("Spawned minion at position: %s, Type: %s" % [spawn_pos, movement_type_name])
-
-func _get_minion_movement_type() -> int:
-	match current_phase:
-		BossPhase.PHASE1:
-			return randi() % 2 # SWARM or ORBIT
-		BossPhase.PHASE2:
-			return randi() % 3 # SWARM, ORBIT, or GUARD
-		BossPhase.ENRAGED:
-			var weights = [0.3, 0.2, 0.3, 0.2] # SWARM, ORBIT, KAMIKAZE, GUARD
-			return rand_weighted(weights)
-	return 0 # Default to SWARM
-
-func _on_minion_spawn_timer_timeout() -> void:
-	if defeated or current_phase == BossPhase.INTRO:
-		return
-	
-	if active_minions.size() < get_max_minions():
-		_spawn_minion()
-
-func _on_minion_died(minion: Node = null) -> void:
-	if minion and minion in active_minions:
-		active_minions.erase(minion)
-	print("Minion died, active count: %d" % active_minions.size())
-
-func _destroy_all_minions() -> void:
-	for minion in active_minions:
-		if is_instance_valid(minion):
-			minion.queue_free()
-	active_minions.clear()
-	print("All minions destroyed")
-
-func on_minion_died(minion: Node) -> void:
-	_on_minion_died(minion)
-
-func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player_bullets"):
-		var damage = 1
-		if area.has_method("get_damage"):
-			damage = area.get_damage()
-		
-		take_damage(damage)
-		area.queue_free()
-	if defeated:
-		return
-	if area.is_in_group("Player"):
-		area.call("damage", 1)
-
-func _on_attack_timer_timeout() -> void:
-	if defeated:
-		return
-	
-	match current_phase:
-		BossPhase.PHASE1:
-			if randf() < 0.5:
-				fire_energy_ball()
-			else:
-				fire_bullet_hell()
-		BossPhase.PHASE2:
-			if randf() < 0.5:
-				fire_homing_missiles()
-			else:
-				fire_bullet_hell()
-		BossPhase.ENRAGED:
-			var r = randf()
-			if r < 0.25:
-				fire_homing_missiles()
-			elif r < 0.5:
-				fire_energy_ball()
-			elif r < 0.85:
-				fire_bullet_hell()
-			else:
-				command_minions()
+func execute_pattern(pattern_id: StringName) -> void:
+	match pattern_id:
+		&"fan_burst":
+			_pattern_phase_1_fan_burst()
+		&"aimed_dual":
+			_pattern_phase_1_aimed_dual()
+		&"wide_fan_stagger":
+			_pattern_phase_2_wide_fan_stagger()
+		&"twin_spiral":
+			_pattern_phase_2_twin_spiral()
 		_:
-			if randf() < 0.5:
-				fire_homing_missiles()
-			else:
-				fire_bullet_hell()
-	
-	attack_timer.start(attack_interval * (0.5 if current_phase == BossPhase.ENRAGED else 0.7 if current_phase == BossPhase.PHASE2 else 1.0) * (0.7 if shadow_mode_active else 1.0))
+			push_warning("Boss1 received unknown pattern '%s'." % String(pattern_id))
+			finish_pattern_execution()
 
-func command_minions() -> void:
-	if active_minions.size() == 0:
+func get_movement_target(_delta: float) -> Vector2:
+	var viewport_rect := get_viewport().get_visible_rect()
+	var center := Vector2(
+		viewport_rect.position.x + viewport_rect.size.x * 0.5,
+		viewport_rect.position.y + descent_target_y
+	)
+	var time := Time.get_ticks_msec() * 0.001
+	var width := hover_width if current_phase == BossPhase.PHASE_1 else hover_width + 40.0
+	var height := hover_height if current_phase == BossPhase.PHASE_1 else hover_height + 18.0
+	return center + Vector2(cos(time * 0.75) * width, sin(time * 1.15) * height)
+
+func on_phase_1_started() -> void:
+	_show_muzzle_flash(_get_primary_marker_position())
+
+func on_phase_2_started() -> void:
+	if phase_2_texture and boss_sprite is Sprite2D:
+		(boss_sprite as Sprite2D).texture = phase_2_texture
+	_show_muzzle_flash(_get_primary_marker_position())
+
+func _pattern_phase_1_fan_burst() -> void:
+	var marker := _get_primary_marker_position()
+	var base_direction := _get_player_direction(marker)
+	var angles := [-0.32, -0.16, 0.0, 0.16, 0.32]
+
+	for volley in range(3):
+		_show_muzzle_flash(marker)
+		for offset in angles:
+			var direction := base_direction.rotated(offset)
+			spawn_bullet(HELL_PATTERN_SCENE, marker, direction, 520.0, boss_bullet_damage_phase_1, 5.0)
+		if volley < 2:
+			await get_tree().create_timer(pattern_pause_short).timeout
+	finish_pattern_execution()
+
+func _pattern_phase_1_aimed_dual() -> void:
+	var markers := get_valid_markers()
+	if markers.is_empty():
+		finish_pattern_execution()
 		return
-	
-	var command_type = randi() % 3
-	match command_type:
-		0: # Make some minions kamikaze
-			var kamikaze_count = min(2, active_minions.size())
-			for i in range(kamikaze_count):
-				var minion = active_minions[randi() % active_minions.size()]
-				if minion.has_method("activate_kamikaze"):
-					minion.activate_kamikaze()
-		1: # Change movement patterns
-			for minion in active_minions:
-				if minion.has_method("set_movement_type"):
-					minion.set_movement_type(_get_minion_movement_type())
-		2: # Boost minion aggression by dealing damage
-			for minion in active_minions:
-				if minion.has_method("damage"):
-					minion.damage(1)
-	
-	print("Commanded minions - Type: %d, Count: %d" % [command_type, active_minions.size()])
 
-func rand_weighted(weights: Array) -> int:
-	var total = 0.0
-	for w in weights:
-		total += w
-	var r = randf() * total
-	var sum = 0.0
-	for i in range(weights.size()):
-		sum += weights[i]
-		if r <= sum:
-			return i
-	return weights.size() - 1
+	var target_position := _get_player_position()
+	var ordered_markers: Array[Marker2D] = []
+	for marker in markers:
+		if marker.name == "Left" or marker.name == "Right":
+			ordered_markers.append(marker)
+	if ordered_markers.is_empty():
+		ordered_markers = markers
 
-func fire_spread_shot() -> void:
-	if not projectile_scene or not projectile_scene.can_instantiate():
-		print("Error: Cannot spawn bullets, projectile_scene invalid")
-		return
-	
-	var bullet_count = 6 if current_phase == BossPhase.ENRAGED else 5
-	var angle_offset = deg_to_rad(15.0)
-	var base_angle = PI / 2
-	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
-	
-	for marker in [left, center, right]:
-		if not marker or not is_instance_valid(marker):
-			continue
-		for i in range(bullet_count):
-			var bullet = projectile_scene.instantiate()
-			if bullet:
-				bullet.global_position = marker.global_position
-				var angle = base_angle + angle_offset * (i - bullet_count / 2.0 + randf_range(-0.2, 0.2))
-				bullet.rotation = angle
-				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
-				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
-				if bullet.has_method("set_damage"): bullet.set_damage(1)
-				get_tree().current_scene.call_deferred("add_child", bullet)
-				var bullet_ref = weakref(bullet)
-				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
-					var b = bullet_ref.get_ref()
-					if b and is_instance_valid(b):
-						b.queue_free()
-				)
-				print("Spawned spread shot bullet from %s" % marker.name)
-			else:
-				print("Error: Failed to instantiate bullet for spread shot")
+	for marker in ordered_markers:
+		var fire_position := marker.global_position
+		var aim_direction := _get_direction_to_target(fire_position, target_position)
+		_show_muzzle_flash(fire_position)
+		var bullet := spawn_bullet(HOMING_BULLET_SCENE, fire_position, aim_direction, 430.0, boss_bullet_damage_phase_1, 4.0)
+		if bullet and bullet.has_method("set_turn_rate"):
+			bullet.set_turn_rate(0.02)
+		await get_tree().create_timer(pattern_pause_medium).timeout
+	finish_pattern_execution()
 
-func fire_homing_missiles() -> void:
-	if not projectile_scene or not projectile_scene.can_instantiate():
-		print("Error: Cannot spawn bullets, projectile_scene invalid")
-		return
-	
-	var bullet_count = 4 if current_phase == BossPhase.ENRAGED else 3 if current_phase == BossPhase.PHASE2 else 2
-	var player = get_tree().get_first_node_in_group("Player")
-	
-	var target_pos: Vector2
-	if player and player.has_method("is_alive") and player.is_alive():
-		target_pos = player.global_position
-	elif player:
-		target_pos = player.global_position
-	else:
-		target_pos = global_position + Vector2(0, 1000)
-		
-	# REDUCED SPEED: Slowed down homing missiles to be more avoidable
-	var speed_multiplier = 0.85 if current_phase == BossPhase.ENRAGED else 0.7 if current_phase == BossPhase.PHASE2 else 0.6
-	
-	for marker in [left, right]:
-		if not marker or not is_instance_valid(marker):
-			continue
-		for i in range(bullet_count):
-			var bullet = projectile_scene.instantiate()
-			if bullet:
-				bullet.global_position = marker.global_position
-				var angle = randf_range(-PI / 6, PI / 6)
-				bullet.rotation = angle
-				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
-				# REDUCED SPEED: Using lower speed values
-				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier * 0.8) # Further reduced
-				if bullet.has_method("set_target"):
-					# Add some randomness to target position to make them less accurate
-					var random_offset = Vector2(randf_range(-100, 100), randf_range(-100, 100))
-					bullet.set_target(target_pos + random_offset)
-				# REDUCED TURN RATE: Slower turning for better dodgeability
-				if bullet.has_method("set_turn_rate"): 
-					var turn_rate = 0.03 if current_phase == BossPhase.ENRAGED else 0.025 if current_phase == BossPhase.PHASE2 else 0.02
-					bullet.set_turn_rate(turn_rate)
-				if bullet.has_method("set_damage"): bullet.set_damage(1)
-				get_tree().current_scene.call_deferred("add_child", bullet)
-				var bullet_ref = weakref(bullet)
-				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
-					var b = bullet_ref.get_ref()
-					if b and is_instance_valid(b):
-						b.queue_free()
-				)
-				print("Spawned homing missile from %s (Speed: %.1f)" % [marker.name, bullet_speed * speed_multiplier * 0.8])
-			else:
-				print("Error: Failed to instantiate bullet for homing missile")
+func _pattern_phase_2_wide_fan_stagger() -> void:
+	var marker := _get_primary_marker_position()
+	var base_direction := _get_player_direction(marker)
+	var angles := [-0.55, -0.36, -0.18, 0.0, 0.18, 0.36, 0.55]
 
-func fire_laser_burst() -> void:
-	if not projectile_scene or not projectile_scene.can_instantiate():
-		print("Error: Cannot spawn bullets, projectile_scene invalid")
-		return
-	
-	var burst_count = 3 if current_phase == BossPhase.ENRAGED else 2
-	var speed_multiplier = 1.5 if current_phase == BossPhase.ENRAGED else 1.3
-	
-	for burst in range(burst_count):
-		for marker in [left, center, right]:
-			if not marker or not is_instance_valid(marker):
-				continue
-			var bullet = projectile_scene.instantiate()
-			if bullet:
-				bullet.global_position = marker.global_position
-				var angle = PI / 2 + randf_range(-0.05, 0.05)
-				bullet.rotation = angle
-				if bullet.has_method("set_direction"): bullet.set_direction(Vector2(cos(angle), sin(angle)))
-				if bullet.has_method("set_speed"): bullet.set_speed(bullet_speed * speed_multiplier)
-				if bullet.has_method("set_damage"): bullet.set_damage(1)
-				get_tree().current_scene.call_deferred("add_child", bullet)
-				var bullet_ref = weakref(bullet)
-				get_tree().create_timer(bullet_lifetime).timeout.connect(func():
-					var b = bullet_ref.get_ref()
-					if b and is_instance_valid(b):
-						b.queue_free()
-				)
-				print("Spawned laser burst bullet from %s" % marker.name)
-			else:
-				print("Error: Failed to instantiate bullet for laser burst")
-		await get_tree().create_timer(0.15 if current_phase == BossPhase.ENRAGED else 0.2).timeout
+	for wave in range(2):
+		_show_muzzle_flash(marker)
+		for offset in angles:
+			var direction := base_direction.rotated(offset + float(wave) * 0.05)
+			spawn_bullet(HELL_PATTERN_SCENE, marker, direction, 660.0, boss_bullet_damage_phase_2, 5.5)
+		await get_tree().create_timer(pattern_pause_medium).timeout
+	finish_pattern_execution()
 
-func fire_energy_ball() -> void:
-	var energy_ball_scene = preload("res://Bullet/Boss_bullet/energy_ball.tscn")
-	if not energy_ball_scene or not energy_ball_scene.can_instantiate():
-		print("Error: Cannot spawn energy balls, energy_ball_scene invalid")
-		return
-	
-	# CHANGED: Only spawn one energy ball from the center marker
-	var markers = [center]  # Only use center marker for energy ball
-	var speed_multiplier = 1.2 if current_phase == BossPhase.ENRAGED else 1.0
-	var damage_multiplier = 1.0
-	if current_phase == BossPhase.ENRAGED:
-		damage_multiplier = 2.0
-	elif current_phase == BossPhase.PHASE2:
-		damage_multiplier = 1.5
-	
-	# Only spawn one energy ball
-	if center and is_instance_valid(center):
-		var energy_ball = energy_ball_scene.instantiate()
-		if energy_ball:
-			energy_ball.global_position = center.global_position
-			var player = get_tree().get_first_node_in_group("Player")
-			var target_pos = player.global_position if player else global_position + Vector2(0, 1000)
-			var direction = (target_pos - center.global_position).normalized()
-			if energy_ball.has_method("set_direction"):
-				energy_ball.set_direction(direction)
-			# REDUCED SPEED: Slowed down energy ball
-			if energy_ball.has_method("set_speed"):
-				energy_ball.set_speed(150.0 * speed_multiplier)  # Reduced from 200.0
-			if energy_ball.has_method("set_damage"):
-				energy_ball.set_damage(int(3 * damage_multiplier))
-			get_tree().current_scene.call_deferred("add_child", energy_ball)
-			print("Spawned single energy ball from center marker")
-		else:
-			print("Error: Failed to instantiate energy ball")
+func _pattern_phase_2_twin_spiral() -> void:
+	var marker := _get_primary_marker_position()
+	var base_angle := _get_player_direction(marker).angle()
+	var spiral_pairs := 6
 
-func _on_shadow_mode_activated() -> void:
-	shadow_mode_active = true
-	attack_timer.wait_time = attack_timer.wait_time * 0.7
-	attack_timer.start()
-	
-	_adjust_minion_spawn_rate()
-	
-	for minion in active_minions:
-		if minion.has_method("_make_shadow_enemy"):
-			minion._make_shadow_enemy()
+	for step in range(spiral_pairs):
+		_show_muzzle_flash(marker)
+		var rotation_offset := step * 0.22
+		var direction_a := Vector2.RIGHT.rotated(base_angle + rotation_offset)
+		var direction_b := Vector2.RIGHT.rotated(base_angle + PI + rotation_offset)
+		spawn_bullet(HELL_PATTERN_SCENE, marker, direction_a, 620.0 + step * 18.0, boss_bullet_damage_phase_2, 5.5)
+		spawn_bullet(HELL_PATTERN_SCENE, marker, direction_b, 620.0 + step * 18.0, boss_bullet_damage_phase_2, 5.5)
+		if step % 2 == 1:
+			var player_direction := _get_player_direction(marker)
+			var energy_ball := spawn_bullet(ENERGY_BALL_SCENE, marker, player_direction, 420.0, boss_bullet_damage_phase_2, 4.5)
+			if energy_ball and energy_ball.has_method("set_speed"):
+				energy_ball.set_speed(420.0)
+		await get_tree().create_timer(0.11).timeout
+	finish_pattern_execution()
 
-func _on_shadow_mode_deactivated() -> void:
-	shadow_mode_active = false
-	var phase_multiplier = 1.0
-	if current_phase == BossPhase.PHASE2:
-		phase_multiplier = 0.7
-	elif current_phase == BossPhase.ENRAGED:
-		phase_multiplier = 0.5
-	attack_timer.wait_time = attack_interval * phase_multiplier
-	attack_timer.start()
-	
-	_adjust_minion_spawn_rate()
+func _get_primary_marker_position() -> Vector2:
+	var markers := get_valid_markers()
+	for marker in markers:
+		if marker.name == "Center":
+			return marker.global_position
+	if not markers.is_empty():
+		return markers[0].global_position
+	return global_position
+
+func _get_player_position() -> Vector2:
+	var player := get_player()
+	if player:
+		return player.global_position
+	return global_position + Vector2.DOWN * 600.0
+
+func _get_player_direction(from_position: Vector2) -> Vector2:
+	return _get_direction_to_target(from_position, _get_player_position())
+
+func _get_direction_to_target(from_position: Vector2, target_position: Vector2) -> Vector2:
+	var direction := (target_position - from_position).normalized()
+	if direction == Vector2.ZERO:
+		return Vector2.DOWN
+	return direction
+
+func _show_muzzle_flash(flash_position: Vector2) -> void:
+	spawn_effect(MUZZLE_FLASH_SCENE, flash_position)
 
 func _on_phase_timer_timeout() -> void:
-	if current_phase == BossPhase.INTRO:
-		enter_phase(BossPhase.PHASE1)
-		print("Transitioned from INTRO to PHASE1")
+	pass
 
-# Public methods for minion interaction
-func get_active_minion_count() -> int:
-	return active_minions.size()
-
-func get_minion_status() -> Array:
-	var status = []
-	for minion in active_minions:
-		if minion.has_method("get_status"):
-			status.append(minion.get_status())
-	return status
-
-func force_spawn_minion() -> void:
-	if active_minions.size() < get_max_minions():
-		_spawn_minion()
+func _on_minion_spawn_timer_timeout() -> void:
+	pass

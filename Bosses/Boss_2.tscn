@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://ccpqmepj3j62j"]
+[gd_scene format=3 uid="uid://84jk5t0kgmsf"]
 
-[ext_resource type="Script" uid="uid://k8o4be2ejaow" path="res://Bosses/Scripts/Boss2.gd" id="1_5c45g"]
+[ext_resource type="Script" uid="uid://7bbqo2qkw88d" path="res://Bosses/Scripts/Boss2.gd" id="1_5c45g"]
 [ext_resource type="Texture2D" uid="uid://d4j8omyv88o4v" path="res://Textures/Boss/oldBossGFX/oldTAURUS2.png" id="2_vvmta"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="3_r0gn5"]
 [ext_resource type="Texture2D" uid="uid://bbnphfgxxxjn6" path="res://Textures/UI/Main_Menu/Boss_HP_Table.png" id="4_bn1uh"]
@@ -108,8 +108,6 @@ scale = Vector2(0.8, 0.8)
 collision_layer = 32
 collision_mask = 17
 script = ExtResource("1_5c45g")
-max_health = 40000
-stage_2_max_health = 80000
 
 [node name="Boss" type="Sprite2D" parent="." unique_id=1503132266]
 scale = Vector2(2, 2)
