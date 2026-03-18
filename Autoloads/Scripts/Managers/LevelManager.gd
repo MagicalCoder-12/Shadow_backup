@@ -87,13 +87,12 @@ func complete_level(current_level: int) -> void:
 	var should_transition_to_next_level: bool = true
 	@warning_ignore("unused_variable")
 	var is_boss_level: bool = current_level % 5 == 0 and current_level > 0
+	var hard_was_globally_unlocked: bool = false
+	if gm and gm.save_manager:
+		hard_was_globally_unlocked = gm.save_manager.is_hard_globally_unlocked()
 	
 	# Handle special level completions
-	if current_level == 5 and not shadow_mode_tutorial_shown:
-		_show_shadow_mode_tutorial()
-		should_transition_to_next_level = false
-		#Don't set is_level_just_completed = false here, it interferes with level unlocking
-	#elif current_level == 20 and not is_video_playing:
+	#if current_level == 20 and not is_video_playing:
 	#	_play_ending_video()
 	#	should_transition_to_next_level = false
 	
@@ -110,18 +109,17 @@ func complete_level(current_level: int) -> void:
 		if current_level == 10:
 			_unlock_difficulty_selection()
 		
-		# Check if level 20 is completed in NORMAL to unlock hard difficulty
-		if current_level == 20:
-			var diff_name = _get_difficulty_name_from_value(gm.current_difficulty) if gm and "current_difficulty" in gm else ""
-			if diff_name == "Normal":
-				_unlock_hard_difficulty_selection()
-		
 		# Check and update difficulty tier completion
 		_check_tier_completion()
 	
 	# Track difficulty-specific level completion (ALWAYS track, even if level was already completed)
 	# This tracks the highest difficulty completed for each level
 	_track_difficulty_completion(current_level)
+	
+	if current_level == 20 and gm and gm.save_manager:
+		var hard_is_globally_unlocked: bool = gm.save_manager.is_hard_globally_unlocked()
+		if not hard_was_globally_unlocked and hard_is_globally_unlocked:
+			_unlock_hard_difficulty_selection()
 	
 	# For boss levels, emit the level_completed signal to show boss clear screen
 	# For non-boss levels, also emit the level_completed signal
@@ -298,8 +296,8 @@ func unlock_next_level(current_level: int) -> void:
 	var next_level: int = current_level + 1
 	var next_level_path: String = "res://Levels/level_%d.tscn" % next_level
 	if ResourceLoader.exists(next_level_path):
-		# Reset player stats before loading next level
-		gm.reset_player_stats()
+		# Start every level from a clean run state.
+		gm.reset_for_new_level()
 		# Unlock the next level in the save data
 		if next_level > unlocked_levels:
 			unlocked_levels = next_level
@@ -320,12 +318,12 @@ func activate_shadow_mode(duration: float) -> void:
 	if shadow_mode_unlocked:
 		gm.request_shadow_mode_activate(duration, "LevelManager.activate_shadow_mode")
 
-func update_hud_visibility(level_num: int = get_current_level()) -> void:
+func update_hud_visibility(_level_num: int = get_current_level()) -> void:
 	var hud: Node = gm.get_tree().current_scene.get_node_or_null("CanvasLayer/HUD")
 	if hud and hud.has_node("ShadowModeButton"):
 		var shadow_button: ShadowModeButton = hud.get_node("ShadowModeButton") as ShadowModeButton
 		if shadow_button:
-			var should_be_visible: bool = level_num >= 5 and shadow_mode_unlocked
+			var should_be_visible: bool = shadow_mode_unlocked
 			shadow_button.visible = should_be_visible
 			
 			if not should_be_visible:
@@ -334,6 +332,9 @@ func update_hud_visibility(level_num: int = get_current_level()) -> void:
 					hud.reset_charge()
 
 func is_level_unlocked(level: int) -> bool:
+	if gm and gm.is_god_mode_active():
+		return true
+
 	# Progressive level unlock system
 	# Level 1: Always unlocked (starting level)
 	# Levels 2-10: Unlocked after completing the previous level
@@ -451,6 +452,8 @@ func _on_boss_defeated() -> void:
 
 func _on_unlock_shadow_mode() -> void:
 	unlock_shadow_mode()
+	if not shadow_mode_tutorial_shown:
+		_show_shadow_mode_tutorial()
 
 func _exit_tree() -> void:
 	# Disconnect any connected signals to prevent memory leaks

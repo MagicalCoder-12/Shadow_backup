@@ -15,8 +15,6 @@ const MUZZLE_FLASH_SCENE := preload("res://Bosses/muzzle_flash.tscn")
 @export var phase_2_texture: Texture2D
 
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var phase_timer: Timer = $PhaseTimer
-@onready var minion_spawn_timer: Timer = $MinionSpawnTimer
 
 func _ready() -> void:
 	super._ready()
@@ -66,10 +64,10 @@ func on_phase_2_started() -> void:
 func _pattern_phase_1_fan_burst() -> void:
 	var marker := _get_primary_marker_position()
 	var base_direction := _get_player_direction(marker)
-	var angles := [-0.32, -0.16, 0.0, 0.16, 0.32]
+	var angles := [-0.46, -0.23, 0.0, 0.23, 0.46]
 
 	for volley in range(3):
-		_show_muzzle_flash(marker)
+		await _show_muzzle_flash_and_wait(marker)
 		for offset in angles:
 			var direction := base_direction.rotated(offset)
 			spawn_bullet(HELL_PATTERN_SCENE, marker, direction, 520.0, boss_bullet_damage_phase_1, 5.0)
@@ -94,7 +92,7 @@ func _pattern_phase_1_aimed_dual() -> void:
 	for marker in ordered_markers:
 		var fire_position := marker.global_position
 		var aim_direction := _get_direction_to_target(fire_position, target_position)
-		_show_muzzle_flash(fire_position)
+		await _show_muzzle_flash_and_wait(fire_position)
 		var bullet := spawn_bullet(HOMING_BULLET_SCENE, fire_position, aim_direction, 430.0, boss_bullet_damage_phase_1, 4.0)
 		if bullet and bullet.has_method("set_turn_rate"):
 			bullet.set_turn_rate(0.02)
@@ -107,7 +105,7 @@ func _pattern_phase_2_wide_fan_stagger() -> void:
 	var angles := [-0.55, -0.36, -0.18, 0.0, 0.18, 0.36, 0.55]
 
 	for wave in range(2):
-		_show_muzzle_flash(marker)
+		await _show_muzzle_flash_and_wait(marker)
 		for offset in angles:
 			var direction := base_direction.rotated(offset + float(wave) * 0.05)
 			spawn_bullet(HELL_PATTERN_SCENE, marker, direction, 660.0, boss_bullet_damage_phase_2, 5.5)
@@ -120,7 +118,7 @@ func _pattern_phase_2_twin_spiral() -> void:
 	var spiral_pairs := 6
 
 	for step in range(spiral_pairs):
-		_show_muzzle_flash(marker)
+		await _show_muzzle_flash_and_wait(marker)
 		var rotation_offset := step * 0.22
 		var direction_a := Vector2.RIGHT.rotated(base_angle + rotation_offset)
 		var direction_b := Vector2.RIGHT.rotated(base_angle + PI + rotation_offset)
@@ -161,8 +159,5 @@ func _get_direction_to_target(from_position: Vector2, target_position: Vector2) 
 func _show_muzzle_flash(flash_position: Vector2) -> void:
 	spawn_effect(MUZZLE_FLASH_SCENE, flash_position)
 
-func _on_phase_timer_timeout() -> void:
-	pass
-
-func _on_minion_spawn_timer_timeout() -> void:
-	pass
+func _show_muzzle_flash_and_wait(flash_position: Vector2) -> void:
+	await spawn_effect_and_wait(MUZZLE_FLASH_SCENE, flash_position)

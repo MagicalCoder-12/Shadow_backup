@@ -9,12 +9,11 @@ const MUZZLE_FLASH_SCENE := preload("res://Bosses/muzzle_flash.tscn")
 
 @export var boss_id: String = "Boss2"
 @export var stage_2_max_health: int = 80000
+@export var phase_2_texture: Texture2D
 @export var pattern_pause_short: float = 0.22
 @export var pattern_pause_medium: float = 0.45
 @export var hover_width: float = 260.0
 @export var hover_height: float = 78.0
-
-@onready var phase_timer: Timer = $PhaseTimer
 
 func _ready() -> void:
 	super._ready()
@@ -58,6 +57,8 @@ func on_phase_1_started() -> void:
 
 func on_phase_2_started() -> void:
 	if boss_sprite is Sprite2D:
+		if phase_2_texture:
+			(boss_sprite as Sprite2D).texture = phase_2_texture
 		(boss_sprite as Sprite2D).rotation = 0.04
 	_show_muzzle_flash(_get_center_fire_position())
 
@@ -71,8 +72,8 @@ func _pattern_phase_1_arc_volley() -> void:
 		for marker in side_markers:
 			var fire_position := marker.global_position
 			var base_direction := _get_player_direction(fire_position)
-			_show_muzzle_flash(fire_position)
-			for angle_offset in [-0.18, 0.0, 0.18]:
+			await _show_muzzle_flash_and_wait(fire_position)
+			for angle_offset in [-0.3, 0.0, 0.3]:
 				spawn_bullet(HELL_PATTERN_SCENE, fire_position, base_direction.rotated(angle_offset), 560.0, boss_bullet_damage_phase_1, 5.0)
 		if burst < 1:
 			await get_tree().create_timer(pattern_pause_medium).timeout
@@ -83,7 +84,7 @@ func _pattern_phase_1_orb_barrage() -> void:
 	var base_direction := _get_player_direction(fire_position)
 
 	for angle_offset in [-0.24, 0.0, 0.24]:
-		_show_muzzle_flash(fire_position)
+		await _show_muzzle_flash_and_wait(fire_position)
 		var orb := spawn_bullet(ENERGY_BALL_SCENE, fire_position, base_direction.rotated(angle_offset), 350.0, boss_bullet_damage_phase_1, 5.0)
 		if orb and orb.has_method("set_speed"):
 			orb.set_speed(350.0)
@@ -96,7 +97,7 @@ func _pattern_phase_2_split_ring() -> void:
 	var bullet_count := 14
 	var safe_gap_half_angle := 0.32
 
-	_show_muzzle_flash(fire_position)
+	await _show_muzzle_flash_and_wait(fire_position)
 	for bullet_index in range(bullet_count):
 		var angle := TAU * float(bullet_index) / float(bullet_count)
 		var angle_delta := wrapf(angle - player_angle, -PI, PI)
@@ -118,14 +119,14 @@ func _pattern_phase_2_hunter_crossfire() -> void:
 	for marker in side_markers:
 		var fire_position := marker.global_position
 		var aim_direction := _get_player_direction(fire_position)
-		_show_muzzle_flash(fire_position)
+		await _show_muzzle_flash_and_wait(fire_position)
 		for volley_index in range(2):
 			var homing := spawn_bullet(HOMING_BULLET_SCENE, fire_position, aim_direction.rotated(-0.08 + volley_index * 0.16), 470.0, boss_bullet_damage_phase_2, 4.3)
 			if homing and homing.has_method("set_turn_rate"):
 				homing.set_turn_rate(0.028)
 		await get_tree().create_timer(pattern_pause_short).timeout
 
-	_show_muzzle_flash(center_fire_position)
+	await _show_muzzle_flash_and_wait(center_fire_position)
 	var center_direction := _get_player_direction(center_fire_position)
 	for angle_offset in [-0.28, -0.14, 0.0, 0.14, 0.28]:
 		spawn_bullet(HELL_PATTERN_SCENE, center_fire_position, center_direction.rotated(angle_offset), 720.0, boss_bullet_damage_phase_2, 5.0)
@@ -165,5 +166,5 @@ func _get_player_direction(from_position: Vector2) -> Vector2:
 func _show_muzzle_flash(flash_position: Vector2) -> void:
 	spawn_effect(MUZZLE_FLASH_SCENE, flash_position)
 
-func _on_phase_timer_timeout() -> void:
-	pass
+func _show_muzzle_flash_and_wait(flash_position: Vector2) -> void:
+	await spawn_effect_and_wait(MUZZLE_FLASH_SCENE, flash_position)

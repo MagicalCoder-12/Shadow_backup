@@ -204,7 +204,7 @@ func _build_save_payload() -> Dictionary:
 			"level_highest_difficulty": level_highest_difficulty.duplicate(true)
 		},
 		"player": {
-			"lives": gm.player_lives,
+			"lives": 3,
 			"selected_ship_id": gm.get_selected_ship_id_for_save(),
 			"ships": gm.ships.duplicate(true),
 			"satellites": gm.satellites.duplicate(true)
@@ -213,6 +213,12 @@ func _build_save_payload() -> Dictionary:
 			"crystals": gm.crystal_count,
 			"coins": gm.coin_count,
 			"void_shards": gm.void_shards_count
+		},
+		"wheel": {
+			"spins_used_today": gm.wheel_spins_used_today,
+			"free_spin_used_today": gm.wheel_free_spin_used_today,
+			"ad_spins_used_today": gm.wheel_ad_spins_used_today,
+			"last_reset_day": gm.wheel_last_reset_day
 		},
 		"ads": {
 			"usage_count": ad_usage_count,
@@ -265,6 +271,7 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	var progress_data: Dictionary = _dictionary_or_default(payload.get("progress", {}), {})
 	var player_data: Dictionary = _dictionary_or_default(payload.get("player", {}), {})
 	var resources_data: Dictionary = _dictionary_or_default(payload.get("resources", {}), {})
+	var wheel_data: Dictionary = _dictionary_or_default(payload.get("wheel", {}), {})
 	var ads_data: Dictionary = _dictionary_or_default(payload.get("ads", {}), {})
 	
 	if gm.has_level_state():
@@ -273,7 +280,7 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 		gm.set_shadow_mode_tutorial_shown(bool(progress_data.get("shadow_mode_tutorial_shown", false)), "SaveManager._load_schema_payload")
 		gm.set_completed_levels_from_save(_array_or_default(progress_data.get("completed_levels", []), []))
 	
-	gm.player_lives = max(1, int(player_data.get("lives", 3)))
+	gm.player_lives = 3
 	if gm.has_player_state():
 		gm.set_selected_ship_id_from_save(str(player_data.get("selected_ship_id", "Ship1")))
 	
@@ -282,6 +289,13 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	gm.crystal_count = max(0, int(resources_data.get("crystals", initial_resources["crystal_count"])))
 	gm.coin_count = max(0, int(resources_data.get("coins", initial_resources["coin_count"])))
 	gm.void_shards_count = max(0, int(resources_data.get("void_shards", initial_resources["void_shards_count"])))
+	if gm.has_method("set_wheel_state_from_save"):
+		gm.set_wheel_state_from_save(
+			int(wheel_data.get("spins_used_today", 0)),
+			int(wheel_data.get("free_spin_used_today", 0)),
+			int(wheel_data.get("ad_spins_used_today", 0)),
+			int(wheel_data.get("last_reset_day", 0))
+		)
 	
 	level_scores = _dictionary_or_default(progress_data.get("level_scores", {}), {})
 	level_lives = _dictionary_or_default(progress_data.get("level_lives", {}), {})
@@ -314,7 +328,6 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	var shadow_mode_unlocked: Variant = _read_legacy_value(file, false)
 	var shadow_mode_tutorial_shown: Variant = _read_legacy_value(file, false)
 	var completed_levels: Variant = _read_legacy_value(file, [])
-	var player_lives_value: Variant = _read_legacy_value(file, 3)
 	var selected_ship_id: Variant = _read_legacy_value(file, "Ship1")
 	var ships_data: Variant = _read_legacy_value(file, _get_default_ships())
 	var satellites_data: Variant = _read_legacy_value(file, _get_default_satellites())
@@ -333,7 +346,7 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 		gm.set_shadow_mode_tutorial_shown(bool(shadow_mode_tutorial_shown), "SaveManager._load_legacy_payload")
 		gm.set_completed_levels_from_save(completed_levels)
 	
-	gm.player_lives = max(1, int(player_lives_value))
+	gm.player_lives = 3
 	if gm.has_player_state():
 		gm.set_selected_ship_id_from_save(str(selected_ship_id))
 	
@@ -342,6 +355,8 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	gm.crystal_count = max(0, int(crystals))
 	gm.coin_count = max(0, int(coins))
 	gm.void_shards_count = max(0, int(void_shards))
+	if gm.has_method("set_wheel_state_from_save"):
+		gm.set_wheel_state_from_save(0, 0, 0, 0)
 	
 	level_scores = loaded_level_scores
 	level_lives = loaded_level_lives
@@ -461,6 +476,8 @@ func reset_progress() -> void:
 	hard_globally_unlocked = false
 	ad_usage_count = 0
 	ad_last_used_time = 0
+	if gm and gm.has_method("reset_wheel_state"):
+		gm.reset_wheel_state(true)
 	if autosave_progress:
 		save_progress(true)
 
@@ -612,4 +629,3 @@ func is_normal_globally_unlocked() -> bool:
 # Check if Hard difficulty is globally unlocked
 func is_hard_globally_unlocked() -> bool:
 	return hard_globally_unlocked
-

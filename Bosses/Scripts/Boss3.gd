@@ -15,8 +15,6 @@ const MUZZLE_FLASH_SCENE := preload("res://Bosses/muzzle_flash.tscn")
 @export var hover_height: float = 86.0
 @export var phase_2_texture: Texture2D
 
-@onready var phase_timer: Timer = $PhaseTimer
-
 func _ready() -> void:
 	max_health = 40000
 	phase_2_health_threshold = 20000
@@ -82,7 +80,7 @@ func _pattern_phase_1_radial_gap_burst() -> void:
 	var bullet_count := 16
 	var safe_gap_half_angle := 0.42
 
-	_show_muzzle_flash(fire_position)
+	await _show_muzzle_flash_and_wait(fire_position)
 	for bullet_index in range(bullet_count):
 		var angle := TAU * float(bullet_index) / float(bullet_count)
 		var angle_delta := wrapf(angle - player_angle, -PI, PI)
@@ -100,14 +98,14 @@ func _pattern_phase_1_cross_lane_punish() -> void:
 
 	for marker in side_markers:
 		var fire_position := marker.global_position
-		_show_muzzle_flash(fire_position)
+		await _show_muzzle_flash_and_wait(fire_position)
 		var vertical_direction := Vector2.DOWN.rotated(-0.08 if marker.name == "Left" else 0.08)
 		spawn_bullet(HELL_PATTERN_SCENE, fire_position, vertical_direction, 680.0, boss_bullet_damage_phase_1, 4.8)
 		spawn_bullet(HELL_PATTERN_SCENE, fire_position, vertical_direction.rotated(0.12 if marker.name == "Left" else -0.12), 680.0, boss_bullet_damage_phase_1, 4.8)
 
 	await get_tree().create_timer(pattern_pause_medium).timeout
 	var center_fire_position := _get_center_fire_position()
-	_show_muzzle_flash(center_fire_position)
+	await _show_muzzle_flash_and_wait(center_fire_position)
 	var punish_direction := _get_player_direction(center_fire_position)
 	var punish_ball := spawn_bullet(ENERGY_BALL_SCENE, center_fire_position, punish_direction, 390.0, boss_bullet_damage_phase_1, 4.6)
 	if punish_ball and punish_ball.has_method("set_speed"):
@@ -119,7 +117,7 @@ func _pattern_phase_2_double_spiral_sniper() -> void:
 	var base_angle := _get_player_direction(fire_position).angle()
 
 	for step in range(8):
-		_show_muzzle_flash(fire_position)
+		await _show_muzzle_flash_and_wait(fire_position)
 		var rotation_offset := step * 0.24
 		var spiral_a := Vector2.RIGHT.rotated(base_angle + rotation_offset)
 		var spiral_b := Vector2.RIGHT.rotated(base_angle + PI + rotation_offset)
@@ -140,7 +138,7 @@ func _pattern_phase_2_collapsing_circle() -> void:
 	var inner_bullets := 10
 	var safe_gap_half_angle := 0.3
 
-	_show_muzzle_flash(fire_position)
+	await _show_muzzle_flash_and_wait(fire_position)
 	for bullet_index in range(outer_bullets):
 		var angle := TAU * float(bullet_index) / float(outer_bullets)
 		var angle_delta := wrapf(angle - player_angle, -PI, PI)
@@ -193,5 +191,5 @@ func _get_player_direction(from_position: Vector2) -> Vector2:
 func _show_muzzle_flash(flash_position: Vector2) -> void:
 	spawn_effect(MUZZLE_FLASH_SCENE, flash_position)
 
-func _on_phase_timer_timeout() -> void:
-	pass
+func _show_muzzle_flash_and_wait(flash_position: Vector2) -> void:
+	await spawn_effect_and_wait(MUZZLE_FLASH_SCENE, flash_position)

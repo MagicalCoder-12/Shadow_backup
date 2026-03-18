@@ -6,7 +6,7 @@ extends Control
 @onready var difficulty_unlocked: Control = $CanvasLayer/difficultyUnlocked
 @onready var harddifficulty_unlocked: Control = $CanvasLayer/harddifficultyUnlocked
 
-const Start_screen = "res://MainScenes/start_menu.tscn"
+const Intern_menu = "res://MainScenes/Intern_Menu.tscn"
 const Shop = "res://MainScenes/upgrade_menu.tscn"
 
 # Configuration for world-level format
@@ -68,7 +68,7 @@ func _check_and_show_difficulty_unlocked():
 			print("Map: Difficulty selection unlocked notification shown")
 		
 		# Check for hard difficulty unlock (level 20)
-		if GameManager.is_level_completed(20) and not GameManager.save_manager.hard_difficulty_unlocked_showed:
+		if GameManager.save_manager.is_hard_globally_unlocked() and not GameManager.save_manager.hard_difficulty_unlocked_showed:
 			# Show hard difficulty unlock notification
 			_show_hard_difficulty_unlocked()
 			# Mark as shown
@@ -250,7 +250,7 @@ func _get_star_sprite(button: Node, star_name: String) -> Sprite2D:
 
 func _on_back_pressed() -> void:
 	canvaslayer.hide()
-	GameManager.change_scene(Start_screen)
+	GameManager.change_scene(Intern_menu)
 
 func _on_shop_pressed() -> void:
 	canvaslayer.hide()

@@ -149,6 +149,9 @@ func _ensure_valid_selected_difficulty() -> void:
 	_update_description(selected_difficulty)
 
 func _is_difficulty_unlocked(difficulty: FormationEnums.DifficultyLevel) -> bool:
+	if GameManager and GameManager.is_god_mode_active():
+		return true
+
 	match difficulty:
 		FormationEnums.DifficultyLevel.EASY:
 			# Easy is always unlocked for all levels
