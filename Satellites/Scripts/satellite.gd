@@ -4,6 +4,8 @@ class_name SatelliteWeaponController
 const DEFAULT_BULLET_SCENE: PackedScene = preload("res://Bullet/Sat_bullet/Sat_bullet1.tscn")
 const BEHAVIOR_SHOOT_ONLY_SCRIPT := preload("res://Satellites/Scripts/Behaviors/SatelliteBehaviorShootOnly.gd")
 const DEFAULT_VISUAL_BOUNDS := Rect2(Vector2(-16, -16), Vector2(32, 32))
+const SHADOW_TINT := Color(0.72, 0.45, 1.0, 1.0)
+const SHADOW_BULLET_TINT := Color(0.72, 0.45, 1.0, 1.0)
 
 enum SatelliteBehaviorMode {
 	SHOOT_ONLY,
@@ -16,6 +18,7 @@ enum SatelliteBehaviorMode {
 @export var bullet_speed: float = 1500.0
 @export var shadow_spread_angle: float = 15.0
 @export var shadow_fire_rate_multiplier: float = 0.7
+@export var relative_size_multiplier: float = 1.0
 
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer")
 @onready var nozzle: Node2D = get_node_or_null("Nozel")
@@ -29,9 +32,12 @@ var satellite_base_damage: int = 10
 var satellite_damage_bonus: int = 0
 var _behavior: SatelliteBehaviorBase = null
 var _base_visual_scale: Vector2 = Vector2.ONE
+var _visual_nodes: Array[CanvasItem] = []
+var _normal_modulates: Dictionary = {}
 
 func _ready() -> void:
 	_base_visual_scale = scale
+	_cache_visual_nodes()
 	original_fire_rate = maxf(0.05, fire_rate)
 	if not _uses_bullet_shooting():
 		is_shooting_active = false
@@ -177,6 +183,11 @@ func _spawn_shot_at_angle(angle_deg: float, base_damage: int) -> void:
 func _configure_spawned_bullet(bullet: Node, shot_damage: int) -> void:
 	if bullet.has_method("configure_from_satellite_weapon"):
 		bullet.call("configure_from_satellite_weapon", shot_damage)
+	if is_shadow_mode_active:
+		if bullet.has_method("apply_shadow_tint"):
+			bullet.call("apply_shadow_tint", SHADOW_BULLET_TINT)
+		elif bullet is CanvasItem:
+			(bullet as CanvasItem).modulate = SHADOW_BULLET_TINT
 
 func _attach_bullet_to_current_scene(bullet: Node) -> void:
 	var current_scene: Node = get_tree().current_scene
@@ -190,7 +201,10 @@ func _attach_bullet_to_current_scene(bullet: Node) -> void:
 		current_scene.add_child(bullet)
 
 func _get_current_satellite_total_damage() -> int:
-	return max(1, satellite_base_damage + satellite_damage_bonus)
+	var total_damage: int = max(1, satellite_base_damage + satellite_damage_bonus)
+	if GameManager and GameManager.has_method("get_god_mode_damage"):
+		return GameManager.get_god_mode_damage(total_damage)
+	return total_damage
 
 func set_shooting_active(active: bool) -> void:
 	is_shooting_active = active and _uses_bullet_shooting()
@@ -205,6 +219,7 @@ func _on_shadow_mode_activated() -> void:
 	if is_shadow_mode_active:
 		return
 	is_shadow_mode_active = true
+	_apply_shadow_tint()
 	if _uses_bullet_shooting():
 		fire_rate = maxf(0.05, original_fire_rate * shadow_fire_rate_multiplier)
 		if timer:
@@ -220,6 +235,7 @@ func _on_shadow_mode_deactivated() -> void:
 	if not is_shadow_mode_active:
 		return
 	is_shadow_mode_active = false
+	_restore_normal_modulates()
 	if _uses_bullet_shooting():
 		fire_rate = original_fire_rate
 		if timer:
@@ -275,7 +291,7 @@ func apply_ship_relative_size(ship_visual_size: Vector2, size_ratio: float = 0.8
 	if not is_finite(scale_factor) or scale_factor <= 0.0:
 		return
 
-	scale = _base_visual_scale * scale_factor
+	scale = _base_visual_scale * scale_factor * maxf(0.1, relative_size_multiplier)
 
 func get_visual_bounds_local() -> Rect2:
 	var bounds_found := false
@@ -324,6 +340,31 @@ func _load_satellite_data() -> void:
 			if texture:
 				sprite.texture = texture
 		return
+
+func _cache_visual_nodes() -> void:
+	_visual_nodes.clear()
+	_normal_modulates.clear()
+	for visual_node in _collect_visual_nodes(self):
+		if visual_node is CanvasItem:
+			var canvas_item := visual_node as CanvasItem
+			_visual_nodes.append(canvas_item)
+			_normal_modulates[canvas_item.get_path()] = canvas_item.modulate
+
+func _apply_shadow_tint() -> void:
+	for visual_node in _visual_nodes:
+		if not visual_node or not is_instance_valid(visual_node):
+			continue
+		var normal_modulate: Variant = _normal_modulates.get(visual_node.get_path(), Color(1, 1, 1, 1))
+		if normal_modulate is Color:
+			visual_node.modulate = (normal_modulate as Color) * SHADOW_TINT
+
+func _restore_normal_modulates() -> void:
+	for visual_node in _visual_nodes:
+		if not visual_node or not is_instance_valid(visual_node):
+			continue
+		var normal_modulate: Variant = _normal_modulates.get(visual_node.get_path())
+		if normal_modulate is Color:
+			visual_node.modulate = normal_modulate as Color
 
 func _spawn_shot_pattern(shot_angles: Array[float], base_damage: int, angle_offset: float = 0.0) -> void:
 	for angle_deg in shot_angles:

@@ -10,7 +10,7 @@ func _setup_bullet() -> void:
 	collision_groups = [GameManager.GROUP_DAMAGEABLE, GameManager.GROUP_BOSS]
 	visible = true
 	z_index = 10
-	modulate.a = 1.0
+	modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 	if lifetime_timer:
 		var timeout_callable := Callable(self, "_on_lifetime_timer_timeout")
@@ -19,6 +19,9 @@ func _setup_bullet() -> void:
 		lifetime_timer.stop()
 		lifetime_timer.wait_time = maxf(0.05, lifetime)
 		lifetime_timer.start()
+
+func apply_shadow_tint(tint: Color) -> void:
+	modulate = tint
 
 func _on_lifetime_timer_timeout() -> void:
 	_on_screen_exited()

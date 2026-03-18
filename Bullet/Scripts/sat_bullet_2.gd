@@ -28,12 +28,17 @@ func _setup_bullet() -> void:
 
 	visible = true
 	z_index = 10
-	modulate.a = 1.0
+	modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 	_find_nearest_enemy()
 
 func configure_from_satellite_weapon(base_damage: int) -> void:
 	damage = max(1, base_damage)
+
+func apply_shadow_tint(tint: Color) -> void:
+	modulate = tint
+	if glow_sprite:
+		glow_sprite.modulate = Color(tint.r, tint.g, tint.b, 0.8)
 
 func _update_visuals() -> void:
 	if target and is_instance_valid(target):

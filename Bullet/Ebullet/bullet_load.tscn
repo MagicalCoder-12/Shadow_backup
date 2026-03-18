@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dtfffn45trq7o"]
 
 [ext_resource type="Texture2D" uid="uid://nttt0kb1psnd" path="res://Textures/Sprites/M484BulletCollection1.png" id="1_h7xlt"]
-[ext_resource type="Shader" uid="uid://r42o7dyqyhav" path="res://Bullet/Ebullet/bullet_load.gdshader" id="1_o4ph2"]
+[ext_resource type="Shader" uid="uid://r42o7dyqyhav" path="res://Shaders/bullet_load.gdshader" id="1_o4ph2"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7xqxp"]
 shader = ExtResource("1_o4ph2")

@@ -208,3 +208,7 @@ func _on_restart_pressed() -> void:
 	else:
 		if debug:
 			print("[LevelCompleted Debug] Error: GameManager missing, can't restart level!")
+
+
+func _on_ad_double_pressed() -> void:
+	pass # Replace with function body.

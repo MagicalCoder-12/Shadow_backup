@@ -4,31 +4,24 @@
 [ext_resource type="Script" uid="uid://sk3ed4bpix0f" path="res://Bullet/Scripts/shadow_enemy_bullet.gd" id="2_qsnhr"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_8np1e"]
-radius = 8.0
+radius = 7.1422925
 
 [node name="ShadowEnemy_Bullet" type="Area2D" unique_id=560994806 groups=["EnemyBullet"]]
-scale = Vector2(3.5, 3.5)
+scale = Vector2(4.5, 4.5)
 collision_layer = 64
 script = ExtResource("2_qsnhr")
-shadow_damage_multiplier = 1.0
-shadow_speed_multiplier = 1.5
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1579701497]
 modulate = Color(1, 0, 1, 1)
-rotation = 1.5708
 texture = ExtResource("2_oitqg")
 region_enabled = true
 region_rect = Rect2(122.64741, 296.31232, 19.347267, 20.749237)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=720320599]
-visible = false
 shape = SubResource("CircleShape2D_8np1e")
 
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=1079678786]
-visible = false
-position = Vector2(0, 14)
-scale = Vector2(2.9, 15.5)
-rect = Rect2(-2.0689654, -1.4193548, 4.827586, 1.0322579)
+rect = Rect2(-7.555556, -6.888889, 15.333334, 13.333334)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="area_exited" from="." to="." method="_on_area_exited"]

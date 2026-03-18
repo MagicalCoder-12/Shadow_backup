@@ -1,26 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://nhpymmsystt2"]
+[gd_scene format=3 uid="uid://nhpymmsystt2"]
 
-[ext_resource type="Script" path="res://Bullet/Boss_bullet/Scripts/homing_bullet.gd" id="1_6lg3v"]
+[ext_resource type="Script" uid="uid://34o0aryne035" path="res://Bullet/Boss_bullet/Scripts/homing_bullet.gd" id="1_6lg3v"]
 [ext_resource type="Texture2D" uid="uid://d2ra2jic3tyu" path="res://Textures/Lasers/Laser Sprites/23.png" id="1_wfpm0"]
-
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6lg3v"]
 size = Vector2(32, 164)
 
-[node name="HomingBullet" type="Area2D"]
+[node name="HomingBullet" type="Area2D" unique_id=554882180]
 collision_layer = 128
 script = ExtResource("1_6lg3v")
 turn_rate = 0.5
+lifetime = 5.0
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1175541904]
 rotation = 1.5708
 texture = ExtResource("1_wfpm0")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1597334574]
 position = Vector2(-1, -5)
 shape = SubResource("RectangleShape2D_6lg3v")
 
-[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=126767646]
 position = Vector2(-2.5, -7)
 scale = Vector2(1.55, 8.1)
 

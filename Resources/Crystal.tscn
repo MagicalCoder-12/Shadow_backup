@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://rybaykn5k1px"]
+[gd_scene format=3 uid="uid://rybaykn5k1px"]
 
 [ext_resource type="Script" uid="uid://5adrxvh8k0vh" path="res://Resources/crystal.gd" id="1_6ftxl"]
 [ext_resource type="Texture2D" uid="uid://brlinyw3kiffu" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_01.png" id="1_phn7x"]
@@ -13,7 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://qigjgfsbvo58" path="res://Textures/Explosion1/Explosion1_9.png" id="11_xbhq4"]
 [ext_resource type="Texture2D" uid="uid://b5cc6w6043lan" path="res://Textures/Explosion1/Explosion1_10.png" id="12_pmsq4"]
 [ext_resource type="Texture2D" uid="uid://bitth5lv7mkmu" path="res://Textures/Explosion1/Explosion1_11.png" id="13_ms53a"]
-[ext_resource type="AudioStream" uid="uid://dqhhjeg1la2hj" path="res://Textures/Music/coin_collected_08.wav" id="14_44icn"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2jfmc"]
 radius = 26.8896
@@ -60,31 +59,24 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Crystal" type="Area2D" groups=["Crystals"]]
+[node name="Crystal" type="Area2D" unique_id=1585183710 groups=["Crystals"]]
 scale = Vector2(1.5, 1.5)
-audio_bus_name = &"Collectables"
 script = ExtResource("1_6ftxl")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1669925195]
 texture = ExtResource("1_phn7x")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=952815021]
 position = Vector2(2, -1)
 rotation = 0.598648
 shape = SubResource("CapsuleShape2D_2jfmc")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1989439432]
 visible = false
 sprite_frames = SubResource("SpriteFrames_0jbh2")
 animation = &"collected"
 frame = 10
 frame_progress = 1.0
 speed_scale = 3.0
-
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
-stream = ExtResource("14_44icn")
-volume_db = 24.0
-pitch_scale = 0.9
-bus = &"Collectables"
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]

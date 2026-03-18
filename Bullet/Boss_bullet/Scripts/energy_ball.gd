@@ -2,7 +2,7 @@ extends Area2D
 class_name EnergyBall
 
 ## Speed of the energy ball in pixels per second.
-@export var speed: float = 600.0
+@export var speed: float = 1000.0
 
 ## Damage dealt to the player.
 @export var damage: int = 1
@@ -11,10 +11,10 @@ class_name EnergyBall
 @export var direction: Vector2 = Vector2.DOWN
 
 ## Minimum lifetime of the energy ball in seconds.
-@export var min_lifetime: float = 2.0
+@export var min_lifetime: float = 2.5
 
 ## Maximum lifetime of the energy ball in seconds.
-@export var max_lifetime: float = 3.5
+@export var max_lifetime: float = 4.0
 
 ## Radius of the explosion damage area.
 @export var explosion_radius: float = 60.0

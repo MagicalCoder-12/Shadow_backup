@@ -14,7 +14,7 @@ var direction: Vector2 = Vector2.ZERO
 var velocity: Vector2 = Vector2.ZERO
 
 # Lifetime of the bullet in seconds.
-@export var lifetime: float = 7.0
+@export var lifetime: float = 6.0
 
 # Internal timer for tracking lifetime.
 var _lifetime_timer: float = 0.0
@@ -40,6 +40,10 @@ func _ready() -> void:
 	scale_variation = randf_range(0.8, 1.2)
 	scale = Vector2(scale_variation, scale_variation)
 	rotation_speed = randf_range(3.0, 7.0)
+
+	var area_callable := Callable(self, "_on_area_entered")
+	if not area_entered.is_connected(area_callable):
+		area_entered.connect(area_callable)
 
 func _physics_process(delta: float) -> void:
 	# Move the bullet

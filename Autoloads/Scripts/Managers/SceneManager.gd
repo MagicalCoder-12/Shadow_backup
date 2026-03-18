@@ -74,6 +74,7 @@ func handle_node_added(node: Node) -> void:
 			
 			AudioManager.mute_bus("Bullet", true)
 			AudioManager.mute_bus("Explosion", true)
+			AudioManager.mute_bus("Boss", true)
 		else:
 			AudioManager.set_gameplay_mix(true)
 			if AudioManager.background_player:
@@ -81,4 +82,5 @@ func handle_node_added(node: Node) -> void:
 			
 			AudioManager.mute_bus("Bullet", false)
 			AudioManager.mute_bus("Explosion", false)
+			AudioManager.mute_bus("Boss", false)
 			

@@ -49,7 +49,7 @@ func spawn_bullet(
 	bullet.is_active = true
 	bullet.visible = true
 	bullet.z_index = 10
-	bullet.modulate.a = 1.0
+	bullet.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	bullet.pool_key = bullet_scene.resource_path  # Store pool key for BulletBase return hooks.
 	bullet.set_meta(META_POOL_RETURN_PENDING, false)
 	
@@ -117,7 +117,7 @@ func _finalize_return_bullet_to_pool(bullet: BulletBase, pool_key: String) -> vo
 	# Reset bullet properties before returning to pool.
 	bullet.is_active = false
 	bullet.visible = false
-	bullet.modulate.a = 1.0
+	bullet.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	bullet.global_position = Vector2(-1000, -1000)
 	bullet.speed = 600.0
 	bullet.damage = 10

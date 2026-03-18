@@ -1,8 +1,10 @@
 extends RefCounted
 class_name PlayerCombatService
 
-func should_ignore_damage(revive_service, is_shadow_mode_active: bool) -> bool:
-	if is_shadow_mode_active:
+func should_ignore_damage(revive_service, _is_shadow_mode_active: bool, game_manager = null) -> bool:
+	if game_manager and game_manager.has_method("is_god_mode_active") and game_manager.is_god_mode_active():
+		return true
+	if _is_shadow_mode_active:
 		return true
 	if revive_service and revive_service.is_invincible():
 		return true
@@ -64,6 +66,10 @@ func apply_enemy_contact(enemy: Area2D, damage_callback: Callable) -> void:
 
 func apply_bullet_hit(bullet: Area2D, damage_callback: Callable) -> int:
 	var bullet_damage := get_bullet_damage(bullet)
+	if bullet and bool(bullet.get_meta("direct_damage_applied", false)):
+		if bullet.has_method("queue_free"):
+			bullet.queue_free()
+		return bullet_damage
 	if damage_callback.is_valid():
 		damage_callback.call(bullet_damage)
 	if bullet and bullet.has_method("queue_free"):

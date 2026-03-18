@@ -13,12 +13,13 @@ var is_dragging: bool = false
 var vertical_velocity: float = 0.0
 var cam_half_height: float  # Half of camera height for bounds checking
 
-func _ready():
+func _ready() -> void:
 	make_current()
 	# Get half the screen height to check top/bottom edges
 	cam_half_height = get_viewport_rect().size.y * 0.5 
+	_restore_saved_position()
 	
-func _input(event):
+func _input(event: InputEvent) -> void:
 	if (event is InputEventScreenTouch and event.pressed) or \
 	   (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 		drag_start_position = event.position
@@ -33,12 +34,13 @@ func _input(event):
 		drag_start_position = event.position
 		vertical_velocity = delta_y * 0.2
 		position.x = 0  # Lock X position
+		_save_current_position()
 
 	elif (event is InputEventScreenTouch and not event.pressed) or \
 		 (event is InputEventMouseButton and not event.pressed):
 		is_dragging = false
 
-func _process(_delta):
+func _process(_delta: float) -> void:
 	if not is_dragging:
 		var new_y = clamp(position.y + vertical_velocity,
 						 END_LIMIT + cam_half_height,
@@ -49,3 +51,21 @@ func _process(_delta):
 		if abs(vertical_velocity) < friction:
 			vertical_velocity = 0.0
 		position.x = 0  # Lock X position
+		_save_current_position()
+
+func _exit_tree() -> void:
+	_save_current_position()
+
+func _restore_saved_position() -> void:
+	var default_position := Vector2(position.x, position.y)
+	position = _clamp_camera_position(GameManager.get_saved_map_camera_position(default_position))
+	position.x = 0
+
+func _save_current_position() -> void:
+	if not GameManager:
+		return
+	GameManager.save_map_camera_position(_clamp_camera_position(position))
+
+func _clamp_camera_position(target_position: Vector2) -> Vector2:
+	target_position.y = clamp(target_position.y, END_LIMIT + cam_half_height, START_LIMIT - cam_half_height)
+	return target_position

@@ -805,7 +805,7 @@ func _on_revive_timeout() -> void:
 # New function to request reward ads
 func request_reward_ad(reward_type: String) -> void:
 	_debug_log("Requesting reward ad for: %s" % reward_type)
-	if reward_type != "crystals" and reward_type != "coins":
+	if reward_type != "crystals" and reward_type != "coins" and reward_type != "wheel_spin":
 		_emit_ad_failed(reward_type, {"message": "Unsupported reward type"})
 		return
 	_begin_rewarded_request(false, reward_type)

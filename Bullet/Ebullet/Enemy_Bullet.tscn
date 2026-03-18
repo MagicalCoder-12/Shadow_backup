@@ -4,18 +4,17 @@
 [ext_resource type="Texture2D" uid="uid://nttt0kb1psnd" path="res://Textures/Sprites/M484BulletCollection1.png" id="2_7pgbx"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_v21r4"]
-radius = 12.757742
+radius = 9.202173
 
 [node name="EnemyBullet" type="Area2D" unique_id=223477872 groups=["EnemyBullet"]]
 z_index = 1
-scale = Vector2(3, 3)
+scale = Vector2(5, 5)
 collision_layer = 64
 script = ExtResource("1_vf00a")
 speed = 1500.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=538652398]
 texture_filter = 1
-scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_7pgbx")
 region_enabled = true
 region_rect = Rect2(163.63991, 294.65945, 23.285507, 20.921936)
@@ -26,7 +25,7 @@ shape = SubResource("CircleShape2D_v21r4")
 [node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="." unique_id=552258206]
 position = Vector2(-1, -6.999999)
 scale = Vector2(1.55, 6.9)
-rect = Rect2(-6.774194, -0.69565237, 16.064516, 3.594203)
+rect = Rect2(-5.16129, -0.20289874, 11.741936, 2.4057972)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="screen_exited" from="VisibleOnScreenNotifier2D" to="." method="_on_visible_on_screen_notifier_2d_screen_exited"]

@@ -157,6 +157,14 @@ func _setup_references() -> void:
 	)
 	movement_input_service.configure(self, collision_shape, smoothness, boundary_padding)
 	satellite_service.configure(self, sprite_2d, GameManager, Callable(self, "_debug_log"))
+	_ensure_damage_collision_mask()
+
+func _ensure_damage_collision_mask() -> void:
+	if not has_method("set_collision_mask_value"):
+		return
+
+	for layer in [2, 3, 4, 6, 7, 8]:
+		set_collision_mask_value(layer, true)
 
 func _connect_signals() -> void:
 	# Connect to LevelManager
@@ -263,6 +271,7 @@ func shoot() -> void:
 	var bullet_damage: int = mode_service.get_balanced_bullet_damage(
 		GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	)
+	bullet_damage = GameManager.get_god_mode_damage(bullet_damage)
 
 	# Check if this is Ship2 to apply swapped behavior
 	if ship_id == "Ship2" and mode_service.use_ship2_mode_swap():
@@ -337,7 +346,7 @@ func clamp_position() -> void:
 	movement_input_service.clamp_position()
 
 func damage(amount: int) -> void:
-	if death_in_progress or combat_service.should_ignore_damage(revive_service, GameManager.player_manager.player_stats.get("is_shadow_mode_active", false)):
+	if death_in_progress or combat_service.should_ignore_damage(revive_service, GameManager.player_manager.player_stats.get("is_shadow_mode_active", false), GameManager):
 		return
 
 	combat_service.save_current_stats(GameManager)
@@ -536,11 +545,17 @@ func _on_victory_pose():
 
 func _on_level_completed(_level_num):
 	input_enabled = false
-	GameManager.player_manager.player_stats["attack_level"] = 0
-	GameManager.player_manager.player_stats["bullet_damage"] = GameManager.player_manager.default_bullet_damage
+	GameManager.request_shadow_mode_deactivate_silent("Player._on_level_completed")
+	var base_damage: int = int(
+		GameManager.player_manager.player_stats.get(
+			"base_bullet_damage",
+			GameManager.player_manager.default_bullet_damage
+		)
+	)
+	set_stats(0, base_damage, base_damage, false, false)
 	GameManager.save_progress_if_enabled()
 
-	# When level is completed, update satellites to reflect any changes made in the upgrade menu
+	# Rebuild satellites so they drop temporary runtime state before the next level.
 	update_satellites_from_selection()
 
 func _on_ship_stats_updated(updated_ship_id: String, new_damage: int) -> void:

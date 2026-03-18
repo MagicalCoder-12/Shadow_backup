@@ -9,7 +9,7 @@ class_name ShadowEnemyBullet
 @export var debug_mode: bool = false
 
 # Shadow-specific properties
-@export var shadow_damage_multiplier: float = 1.5
+@export var shadow_damage_multiplier: float = 1.0
 @export var shadow_speed_multiplier: float = 1.2
 
 var is_shadow_bullet: bool = false
@@ -28,10 +28,6 @@ func _ready():
 
 	# Connect to shadow mode signals
 	_connect_shadow_signals()
-
-	# Add visual effects for shadow bullets
-	if sprite:
-		sprite.modulate = Color(0.5, 0.5, 1.0, 1.0)  # Blue tint for shadow bullets
 
 	if debug_mode:
 		print("Shadow bullet spawned. Shadow: ", is_shadow_bullet)
@@ -56,7 +52,6 @@ func make_shadow_bullet():
 
 	# Add visual enhancements
 	if sprite:
-		sprite.modulate = Color(0.4, 0.4, 1.0, 1.0)  # Blue tint
 		sprite.scale = Vector2(1.3, 1.3)  # Slightly larger
 
 	if debug_mode:
@@ -75,6 +70,11 @@ func _on_area_entered(area):
 		player_in_area = area
 		if debug_mode:
 			print("Shadow bullet hit player")
+		if area.has_method("is_just_revived") and area.is_just_revived():
+			return
+		if area.has_method("damage"):
+			set_meta("direct_damage_applied", true)
+			area.damage(get_effective_damage())
 
 		destroy()
 
@@ -90,10 +90,7 @@ func _on_shadow_mode_activated():
 	# Convert to shadow bullet if not already
 	if not is_shadow_bullet:
 		make_shadow_bullet()
-
-	# Add visual enhancement when shadow mode is active
-	if sprite:
-		sprite.modulate = Color(0.3, 0.3, 1.0, 1.0)  # More intense blue
+	
 		# Add a pulsing effect without infinite loops
 		var tween = create_tween()
 		# Remove set_loops() to prevent infinite loops

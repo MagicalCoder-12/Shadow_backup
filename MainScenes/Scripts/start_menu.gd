@@ -1,6 +1,6 @@
 extends Control
 
-const MAP = "res://Map/map.tscn"
+const INTERN_MENU = "res://MainScenes/Intern_Menu.tscn"
 const Credits = "res://MainScenes/credits.tscn"
 @onready var exit_panel: Panel = $Exit_panel
 var _exit_tween: Tween
@@ -14,7 +14,7 @@ func _ready() -> void:
 
 	
 func _on_start_button_pressed() -> void:
-	GameManager.change_scene(MAP)
+	GameManager.change_scene(INTERN_MENU)
 
 
 func _on_exit_pressed() -> void:

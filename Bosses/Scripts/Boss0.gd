@@ -8,8 +8,6 @@ const MUZZLE_FLASH_SCENE := preload("res://Bosses/muzzle_flash.tscn")
 const HELL_PATTERN_SCENE := preload("res://Bullet/Boss_bullet/hell_pattern.tscn")
 
 @export var phase_transition_health: int = 4000
-@export var base_attack_interval_p1: float = 2.5
-@export var base_attack_interval_p2: float = 1.2
 @export var projectile_scene: PackedScene
 @export var move_speed: float = 400.0
 @export var normal_boss_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png")
@@ -21,17 +19,6 @@ const HELL_PATTERN_SCENE := preload("res://Bullet/Boss_bullet/hell_pattern.tscn"
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 func _ready() -> void:
-	phase_2_health_threshold = phase_transition_health
-	attack_interval_phase_1 = base_attack_interval_p1
-	attack_interval_phase_2 = base_attack_interval_p2
-	move_speed_phase_1 = move_speed
-	move_speed_phase_2 = move_speed * 1.1
-	phase_transition_duration = 2.0
-	screen_margin = 120.0
-	contact_damage = 1
-	boss_score_value = 0
-	boss_bullet_damage_phase_1 = 1
-	boss_bullet_damage_phase_2 = 2
 	super._ready()
 
 	if boss_sprite is Sprite2D and normal_boss_sprite:
@@ -84,7 +71,7 @@ func _pattern_p1_converging_storm() -> void:
 
 	var bullet_count := 25
 	var start_pos := nozzle.global_position
-	_show_muzzle_flash()
+	await _show_muzzle_flash_and_wait()
 
 	for i in range(bullet_count):
 		var angle := i * TAU / float(bullet_count)
@@ -103,6 +90,7 @@ func _pattern_p2_spiral_wave() -> void:
 	var player := get_player()
 
 	for arm in range(spiral_arms):
+		await _show_muzzle_flash_and_wait()
 		for step in range(bullets_per_arm):
 			var angle := (Time.get_ticks_msec() * 0.001 * 1.5) + (arm * PI) + (step * 0.4)
 			var direction := Vector2.RIGHT.rotated(angle)
@@ -118,3 +106,7 @@ func _pattern_p2_spiral_wave() -> void:
 func _show_muzzle_flash() -> void:
 	if nozzle:
 		spawn_effect(MUZZLE_FLASH_SCENE, nozzle.global_position)
+
+func _show_muzzle_flash_and_wait() -> void:
+	if nozzle:
+		await spawn_effect_and_wait(MUZZLE_FLASH_SCENE, nozzle.global_position)

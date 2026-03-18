@@ -12,10 +12,11 @@ var restitution: float
 var is_grounded: bool = false
 var bottom_bounds: float
 var crystal_value: int = 3  # Default value
+var is_collected: bool = false
 @onready var sprite_2d: Sprite2D = $Sprite2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
-@onready var audio_stream_player_2d: AudioStreamPlayer2D = $AudioStreamPlayer2D
+
 
 # === READY ===
 func _ready() -> void:
@@ -55,6 +56,9 @@ func set_value(value: int) -> void:
 
 # === PHYSICS PROCESS ===
 func _physics_process(delta: float) -> void:
+	if is_collected:
+		return
+
 	# Track time for lifespan
 	bounce_time += delta
 	
@@ -79,14 +83,36 @@ func _physics_process(delta: float) -> void:
 
 # === SIGNALS ===
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("Player"):
-		# Increase crystal count in GameManager with the crystal value
-		GameManager.add_currency("crystals", crystal_value)
-		animated_sprite_2d.show()
-		animated_sprite_2d.play("collected")
-		audio_stream_player_2d.play()
-		queue_free()
+	if is_collected or not area.is_in_group("Player"):
+		return
+
+	is_collected = true
+	GameManager.add_currency("crystals", crystal_value)
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	if collision_shape_2d:
+		collision_shape_2d.set_deferred("disabled", true)
+	if has_node("LifespanTimer"):
+		var lifespan_timer := get_node("LifespanTimer") as Timer
+		if lifespan_timer:
+			lifespan_timer.stop()
+	if sprite_2d:
+		sprite_2d.hide()
+	animated_sprite_2d.show()
+	animated_sprite_2d.play("collected")
+	await get_tree().create_timer(_get_collection_effect_duration()).timeout
+	queue_free()
 
 func _on_lifespan_timeout() -> void:
 	# Queue free the crystal after lifespan expires
 	queue_free()
+
+func _get_collection_effect_duration() -> float:
+	var duration: float = 0.1
+	if animated_sprite_2d and animated_sprite_2d.sprite_frames and animated_sprite_2d.sprite_frames.has_animation("collected"):
+		var base_animation_speed: float = float(animated_sprite_2d.sprite_frames.get_animation_speed("collected"))
+		var animation_speed: float = base_animation_speed * max(animated_sprite_2d.speed_scale, 0.01)
+		if animation_speed > 0.0:
+			var frame_count: float = float(animated_sprite_2d.sprite_frames.get_frame_count("collected"))
+			duration = max(duration, frame_count / animation_speed)
+	return duration + 0.05

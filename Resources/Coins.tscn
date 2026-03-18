@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://bebhlpmqnhck0"]
+[gd_scene format=3 uid="uid://bebhlpmqnhck0"]
 
 [ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="1_20aeh"]
 [ext_resource type="Script" uid="uid://xb8b1y3ho0vw" path="res://Resources/coins.gd" id="1_eec7n"]
@@ -13,7 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://qigjgfsbvo58" path="res://Textures/Explosion1/Explosion1_9.png" id="11_asj22"]
 [ext_resource type="Texture2D" uid="uid://b5cc6w6043lan" path="res://Textures/Explosion1/Explosion1_10.png" id="12_ppeq6"]
 [ext_resource type="Texture2D" uid="uid://bitth5lv7mkmu" path="res://Textures/Explosion1/Explosion1_11.png" id="13_wky22"]
-[ext_resource type="AudioStream" uid="uid://dqhhjeg1la2hj" path="res://Textures/Music/coin_collected_08.wav" id="14_s1mx7"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hway3"]
 radius = 40.6602
@@ -59,29 +58,21 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Coins" type="Area2D" groups=["Coins"]]
+[node name="Coins" type="Area2D" unique_id=2050356695 groups=["Coins"]]
 scale = Vector2(1.5, 1.5)
-audio_bus_name = &"Collectables"
 script = ExtResource("1_eec7n")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=148577870]
 texture = ExtResource("1_20aeh")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=286388614]
 position = Vector2(-1, 2.5)
 shape = SubResource("CircleShape2D_hway3")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1594066001]
 visible = false
 sprite_frames = SubResource("SpriteFrames_o8o1a")
 animation = &"collected"
 speed_scale = 3.0
-
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
-stream = ExtResource("14_s1mx7")
-volume_db = 24.0
-pitch_scale = 0.9
-max_polyphony = 2
-bus = &"Collectables"
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]

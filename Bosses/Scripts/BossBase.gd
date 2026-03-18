@@ -1,6 +1,7 @@
 extends Area2D
 class_name BossBase
 
+const FormationEnums := preload("res://EnemyManager/Scripts/formation_enums.gd")
 
 signal boss_defeated
 signal phase_changed(new_phase: int)
@@ -17,13 +18,14 @@ enum BossPhase {
 }
 
 const PHASE_TRANSITION_EFFECT_SCENE := preload("res://Bosses/phase_transition_effect.tscn")
+const HOMING_BULLET_SCENE_PATH := "res://Bullet/Boss_bullet/homing_bullet.tscn"
 
-@export var max_health: int = 8000
+@export var max_health: int = 30000
 @export var phase_2_health_threshold: int = 0
-@export var descent_target_y: float = 500.0
-@export var descent_speed: float = 450.0
-@export var move_speed_phase_1: float = 250.0
-@export var move_speed_phase_2: float = 320.0
+@export var descent_target_y: float = 600.0
+@export var descent_speed: float = 500.0
+@export var move_speed_phase_1: float = 300.0
+@export var move_speed_phase_2: float = 350.0
 @export var attack_interval_phase_1: float = 2.2
 @export var attack_interval_phase_2: float = 1.4
 @export var phase_transition_duration: float = 1.5
@@ -52,6 +54,7 @@ var _is_shadow_form_active: bool = false
 var _last_pattern_id: StringName = &""
 var _repeat_count: int = 0
 var _pattern_execution_in_progress: bool = false
+var _active_homing_bullet: Area2D = null
 
 func _ready() -> void:
 	if not _validate_required_nodes():
@@ -59,6 +62,7 @@ func _ready() -> void:
 		return
 
 	_normalize_exported_values()
+	_apply_difficulty_scaling()
 	current_health = max_health
 	current_phase = BossPhase.DESCENT
 	_update_health_bar()
@@ -127,6 +131,42 @@ func _connect_core_signals() -> void:
 		attack_timer.timeout.connect(_on_attack_timer_timeout)
 	if not area_entered.is_connected(_on_area_entered):
 		area_entered.connect(_on_area_entered)
+
+func _apply_difficulty_scaling() -> void:
+	var health_multiplier := _get_boss_health_multiplier()
+	var attack_interval_multiplier := _get_boss_attack_interval_multiplier()
+	if health_multiplier != 1.0:
+		max_health = max(1, int(round(max_health * health_multiplier)))
+		phase_2_health_threshold = max(1, int(round(phase_2_health_threshold * health_multiplier)))
+	if attack_interval_multiplier != 1.0:
+		attack_interval_phase_1 = max(0.1, attack_interval_phase_1 * attack_interval_multiplier)
+		attack_interval_phase_2 = max(0.1, attack_interval_phase_2 * attack_interval_multiplier)
+
+func _get_boss_health_multiplier() -> float:
+	if not GameManager:
+		return 1.0
+	match GameManager.current_difficulty:
+		FormationEnums.DifficultyLevel.NORMAL:
+			return 1.3
+		FormationEnums.DifficultyLevel.HARD:
+			return 1.65
+		FormationEnums.DifficultyLevel.NIGHTMARE:
+			return 2.0
+		_:
+			return 1.0
+
+func _get_boss_attack_interval_multiplier() -> float:
+	if not GameManager:
+		return 1.0
+	match GameManager.current_difficulty:
+		FormationEnums.DifficultyLevel.NORMAL:
+			return 0.9
+		FormationEnums.DifficultyLevel.HARD:
+			return 0.78
+		FormationEnums.DifficultyLevel.NIGHTMARE:
+			return 0.68
+		_:
+			return 1.0
 
 func _handle_descent(delta: float) -> void:
 	var viewport_rect := get_viewport().get_visible_rect()
@@ -314,6 +354,8 @@ func spawn_bullet(scene: PackedScene, spawn_position: Vector2, direction: Vector
 	if not scene or not scene.can_instantiate():
 		push_warning("BossBase.spawn_bullet called with an invalid scene.")
 		return null
+	if _is_homing_bullet_scene(scene) and _has_active_homing_bullet():
+		return null
 
 	var bullet := scene.instantiate() as Area2D
 	if not bullet:
@@ -347,6 +389,8 @@ func spawn_bullet(scene: PackedScene, spawn_position: Vector2, direction: Vector
 		bullet.set("lifetime", lifetime)
 
 	SceneSpawnService.spawn_child(bullet)
+	if _is_homing_bullet_scene(scene):
+		_track_homing_bullet(bullet)
 	return bullet
 
 func spawn_effect(scene: PackedScene, effect_position: Vector2) -> Node:
@@ -357,6 +401,11 @@ func spawn_effect(scene: PackedScene, effect_position: Vector2) -> Node:
 	if effect is Node2D:
 		effect.global_position = effect_position
 	return SceneSpawnService.spawn_child(effect)
+
+func spawn_effect_and_wait(scene: PackedScene, effect_position: Vector2) -> void:
+	var effect := spawn_effect(scene, effect_position)
+	if effect and effect.has_signal("effect_finished"):
+		await effect.effect_finished
 
 func get_player() -> Node:
 	return get_tree().get_first_node_in_group("Player")
@@ -445,3 +494,24 @@ func _has_property(target: Object, property_name: String) -> bool:
 		if property.get("name", "") == property_name:
 			return true
 	return false
+
+func _is_homing_bullet_scene(scene: PackedScene) -> bool:
+	return scene.resource_path == HOMING_BULLET_SCENE_PATH
+
+func _has_active_homing_bullet() -> bool:
+	if not is_instance_valid(_active_homing_bullet):
+		_active_homing_bullet = null
+		return false
+	if _active_homing_bullet.is_queued_for_deletion():
+		_active_homing_bullet = null
+		return false
+	return _active_homing_bullet.is_inside_tree()
+
+func _track_homing_bullet(bullet: Area2D) -> void:
+	_active_homing_bullet = bullet
+	var cleanup_callable := Callable(self, "_clear_tracked_homing_bullet")
+	if not bullet.tree_exited.is_connected(cleanup_callable):
+		bullet.tree_exited.connect(cleanup_callable, CONNECT_ONE_SHOT)
+
+func _clear_tracked_homing_bullet() -> void:
+	_active_homing_bullet = null

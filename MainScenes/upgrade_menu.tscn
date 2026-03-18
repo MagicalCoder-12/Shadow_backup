@@ -29,7 +29,7 @@
 [ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="27_y7qod"]
 [ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/Satellite/Sat_textures/Sat6.png" id="28_l34vq"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_gmmlx"]
+[sub_resource type="LabelSettings" id="LabelSettings_uh1i0"]
 font = ExtResource("13_n170t")
 font_size = 45
 
@@ -193,7 +193,7 @@ metadata/_edit_use_anchors_ = true
 [node name="Void_Shards_display" type="Label" parent="Resources/VoidCrystal" unique_id=1139942432]
 layout_mode = 2
 text = "Void_Crystals: 100k"
-label_settings = SubResource("LabelSettings_gmmlx")
+label_settings = SubResource("LabelSettings_uh1i0")
 vertical_alignment = 2
 
 [node name="Void_shards" type="TextureRect" parent="Resources/VoidCrystal" unique_id=1285783631]

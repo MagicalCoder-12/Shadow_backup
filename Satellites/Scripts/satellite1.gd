@@ -8,6 +8,7 @@ var _shadow_angle_bias: float = -6.0
 func _ready() -> void:
 	bullet_scene = preload("res://Bullet/Sat_bullet/Sat_bullet1.tscn")
 	behavior_mode = SatelliteBehaviorMode.SHOOT_ONLY
+	relative_size_multiplier = 0.78
 	super._ready()
 
 func has_custom_shadow_attack() -> bool:

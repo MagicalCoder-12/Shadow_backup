@@ -10,10 +10,12 @@ extends BaseShip
 @export var pattern_cooldown: float = 0.6  # Cooldown between wave pattern changes
 
 # Shadow mode wave-pattern configuration
-@export var shadow_wave_count: int = 3  # Number of different wave patterns in shadow mode
-@export var shadow_bullets_per_wave: int = 3  # Number of bullets per wave in shadow mode
-@export var shadow_wave_delay: float = 0.2  # Delay between waves in shadow mode
-@export var shadow_wave_spread: float = 45  # Spread angle for shadow mode wave patterns (degrees)
+@export var shadow_wave_count: int = 4  # Number of diagonal volleys in the shadow X-sequence
+@export var shadow_bullets_per_wave: int = 3  # Number of bullets per gun in each shadow volley
+@export var shadow_wave_delay: float = 0.14  # Delay between shadow volleys
+@export var shadow_wave_spread: float = 10.0  # Tight spread inside each diagonal volley
+@export var shadow_diagonal_angle_degrees: float = 42.0
+@export var shadow_bullet_speed_multiplier: float = 1.25
 
 # Super mode wave-pattern configuration
 @export var super_wave_count: int = 1  # Number of different wave patterns in super mode
@@ -24,9 +26,10 @@ enum WavePattern {
 	LEFT_RIGHT_WAVE,    # Alternating diagonal shots
 	CENTER_SPREAD,      # Arc spread from center
 	FOCUSED_BEAM,       # Concentrated straight shots
-	SHADOW_HORIZONTAL,  # Horizontal wave (left to right)
-	SHADOW_VERTICAL,    # Vertical wave (top to bottom)
-	SHADOW_DIAGONAL,    # Diagonal wave (corners)
+	SHADOW_UP_RIGHT,    # Top-right diagonal volley
+	SHADOW_DOWN_RIGHT,  # Bottom-right diagonal volley
+	SHADOW_DOWN_LEFT,   # Bottom-left diagonal volley
+	SHADOW_UP_LEFT,     # Top-left diagonal volley
 	SUPER_ENHANCED      # Enhanced patterns for super mode
 }
 
@@ -38,9 +41,8 @@ var wave_timer: Timer
 var pattern_cooldown_timer: Timer
 
 # Wave-pattern state tracking for shadow mode
-var shadow_current_pattern: WavePattern = WavePattern.SHADOW_HORIZONTAL
+var shadow_current_pattern: WavePattern = WavePattern.SHADOW_UP_RIGHT
 var shadow_current_wave: int = 0
-var shadow_current_shot: int = 0
 var is_shadow_wave_firing: bool = false
 var shadow_wave_timer: Timer
 var shadow_wave_cooldown_timer: Timer
@@ -90,10 +92,12 @@ func _apply_ship_specific_stats() -> void:
 	pattern_cooldown = 0.6
 	
 	# Shadow mode configurations - reduced bullet count
-	shadow_wave_count = 3
-	shadow_bullets_per_wave = 2
-	shadow_wave_delay = 0.3  # Increased from 0.2 to 0.3 for slower firing
-	shadow_wave_spread = 45.0
+	shadow_wave_count = 4
+	shadow_bullets_per_wave = 3
+	shadow_wave_delay = 0.14
+	shadow_wave_spread = 10.0
+	shadow_diagonal_angle_degrees = 42.0
+	shadow_bullet_speed_multiplier = 1.25
 	
 	# Super mode configurations - Balanced power
 	super_wave_count = 1
@@ -101,7 +105,7 @@ func _apply_ship_specific_stats() -> void:
 	
 	# Set initial pattern
 	current_pattern = WavePattern.LEFT_RIGHT_WAVE
-	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	shadow_current_pattern = WavePattern.SHADOW_UP_RIGHT
 	if wave_timer:
 		wave_timer.wait_time = wave_fire_delay
 	if pattern_cooldown_timer:
@@ -118,7 +122,7 @@ func shoot() -> void:
 	
 	# Handle different modes with their specific attack patterns
 	if is_shadow_mode and not is_super_mode:
-		# Simplified shadow mode - same as Ship1
+		# Shadow mode fires a fixed X-sequence of diagonal volleys.
 		_shoot_shadow_mode()
 	elif is_super_mode and not is_shadow_mode:
 		# Ship3-specific balanced super mode pattern
@@ -147,8 +151,7 @@ func _shoot_shadow_mode() -> void:
 
 	is_shadow_wave_firing = true
 	shadow_current_wave = 0
-	shadow_current_shot = 0
-	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	shadow_current_pattern = WavePattern.SHADOW_UP_RIGHT
 	_fire_shadow_wave_shot()
 	if is_shadow_wave_firing and shadow_wave_timer:
 		shadow_wave_timer.start()
@@ -266,19 +269,17 @@ func _fire_shadow_wave_shot() -> void:
 	if not is_shadow_wave_firing:
 		return
 
-	if shadow_current_shot >= shadow_bullets_per_wave:
-		shadow_current_wave += 1
-		if shadow_current_wave >= shadow_wave_count:
-			_reset_shadow_wave_state()
-			if shadow_wave_cooldown_timer:
-				shadow_wave_cooldown_timer.start()
-			return
-		_cycle_shadow_wave_pattern()
-		shadow_current_shot = 0
-	
-	# Fire shadow bullets with wave pattern
-	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")  # Distinct shadow bullet
-	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_speed_multiplier
+	if shadow_current_wave >= shadow_wave_count:
+		_reset_shadow_wave_state()
+		if shadow_wave_cooldown_timer:
+			shadow_wave_cooldown_timer.start()
+		return
+
+	shadow_current_pattern = _get_shadow_pattern_for_wave(shadow_current_wave)
+
+	# Fire a diagonal X-volley in the current quadrant.
+	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
+	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_bullet_speed_multiplier
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage) * 2
 	
 	_fire_shadow_wave_bullets(bullet_scene, bullet_speed, bullet_damage)
@@ -287,7 +288,7 @@ func _fire_shadow_wave_shot() -> void:
 	if AudioManager:
 		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
 	
-	shadow_current_shot += 1
+	shadow_current_wave += 1
 
 func _shoot_super_mode() -> void:
 	# Ship3-specific balanced super mode with reduced bullet count
@@ -321,66 +322,52 @@ func _shoot_super_mode() -> void:
 		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
 
 func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Fire bullets based on current shadow wave pattern
+	var base_rotation: float = _get_shadow_base_rotation()
+	var spread_step: float = deg_to_rad(shadow_wave_spread)
+	var start_offset: float = -spread_step * float(max(0, shadow_bullets_per_wave - 1)) * 0.5
+	var firing_points = firing_positions.get_children()
+	if firing_points.is_empty():
+		firing_points = [self]
+
+	for firing_point_variant in firing_points:
+		var firing_point: Node2D = firing_point_variant as Node2D
+		if not firing_point:
+			continue
+
+		for volley_index in range(shadow_bullets_per_wave):
+			var spread_offset: float = start_offset + (spread_step * float(volley_index))
+			var bullet: Node = BulletFactory.spawn_bullet(
+				bullet_scene,
+				firing_point.global_position,
+				base_rotation + spread_offset,
+				bullet_speed,
+				bullet_damage
+			)
+			if bullet:
+				SceneSpawnService.spawn_child(bullet)
+
+func _get_shadow_pattern_for_wave(wave_index: int) -> WavePattern:
+	var shadow_patterns: Array[int] = [
+		WavePattern.SHADOW_UP_RIGHT,
+		WavePattern.SHADOW_DOWN_RIGHT,
+		WavePattern.SHADOW_DOWN_LEFT,
+		WavePattern.SHADOW_UP_LEFT
+	]
+	return shadow_patterns[wave_index % shadow_patterns.size()]
+
+func _get_shadow_base_rotation() -> float:
+	var diagonal_angle: float = deg_to_rad(shadow_diagonal_angle_degrees)
 	match shadow_current_pattern:
-		WavePattern.SHADOW_HORIZONTAL:
-			_fire_shadow_horizontal_wave(bullet_scene, bullet_speed, bullet_damage)
-		WavePattern.SHADOW_VERTICAL:
-			_fire_shadow_vertical_wave(bullet_scene, bullet_speed, bullet_damage)
-		WavePattern.SHADOW_DIAGONAL:
-			_fire_shadow_diagonal_wave(bullet_scene, bullet_speed, bullet_damage)
-
-
-
-func _fire_shadow_horizontal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Horizontal wave (left to right)
-	var positions = [-0.8, -0.4, 0.0, 0.4, 0.8]
-	var y_offset = positions[shadow_current_shot % positions.size()] * 100
-	
-	for child in firing_positions.get_children():
-		var offset: Vector2 = Vector2(0, y_offset)
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			child.global_position + offset,
-			child.rotation,
-			bullet_speed,
-			bullet_damage
-		)
-		if bullet:
-			SceneSpawnService.spawn_child(bullet)
-
-func _fire_shadow_vertical_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Vertical wave (top to bottom)
-	var positions = [-0.8, -0.4, 0.0, 0.4, 0.8]
-	var x_offset = positions[shadow_current_shot % positions.size()] * 100
-	
-	for child in firing_positions.get_children():
-		var offset: Vector2 = Vector2(x_offset, 0)
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			child.global_position + offset,
-			child.rotation + PI/2,  # Vertical angle
-			bullet_speed,
-			bullet_damage
-		)
-		if bullet:
-			SceneSpawnService.spawn_child(bullet)
-
-func _fire_shadow_diagonal_wave(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Diagonal wave (corners)
-	var angles = [PI/4, 3*PI/4, 5*PI/4, 7*PI/4]
-	var angle = angles[shadow_current_shot % angles.size()]
-	
-	for child in firing_positions.get_children():
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			child.global_position,
-			angle,
-			bullet_speed,
-			bullet_damage
-		)
-		if bullet:
-			SceneSpawnService.spawn_child(bullet)
+		WavePattern.SHADOW_UP_RIGHT:
+			return diagonal_angle
+		WavePattern.SHADOW_DOWN_RIGHT:
+			return PI - diagonal_angle
+		WavePattern.SHADOW_DOWN_LEFT:
+			return -PI + diagonal_angle
+		WavePattern.SHADOW_UP_LEFT:
+			return -diagonal_angle
+		_:
+			return 0.0
 
 func _cycle_wave_pattern() -> void:
 	# Cycle through normal wave patterns
@@ -388,9 +375,14 @@ func _cycle_wave_pattern() -> void:
 	_debug_log("Ship3 cycled to pattern: %s" % WavePattern.keys()[current_pattern])
 
 func _cycle_shadow_wave_pattern() -> void:
-	# Cycle through shadow wave patterns
-	var shadow_patterns = [WavePattern.SHADOW_HORIZONTAL, WavePattern.SHADOW_VERTICAL, WavePattern.SHADOW_DIAGONAL]
-	var current_index = shadow_patterns.find(shadow_current_pattern)
+	# Cycle through the X-volley quadrants.
+	var shadow_patterns: Array[int] = [
+		WavePattern.SHADOW_UP_RIGHT,
+		WavePattern.SHADOW_DOWN_RIGHT,
+		WavePattern.SHADOW_DOWN_LEFT,
+		WavePattern.SHADOW_UP_LEFT
+	]
+	var current_index: int = shadow_patterns.find(shadow_current_pattern)
 	shadow_current_pattern = shadow_patterns[(current_index + 1) % shadow_patterns.size()]
 	_debug_log("Ship3 cycled to shadow pattern: %s" % WavePattern.keys()[shadow_current_pattern])
 
@@ -438,8 +430,7 @@ func _on_super_mode_timeout() -> void:
 func _reset_shadow_wave_state() -> void:
 	is_shadow_wave_firing = false
 	shadow_current_wave = 0
-	shadow_current_shot = 0
-	shadow_current_pattern = WavePattern.SHADOW_HORIZONTAL
+	shadow_current_pattern = WavePattern.SHADOW_UP_RIGHT
 	if shadow_wave_timer:
 		shadow_wave_timer.stop()
 	if shadow_wave_cooldown_timer:

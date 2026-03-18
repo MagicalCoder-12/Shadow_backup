@@ -1,6 +1,7 @@
 extends BaseShip
 
 # Ship2: Aether Strike - Tailored implementation with burst-fire attack pattern
+const SHADOW_BULLET_TINT: Color = Color(0.72, 0.45, 1.0, 1.0)
 
 # Burst-fire configuration for normal mode
 @export var burst_count: int = 3  # Number of bullets per burst
@@ -8,10 +9,14 @@ extends BaseShip
 @export var burst_cooldown: float = 0.8  # Cooldown after burst completion
 
 # Shadow mode burst-fire configuration
-@export var shadow_burst_count: int = 12  # Number of bullets per burst in shadow mode
-@export var shadow_burst_delay: float = 0.03  # Delay between bullets within a burst in shadow mode
-@export var shadow_burst_sequence_count: int = 5  # Number of burst sequences in shadow mode
-@export var shadow_burst_sequence_delay: float = 0.2  # Delay between burst sequences in shadow mode
+@export var shadow_burst_count: int = 4  # Number of sweep volleys per shadow sequence
+@export var shadow_burst_delay: float = 0.08  # Delay between shadow sweep volleys
+@export var shadow_burst_sequence_count: int = 3  # Number of chained sweep sequences in shadow mode
+@export var shadow_burst_sequence_delay: float = 0.18  # Delay between shadow sweep sequences
+@export var shadow_sweep_angle_degrees: float = 54.0
+@export var shadow_inner_spread_degrees: float = 8.0
+@export var shadow_outer_spread_degrees: float = 18.0
+@export var shadow_bullet_speed_multiplier: float = 1.15
 
 # Super mode burst-fire configuration
 @export var super_burst_count: int = 4  # Number of bullets per burst in super mode
@@ -170,12 +175,12 @@ func _fire_shadow_burst_shot() -> void:
 			shadow_sequence_timer.start()
 		return
 	
-	# Fire shadow bullets in a circular pattern
-	var bullet_scene: PackedScene = preload("res://Bullet/PlBullet/plshadow_bullet.tscn")
-	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_speed_multiplier
+	# Fire Ship2's own bullet in a forward sweeping lance pattern.
+	var bullet_scene: PackedScene = plNormalBullet
+	var bullet_speed: float = GameManager.player_manager.default_bullet_speed * shadow_bullet_speed_multiplier
 	var bullet_damage: int = GameManager.player_manager.player_stats.get("bullet_damage", GameManager.player_manager.default_bullet_damage)
 	
-	# Use shadow burst bullets pattern
+	# Use Ship2-specific shadow sweep pattern.
 	_shoot_shadow_burst_bullets(bullet_scene, bullet_speed, bullet_damage)
 	
 	# Play shadow mode shooting sound via AudioManager
@@ -207,22 +212,44 @@ func _fire_super_burst_shot() -> void:
 	current_burst_shot += 1
 
 func _shoot_shadow_burst_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
-	# Fire bullets in a directional burst pattern rather than full circle
-	var angle_step: float = 360.0 / float(shadow_burst_count)
-	var base_angle: float = deg_to_rad(current_burst_sequence * 30)  # Rotate direction for each sequence
-	
-	for i in range(shadow_burst_count):
-		var angle: float = base_angle + deg_to_rad(i * angle_step)
-		var offset: Vector2 = Vector2(cos(angle), sin(angle)) * spawn_point_offset
-		var bullet: Node = BulletFactory.spawn_bullet(
-			bullet_scene,
-			global_position + offset,
-			angle,
-			bullet_speed,
-			bullet_damage
-		)
-		if bullet:
-			SceneSpawnService.spawn_child(bullet)
+	var firing_points: Array[Node2D] = []
+	for child in firing_positions.get_children():
+		if child is Node2D:
+			firing_points.append(child as Node2D)
+	if firing_points.is_empty():
+		firing_points.append(self)
+
+	var sweep_half_angle: float = deg_to_rad(shadow_sweep_angle_degrees * 0.5)
+	var shot_ratio: float = 0.0
+	if shadow_burst_count > 1:
+		shot_ratio = float(current_burst_shot) / float(shadow_burst_count - 1)
+
+	var sequence_bias: float = float(current_burst_sequence - 1) * deg_to_rad(6.0)
+	var sweep_center: float = lerpf(-sweep_half_angle, sweep_half_angle, shot_ratio)
+	var sweep_direction: float = 1.0 if (current_burst_sequence % 2) == 0 else -1.0
+	var base_rotation: float = sweep_center * sweep_direction
+	var spread_angles: Array[float] = [
+		-deg_to_rad(shadow_inner_spread_degrees),
+		0.0,
+		deg_to_rad(shadow_inner_spread_degrees)
+	]
+
+	for firing_point in firing_points:
+		for spread_angle in spread_angles:
+			var final_rotation: float = firing_point.rotation + base_rotation + sequence_bias + spread_angle
+			var bullet: Node = BulletFactory.spawn_bullet(
+				bullet_scene,
+				firing_point.global_position,
+				final_rotation,
+				bullet_speed,
+				bullet_damage
+			)
+			if bullet:
+				SceneSpawnService.spawn_child(bullet)
+				if bullet.has_method("apply_shadow_tint"):
+					bullet.call("apply_shadow_tint", SHADOW_BULLET_TINT)
+				elif bullet is CanvasItem:
+					(bullet as CanvasItem).modulate = SHADOW_BULLET_TINT
 
 func _shoot_super_burst_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	# Fire bullets with spread pattern for super mode
@@ -291,11 +318,15 @@ func _apply_ship_specific_stats() -> void:
 	burst_delay = 0.1
 	burst_cooldown = 0.8
 	
-	# Shadow mode configurations (more powerful than super mode)
-	shadow_burst_count = 12
-	shadow_burst_delay = 0.03
-	shadow_burst_sequence_count = 5
-	shadow_burst_sequence_delay = 0.2
+	# Shadow mode configurations: Ship2 uses chained sweeping lances instead of radial spam.
+	shadow_burst_count = 4
+	shadow_burst_delay = 0.08
+	shadow_burst_sequence_count = 3
+	shadow_burst_sequence_delay = 0.18
+	shadow_sweep_angle_degrees = 54.0
+	shadow_inner_spread_degrees = 8.0
+	shadow_outer_spread_degrees = 18.0
+	shadow_bullet_speed_multiplier = 1.15
 	
 	# Super mode configurations - reduced bullet intensity
 	super_burst_count = 3  # Reduced from 5 to 3

@@ -29,10 +29,10 @@ tracks/0/path = NodePath("Boss:scale")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.34, 0.73, 1),
+"times": PackedFloat32Array(0, 0.3, 0.56666666, 0.9),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
-"values": [Vector2(2, 1.71875), Vector2(1.8671875, 1.8121012), Vector2(1.77049, 1.9191806), Vector2(2, 1.9933125)]
+"values": [Vector2(2.5, 2.5), Vector2(2.225, 2.5), Vector2(2.2, 2.3), Vector2(2.52, 2.41)]
 }
 
 [sub_resource type="Animation" id="Animation_hse6t"]
@@ -47,7 +47,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(2, 1.71875)]
+"values": [Vector2(2.5, 2.5)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_vs5kx"]
@@ -65,7 +65,7 @@ pattern_pause_medium = 1.0
 phase_2_texture = ExtResource("2_hse6t")
 
 [node name="Boss" type="Sprite2D" parent="." unique_id=2081093799]
-scale = Vector2(2, 1.71875)
+scale = Vector2(2.5, 2.5)
 texture = ExtResource("2_1ldl7")
 region_rect = Rect2(0, 0, 192, 704)
 
@@ -90,10 +90,10 @@ shape = SubResource("RectangleShape2D_kpgky")
 [node name="PhaseTimer" type="Timer" parent="." unique_id=760617791]
 
 [node name="HealthBar" parent="." unique_id=1693350386 instance=ExtResource("3_r0gn5")]
-offset_left = -222.0
-offset_top = -329.0
-offset_right = 261.0
-offset_bottom = -292.0
+offset_left = -223.0
+offset_top = -426.0
+offset_right = 260.0
+offset_bottom = -389.0
 texture_under = ExtResource("4_bn1uh")
 texture_progress = ExtResource("5_mw6p5")
 

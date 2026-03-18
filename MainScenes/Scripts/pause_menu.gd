@@ -1,11 +1,17 @@
 extends Control
 
+const GOD_MODE_TAP_TARGET: int = 3
+const GOD_MODE_TAP_WINDOW_MS: int = 1200
+
 @onready var waves: Label = $PanelContainer/Panel/VBoxContainer/Waves
 @onready var total_waves: Label = $PanelContainer/Panel/VBoxContainer/Total_waves
 @onready var level: Label = $PanelContainer/Panel/VBoxContainer/Level
+@onready var pause_label: Label = $PanelContainer/Panel/Pause
 
 const Map = "res://Map/map.tscn"
 var current_level
+var _pause_label_tap_count: int = 0
+var _last_pause_label_tap_ms: int = 0
 
 func _ready():
 	# Listen for game state changes from the cosmic overlord
@@ -26,6 +32,13 @@ func _ready():
 		level.text = "Level: %d" % current_level
 	else:
 		_debug_log("Warning: Level label not found!")
+
+	if pause_label:
+		pause_label.mouse_filter = Control.MOUSE_FILTER_STOP
+		pause_label.gui_input.connect(_on_pause_label_gui_input)
+	if GameManager and not GameManager.god_mode_changed.is_connected(_on_god_mode_changed):
+		GameManager.god_mode_changed.connect(_on_god_mode_changed)
+	_update_pause_label_state()
 	
 	get_tree().get_root().connect("go_back_requested", _on_resume_pressed)
 	_debug_log("Pause menu ready, locked and loaded for level %d" % current_level)
@@ -93,6 +106,45 @@ func _on_restart_pressed() -> void:
 		_debug_log("Restarting level %d, time for a fresh space battle!" % current_level)
 	else:
 		_debug_log("Error: GameManager missing, can't restart level!")
+
+func _on_pause_label_gui_input(event: InputEvent) -> void:
+	if not GameManager or not GameManager.can_use_god_mode():
+		return
+
+	var is_tap := false
+	if event is InputEventMouseButton:
+		is_tap = event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	elif event is InputEventScreenTouch:
+		is_tap = event.pressed
+
+	if not is_tap:
+		return
+
+	var current_time_ms := Time.get_ticks_msec()
+	if current_time_ms - _last_pause_label_tap_ms > GOD_MODE_TAP_WINDOW_MS:
+		_pause_label_tap_count = 0
+
+	_last_pause_label_tap_ms = current_time_ms
+	_pause_label_tap_count += 1
+
+	if _pause_label_tap_count >= GOD_MODE_TAP_TARGET:
+		_pause_label_tap_count = 0
+		GameManager.toggle_god_mode("PauseMenu")
+		_update_pause_label_state()
+
+func _on_god_mode_changed(_enabled: bool) -> void:
+	_update_pause_label_state()
+
+func _update_pause_label_state() -> void:
+	if not pause_label:
+		return
+
+	if GameManager and GameManager.is_god_mode_active():
+		pause_label.text = "Pause [GOD]"
+		pause_label.modulate = Color(1.0, 0.85, 0.2, 1.0)
+	else:
+		pause_label.text = "Pause"
+		pause_label.modulate = Color(1, 1, 1, 1)
 
 # Logs debug messages if enabled in Player.gd
 func _debug_log(message: String) -> void:

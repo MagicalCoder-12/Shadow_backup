@@ -27,6 +27,7 @@ func _handle_evolution_scaling():
 		
 		if texture_index >= 0:
 			_apply_texture_scale(texture_index)
+			_refresh_satellite_layout()
 
 
 func _apply_texture_scale(texture_index: int):
@@ -57,3 +58,7 @@ func setup_texture_scales(base_scale: Vector2, evolution_scales: Array[Vector2] 
 	# Reapply scaling if already initialized
 	if sprite_2d and evolution_textures.size() > 0:
 		_handle_evolution_scaling()
+
+func _refresh_satellite_layout() -> void:
+	if satellite_service:
+		satellite_service.refresh_satellite_layout()

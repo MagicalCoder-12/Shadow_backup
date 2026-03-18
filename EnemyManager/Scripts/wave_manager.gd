@@ -4,6 +4,7 @@ class_name WaveManager
 
 const COINS = preload("res://Resources/Coins.tscn")
 const CRYSTAL = preload("res://Resources/Crystal.tscn")
+const BOSS_MUSIC_STREAM := preload("res://Textures/Music/Boss_music.mp3")
 const POWERUP_SCENES = [
 	preload("res://Powerups/Attack_boost_powerup.tscn"),
 	preload("res://Powerups/SuperMode.tscn"),
@@ -24,7 +25,7 @@ signal enemy_killed(enemy: Node2D)
 @export var wave_delay: float = 1.5
 @export var formation_manager_scene: PackedScene
 @export var debug_mode: bool = false
-@onready var boss_music: AudioStreamPlayer = $BossMusic
+@onready var boss_music: AudioStreamPlayer = get_node_or_null("BossMusic")
 
 # Core wave management variables
 var waves: Array[WaveConfig] = []
@@ -63,6 +64,9 @@ func _ready():
 	# Start the stuck check timer
 	stuck_check_timer.start()
 	game_manager = GameManager
+	_ensure_boss_music_player()
+	if boss_music == null and debug_mode:
+		push_warning("WaveManager: BossMusic node is missing; boss music playback will be skipped.")
 	if debug_mode:
 		print("WaveManager: Ready for level %d" % current_level)
 
@@ -369,15 +373,37 @@ func _spawn_boss_wave() -> void:
 		print("WaveManager: Boss spawned off-screen at %s (Wave: %d, Level: %d)" % [boss_instance.global_position, current_wave + 1, current_level])
 
 func _play_boss_music() -> void:
-	# Play boss music using the existing boss_music AudioStreamPlayer
-	boss_music.play()
+	_ensure_boss_music_player()
+	if boss_music:
+		boss_music.play()
+	elif debug_mode:
+		push_warning("WaveManager: Cannot play boss music because BossMusic is null.")
 
-		# Reduce volume of other buses except Boss bus
 	if AudioManager:
 		_start_boss_audio()
-		print("Boss music started by WaveManager")
-	else:
-		print("Error: Boss music player or file not found")
+		if debug_mode:
+			print("Boss music started by WaveManager")
+	elif debug_mode:
+		push_warning("WaveManager: AudioManager is unavailable; boss audio bus isolation skipped.")
+
+func _ensure_boss_music_player() -> void:
+	if boss_music and is_instance_valid(boss_music):
+		if boss_music.stream == null:
+			boss_music.stream = BOSS_MUSIC_STREAM
+		return
+
+	boss_music = get_node_or_null("BossMusic")
+	if boss_music and is_instance_valid(boss_music):
+		if boss_music.stream == null:
+			boss_music.stream = BOSS_MUSIC_STREAM
+		return
+
+	boss_music = AudioStreamPlayer.new()
+	boss_music.name = "BossMusic"
+	boss_music.stream = BOSS_MUSIC_STREAM
+	add_child(boss_music)
+	if not boss_music.finished.is_connected(_on_boss_music_finished):
+		boss_music.finished.connect(_on_boss_music_finished)
 
 func _connect_boss_signals(boss: Node2D) -> void:
 	if not is_instance_valid(boss):
@@ -385,11 +411,19 @@ func _connect_boss_signals(boss: Node2D) -> void:
 
 	# Connect death signal
 	if boss.has_signal("died"):
-		boss.died.connect(_on_enemy_killed.bind(boss))
+		var callable = _on_enemy_killed.bind(boss)
+		if not boss.died.is_connected(callable):
+			boss.died.connect(callable)
+
 	elif boss.has_signal("boss_defeated"):
-		boss.boss_defeated.connect(_on_enemy_killed.bind(boss))
+		var callable = _on_enemy_killed.bind(boss)
+		if not boss.boss_defeated.is_connected(callable):
+			boss.boss_defeated.connect(callable)
+
 	if boss.has_signal("enemy_died"):
-		boss.enemy_died.connect(_on_enemy_died.bind(boss))
+		var callable2 = _on_enemy_died.bind(boss)
+		if not boss.enemy_died.is_connected(callable2):
+			boss.enemy_died.connect(callable2)
 
 	# Connect phase change signal for invincibility
 	if boss.has_signal("phase_changed"):

@@ -4,7 +4,6 @@ var pLifeIcon := preload("uid://ceg6sboym3t71")
 signal pause_requested
 
 @onready var lifeContainer := $LifeContainer
-@onready var scoreLabel := $Score
 @onready var timer_label: Label = $time/Timer  
 @onready var shadow_mode_button: ShadowModeButton = $ShadowModeButton
 @onready var h_box_container: HBoxContainer = $HBoxContainer
@@ -19,6 +18,11 @@ var elapsed_time: float = 0.0
 
 # Track the number of attack boost powerups collected
 var attack_boost_count: int = 0
+
+func _get_shadow_mode_duration() -> float:
+	if GameManager and GameManager.has_method("get_shadow_mode_duration"):
+		return float(GameManager.get_shadow_mode_duration())
+	return 3.5
 
 func _ready():
 	if not pLifeIcon or not pLifeIcon.can_instantiate():
@@ -38,7 +42,6 @@ func _ready():
 	_load_hud_settings()
 	
 	# Connect signals
-	GameManager.score_updated.connect(_on_score_updated)
 	GameManager.on_player_life_changed.connect(_on_player_life_changed)
 	GameManager.wave_started.connect(_on_wave_started)
 	GameManager.all_waves_cleared.connect(_on_all_waves_cleared)
@@ -46,6 +49,7 @@ func _ready():
 	GameManager.shadow_mode_activated.connect(_on_shadow_mode_activated)
 	GameManager.shadow_mode_deactivated.connect(_on_shadow_mode_deactivated)
 	GameManager.enemy_killed.connect(_on_enemy_killed)
+	GameManager.god_mode_changed.connect(_on_god_mode_changed)
 	# Connect to player manager for attack boost notifications
 	GameManager.ship_stats_updated.connect(_on_ship_stats_updated)
 	# Connect to level manager for level loaded notifications
@@ -57,7 +61,6 @@ func _ready():
 		if not shadow_mode_button.shadow_mode_requested.is_connected(_on_shadow_mode_requested):
 			shadow_mode_button.shadow_mode_requested.connect(_on_shadow_mode_requested)
 	# Initialize displays
-	_on_score_updated(GameManager.score)
 	_on_player_life_changed(GameManager.player_lives)
 	update_button_visibility()
 	start_timer()
@@ -163,10 +166,6 @@ func set_lives(lives: int):
 		else:
 			push_error("Failed to instantiate pLifeIcon")
 
-# Updates the score display
-func _on_score_updated(new_score: int):
-	if scoreLabel:
-		scoreLabel.text = "Score: %03d" % new_score
 
 # Updates the player life count
 func _on_player_life_changed(life: int):
@@ -193,8 +192,12 @@ func _on_game_paused(paused: bool):
 
 # Called when an enemy is killed to increase charge
 func add_enemy_kill_charge(amount: float = charge_per_enemy):
-	var current_level = GameManager.get_current_level()
-	if current_level < 5 or not GameManager.level_manager.shadow_mode_unlocked:
+	if GameManager.is_god_mode_active():
+		if shadow_mode_button:
+			shadow_mode_button.set_charge(shadow_mode_button.max_charge)
+		return
+
+	if not GameManager.level_manager.shadow_mode_unlocked:
 		return
 	if GameManager.level_manager.shadow_mode_enabled:
 		return
@@ -203,18 +206,24 @@ func add_enemy_kill_charge(amount: float = charge_per_enemy):
 
 # Called when the shadow mode button is pressed
 func _on_shadow_mode_requested():
-	var current_level = GameManager.get_current_level()
-	if current_level < 5 or not GameManager.level_manager.shadow_mode_unlocked:
+	var shadow_mode_duration: float = _get_shadow_mode_duration()
+	if GameManager.is_god_mode_active():
+		if shadow_mode_button and shadow_mode_button.is_enabled and not GameManager.level_manager.shadow_mode_enabled:
+			GameManager.activate_shadow_mode(shadow_mode_duration)
+		return
+
+	if not GameManager.level_manager.shadow_mode_unlocked:
 		return
 	if shadow_mode_button and shadow_mode_button.is_ready and not GameManager.level_manager.shadow_mode_enabled:
-		GameManager.activate_shadow_mode(3.5)
+		GameManager.activate_shadow_mode(shadow_mode_duration)
 
 # Updates button visibility
 func update_button_visibility():
-	var current_level = GameManager.get_current_level()
-	var should_be_visible: bool = current_level >= 5 and GameManager.level_manager.shadow_mode_unlocked
+	var should_be_visible: bool = GameManager.is_god_mode_active() or GameManager.level_manager.shadow_mode_unlocked
 	if shadow_mode_button:
 		shadow_mode_button.set_enabled(should_be_visible)
+		if GameManager.is_god_mode_active():
+			shadow_mode_button.set_charge(shadow_mode_button.max_charge)
 
 # Reset HUD state for new level
 func reset_hud_state():
@@ -224,12 +233,14 @@ func reset_hud_state():
 	update_button_visibility()
 	start_timer()
 	_on_player_life_changed(GameManager.player_lives)
-	_on_score_updated(GameManager.score)
 
 # Resets shadow mode charge
 func reset_charge():
 	if shadow_mode_button:
-		shadow_mode_button.reset_charge()
+		if GameManager.is_god_mode_active():
+			shadow_mode_button.set_charge(shadow_mode_button.max_charge)
+		else:
+			shadow_mode_button.reset_charge()
 
 # Handle shadow mode activation
 func _on_shadow_mode_activated():
@@ -238,7 +249,13 @@ func _on_shadow_mode_activated():
 
 # Handle shadow mode deactivation
 func _on_shadow_mode_deactivated():
+	if GameManager.is_god_mode_active() and shadow_mode_button:
+		shadow_mode_button.set_charge(shadow_mode_button.max_charge)
 	update_button_visibility()
+
+func _on_god_mode_changed(_enabled: bool) -> void:
+	update_button_visibility()
+	reset_charge()
 
 # Update power symbols when ship stats change
 @warning_ignore("unused_parameter")

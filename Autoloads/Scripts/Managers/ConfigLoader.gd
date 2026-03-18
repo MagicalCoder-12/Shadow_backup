@@ -98,7 +98,11 @@ func _get_default_game_settings() -> Dictionary:
 		"progress_file_path": "user://game_progress.dat",
 		"default_bullet_speed": 3000.0,
 		"default_bullet_damage": 20,
-		"max_attack_level": 4
+		"max_attack_level": 4,
+		"player_balance": {
+			"super_mode_duration": 2.0,
+			"shadow_mode_duration": 3.5
+		}
 	}
 
 func _get_default_ships_data() -> Array:

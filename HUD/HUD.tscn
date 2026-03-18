@@ -2,20 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://ceg6sboym3t71" path="res://HUD/LifeIcon.tscn" id="1"]
 [ext_resource type="Script" uid="uid://bpm43fhtutkx7" path="res://HUD/HUD.gd" id="2"]
-[ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="3_hsjlv"]
 [ext_resource type="FontFile" uid="uid://c2jlmblfqj81k" path="res://Textures/fonts/IBMPlexSansJP-Medium.ttf" id="4_bkns3"]
 [ext_resource type="Texture2D" uid="uid://bosx1bop5mg50" path="res://Textures/UI/Main_Menu/Clock_Icon.png" id="7_36gqn"]
 [ext_resource type="PackedScene" uid="uid://d0e0vvw0ntlk8" path="res://HUD/Power_symbol.tscn" id="7_d42kf"]
 [ext_resource type="Texture2D" uid="uid://d0hfl38rap3wf" path="res://Textures/UI/Main_Menu/BTNs/Pause_BTN.png" id="8_6i5cd"]
 [ext_resource type="PackedScene" uid="uid://bq8v4j2h5n8yc" path="res://HUD/ShadowModeButton.tscn" id="8_shadow"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_amwvk"]
-font = ExtResource("3_hsjlv")
-font_size = 87
-outline_size = 4
-outline_color = Color(1, 0.137255, 0.317647, 1)
-shadow_size = 12
-shadow_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_qp8j6"]
 font = ExtResource("4_bkns3")
@@ -42,33 +33,23 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -238.0
-offset_top = 9.0
-offset_right = -28.0
-offset_bottom = 219.0
+offset_left = -168.0
+offset_top = 17.0
+offset_right = 42.0
+offset_bottom = 227.0
 grow_horizontal = 0
+scale = Vector2(0.6, 0.6)
 icon = ExtResource("8_6i5cd")
 flat = true
 icon_alignment = 1
 
-[node name="Score" type="Label" parent="." unique_id=571695376]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -515.0
-offset_top = 222.0
-offset_right = -6.0
-offset_bottom = 368.0
-grow_horizontal = 0
-text = "Score: 0000"
-label_settings = SubResource("LabelSettings_amwvk")
-
 [node name="LifeContainer" type="HBoxContainer" parent="." unique_id=1701931868]
 layout_mode = 1
-offset_right = 317.0
-offset_bottom = 75.0
-scale = Vector2(1.4, 1.4)
+offset_left = 6.0
+offset_top = 19.0
+offset_right = 323.0
+offset_bottom = 94.0
+scale = Vector2(1.2, 1.2)
 theme_override_constants/separation = 10
 
 [node name="LifeIcon" parent="LifeContainer" unique_id=1811125884 instance=ExtResource("1")]
@@ -93,11 +74,11 @@ scale = Vector2(0.7, 0.7)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=64390179]
 layout_mode = 1
-offset_left = -3.0
-offset_top = 140.0
-offset_right = 249.0
-offset_bottom = 200.0
-scale = Vector2(2.2, 2.2)
+offset_left = 12.999998
+offset_top = 140.00002
+offset_right = 265.0
+offset_bottom = 200.00002
+scale = Vector2(1.4, 1.4)
 
 [node name="PowerSymbol" parent="HBoxContainer" unique_id=763788833 instance=ExtResource("7_d42kf")]
 custom_minimum_size = Vector2(60, 60)
@@ -120,9 +101,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -27.5
-offset_right = 27.5
-offset_bottom = 60.0
+offset_left = -150.5
+offset_top = 24.0
+offset_right = 196.5
+offset_bottom = 145.0
 grow_horizontal = 2
 theme_override_constants/separation = 10
 
