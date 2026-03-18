@@ -14,6 +14,10 @@ const DEFAULT_MAX_AD_REVIVES_PER_LEVEL: int = 1
 const DEFAULT_MAX_CRYSTAL_REVIVES_PER_LEVEL: int = 2
 const DEFAULT_CRYSTAL_REVIVE_BASE_COST: int = 10
 const DEFAULT_CRYSTAL_REVIVE_COST_INCREMENT: int = 10
+const DEFAULT_WHEEL_MAX_SPINS_PER_DAY: int = 10
+const DEFAULT_WHEEL_FREE_SPINS_PER_DAY: int = 1
+const DEFAULT_WHEEL_AD_SPINS_PER_DAY: int = 5
+const DEFAULT_WHEEL_CRYSTAL_SPIN_COST: int = 20
 # SIGNALS
 @warning_ignore("unused_signal")
 signal ad_reward_granted(ad_type: String)
@@ -52,6 +56,7 @@ signal enemy_killed(enemy: Node)
 signal prepare_map_scene()
 @warning_ignore("unused_signal")
 signal player_manager_satellites_changed()
+signal god_mode_changed(enabled: bool)
 
 # CONSTANTS
 const GROUP_DAMAGEABLE: String = "damageable"
@@ -88,6 +93,10 @@ const SATELLITE_ASCENSION_THRESHOLDS: Dictionary = {
 
 # Debug/Developer settings
 var enable_dev_win: bool = true  # Debug utility: allow instant level completion with "W" key
+@export var allow_god_mode: bool = true
+const GOD_MODE_DAMAGE_MULTIPLIER: int = 10
+const GOD_MODE_RESOURCE_AMOUNT: int = 99999
+var god_mode_enabled: bool = false
 
 # Bullet constants for compatibility
 const DEFAULT_BULLET_SPEED: float = 600.0
@@ -153,11 +162,20 @@ var void_shards_count: int:
 		_void_shards_count = max(0, value)
 		currency_updated.emit("void_shards", _void_shards_count)
 
+# Daily wheel state
+var wheel_spins_used_today: int = 0
+var wheel_free_spin_used_today: int = 0
+var wheel_ad_spins_used_today: int = 0
+var wheel_last_reset_day: int = 0
+var wheel_ad_spin_pending: bool = false
+
 # UPGRADE MENU REFERENCE
 @export var upgrade_menu_scene: PackedScene
 
 var shadow_mode_timer: Timer = Timer.new()
 var shadow_mode_state: ShadowModeState = ShadowModeState.new()
+var saved_map_camera_position: Vector2 = Vector2.ZERO
+var has_saved_map_camera_position: bool = false
 
 var level_currency_state: LevelCurrencyState = LevelCurrencyState.new()
 var economy_service: GameEconomyService = GAME_ECONOMY_SERVICE_SCRIPT.new()
@@ -167,6 +185,8 @@ var revive_service: GameReviveService = GAME_REVIVE_SERVICE_SCRIPT.new()
 var game_scene_service: GameSceneService = GAME_SCENE_SERVICE_SCRIPT.new()
 
 func _ready() -> void:
+	god_mode_enabled = false
+
 	# Reference autoload managers instead of instantiating them
 	save_manager = SaveManager
 	ad_manager = AdManager
@@ -292,7 +312,7 @@ func set_shadow_mode_tutorial_shown(value: bool, _source: String = "") -> void:
 	shadow_mode_state.shadow_mode_tutorial_shown = value
 
 func request_shadow_mode_activate(duration: float, _source: String = "") -> void:
-	if level_manager and shadow_mode_state.shadow_mode_unlocked:
+	if level_manager and (shadow_mode_state.shadow_mode_unlocked or is_god_mode_active()):
 		shadow_mode_state.shadow_mode_enabled = true
 		shadow_mode_state.shadow_mode_remaining_time = duration
 		shadow_mode_activated.emit()
@@ -302,18 +322,56 @@ func request_shadow_mode_deactivate(_source: String = "") -> void:
 	if level_manager and shadow_mode_state.shadow_mode_enabled:
 		shadow_mode_state.shadow_mode_enabled = false
 		shadow_mode_state.shadow_mode_remaining_time = 0.0
+		if shadow_mode_timer:
+			shadow_mode_timer.stop()
 		shadow_mode_deactivated.emit()
 
 func request_shadow_mode_deactivate_silent(_source: String = "") -> void:
 	if level_manager:
 		shadow_mode_state.shadow_mode_enabled = false
 		shadow_mode_state.shadow_mode_remaining_time = 0.0
+		if shadow_mode_timer:
+			shadow_mode_timer.stop()
+
+func can_use_god_mode() -> bool:
+	return allow_god_mode
+
+func is_god_mode_active() -> bool:
+	return allow_god_mode and god_mode_enabled
+
+func set_god_mode_enabled(enabled: bool, _source: String = "") -> void:
+	var next_state := enabled and allow_god_mode
+	if god_mode_enabled == next_state:
+		return
+
+	god_mode_enabled = next_state
+	if god_mode_enabled:
+		_grant_god_mode_resources()
+	elif shadow_mode_state.shadow_mode_enabled:
+		request_shadow_mode_deactivate("GameManager.set_god_mode_enabled")
+
+	god_mode_changed.emit(god_mode_enabled)
+
+func toggle_god_mode(_source: String = "") -> void:
+	set_god_mode_enabled(not god_mode_enabled, _source)
+
+func get_god_mode_damage(value: int) -> int:
+	if not is_god_mode_active():
+		return max(1, value)
+	return max(1, value * GOD_MODE_DAMAGE_MULTIPLIER)
+
+func _grant_god_mode_resources() -> void:
+	crystal_count = GOD_MODE_RESOURCE_AMOUNT
+	coin_count = GOD_MODE_RESOURCE_AMOUNT
+	void_shards_count = GOD_MODE_RESOURCE_AMOUNT
+	save_progress_if_enabled()
 
 func reset_game() -> void:
 	score = 0
 	player_lives = 3
 	is_paused = false
 	request_game_over_clear("reset_game")
+	request_shadow_mode_deactivate_silent("reset_game")
 	reset_revive_limits_for_level()
 	game_ended = false
 	game_won = false
@@ -336,11 +394,15 @@ func reset_game() -> void:
 
 # Reset score and lives for each level (per-level progression)
 func reset_for_new_level() -> void:
-	#var current_level = get_current_level()
-	# Always reset score to 0 and lives to 3 for each level
+	# Always reset per-run combat state between levels.
 	_score = 0
 	_player_lives = 3
+	is_paused = false
+	request_game_over_clear("reset_for_new_level")
+	request_shadow_mode_deactivate_silent("reset_for_new_level")
 	reset_revive_limits_for_level()
+	game_ended = false
+	game_won = false
 
 	coins_collected_this_level = 0
 	crystals_collected_this_level = 0
@@ -350,6 +412,8 @@ func reset_for_new_level() -> void:
 	# Reset player stats to default values to ensure special modes don't carry over between levels
 	if player_manager:
 		player_manager.reset_player_stats()
+
+	get_tree().paused = false
 
 func complete_level(current_level: int) -> void:
 	level_manager.complete_level(current_level)
@@ -394,10 +458,147 @@ func handle_ad_revive_failure(_error_data: Variant = null) -> void:
 	revive_service.handle_ad_revive_failure(self, _error_data)
 
 func notify_ad_failed_to_load(ad_type: String, error_data: Variant) -> void:
+	if ad_type == "wheel_spin":
+		wheel_ad_spin_pending = false
 	ad_failed_to_load.emit(ad_type, error_data)
 
 func notify_ad_reward_granted(reward_type: String) -> void:
 	ad_reward_granted.emit(reward_type)
+
+# Wheel helper API
+func set_wheel_state_from_save(spins_used: int, free_used: int, ad_used: int, last_reset_day: int) -> void:
+	wheel_spins_used_today = max(0, spins_used)
+	wheel_free_spin_used_today = clampi(free_used, 0, DEFAULT_WHEEL_FREE_SPINS_PER_DAY)
+	wheel_ad_spins_used_today = clampi(ad_used, 0, DEFAULT_WHEEL_AD_SPINS_PER_DAY)
+	wheel_last_reset_day = max(0, last_reset_day)
+	wheel_spins_used_today = maxi(
+		wheel_spins_used_today,
+		wheel_free_spin_used_today + wheel_ad_spins_used_today
+	)
+	wheel_spins_used_today = mini(wheel_spins_used_today, DEFAULT_WHEEL_MAX_SPINS_PER_DAY)
+	reset_wheel_daily_if_needed()
+
+func reset_wheel_state(force_reset_day: bool = false) -> void:
+	wheel_spins_used_today = 0
+	wheel_free_spin_used_today = 0
+	wheel_ad_spins_used_today = 0
+	wheel_ad_spin_pending = false
+	if force_reset_day:
+		wheel_last_reset_day = _get_today_key()
+
+func reset_wheel_daily_if_needed() -> bool:
+	var today_key := _get_today_key()
+	if today_key != wheel_last_reset_day:
+		reset_wheel_state()
+		wheel_last_reset_day = today_key
+		save_progress_if_enabled()
+		return true
+	return false
+
+func get_wheel_daily_max_spins() -> int:
+	return DEFAULT_WHEEL_MAX_SPINS_PER_DAY
+
+func get_wheel_free_spin_limit() -> int:
+	return DEFAULT_WHEEL_FREE_SPINS_PER_DAY
+
+func get_wheel_ad_spin_limit() -> int:
+	return DEFAULT_WHEEL_AD_SPINS_PER_DAY
+
+func get_wheel_crystal_spin_cost() -> int:
+	return DEFAULT_WHEEL_CRYSTAL_SPIN_COST
+
+func get_wheel_spins_remaining() -> int:
+	reset_wheel_daily_if_needed()
+	return maxi(0, DEFAULT_WHEEL_MAX_SPINS_PER_DAY - wheel_spins_used_today)
+
+func get_wheel_ad_spins_remaining() -> int:
+	reset_wheel_daily_if_needed()
+	return maxi(0, DEFAULT_WHEEL_AD_SPINS_PER_DAY - wheel_ad_spins_used_today)
+
+func can_use_wheel_free_spin() -> bool:
+	reset_wheel_daily_if_needed()
+	return wheel_free_spin_used_today < DEFAULT_WHEEL_FREE_SPINS_PER_DAY and get_wheel_spins_remaining() > 0
+
+func can_use_wheel_ad_spin() -> bool:
+	reset_wheel_daily_if_needed()
+	if wheel_free_spin_used_today < DEFAULT_WHEEL_FREE_SPINS_PER_DAY:
+		return false
+	return wheel_ad_spins_used_today < DEFAULT_WHEEL_AD_SPINS_PER_DAY and get_wheel_spins_remaining() > 0
+
+func can_use_wheel_paid_spin() -> bool:
+	reset_wheel_daily_if_needed()
+	return get_wheel_spins_remaining() > 0 and can_afford("crystals", DEFAULT_WHEEL_CRYSTAL_SPIN_COST)
+
+func try_use_wheel_free_spin() -> bool:
+	if not can_use_wheel_free_spin():
+		return false
+	wheel_free_spin_used_today += 1
+	wheel_spins_used_today += 1
+	save_progress_if_enabled()
+	return true
+
+func try_use_wheel_paid_spin() -> Dictionary:
+	if get_wheel_spins_remaining() <= 0:
+		return {
+			"ok": false,
+			"error": "limit",
+			"message": "No spins remaining today."
+		}
+	if not can_afford("crystals", DEFAULT_WHEEL_CRYSTAL_SPIN_COST):
+		return {
+			"ok": false,
+			"error": "currency",
+			"message": "Not enough crystals."
+		}
+	deduct_currency("crystals", DEFAULT_WHEEL_CRYSTAL_SPIN_COST)
+	wheel_spins_used_today += 1
+	save_progress_if_enabled()
+	return {"ok": true}
+
+func request_wheel_ad_spin() -> Dictionary:
+	reset_wheel_daily_if_needed()
+	if wheel_ad_spin_pending:
+		return {
+			"ok": false,
+			"error": "pending",
+			"message": "Ad already in progress."
+		}
+	if not can_use_wheel_ad_spin():
+		return {
+			"ok": false,
+			"error": "limit",
+			"message": "No ad spins remaining today."
+		}
+	if not ad_manager or not ad_manager.is_initialized:
+		return {
+			"ok": false,
+			"error": "unavailable",
+			"message": "Ads not available."
+		}
+	wheel_ad_spin_pending = true
+	ad_manager.request_reward_ad("wheel_spin")
+	return {"ok": true}
+
+func consume_wheel_ad_spin_reward() -> bool:
+	if not wheel_ad_spin_pending:
+		return false
+	wheel_ad_spin_pending = false
+	reset_wheel_daily_if_needed()
+	if get_wheel_spins_remaining() <= 0:
+		return false
+	if wheel_ad_spins_used_today >= DEFAULT_WHEEL_AD_SPINS_PER_DAY:
+		return false
+	wheel_ad_spins_used_today += 1
+	wheel_spins_used_today += 1
+	save_progress_if_enabled()
+	return true
+
+func cancel_wheel_ad_spin_pending() -> void:
+	wheel_ad_spin_pending = false
+
+func _get_today_key() -> int:
+	var date := Time.get_date_dict_from_system()
+	return int(date.get("year", 0)) * 10000 + int(date.get("month", 0)) * 100 + int(date.get("day", 0))
 
 # Revive flow restores one life by default unless a caller explicitly overrides it.
 func revive_player(lives: int = 1) -> void:
@@ -408,6 +609,14 @@ func spawn_player(lives: int) -> void:
 
 func activate_shadow_mode(duration: float) -> void:
 	request_shadow_mode_activate(duration, "GameManager.activate_shadow_mode")
+
+func get_super_mode_duration() -> float:
+	var player_balance: Dictionary = get_game_settings_section("player_balance")
+	return float(player_balance.get("super_mode_duration", 2.0))
+
+func get_shadow_mode_duration() -> float:
+	var player_balance: Dictionary = get_game_settings_section("player_balance")
+	return float(player_balance.get("shadow_mode_duration", 3.5))
 
 func unlock_shadow_mode() -> void:
 	level_manager.unlock_shadow_mode()
@@ -609,6 +818,15 @@ func notify_satellite_stats_updated(satellite_id: String, damage_bonus: int) -> 
 # Notify when enemy is killed for shadow mode charging
 func notify_enemy_killed(enemy: Node) -> void:
 	enemy_killed.emit(enemy)
+
+func save_map_camera_position(camera_position: Vector2) -> void:
+	saved_map_camera_position = camera_position
+	has_saved_map_camera_position = true
+
+func get_saved_map_camera_position(default_position: Vector2 = Vector2.ZERO) -> Vector2:
+	if has_saved_map_camera_position:
+		return saved_map_camera_position
+	return default_position
 
 # Handle prepare_map_scene signal
 func _on_prepare_map_scene() -> void:

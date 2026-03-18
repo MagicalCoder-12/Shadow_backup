@@ -59,7 +59,7 @@ file_logging/enable_file_logging=true
 
 window/size/viewport_width=1440
 window/size/viewport_height=3200
-window/size/window_width_override=800
+window/size/window_width_override=720
 window/size/window_height_override=800
 window/subwindows/embed_subwindows=false
 window/stretch/mode="canvas_items"
