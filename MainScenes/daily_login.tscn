@@ -1,0 +1,494 @@
+[gd_scene format=3 uid="uid://dsyevftgdbk4k"]
+
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="1_c7b5m"]
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="2_p8cf2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c7b5m"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_p8cf2"]
+font = ExtResource("1_c7b5m")
+font_size = 100
+
+[node name="DailyLogin" type="Control" unique_id=1358965756]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1122353172]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -656.0
+offset_top = -1176.5
+offset_right = 656.0
+offset_bottom = 1176.5
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+
+[node name="Panel" type="Panel" parent="PanelContainer" unique_id=271068823]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_c7b5m")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel" unique_id=1767957081]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -656.0
+offset_right = 656.0
+offset_bottom = 113.0
+grow_horizontal = 2
+text = "Daily Login"
+label_settings = SubResource("LabelSettings_p8cf2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=601636487]
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer" unique_id=758299733]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -608.0
+offset_top = -935.0
+offset_right = 614.0
+offset_bottom = 1101.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 3
+
+[node name="Panel" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1533462797]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel" unique_id=210807887]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.5
+offset_top = -64.0
+offset_right = 34.5
+offset_bottom = 62.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel2" type="Panel" parent="CanvasLayer/GridContainer" unique_id=604457983]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel2" unique_id=1515640156]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel3" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1049310592]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel3" unique_id=1796347490]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel4" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1327751801]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel4" unique_id=232803298]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel5" type="Panel" parent="CanvasLayer/GridContainer" unique_id=880459589]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel5" unique_id=124580304]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel6" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1731061703]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel6" unique_id=293378174]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel7" type="Panel" parent="CanvasLayer/GridContainer" unique_id=919553438]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel7" unique_id=495794678]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel8" type="Panel" parent="CanvasLayer/GridContainer" unique_id=715524271]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel8" unique_id=155457781]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel9" type="Panel" parent="CanvasLayer/GridContainer" unique_id=333570427]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel9" unique_id=813162043]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel10" type="Panel" parent="CanvasLayer/GridContainer" unique_id=157861738]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel10" unique_id=2142348546]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel11" type="Panel" parent="CanvasLayer/GridContainer" unique_id=330327792]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel11" unique_id=1748476659]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel12" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1638210541]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel12" unique_id=47692556]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel13" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1083584575]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel13" unique_id=2015498506]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel14" type="Panel" parent="CanvasLayer/GridContainer" unique_id=336769716]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel14" unique_id=1275879221]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel15" type="Panel" parent="CanvasLayer/GridContainer" unique_id=224241702]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel15" unique_id=1729153534]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel16" type="Panel" parent="CanvasLayer/GridContainer" unique_id=2092738100]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel16" unique_id=1686122053]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel17" type="Panel" parent="CanvasLayer/GridContainer" unique_id=751753016]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel17" unique_id=399123772]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel18" type="Panel" parent="CanvasLayer/GridContainer" unique_id=2066435747]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel18" unique_id=461275858]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel19" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1373816584]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel19" unique_id=407829004]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel20" type="Panel" parent="CanvasLayer/GridContainer" unique_id=2022826082]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel20" unique_id=1217532717]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel21" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1726330273]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel21" unique_id=164509266]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel22" type="Panel" parent="CanvasLayer/GridContainer" unique_id=933803517]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel22" unique_id=2078043140]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel23" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1156290868]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel23" unique_id=1051293131]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel24" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1840385730]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel24" unique_id=1283671927]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel25" type="Panel" parent="CanvasLayer/GridContainer" unique_id=2068343364]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel25" unique_id=1932954732]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel26" type="Panel" parent="CanvasLayer/GridContainer" unique_id=1825272914]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel26" unique_id=487653853]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel27" type="Panel" parent="CanvasLayer/GridContainer" unique_id=817084198]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel27" unique_id=1764888342]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel28" type="Panel" parent="CanvasLayer/GridContainer" unique_id=2015241828]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel28" unique_id=440624606]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel29" type="Panel" parent="CanvasLayer/GridContainer" unique_id=351038860]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel29" unique_id=244195389]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")
+
+[node name="Panel30" type="Panel" parent="CanvasLayer/GridContainer" unique_id=486228438]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="Sprite2D" type="TextureRect" parent="CanvasLayer/GridContainer/Panel30" unique_id=774447220]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 763.0
+offset_right = 211.0
+offset_bottom = 827.0
+texture = ExtResource("2_p8cf2")

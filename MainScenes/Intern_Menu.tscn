@@ -1,0 +1,168 @@
+[gd_scene format=3 uid="uid://bxub7aimy3aj6"]
+
+[ext_resource type="Script" uid="uid://c1ts4p5xhd8cw" path="res://MainScenes/Scripts/intern_menu.gd" id="1_2hkns"]
+[ext_resource type="Texture2D" uid="uid://bo2xweiq2jujd" path="res://Textures/Background/light1.png" id="1_wtw7j"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="2_8w1gi"]
+[ext_resource type="Texture2D" uid="uid://e4hrfs2883r7" path="res://Textures/player/g-02.png" id="2_wquij"]
+[ext_resource type="Texture2D" uid="uid://o86ufl6tabhe" path="res://Textures/Boss/Boss.png" id="5_8w1gi"]
+[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="5_mt7u5"]
+[ext_resource type="Texture2D" uid="uid://bghegjllovrjq" path="res://Textures/Boss/B1.png" id="6_2hkns"]
+[ext_resource type="PackedScene" uid="uid://db76ybegj7ain" path="res://MainScenes/wheel.tscn" id="6_8w1gi"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="9_aue4b"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="10_nlsn1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wtw7j"]
+
+[node name="Intern_menu" type="Control" unique_id=831379059]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2hkns")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1686978865]
+material = SubResource("ShaderMaterial_wtw7j")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -304.0
+offset_right = 304.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_wtw7j")
+metadata/_edit_lock_ = true
+
+[node name="Player1" type="TextureRect" parent="." unique_id=760331363]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -421.0
+offset_top = -29.0
+offset_right = 78.0
+offset_bottom = 577.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_8w1gi")
+
+[node name="Player2" type="TextureRect" parent="Player1" unique_id=1671159806]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 287.5
+offset_top = -34.0
+offset_right = 736.5
+offset_bottom = 455.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_wquij")
+
+[node name="Satellite" type="TextureRect" parent="." unique_id=1670809353]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -790.0
+offset_top = 309.0
+offset_right = -291.0
+offset_bottom = 915.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -1.5707964
+pivot_offset_ratio = Vector2(0.5, 0.5)
+texture = ExtResource("5_mt7u5")
+
+[node name="Boss" type="TextureRect" parent="." unique_id=300930654]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -497.0
+offset_top = 184.0
+offset_right = 397.0
+offset_bottom = 1035.0
+grow_horizontal = 2
+texture = ExtResource("5_8w1gi")
+expand_mode = 1
+
+[node name="B1" type="TextureRect" parent="Boss" unique_id=1543352905]
+layout_mode = 0
+anchor_left = 0.2060547
+anchor_top = 0.87890625
+anchor_right = 0.49544466
+anchor_bottom = 1.2008506
+offset_right = 102.66467
+offset_bottom = 293.32898
+scale = Vector2(0.742695, 0.529167)
+texture = ExtResource("6_2hkns")
+metadata/_edit_use_anchors_ = true
+
+[node name="B2" type="TextureRect" parent="Boss" unique_id=1726034264]
+layout_mode = 0
+anchor_left = 0.53027344
+anchor_top = 0.8896485
+anchor_right = 0.79186785
+anchor_bottom = 1.1850655
+offset_right = 131.12732
+offset_bottom = 320.49292
+scale = Vector2(0.67136, 0.485565)
+texture = ExtResource("6_2hkns")
+metadata/_edit_use_anchors_ = true
+
+[node name="Wheelbutton" type="Button" parent="." unique_id=854230772]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = -294.0
+offset_right = 637.0
+offset_bottom = -47.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 75
+text = "Shadow Wheel"
+
+[node name="Play" type="Button" parent="." unique_id=1682327129]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -732.0
+offset_top = -307.0
+offset_right = -17.0
+offset_bottom = -38.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 100
+text = "Play"
+
+[node name="Wheel" parent="." unique_id=1155124203 instance=ExtResource("6_8w1gi")]
+visible = false
+layout_mode = 1
+
+[node name="Back" type="TextureButton" parent="." unique_id=956932752]
+layout_mode = 1
+offset_right = 145.83333
+offset_bottom = 170.0
+scale = Vector2(1.2, 1.2)
+texture_normal = ExtResource("9_aue4b")
+texture_pressed = ExtResource("10_nlsn1")
+texture_hover = ExtResource("9_aue4b")
+ignore_texture_size = true
+stretch_mode = 0
+
+[connection signal="pressed" from="Wheelbutton" to="." method="_on_wheelbutton_pressed"]
+[connection signal="pressed" from="Play" to="." method="_on_play_pressed"]
+[connection signal="button_down" from="Back" to="." method="_on_back_button_down"]

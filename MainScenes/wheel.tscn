@@ -1,0 +1,593 @@
+[gd_scene format=3 uid="uid://db76ybegj7ain"]
+
+[ext_resource type="Script" uid="uid://bl6711o2rir0t" path="res://MainScenes/Scripts/wheel.gd" id="1_jveka"]
+[ext_resource type="Texture2D" uid="uid://t51lykfpluh0" path="res://Textures/UI/Coins_01_64x64_001.png" id="1_svxdf"]
+[ext_resource type="Texture2D" uid="uid://biq8fbg117e6u" path="res://Textures/Props/Crystal_02.png" id="2_aui0r"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="2_hlt77"]
+[ext_resource type="Texture2D" uid="uid://cdoua3rmc0hwg" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_02.png" id="3_fl5qq"]
+[ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="5_eftn4"]
+[ext_resource type="FontFile" uid="uid://cqf01fb53lw23" path="res://Textures/fonts/Kenney Future Narrow.ttf" id="7_pjsk8"]
+[ext_resource type="Texture2D" uid="uid://cjwmilwn8qvmv" path="res://Textures/UI/Main_Menu/BTNs/Close_BTN.png" id="8_b0cls"]
+[ext_resource type="Texture2D" uid="uid://rghd1ijyiofv" path="res://Textures/UI/Main_Menu/BTNs_Active/Close_BTN.png" id="9_4g0qy"]
+[ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="10_4g0qy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hlt77"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_jveka"]
+font_size = 100
+outline_size = 12
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 15
+shadow_color = Color(1, 0, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_eftn4"]
+font = ExtResource("2_hlt77")
+font_size = 70
+
+[sub_resource type="LabelSettings" id="LabelSettings_hlt77"]
+font = ExtResource("2_hlt77")
+font_size = 70
+
+[sub_resource type="LabelSettings" id="LabelSettings_3hl7n"]
+font = ExtResource("2_hlt77")
+font_size = 70
+
+[sub_resource type="LabelSettings" id="LabelSettings_4g0qy"]
+font_size = 80
+
+[sub_resource type="LabelSettings" id="LabelSettings_b0cls"]
+font = ExtResource("7_pjsk8")
+font_size = 80
+
+[sub_resource type="LabelSettings" id="LabelSettings_pjsk8"]
+font = ExtResource("7_pjsk8")
+font_size = 90
+
+[sub_resource type="LabelSettings" id="LabelSettings_tiqst"]
+font = ExtResource("2_hlt77")
+font_size = 70
+font_color = Color(1, 0.654902, 0, 1)
+outline_size = 2
+outline_color = Color(1, 0, 1, 1)
+
+[node name="Wheel" type="Control" unique_id=1155124203]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jveka")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1881304225]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.48235294)
+metadata/_edit_lock_ = true
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=10533284]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -667.0
+offset_top = -1209.0
+offset_right = 667.0
+offset_bottom = 1209.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+theme_override_styles/panel = SubResource("StyleBoxEmpty_hlt77")
+
+[node name="Panel" type="Panel" parent="PanelContainer" unique_id=1530739626]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/Panel" unique_id=271550311]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -357.0
+offset_top = 33.0
+offset_right = 384.0
+offset_bottom = 198.0
+grow_horizontal = 2
+text = "Shadow Roulet"
+label_settings = SubResource("LabelSettings_jveka")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer/Panel" unique_id=1436576258]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -641.0
+offset_top = -869.0
+offset_right = 627.0
+offset_bottom = 659.75
+grow_horizontal = 2
+grow_vertical = 2
+columns = 3
+
+[node name="Panel" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=366338343]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel" unique_id=1493879608]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -105.5
+offset_top = -112.5
+offset_right = 105.5
+offset_bottom = 98.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_svxdf")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel" unique_id=1288059632]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "500"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel2" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=1590218142]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel2" unique_id=70631637]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -113.0
+offset_top = -150.0
+offset_right = 113.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_aui0r")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel2" unique_id=142094390]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "20"
+label_settings = SubResource("LabelSettings_hlt77")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel3" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=1075960863]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel3" unique_id=1058239889]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -105.5
+offset_top = -105.5
+offset_right = 105.5
+offset_bottom = 105.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_svxdf")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel3" unique_id=276133943]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "1500"
+label_settings = SubResource("LabelSettings_3hl7n")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel4" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=1650596475]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel4" unique_id=2072920645]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -112.5
+offset_top = -194.5
+offset_right = 113.5
+offset_bottom = 105.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_aui0r")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel4" unique_id=493150809]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "50"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel5" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=638204734]
+layout_mode = 2
+theme_type_variation = &"Ship_panel"
+
+[node name="SpinsLeft" type="Label" parent="PanelContainer/Panel/GridContainer/Panel5" unique_id=668980740]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -142.0
+offset_top = -183.5
+offset_right = 133.0
+offset_bottom = 122.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Spins Left: 10/10"
+label_settings = SubResource("LabelSettings_4g0qy")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Panel6" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=1470850363]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel6" unique_id=186406303]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -134.0
+offset_top = -167.5
+offset_right = 115.0
+offset_bottom = 91.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_fl5qq")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel6" unique_id=1641502884]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "30"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel7" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=893441470]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel7" unique_id=872527059]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -105.5
+offset_top = -105.5
+offset_right = 105.5
+offset_bottom = 105.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_svxdf")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel7" unique_id=1553756326]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "3000"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel8" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=2046058078]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel8" unique_id=829696384]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -124.5
+offset_top = -129.5
+offset_right = 124.5
+offset_bottom = 129.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_fl5qq")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel8" unique_id=239875730]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "70"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel9" type="Panel" parent="PanelContainer/Panel/GridContainer" unique_id=675961490]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"Ship_panel"
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/GridContainer/Panel9" unique_id=1353110434]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_aui0r")
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/GridContainer/Panel9" unique_id=1431248421]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -87.0
+offset_top = -136.0
+offset_right = 87.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "100"
+label_settings = SubResource("LabelSettings_eftn4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Panel" unique_id=1725764477]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 29.0
+offset_top = -405.0
+offset_right = -44.0
+offset_bottom = -79.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 50
+
+[node name="Free" type="NinePatchRect" parent="PanelContainer/Panel/HBoxContainer" unique_id=1823661873]
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("5_eftn4")
+patch_margin_left = 55
+patch_margin_top = 55
+patch_margin_right = 100
+
+[node name="freeButton" type="Button" parent="PanelContainer/Panel/HBoxContainer/Free" unique_id=698833156]
+layout_mode = 0
+offset_right = 643.0
+offset_bottom = 294.0
+flat = true
+
+[node name="free_Label" type="Label" parent="PanelContainer/Panel/HBoxContainer/Free" unique_id=1338242]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -285.5
+offset_top = -150.0
+offset_right = 272.5
+offset_bottom = 55.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Free"
+label_settings = SubResource("LabelSettings_b0cls")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="Crystal" type="NinePatchRect" parent="PanelContainer/Panel/HBoxContainer" unique_id=82685156]
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("5_eftn4")
+patch_margin_left = 55
+patch_margin_top = 55
+patch_margin_right = 100
+
+[node name="crystal_Button" type="Button" parent="PanelContainer/Panel/HBoxContainer/Crystal" unique_id=50220295]
+layout_mode = 0
+offset_right = 646.0
+offset_bottom = 294.0
+flat = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/Panel/HBoxContainer/Crystal" unique_id=342985366]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -148.0
+offset_top = -116.0
+offset_right = 145.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 40
+
+[node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/HBoxContainer/Crystal/HBoxContainer" unique_id=104392597]
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("2_aui0r")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="PanelContainer/Panel/HBoxContainer/Crystal/HBoxContainer" unique_id=893390332]
+layout_mode = 2
+text = "20 "
+label_settings = SubResource("LabelSettings_pjsk8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Close" type="TextureButton" parent="PanelContainer/Panel" unique_id=576616473]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -208.0
+offset_top = 49.0
+offset_right = -15.0
+offset_bottom = 208.0
+grow_horizontal = 0
+texture_normal = ExtResource("8_b0cls")
+texture_pressed = ExtResource("9_4g0qy")
+texture_hover = ExtResource("9_4g0qy")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="WarningPanel" type="Panel" parent="." unique_id=1773096587]
+z_index = 50
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -479.0
+offset_top = -314.0
+offset_right = 543.5
+offset_bottom = 215.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("10_4g0qy")
+theme_type_variation = &"Ship_panel"
+
+[node name="Warning_Label" type="Label" parent="WarningPanel" unique_id=1096145477]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.073275864
+anchor_top = 0.15306123
+anchor_right = 0.92528737
+anchor_bottom = 0.872449
+text = "Insufficient Funds"
+label_settings = SubResource("LabelSettings_tiqst")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="PanelContainer/Panel/HBoxContainer/Free/freeButton" to="." method="_on_free_button_pressed"]
+[connection signal="pressed" from="PanelContainer/Panel/HBoxContainer/Crystal/crystal_Button" to="." method="_on_crystal_button_pressed"]
+[connection signal="pressed" from="PanelContainer/Panel/Close" to="." method="_on_close_pressed"]
