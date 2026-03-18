@@ -2,70 +2,52 @@
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_6aubw"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_7c14l"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_c3tq3"]
+[ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_dd32q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dd32q"]
+shader = ExtResource("2_dd32q")
+shader_parameter/direction = Vector2(0, -1.5)
+shader_parameter/speed_scale = 0.1
+shader_parameter/brightness = 0.6000000285
 
 [sub_resource type="Resource" id="Resource_7kvn0"]
 script = ExtResource("2_7c14l")
-formation_type = 0
-entry_pattern = 0
 difficulty = 1
-enemy_type = 0
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_e6rem"]
 script = ExtResource("2_7c14l")
-formation_type = 0
-entry_pattern = 0
 difficulty = 1
 enemy_type = 1
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_6l87b"]
 script = ExtResource("2_7c14l")
-formation_type = 0
-entry_pattern = 0
 difficulty = 1
 enemy_type = 2
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_gjwlp"]
 script = ExtResource("2_7c14l")
-formation_type = 0
-entry_pattern = 0
 difficulty = 1
 enemy_type = 5
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_kvmb5"]
 script = ExtResource("2_7c14l")
-formation_type = 0
-entry_pattern = 0
 difficulty = 1
 enemy_type = 4
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_wvmk1"]
@@ -73,12 +55,8 @@ script = ExtResource("2_7c14l")
 formation_type = 3
 entry_pattern = 6
 difficulty = 1
-enemy_type = 0
 enemy_density = "Dense"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_5v77w"]
@@ -88,27 +66,24 @@ entry_pattern = 8
 difficulty = 1
 enemy_type = 5
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
 [sub_resource type="Resource" id="Resource_5o6l6"]
 script = ExtResource("2_7c14l")
 formation_type = 10
-entry_pattern = 0
 difficulty = 1
 enemy_type = 7
 enemy_density = "Normal"
-formation_center = Vector2(640, 600)
 formation_radius = 150.0
-formation_spacing = 100.0
-spawn_delay = 0.3
 entry_speed = 300.0
 
-[node name="Level_12" instance=ExtResource("1_6aubw")]
+[node name="Level_12" unique_id=112440535 instance=ExtResource("1_6aubw")]
 
-[node name="LevelManager" parent="." index="4"]
+[node name="Background" parent="." index="0" unique_id=530148090]
+material = SubResource("ShaderMaterial_dd32q")
+texture = ExtResource("2_c3tq3")
+
+[node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 12
 waves = Array[ExtResource("2_7c14l")]([SubResource("Resource_7kvn0"), SubResource("Resource_e6rem"), SubResource("Resource_6l87b"), SubResource("Resource_gjwlp"), SubResource("Resource_kvmb5"), SubResource("Resource_wvmk1"), SubResource("Resource_5v77w"), SubResource("Resource_5o6l6")])

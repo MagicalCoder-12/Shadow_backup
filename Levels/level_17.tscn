@@ -1,15 +1,24 @@
-[gd_scene load_steps=2 format=3 uid="uid://bm261s4xg0ju"]
+[gd_scene format=3 uid="uid://bm261s4xg0ju"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_17pfo"]
+[ext_resource type="Texture2D" uid="uid://bg2h5uay3e3p5" path="res://Textures/Background/bg3.png" id="2_0o1vu"]
+[ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_wc1iq"]
 
-[node name="Level_17" instance=ExtResource("1_17pfo")]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6m2x8"]
+shader = ExtResource("2_wc1iq")
+shader_parameter/direction = Vector2(0, -1.5)
+shader_parameter/speed_scale = 0.1
+shader_parameter/brightness = 0.50000002375
 
-[node name="PauseMenu" parent="CanvasLayer" index="4"]
-modulate = Color(1, 1, 1, 0)
+[node name="Level_17" unique_id=1098195046 instance=ExtResource("1_17pfo")]
 
-[node name="LevelManager" parent="." index="4"]
+[node name="Background" parent="." index="0" unique_id=530148090]
+material = SubResource("ShaderMaterial_6m2x8")
+offset_right = 181.0
+texture = ExtResource("2_0o1vu")
+
+[node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 17
 
-[node name="WaveManager" parent="." index="6"]
+[node name="WaveManager" parent="." index="7" unique_id=790346136]
 wave_delay = 1.5
-debug_mode = false

@@ -2,7 +2,15 @@
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_sgl13"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_7y1m2"]
-[ext_resource type="PackedScene" uid="uid://bvb27mesmd4mo" path="res://Bosses/Boss1.tscn" id="4_boss1"]
+[ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_752rg"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="3_gu58g"]
+[ext_resource type="PackedScene" uid="uid://buulyv2qq725c" path="res://Bosses/Boss1.tscn" id="4_boss1"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_55fqf"]
+shader = ExtResource("2_752rg")
+shader_parameter/direction = Vector2(0, -1.5)
+shader_parameter/speed_scale = 0.1
+shader_parameter/brightness = 0.50000002375
 
 [sub_resource type="Resource" id="Resource_w76ts"]
 script = ExtResource("2_7y1m2")
@@ -71,6 +79,10 @@ enemy_density = "Normal"
 metadata/_custom_type_script = "uid://b42hpe1j0n2xx"
 
 [node name="Level_10" unique_id=2011175652 instance=ExtResource("1_sgl13")]
+
+[node name="Background" parent="." index="0" unique_id=530148090]
+material = SubResource("ShaderMaterial_55fqf")
+texture = ExtResource("3_gu58g")
 
 [node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 10

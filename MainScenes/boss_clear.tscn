@@ -88,9 +88,9 @@ metadata/_edit_use_anchors_ = true
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=193594259]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.0462428
-anchor_top = 0.10262494
-anchor_right = 0.9660743
+anchor_left = 0.04331528
+anchor_top = 0.13630654
+anchor_right = 0.9690018
 anchor_bottom = 1.0023994
 grow_horizontal = 2
 grow_vertical = 2

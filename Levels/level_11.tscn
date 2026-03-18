@@ -1,7 +1,15 @@
 [gd_scene format=3 uid="uid://d2550fg3euhqj"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_jerhw"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_5qrgj"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_5wub7"]
+[ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_f2m3h"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_syb1a"]
+shader = ExtResource("2_f2m3h")
+shader_parameter/direction = Vector2(0, -1.5)
+shader_parameter/speed_scale = 0.1
+shader_parameter/brightness = 0.50000002375
 
 [sub_resource type="Resource" id="Resource_80uvy"]
 script = ExtResource("2_5wub7")
@@ -44,8 +52,12 @@ enemy_type = 4
 script = ExtResource("2_5wub7")
 enemy_type = 3
 
-[node name="Level_11" instance=ExtResource("1_jerhw")]
+[node name="Level_11" unique_id=1750471699 instance=ExtResource("1_jerhw")]
 
-[node name="LevelManager" parent="." index="4"]
+[node name="Background" parent="." index="0" unique_id=530148090]
+material = SubResource("ShaderMaterial_syb1a")
+texture = ExtResource("2_5qrgj")
+
+[node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 11
 waves = Array[ExtResource("2_5wub7")]([SubResource("Resource_80uvy"), SubResource("Resource_f12pv"), SubResource("Resource_vfios"), SubResource("Resource_xg7bv"), SubResource("Resource_vbyrn"), SubResource("Resource_hkrpy"), SubResource("Resource_y1nks"), SubResource("Resource_pfqd1")])

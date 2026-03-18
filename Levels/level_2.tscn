@@ -36,18 +36,19 @@ script = ExtResource("2_c2ahe")
 entry_pattern = 7
 enemy_type = 8
 
-[node name="Level_2" instance=ExtResource("1_ll1bl")]
+[node name="Level_2" unique_id=1258570998 instance=ExtResource("1_ll1bl")]
 
-[node name="wave_Details" parent="CanvasLayer" index="7"]
-anchor_left = 0.09583333
-anchor_top = 0.371875
-anchor_right = 0.8965279
-anchor_bottom = 0.5815625
-offset_right = -192.16675
-offset_bottom = -111.833374
-grow_horizontal = 1
-grow_vertical = 1
+[node name="wave_Details" parent="CanvasLayer" parent_id_path=PackedInt32Array(976514101) index="5" unique_id=515140804]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -631.0
+offset_top = -230.0
+offset_right = 436.94238
+offset_bottom = 295.41675
 
-[node name="LevelManager" parent="." index="4"]
+[node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 2
 waves = Array[ExtResource("2_c2ahe")]([SubResource("Resource_mi8mw"), SubResource("Resource_xgwr1"), SubResource("Resource_7jyhw"), SubResource("Resource_gvdjf"), SubResource("Resource_kyqw6"), SubResource("Resource_dtqkw")])

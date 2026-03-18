@@ -32,8 +32,8 @@ enemy_type = 7
 script = ExtResource("2_yk3sq")
 enemy_type = 10
 
-[node name="Level_3" instance=ExtResource("1_cb8d3")]
+[node name="Level_3" unique_id=1830486378 instance=ExtResource("1_cb8d3")]
 
-[node name="LevelManager" parent="." index="4"]
+[node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 3
 waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_0qsy2"), SubResource("Resource_3x0r5"), SubResource("Resource_modaw"), SubResource("Resource_0akuu"), SubResource("Resource_sqdv6"), SubResource("Resource_i8w10"), SubResource("Resource_jqa6c")])
