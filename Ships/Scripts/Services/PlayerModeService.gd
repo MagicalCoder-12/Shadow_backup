@@ -166,7 +166,10 @@ func apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool) -> vo
 
 	if super_mode_active and not was_super_active:
 		_set_super_mode_active(true)
-		apply_super_mode_effects(2.0, 2.0)
+		var super_mode_duration: float = 2.0
+		if _game_manager and _game_manager.has_method("get_super_mode_duration"):
+			super_mode_duration = float(_game_manager.get_super_mode_duration())
+		apply_super_mode_effects(2.0, super_mode_duration)
 
 func activate_super_mode(multiplier_div: float, duration: float) -> void:
 	_set_super_mode_active(true)
