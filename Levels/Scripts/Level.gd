@@ -35,6 +35,9 @@ var wave_details_tween: Tween = null
 # Wave details display settings
 const WAVE_DETAILS_DISPLAY_DURATION: float = 2.5
 const WAVE_DETAILS_FADE_DURATION: float = 0.4
+const TUTORIAL_OVERLAY = preload("res://Tutorial/InGameTutorialOverlay.tscn")
+
+var _tutorial_overlay_active: bool = false
 
 # Signals 
 @warning_ignore("unused_signal")
@@ -114,6 +117,9 @@ func _ready():
 	
 	# Fallback player spawning
 	_check_and_spawn_player()
+	
+	# Tutorial setup
+	_setup_level_tutorial()
 
 # === WAVE VALIDATION ===
 func validate_wave_config(wave: WaveConfig, wave_index: int) -> bool:
@@ -512,6 +518,7 @@ func _on_wave_started(current_wave: int, total_waves_count: int) -> void:
 		print("Level: Wave started - %d/%d" % [current_wave, total_waves_count])
 	
 	_show_wave_details(current_wave, total_waves_count)
+	_on_tutorial_wave_started(current_wave)
 
 func _show_wave_details(current_wave: int, total_waves_count: int) -> void:
 	"""Display wave details with fade-in animation and auto-hide after duration"""
@@ -554,6 +561,66 @@ func _hide_wave_details_instant() -> void:
 		wave_details.visible = false
 	if wave_details_container:
 		wave_details_container.modulate.a = 0.0
+
+# === TUTORIAL ===
+func _setup_level_tutorial() -> void:
+	var progress = SaveManager.tutorial_progress
+	if progress == SaveManager.TutorialState.NONE and level_num == 1:
+		get_tree().create_timer(0.5).timeout.connect(func():
+			_show_tutorial_prompt("[center]" + InGameTutorialOverlay.get_movement_text() + "\n\nYour ship fires [b]automatically[/b]!\nPress [b]Space[/b] for a focused shot[/center]")
+		)
+	elif progress == SaveManager.TutorialState.LVL2 and level_num == 2:
+		get_tree().create_timer(0.5).timeout.connect(func():
+			_show_tutorial_prompt("[center]Great progress, Commander!\n\nSome enemies shoot back — [b]stay mobile[/b]!\nCollect [b]power-ups[/b] to boost your weapons[/center]")
+		)
+	elif progress == SaveManager.TutorialState.LVL3 and level_num == 3:
+		get_tree().create_timer(0.5).timeout.connect(func():
+			_show_tutorial_prompt("[center]You're getting the hang of it!\n\nUse everything you've learned.\n[color=#aaaaaa][i]This is your final trial![/i][/color][/center]")
+		)
+
+func _show_tutorial_prompt(text: String) -> void:
+	if _tutorial_overlay_active:
+		return
+	var overlay = TUTORIAL_OVERLAY.instantiate()
+	overlay.set_text(text)
+	overlay.dismissed.connect(func(): _tutorial_overlay_active = false, CONNECT_ONE_SHOT)
+	_tutorial_overlay_active = true
+	get_tree().current_scene.add_child.call_deferred(overlay)
+
+func _on_tutorial_wave_started(current_wave: int) -> void:
+	var progress = SaveManager.tutorial_progress
+	if progress == SaveManager.TutorialState.NONE and level_num == 1:
+		match current_wave:
+			1:
+				_show_tutorial_prompt("[center][b]Shoot the enemies![/b]\n\nKeep moving to [b]dodge[/b]\n\n[color=#aaaaaa][i]More waves incoming![/i][/color][/center]")
+			2:
+				_show_tutorial_prompt("[center]Enemies drop [b]coins[/b] when defeated!\n\nCollect them to [b]upgrade your ship[/b] later[/center]")
+			3:
+				_show_tutorial_prompt("[center][b]Power-ups[/b] give you temporary boosts!\n\nGrab them to increase [b]firepower[/b] and [b]survivability[/b][/center]")
+			4:
+				_show_tutorial_prompt("[center]Your [b]Shadow Mode[/b] charges as you fight!\n\nUse it for a [b]speed & damage boost[/b] when surrounded[/center]")
+			5:
+				_show_tutorial_prompt("[center][b]Last wave![/b] Give it everything you've got!\n\n[color=#aaaaaa][i]Clear this to complete the level![/i][/color][/center]")
+	elif progress == SaveManager.TutorialState.LVL2 and level_num == 2:
+		match current_wave:
+			1:
+				_show_tutorial_prompt("[center]Some enemies [b]shoot back[/b] now!\n\nStay [b]mobile[/b] and dodge their fire[/center]")
+			2:
+				_show_tutorial_prompt("[center][b]Crystals[/b] are rare — grab them when you see them!\n\nUse them for [b]special upgrades[/b][/center]")
+			3:
+				_show_tutorial_prompt("[center][b]Shadow Mode[/b] is your emergency button!\n\nActivate it when [b]too many enemies[/b] surround you[/center]")
+			4:
+				_show_tutorial_prompt("[center][b]Final wave![/b]\n\nShow them what you're made of, Commander![/center]")
+	elif progress == SaveManager.TutorialState.LVL3 and level_num == 3:
+		match current_wave:
+			1:
+				_show_tutorial_prompt("[center][b]Boss level![/b] This is your toughest fight yet!\n\nUse [b]Shadow Mode[/b] wisely[/center]")
+			2:
+				_show_tutorial_prompt("[center]Keep collecting [b]power-ups[/b]!\n\nThey might save your life in a pinch[/center]")
+			3:
+				_show_tutorial_prompt("[center]Don't forget — you can dodge by [b]staying mobile[/b]!\n\nWatch for enemy patterns[/center]")
+			4:
+				_show_tutorial_prompt("[center][b]Almost there![/b] Push through to the end!\n\n[color=#aaaaaa][i]Complete this to finish your training![/i][/color][/center]")
 
 func handle_node_added(node: Node) -> void:
 	print("Level.gd: handle_node_added called for node: %s" % node.name)

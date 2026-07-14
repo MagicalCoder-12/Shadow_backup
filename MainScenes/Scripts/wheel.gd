@@ -13,6 +13,9 @@ const BORDER_HIDDEN_MODULATE := Color(1.0, 0.86, 0.15, 0.0)
 const BORDER_HIGHLIGHT_MODULATE := Color(1.2, 1.12, 0.65, 1.0)
 const BORDER_COLOR := Color(1.0, 0.86, 0.15, 0.98)
 const BORDER_NAME := "GlowBorder"
+const HOVER_BORDER_NAME := "HoverBorder"
+const HOVER_BORDER_COLOR := Color(1.0, 0.86, 0.15, 0.98)
+const HOVER_HIGHLIGHT := Color(1.15, 1.15, 1.2, 1.0)
 
 const SPIN_MIN_LOOPS := 1
 const SPIN_MAX_LOOPS := 2
@@ -30,6 +33,9 @@ const SELECTED_CONTENT_COLOR := Color(1.0, 1.0, 1.0, 1.0)
 @onready var crystal_button: Button = $PanelContainer/Panel/HBoxContainer/Crystal/crystal_Button
 @onready var crystal_label: Label = $PanelContainer/Panel/HBoxContainer/Crystal/HBoxContainer/Label
 @onready var spins_left: Label = $PanelContainer/Panel/GridContainer/Panel5/SpinsLeft
+@onready var void_shards_display: Label = $Resources/VoidCrystal/Void_Shards_display
+@onready var crystals_display: Label = $Resources/Crystal/Crystals_display
+@onready var coins_display: Label = $Resources/Money/Coins_display
 @onready var grid_container: GridContainer = $PanelContainer/Panel/GridContainer
 @onready var panel_container: PanelContainer = $PanelContainer
 @onready var center_panel: Panel = $PanelContainer/Panel/GridContainer/Panel5
@@ -38,6 +44,7 @@ const SELECTED_CONTENT_COLOR := Color(1.0, 1.0, 1.0, 1.0)
 @onready var wheel: Control = $"."
 @onready var warning_panel: Panel = $WarningPanel
 @onready var warning_label: Label = $WarningPanel/Warning_Label
+@onready var coin_sound: AudioStreamPlayer = $CoinCollected08
 
 var reward_panels: Array[Panel] = []
 var _idle_glow_tweens: Array[Tween] = []
@@ -67,10 +74,20 @@ func _exit_tree() -> void:
 			GameManager.ad_reward_granted.disconnect(_on_ad_reward_granted)
 		if GameManager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
 			GameManager.ad_failed_to_load.disconnect(_on_ad_failed_to_load)
+		if GameManager.currency_updated.is_connected(_on_currency_updated):
+			GameManager.currency_updated.disconnect(_on_currency_updated)
 	if free_button.button_down.is_connected(_on_free_button_down):
 		free_button.button_down.disconnect(_on_free_button_down)
+	if free_button.mouse_entered.is_connected(_on_free_button_mouse_entered):
+		free_button.mouse_entered.disconnect(_on_free_button_mouse_entered)
+	if free_button.mouse_exited.is_connected(_on_free_button_mouse_exited):
+		free_button.mouse_exited.disconnect(_on_free_button_mouse_exited)
 	if crystal_button.button_down.is_connected(_on_crystal_button_down):
 		crystal_button.button_down.disconnect(_on_crystal_button_down)
+	if crystal_button.mouse_entered.is_connected(_on_crystal_button_mouse_entered):
+		crystal_button.mouse_entered.disconnect(_on_crystal_button_mouse_entered)
+	if crystal_button.mouse_exited.is_connected(_on_crystal_button_mouse_exited):
+		crystal_button.mouse_exited.disconnect(_on_crystal_button_mouse_exited)
 	if _popup_tween:
 		_popup_tween.kill()
 
@@ -79,6 +96,7 @@ func _on_visibility_changed() -> void:
 		_refresh_button_pivots()
 		_hide_warning_panel_immediately()
 		_refresh_ui()
+		_update_resource_display()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not GameManager:
@@ -113,18 +131,98 @@ func _connect_game_manager_signals() -> void:
 	if GameManager.has_signal("ad_failed_to_load"):
 		if not GameManager.ad_failed_to_load.is_connected(_on_ad_failed_to_load):
 			GameManager.ad_failed_to_load.connect(_on_ad_failed_to_load)
+	if GameManager.has_signal("currency_updated"):
+		if not GameManager.currency_updated.is_connected(_on_currency_updated):
+			GameManager.currency_updated.connect(_on_currency_updated)
 
 func _connect_button_feedback_signals() -> void:
 	if not free_button.button_down.is_connected(_on_free_button_down):
 		free_button.button_down.connect(_on_free_button_down)
 	if not crystal_button.button_down.is_connected(_on_crystal_button_down):
 		crystal_button.button_down.connect(_on_crystal_button_down)
+	if not free_button.mouse_entered.is_connected(_on_free_button_mouse_entered):
+		free_button.mouse_entered.connect(_on_free_button_mouse_entered)
+	if not free_button.mouse_exited.is_connected(_on_free_button_mouse_exited):
+		free_button.mouse_exited.connect(_on_free_button_mouse_exited)
+	if not crystal_button.mouse_entered.is_connected(_on_crystal_button_mouse_entered):
+		crystal_button.mouse_entered.connect(_on_crystal_button_mouse_entered)
+	if not crystal_button.mouse_exited.is_connected(_on_crystal_button_mouse_exited):
+		crystal_button.mouse_exited.connect(_on_crystal_button_mouse_exited)
+
+func _on_currency_updated(_currency_type: String, _new_amount: int) -> void:
+	_update_resource_display()
+
+func _format_number(num: int) -> String:
+	if num >= 1000000000:
+		return "%.1fB" % (num / 1000000000.0)
+	elif num >= 1000000:
+		return "%.1fM" % (num / 1000000.0)
+	elif num >= 1000:
+		return "%.1fK" % (num / 1000.0)
+	return str(num)
+
+func _update_resource_display() -> void:
+	if not GameManager:
+		return
+	if crystals_display:
+		crystals_display.text = "Crystals: %s" % _format_number(int(GameManager.crystal_count))
+	if coins_display:
+		coins_display.text = "Coins: %s" % _format_number(int(GameManager.coin_count))
+	if void_shards_display:
+		void_shards_display.text = "Void Shards: %s" % _format_number(int(GameManager.void_shards_count))
 
 func _on_free_button_down() -> void:
 	_play_button_press_feedback(free_card, true)
 
 func _on_crystal_button_down() -> void:
 	_play_button_press_feedback(crystal_card, false)
+
+func _ensure_card_hover_border(card: Control) -> Panel:
+	var border := card.get_node_or_null(HOVER_BORDER_NAME) as Panel
+	if border:
+		return border
+	border = Panel.new()
+	border.name = HOVER_BORDER_NAME
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.focus_mode = Control.FOCUS_NONE
+	border.z_index = 10
+	border.set_anchors_preset(Control.PRESET_FULL_RECT)
+	border.offset_left = 4
+	border.offset_top = 4
+	border.offset_right = -4
+	border.offset_bottom = -4
+	var border_style := StyleBoxFlat.new()
+	border_style.draw_center = false
+	border_style.border_color = HOVER_BORDER_COLOR
+	border_style.set_border_width_all(6)
+	border_style.set_corner_radius_all(16)
+	border.add_theme_stylebox_override("panel", border_style)
+	card.add_child(border)
+	return border
+
+func _on_free_button_mouse_entered() -> void:
+	if not free_button.disabled:
+		free_card.modulate = HOVER_HIGHLIGHT
+		var border := _ensure_card_hover_border(free_card)
+		border.show()
+
+func _on_free_button_mouse_exited() -> void:
+	free_card.modulate = Color.WHITE
+	var border := free_card.get_node_or_null(HOVER_BORDER_NAME) as Panel
+	if border:
+		border.hide()
+
+func _on_crystal_button_mouse_entered() -> void:
+	if not crystal_button.disabled:
+		crystal_card.modulate = HOVER_HIGHLIGHT
+		var border := _ensure_card_hover_border(crystal_card)
+		border.show()
+
+func _on_crystal_button_mouse_exited() -> void:
+	crystal_card.modulate = Color.WHITE
+	var border := crystal_card.get_node_or_null(HOVER_BORDER_NAME) as Panel
+	if border:
+		border.hide()
 
 func _collect_reward_panels() -> void:
 	reward_panels.clear()
@@ -204,6 +302,7 @@ func _refresh_ui() -> void:
 	if not GameManager:
 		return
 	GameManager.reset_wheel_daily_if_needed()
+	_update_resource_display()
 	var max_spins: int = GameManager.get_wheel_daily_max_spins()
 	var spins_remaining: int = GameManager.get_wheel_spins_remaining()
 	spins_left.text = "Spins Left: %d/%d" % [spins_remaining, max_spins]
@@ -238,6 +337,8 @@ func _on_free_button_pressed() -> void:
 	_hide_warning_panel_immediately()
 	GameManager.reset_wheel_daily_if_needed()
 	if GameManager.try_use_wheel_free_spin():
+		if coin_sound:
+			coin_sound.play()
 		await _perform_spin()
 		return
 	if GameManager.can_use_wheel_ad_spin():
@@ -316,6 +417,7 @@ func _apply_reward(panel: Panel) -> void:
 	if amount <= 0:
 		return
 	GameManager.add_currency(currency, amount)
+
 
 func _get_panel_border(panel: Panel) -> Panel:
 	return panel.get_node_or_null(BORDER_NAME) as Panel

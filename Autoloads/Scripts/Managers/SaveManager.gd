@@ -46,6 +46,11 @@ var level_highest_difficulty: Dictionary = {}
 var normal_globally_unlocked: bool = false
 var hard_globally_unlocked: bool = false
 
+# Added: Tutorial system state
+enum TutorialState { NONE, LVL1, SHOP, LVL2, LVL3, DONE }
+var tutorial_progress: int = TutorialState.NONE
+var tutorial_completion_showed: bool = false
+
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
@@ -184,6 +189,8 @@ func _build_save_payload() -> Dictionary:
 		"schema_version": SAVE_SCHEMA_VERSION,
 		"game_save_version": int(gm.SAVE_VERSION),
 		"progress": {
+			"tutorial_progress": tutorial_progress,
+			"tutorial_completion_showed": tutorial_completion_showed,
 			"unlocked_levels": gm.get_unlocked_levels_for_save(),
 			"shadow_mode_unlocked": gm.get_shadow_mode_unlocked_for_save(),
 			"shadow_mode_tutorial_shown": gm.get_shadow_mode_tutorial_shown_for_save(),
@@ -274,6 +281,9 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	var wheel_data: Dictionary = _dictionary_or_default(payload.get("wheel", {}), {})
 	var ads_data: Dictionary = _dictionary_or_default(payload.get("ads", {}), {})
 	
+	tutorial_progress = int(progress_data.get("tutorial_progress", TutorialState.NONE))
+	tutorial_completion_showed = bool(progress_data.get("tutorial_completion_showed", false))
+
 	if gm.has_level_state():
 		gm.set_unlocked_levels_from_save(int(progress_data.get("unlocked_levels", 1)))
 		gm.set_shadow_mode_unlocked(bool(progress_data.get("shadow_mode_unlocked", false)), "SaveManager._load_schema_payload")
@@ -463,6 +473,9 @@ func reset_progress() -> void:
 	level_completion_counts = {}
 	# Reset boss_levels_completed data
 	boss_levels_completed = []
+	# Reset tutorial state
+	tutorial_progress = TutorialState.NONE
+	tutorial_completion_showed = false
 	# Reset difficulty_unlocked_showed data
 	difficulty_unlocked_showed = false
 	hard_difficulty_unlocked_showed = false

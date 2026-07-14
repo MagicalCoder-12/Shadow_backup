@@ -4,11 +4,13 @@ extends Control
 @onready var crystalsLabel := $Panel/VBoxContainer/Crystals/Crystals
 @onready var coins_label: Label = $Panel/VBoxContainer/Coins/Coins
 @onready var completed_sound: AudioStreamPlayer2D = $AudioStreamPlayer2D
+@onready var ad_double_button: Button = $Ad_double
 
 const Map = "res://Map/map.tscn"
 var current_level: int
 var collected_coins: int = 0
 var collected_crystals: int = 0
+var rewards_doubled: bool = false
 @export var debug: bool = false  # Enable or disable debug logging
 var signals_connected: bool = false
 
@@ -38,11 +40,25 @@ func initialize():
 				if debug:
 					print("[LevelCompleted Debug] level_completed signal already connected")
 			
+			# Connect ad reward signal
+			if not GameManager.ad_reward_granted.is_connected(_on_ad_reward_granted):
+				GameManager.ad_reward_granted.connect(_on_ad_reward_granted)
+				if debug:
+					print("[LevelCompleted Debug] Connected ad_reward_granted signal")
+			
 			current_level = GameManager.get_current_level()
 		else:
 			push_error("Error: GameManager not found! Level completed screen is adrift.")
 			current_level = 1
 		signals_connected = true
+		
+		# Setup ad double button
+		if ad_double_button:
+			if not ad_double_button.pressed.is_connected(_on_ad_double_pressed):
+				ad_double_button.pressed.connect(_on_ad_double_pressed)
+				if debug:
+					print("[LevelCompleted Debug] Connected ad_double_button signal")
+			ad_double_button.show()
 	
 	# Show current values
 	if GameManager:
@@ -99,6 +115,9 @@ func _on_level_completed(_level_num: int) -> void:
 			print("[LevelCompleted Debug] GameManager.coins_collected_this_level: %d" % (GameManager.coins_collected_this_level if GameManager else 0))
 			print("[LevelCompleted Debug] GameManager.crystals_collected_this_level: %d" % (GameManager.crystals_collected_this_level if GameManager else 0))
 	
+	# Reset rewards doubled flag
+	rewards_doubled = false
+	
 	# Get the collected coins and crystals for this level
 	collected_coins = GameManager.coins_collected_this_level if GameManager else 0
 	collected_crystals = GameManager.crystals_collected_this_level if GameManager else 0
@@ -135,6 +154,10 @@ func _on_level_completed(_level_num: int) -> void:
 		if debug:
 			print("[LevelCompleted Debug] ERROR: scoreLabel is null!")
 	
+	# Show ad double button
+	if ad_double_button:
+		ad_double_button.show()
+	
 	# Play sound effect when level completed screen is shown
 	completed_sound.play()
 	# Make sure the screen is visible
@@ -168,12 +191,11 @@ func _on_next_pressed() -> void:
 		_commit_level_completion_if_needed()
 		GameManager.score = 0
 		if debug:
-			print("[LevelCompleted Debug] Level completed after %d, going to map!" % current_level)
-		# Navigate to map
-		GameManager.change_scene(GameManager.get_map_scene_path())
+			print("[LevelCompleted Debug] Level completed after %d, navigating!" % current_level)
+		GameManager.navigate_after_level_complete()
 	else:
 		if debug:
-			print("[LevelCompleted Debug] Error: GameManager missing, can't go to map!")
+			print("[LevelCompleted Debug] Error: GameManager missing, can't navigate!")
 
 func _on_map_pressed() -> void:
 	if debug:
@@ -181,18 +203,27 @@ func _on_map_pressed() -> void:
 	if GameManager:
 		# Ensure completion is committed when leaving via Map button as well.
 		_commit_level_completion_if_needed()
-		GameManager.change_scene(GameManager.get_map_scene_path())
+		GameManager.navigate_after_level_complete()
 		if debug:
-			print("[LevelCompleted Debug] Warping to map scene, hyperspace engaged!")
+			print("[LevelCompleted Debug] Warping from level, hyperspace engaged!")
 	else:
 		if debug:
-			print("[LevelCompleted Debug] Error: GameManager missing, can't warp to map!")
+			print("[LevelCompleted Debug] Error: GameManager missing, can't warp!")
 
 func _commit_level_completion_if_needed() -> void:
 	if not GameManager:
 		return
 	current_level = GameManager.get_current_level()
 	if not GameManager.is_level_completed(current_level):
+		# Add the collected rewards before completing
+		if collected_coins > 0:
+			GameManager.add_currency("coins", collected_coins)
+			if debug:
+				print("[LevelCompleted Debug] Added %d coins to total" % collected_coins)
+		if collected_crystals > 0:
+			GameManager.add_currency("crystals", collected_crystals)
+			if debug:
+				print("[LevelCompleted Debug] Added %d crystals to total" % collected_crystals)
 		GameManager.complete_current_level()
 
 func _on_restart_pressed() -> void:
@@ -211,4 +242,56 @@ func _on_restart_pressed() -> void:
 
 
 func _on_ad_double_pressed() -> void:
-	pass # Replace with function body.
+	if debug:
+		print("[LevelCompleted Debug] _on_ad_double_pressed called")
+	
+	# Check if already doubled
+	if rewards_doubled:
+		if debug:
+			print("[LevelCompleted Debug] Rewards already doubled, ignoring")
+		return
+	
+	# Check if GameManager and AdManager exist
+	if not GameManager or not GameManager.ad_manager:
+		push_error("GameManager or AdManager not found!")
+		return
+	
+	# Request a rewarded ad
+	if debug:
+		print("[LevelCompleted Debug] Requesting reward ad for double rewards")
+	GameManager.ad_manager.request_reward_ad("level_double")
+
+func _on_ad_reward_granted(reward_type: String) -> void:
+	if debug:
+		print("[LevelCompleted Debug] _on_ad_reward_granted called with type: %s" % reward_type)
+	
+	# Only process level_double rewards
+	if reward_type != "level_double":
+		return
+	
+	# Double the rewards
+	if not rewards_doubled:
+		rewards_doubled = true
+		
+		# Double coins
+		var doubled_coins = collected_coins * 2
+		if coins_label:
+			coins_label.text = "Coins: %d (2x!)" % doubled_coins
+		if debug:
+			print("[LevelCompleted Debug] Doubled coins: %d -> %d" % [collected_coins, doubled_coins])
+		collected_coins = doubled_coins
+		
+		# Double crystals
+		var doubled_crystals = collected_crystals * 2
+		if crystalsLabel:
+			crystalsLabel.text = "Crystals: %d (2x!)" % doubled_crystals
+		if debug:
+			print("[LevelCompleted Debug] Doubled crystals: %d -> %d" % [collected_crystals, doubled_crystals])
+		collected_crystals = doubled_crystals
+		
+		# Hide the ad double button
+		if ad_double_button:
+			ad_double_button.hide()
+		
+		if debug:
+			print("[LevelCompleted Debug] Rewards doubled successfully")

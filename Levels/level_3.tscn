@@ -5,35 +5,29 @@
 
 [sub_resource type="Resource" id="Resource_0qsy2"]
 script = ExtResource("2_yk3sq")
-entry_pattern = 5
-enemy_type = 6
+enemy_density = "Sparse"
 
 [sub_resource type="Resource" id="Resource_3x0r5"]
 script = ExtResource("2_yk3sq")
 enemy_type = 4
+enemy_density = "Normal"
 
 [sub_resource type="Resource" id="Resource_modaw"]
 script = ExtResource("2_yk3sq")
 enemy_type = 5
+enemy_density = "Normal"
 
 [sub_resource type="Resource" id="Resource_0akuu"]
 script = ExtResource("2_yk3sq")
-enemy_type = 6
+enemy_density = "Dense"
 
 [sub_resource type="Resource" id="Resource_sqdv6"]
 script = ExtResource("2_yk3sq")
-enemy_type = 7
-
-[sub_resource type="Resource" id="Resource_i8w10"]
-script = ExtResource("2_yk3sq")
-enemy_type = 7
-
-[sub_resource type="Resource" id="Resource_jqa6c"]
-script = ExtResource("2_yk3sq")
-enemy_type = 10
+enemy_type = 4
+enemy_density = "Maximum"
 
 [node name="Level_3" unique_id=1830486378 instance=ExtResource("1_cb8d3")]
 
 [node name="LevelManager" parent="." index="5" unique_id=302384067]
 level_num = 3
-waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_0qsy2"), SubResource("Resource_3x0r5"), SubResource("Resource_modaw"), SubResource("Resource_0akuu"), SubResource("Resource_sqdv6"), SubResource("Resource_i8w10"), SubResource("Resource_jqa6c")])
+waves = Array[ExtResource("2_yk3sq")]([SubResource("Resource_0qsy2"), SubResource("Resource_3x0r5"), SubResource("Resource_modaw"), SubResource("Resource_0akuu"), SubResource("Resource_sqdv6")])

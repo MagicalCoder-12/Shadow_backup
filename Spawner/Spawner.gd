@@ -13,9 +13,10 @@ var powerup_scenes := [
 var view_rect: Rect2
 
 @onready var powerupSpawnTimer := $PowerupSpawnTimer
-@onready var level: Node = get_tree().current_scene  # Assumes Level is the root node
+var level: Node
 
 func _ready():
+	level = get_tree().current_scene if get_tree() else null
 	randomize()
 	view_rect = get_viewport_rect()
 	# Connect to GameManager signals to stop spawning on game over or level completion

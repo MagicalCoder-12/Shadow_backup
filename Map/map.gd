@@ -48,6 +48,18 @@ func _ready():
 	
 	# Check if difficulty selection should be shown (after level 10 completion)
 	_check_and_show_difficulty_unlocked()
+	
+	# Tutorial: redirect to shop if needed
+	if SaveManager.tutorial_progress == SaveManager.TutorialState.SHOP:
+		GameManager.change_scene(Shop)
+		return
+	
+	# Tutorial completion message (one-time)
+	if SaveManager.tutorial_progress == SaveManager.TutorialState.DONE and not SaveManager.tutorial_completion_showed:
+		SaveManager.tutorial_completion_showed = true
+		SaveManager.save_progress(true)
+		await get_tree().create_timer(0.5).timeout
+		_show_tutorial_complete_message()
 
 # Hide banner ad when leaving the map scene
 func _exit_tree() -> void:
@@ -93,6 +105,18 @@ func _show_hard_difficulty_unlocked():
 		await get_tree().create_timer(3.0).timeout
 		if harddifficulty_unlocked and is_inside_tree():
 			harddifficulty_unlocked.hide()
+
+# Show tutorial completion message
+func _show_tutorial_complete_message():
+	var msg_panel = $CanvasLayer/difficultyUnlocked if difficulty_unlocked else null
+	if msg_panel:
+		var msg_label = msg_panel.get_node_or_null("Label")
+		if msg_label:
+			msg_label.text = "Training Complete!\nMedium unlocks at Level 10, Hard at Level 20"
+		msg_panel.show()
+		await get_tree().create_timer(4.0).timeout
+		if msg_panel and is_inside_tree():
+			msg_panel.hide()
 
 # Hide all stars immediately to prevent flickering during transition
 func hide_all_stars():

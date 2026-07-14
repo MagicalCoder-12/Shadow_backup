@@ -7,6 +7,9 @@ class_name BulletBase
 ## Damage dealt by the bullet.
 @export var damage: int = 1
 
+## How many enemies this bullet can pierce through before being destroyed. 0 = no piercing (destroy on first hit).
+@export var pierce_count: int = 0
+
 ## Whether the bullet is active (can move and deal damage).
 @export var is_active: bool = true
 
@@ -75,18 +78,23 @@ func _on_area_entered(area: Area2D) -> void:
 			elif area.has_method("take_damage"):
 				area.take_damage(damage)
 
-			# Trigger collision effects and return bullet to pool if using object pooling
+			# Trigger collision effects
 			_on_collision(area)
-			is_active = false
-			if pool_key != "":
-				# Return to object pool instead of freeing
-				if BulletFactory:
-					BulletFactory.return_bullet_to_pool(self, pool_key)
+
+			if pierce_count > 0:
+				# Piercing bullet: decrement count and keep moving
+				pierce_count -= 1
+
+			if pierce_count <= 0:
+				# No more pierces or non-piercing bullet: deactivate
+				is_active = false
+				if pool_key != "":
+					if BulletFactory:
+						BulletFactory.return_bullet_to_pool(self, pool_key)
+					else:
+						queue_free()
 				else:
 					queue_free()
-			else:
-				# Not using object pooling, free normally
-				queue_free()
 			break # Stop checking other groups once a collision is handled
 
 ## Virtual method for derived classes to customize collision behavior.

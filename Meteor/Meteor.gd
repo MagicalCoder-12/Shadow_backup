@@ -1,7 +1,7 @@
 extends Area2D
 
 var pMeteorEffect := preload("uid://fh5nwi0jt7vx")
-@onready var health_bar: TextureProgressBar = get_parent().get_node("HealthBar")
+@onready var health_bar: TextureProgressBar = get_node_or_null("../HealthBar")
 @onready var asteroid_explosion: AudioStreamPlayer = $"../AsteroidExplosion"
 
 @export var minSpeed: float = 400
@@ -63,15 +63,21 @@ func damage(amount: int):
 
 	
 	if life <= 0:
-		asteroid_explosion.play()
-		health_bar.hide()
-		var effect := pMeteorEffect.instantiate()
-		effect.position = position
-		get_parent().add_child(effect)
+		if asteroid_explosion:
+			asteroid_explosion.play()
+		if health_bar:
+			health_bar.hide()
+		if is_inside_tree():
+			var effect := pMeteorEffect.instantiate()
+			effect.position = position
+			var parent = get_parent()
+			if parent:
+				parent.add_child(effect)
 		
 		var current_scene = SceneSpawnService._get_safe_current_scene()
 		var cam := current_scene.find_child("Cam", true, false) if current_scene else null
-		cam.shake(100)
+		if cam:
+			cam.shake(100)
 		
 		@warning_ignore("narrowing_conversion")
 		GameManager.score += score

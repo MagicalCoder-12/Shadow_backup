@@ -11,9 +11,12 @@ func _on_area_entered(area: Area2D) -> void:
 		if area.has_method("damage"):
 			set_meta("direct_damage_applied", true)
 			area.damage(damage)
-		var bulletEffect := EBulletEffect.instantiate()
-		bulletEffect.position = position
-		get_parent().add_child(bulletEffect)
+		if is_inside_tree():
+			var bulletEffect := EBulletEffect.instantiate()
+			bulletEffect.position = position
+			var parent = get_parent()
+			if parent:
+				parent.add_child(bulletEffect)
 		queue_free()
 
 func _physics_process(delta):

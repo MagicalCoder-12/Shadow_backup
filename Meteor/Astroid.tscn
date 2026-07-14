@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://d4klroqo4pb7v"]
 
 [ext_resource type="Script" path="res://Meteor/Meteor.gd" id="1_j78u2"]
-[ext_resource type="Texture2D" uid="uid://ds0xvlrbkccxm" path="res://Textures/StonesFreeWenrexa/StonesFreeWenrexa/13.png" id="2_j78u2"]
+[ext_resource type="Texture2D" uid="uid://ds0xvlrbkccxm" path="res://Textures/StonesFreeWenrexa/13.png" id="2_j78u2"]
 [ext_resource type="AudioStream" uid="uid://c5g86day0vgfh" path="res://Textures/Music/asteroid_explosion.wav" id="3_ym8i0"]
 [ext_resource type="PackedScene" uid="uid://dwwtn28ag05fi" path="res://UI/HealthBar.tscn" id="4_3t7ox"]
 

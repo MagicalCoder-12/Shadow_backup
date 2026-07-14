@@ -9,6 +9,7 @@ func _ready() -> void:
 	# Initialize pools for different bullet types
 	var bullet_scenes = [
 		preload("res://Bullet/PlBullet/Bullet.tscn"),
+		preload("res://Bullet/PlBullet/player_bullet_4.tscn"),
 		preload("res://Bullet/PlBullet/super_bullet.tscn"),
 		preload("res://Bullet/PlBullet/plshadow_bullet.tscn"),
 		preload("res://Bullet/Ebullet/Enemy_Bullet.tscn"),

@@ -10,6 +10,9 @@
 [ext_resource type="Texture2D" uid="uid://cjwmilwn8qvmv" path="res://Textures/UI/Main_Menu/BTNs/Close_BTN.png" id="8_b0cls"]
 [ext_resource type="Texture2D" uid="uid://rghd1ijyiofv" path="res://Textures/UI/Main_Menu/BTNs_Active/Close_BTN.png" id="9_4g0qy"]
 [ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="10_4g0qy"]
+[ext_resource type="FontFile" uid="uid://dj8ta7d86erin" path="res://Textures/fonts/IBMPlexSansJP-SemiBold.ttf" id="11_2fkpe"]
+[ext_resource type="Texture2D" uid="uid://brlinyw3kiffu" path="res://Textures/UI/Main_Menu/Shop_Cristal_Icon_01.png" id="12_ftn7u"]
+[ext_resource type="AudioStream" uid="uid://dqhhjeg1la2hj" path="res://Textures/Music/coin_collected_08.wav" id="13_ftn7u"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hlt77"]
 
@@ -49,6 +52,14 @@ font_size = 70
 font_color = Color(1, 0.654902, 0, 1)
 outline_size = 2
 outline_color = Color(1, 0, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_fn8aa"]
+font = ExtResource("2_hlt77")
+font_size = 50
+
+[sub_resource type="LabelSettings" id="LabelSettings_xqmwl"]
+font = ExtResource("11_2fkpe")
+font_size = 50
 
 [node name="Wheel" type="Control" unique_id=1155124203]
 layout_mode = 3
@@ -481,6 +492,7 @@ offset_bottom = 294.0
 flat = true
 
 [node name="free_Label" type="Label" parent="PanelContainer/Panel/HBoxContainer/Free" unique_id=1338242]
+custom_minimum_size = Vector2(100, 100)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -526,6 +538,7 @@ offset_right = 145.0
 offset_bottom = 15.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_constants/separation = 40
 
 [node name="TextureRect" type="TextureRect" parent="PanelContainer/Panel/HBoxContainer/Crystal/HBoxContainer" unique_id=104392597]
@@ -587,6 +600,77 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 metadata/_edit_use_anchors_ = true
+
+[node name="Resources" type="HBoxContainer" parent="." unique_id=2113268910]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.039375
+anchor_right = 0.9965278
+anchor_bottom = 0.11625
+grow_horizontal = 2
+theme_override_constants/separation = 50
+metadata/_edit_use_anchors_ = true
+
+[node name="VoidCrystal" type="HBoxContainer" parent="Resources" unique_id=804618826]
+layout_mode = 2
+size_flags_horizontal = 3
+offset_transform_enabled = true
+metadata/_edit_use_anchors_ = true
+
+[node name="Void_Shards_display" type="Label" parent="Resources/VoidCrystal" unique_id=980819701]
+layout_mode = 2
+text = "Void_Crystals: 100k"
+label_settings = SubResource("LabelSettings_fn8aa")
+vertical_alignment = 2
+
+[node name="Void_shards" type="TextureRect" parent="Resources/VoidCrystal" unique_id=1158614111]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+texture = ExtResource("3_fl5qq")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Crystal" type="HBoxContainer" parent="Resources" unique_id=1755918576]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/_edit_use_anchors_ = true
+
+[node name="Crystals_display" type="Label" parent="Resources/Crystal" unique_id=1498998368]
+layout_mode = 2
+text = "Crystals: 100k"
+label_settings = SubResource("LabelSettings_xqmwl")
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Crstal" type="TextureRect" parent="Resources/Crystal" unique_id=112875050]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+texture = ExtResource("12_ftn7u")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="Money" type="HBoxContainer" parent="Resources" unique_id=2059391313]
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Coins_display" type="Label" parent="Resources/Money" unique_id=811161922]
+layout_mode = 2
+text = "Coins: 100k"
+label_settings = SubResource("LabelSettings_xqmwl")
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Coins" type="TextureRect" parent="Resources/Money" unique_id=548920153]
+custom_minimum_size = Vector2(60, 45)
+layout_mode = 2
+texture = ExtResource("1_svxdf")
+expand_mode = 1
+stretch_mode = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="CoinCollected08" type="AudioStreamPlayer" parent="." unique_id=1176276413]
+stream = ExtResource("13_ftn7u")
 
 [connection signal="pressed" from="PanelContainer/Panel/HBoxContainer/Free/freeButton" to="." method="_on_free_button_pressed"]
 [connection signal="pressed" from="PanelContainer/Panel/HBoxContainer/Crystal/crystal_Button" to="." method="_on_crystal_button_pressed"]
