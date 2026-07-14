@@ -6,7 +6,6 @@ extends Control
 const MAP = "res://Map/map.tscn"
 const SHOP = "res://MainScenes/Shop.tscn"
 const AD_LIMIT_PER_HOUR = 15
-const TUTORIAL_OVERLAY = preload("res://Tutorial/InGameTutorialOverlay.tscn")
 const AD_COOLDOWN_SECONDS = 3600  # 1 hour in seconds
 const UPGRADE_TRANSACTION_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeTransactionService.gd")
 const UPGRADE_AD_SERVICE_SCRIPT := preload("res://MainScenes/Scripts/Services/UpgradeAdService.gd")
@@ -128,15 +127,6 @@ func _ready() -> void:
 	# Connect the selected ship's gui_input signal to handle toggle functionality
 	if selected_ship and not selected_ship.is_connected("gui_input", _on_selected_ship_gui_input):
 		selected_ship.gui_input.connect(_on_selected_ship_gui_input)
-
-	# Tutorial shop overlay
-	if SaveManager.tutorial_progress == SaveManager.TutorialState.SHOP:
-		_show_tutorial_prompt("[center]Welcome to the [b]Shipyard[/b]!\n\nBuy & upgrade ships to boost your power\nThen press [b]Back[/b] to continue[/center]")
-
-func _show_tutorial_prompt(text: String) -> void:
-	var overlay = TUTORIAL_OVERLAY.instantiate()
-	overlay.set_text(text)
-	add_child(overlay)
 
 func _connect_gamemanager_signals() -> void:
 	"""Connect to relevant GameManager signals"""
@@ -828,10 +818,6 @@ func _on_ad_failed_to_load(_ad_type: String, _error_data: Variant) -> void:
 
 func _on_back_pressed() -> void:
 	_save_ship_progress()
-	# Tutorial: advance from SHOP to LVL2 when leaving the shop
-	if SaveManager.tutorial_progress == SaveManager.TutorialState.SHOP:
-		SaveManager.tutorial_progress = SaveManager.TutorialState.LVL2
-		SaveManager.save_progress(true)
 	_change_scene_optimized()
 
 func _change_scene_optimized() -> void:

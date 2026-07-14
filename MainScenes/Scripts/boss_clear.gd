@@ -189,13 +189,14 @@ func _on_auto_unlock_timeout():
 func _on_next_pressed() -> void:
 	if GameManager:
 		_commit_boss_level_completion_if_needed()
-		GameManager.navigate_after_level_complete()
+		# Navigate to map
+		GameManager.change_scene(GameManager.get_map_scene_path())
 
 
 func _on_map_pressed() -> void:
 	if GameManager:
 		_commit_boss_level_completion_if_needed()
-		GameManager.navigate_after_level_complete()
+		GameManager.change_scene(GameManager.get_map_scene_path())
 
 func _commit_boss_level_completion_if_needed() -> void:
 	if not GameManager:

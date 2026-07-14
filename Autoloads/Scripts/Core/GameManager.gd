@@ -633,27 +633,6 @@ func get_current_level() -> int:
 func get_map_scene_path() -> String:
 	return game_scene_service.get_map_scene_path(scene_manager)
 
-func navigate_after_level_complete() -> void:
-	var current_level = get_current_level()
-	var sm = save_manager
-
-	if current_level == 1 and sm.tutorial_progress == SaveManager.TutorialState.NONE:
-		sm.tutorial_progress = SaveManager.TutorialState.SHOP
-		sm.save_progress(true)
-	elif current_level == 2 and sm.tutorial_progress == SaveManager.TutorialState.LVL2:
-		sm.tutorial_progress = SaveManager.TutorialState.LVL3
-		sm.save_progress(true)
-	elif current_level == 3 and sm.tutorial_progress == SaveManager.TutorialState.LVL3:
-		sm.tutorial_progress = SaveManager.TutorialState.DONE
-		sm.save_progress(true)
-
-	if sm.tutorial_progress == SaveManager.TutorialState.SHOP:
-		change_scene("res://MainScenes/upgrade_menu.tscn")
-	elif sm.tutorial_progress < SaveManager.TutorialState.DONE:
-		change_scene(get_map_scene_path())
-	else:
-		change_scene(get_map_scene_path())
-
 func is_shadow_mode_enabled() -> bool:
 	return shadow_mode_state.shadow_mode_enabled
 

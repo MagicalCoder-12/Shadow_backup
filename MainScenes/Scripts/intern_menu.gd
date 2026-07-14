@@ -4,13 +4,10 @@ const MAP = "res://Map/map.tscn"
 const START = "res://MainScenes/start_menu.tscn"
 
 @onready var wheel: Control = $Wheel
-@onready var tutorial_overlay: Control = $Tutorial
 
 func _ready() -> void:
 	get_tree().get_root().connect("go_back_requested", _on_back_button_down)
 	call_deferred("_show_wheel_popup")
-	if tutorial_overlay:
-		tutorial_overlay.hide()
 
 func _show_wheel_popup() -> void:
 	if not wheel:
@@ -26,10 +23,6 @@ func _on_wheelbutton_pressed() -> void:
 
 func _on_play_pressed() -> void:
 	GameManager.change_scene(MAP)
-
-func _on_help_pressed() -> void:
-	if tutorial_overlay:
-		tutorial_overlay.reset_and_show()
 
 func _on_back_button_down() -> void:
 	GameManager.change_scene(START)

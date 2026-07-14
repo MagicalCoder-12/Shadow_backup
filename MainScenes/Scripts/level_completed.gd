@@ -191,8 +191,9 @@ func _on_next_pressed() -> void:
 		_commit_level_completion_if_needed()
 		GameManager.score = 0
 		if debug:
-			print("[LevelCompleted Debug] Level completed after %d, navigating!" % current_level)
-		GameManager.navigate_after_level_complete()
+			print("[LevelCompleted Debug] Level completed after %d, going to map!" % current_level)
+		# Navigate to map
+		GameManager.change_scene(GameManager.get_map_scene_path())
 	else:
 		if debug:
 			print("[LevelCompleted Debug] Error: GameManager missing, can't navigate!")
@@ -203,9 +204,9 @@ func _on_map_pressed() -> void:
 	if GameManager:
 		# Ensure completion is committed when leaving via Map button as well.
 		_commit_level_completion_if_needed()
-		GameManager.navigate_after_level_complete()
+		GameManager.change_scene(GameManager.get_map_scene_path())
 		if debug:
-			print("[LevelCompleted Debug] Warping from level, hyperspace engaged!")
+			print("[LevelCompleted Debug] Warping to map scene, hyperspace engaged!")
 	else:
 		if debug:
 			print("[LevelCompleted Debug] Error: GameManager missing, can't warp!")
