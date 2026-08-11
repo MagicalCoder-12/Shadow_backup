@@ -14,6 +14,10 @@ enum PowerupType {
 @export var super_mode_duration: float = 2.0
 @export var life_increase_amount: int = 1  # New: Amount to increase player life
 
+func _ready() -> void:
+	if powerup_type == PowerupType.ATTACK_BOOST:
+		TutorialManager.notify_pickup_spawned("powerup", self)
+
 func _get_super_mode_duration() -> float:
 	if GameManager and GameManager.has_method("get_super_mode_duration"):
 		return float(GameManager.get_super_mode_duration())
@@ -26,6 +30,7 @@ func applyPowerup(player: Player):
 	var configured_super_mode_duration: float = _get_super_mode_duration()
 	match powerup_type:
 		PowerupType.ATTACK_BOOST:
+			TutorialManager.notify_pickup_collected("powerup")
 			player.increase_bullet_damage(damage_increase_amount)
 		PowerupType.SUPER_MODE:
 			# Check if shadow mode is already active to apply combined mode

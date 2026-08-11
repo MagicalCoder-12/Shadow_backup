@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://b6mm1vdmhspxk"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_0gwgn"]
-[ext_resource type="Texture2D" uid="uid://5cigitycfpru" path="res://Textures/Enemy/AntuZ/SpaceShips/E-12.png" id="2_nwytj"]
-[ext_resource type="Texture2D" uid="uid://cpc24aljn15vg" path="res://Textures/Enemy/AntuZ/SpaceShips/H-12.png" id="3_turg3"]
+[ext_resource type="Texture2D" uid="uid://5cigitycfpru" path="res://Assets/Enemy/AntuZ/SpaceShips/E-12.png" id="2_nwytj"]
+[ext_resource type="Texture2D" uid="uid://cpc24aljn15vg" path="res://Assets/Enemy/AntuZ/SpaceShips/H-12.png" id="3_turg3"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_nwytj"]
 size = Vector2(193, 200)

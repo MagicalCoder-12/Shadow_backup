@@ -181,7 +181,7 @@ func _fire_wave_shot() -> void:
 	
 	# Play shooting sound
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 	
 	current_wave_shot += 1
 
@@ -286,7 +286,7 @@ func _fire_shadow_wave_shot() -> void:
 	
 	# Play shadow mode shooting sound
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 	
 	shadow_current_wave += 1
 
@@ -319,7 +319,7 @@ func _shoot_super_mode() -> void:
 	
 	# Play shooting sound
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 
 func _fire_shadow_wave_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	var base_rotation: float = _get_shadow_base_rotation()

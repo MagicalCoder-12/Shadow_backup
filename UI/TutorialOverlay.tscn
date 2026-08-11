@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://cm88dqm28c6tb"]
+
+[ext_resource type="Script" uid="uid://badg642gd23qd" path="res://UI/TutorialOverlay.gd" id="1_tutorial"]
+[ext_resource type="Theme" uid="uid://cajsdr5l6wc4w" path="res://Space.tres" id="2_j8oet"]
+[ext_resource type="Texture2D" uid="uid://cqlr1yf4h5ome" path="res://Assets/UI/Main_Menu/Window_2.png" id="3_lvomx"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bo2i8"]
+texture = ExtResource("3_lvomx")
+texture_margin_bottom = 250.0
+region_rect = Rect2(3.0009155, 235.7972, 896.33594, 175.63832)
+
+[node name="TutorialOverlay" type="Control" unique_id=1683281594]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_tutorial")
+
+[node name="Dimmer" type="ColorRect" parent="." unique_id=1001575134]
+top_level = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+mouse_filter = 2
+color = Color(0.12835406, 0.15170373, 0.29337206, 0.6)
+
+[node name="Card" type="Panel" parent="." unique_id=1122110375]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 21.0
+offset_top = -363.0
+offset_right = -17.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_j8oet")
+theme_type_variation = &"Details_panel"
+theme_override_styles/panel = SubResource("StyleBoxTexture_bo2i8")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Card" unique_id=1830181872]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -356.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Speaker" type="Label" parent="Card/VBoxContainer" unique_id=1732923521]
+layout_mode = 2
+text = "Speaker:"
+
+[node name="Dialogue" type="Label" parent="Card/VBoxContainer" unique_id=1146210591]
+layout_mode = 2
+text = "Dialogue:"
+
+[node name="Status" type="Label" parent="Card/VBoxContainer" unique_id=416846916]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Card/VBoxContainer" unique_id=514085378]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Skip" type="Button" parent="Card/VBoxContainer/HBoxContainer" unique_id=1384950441]
+layout_mode = 2
+
+[node name="Continue" type="Button" parent="Card/VBoxContainer/HBoxContainer" unique_id=31556856]
+layout_mode = 2

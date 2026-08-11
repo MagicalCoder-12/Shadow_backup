@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3 uid="uid://b7wevbdavqkkv"]
+[gd_scene format=3 uid="uid://b7wevbdavqkkv"]
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_trwi6"]
 [ext_resource type="Script" uid="uid://c2r0nrp7lkw57" path="res://Ships/Scripts/Ship1.gd" id="2_3uhnl"]
-[ext_resource type="Texture2D" uid="uid://kaf0ljwyaim5" path="res://Textures/player/ship_textures/ship_01_lvl0.png" id="2_m5d4w"]
-[ext_resource type="Texture2D" uid="uid://elye2idjkre3" path="res://Textures/player/ship_textures/ship_01_lvl1.png" id="3_y0rjc"]
-[ext_resource type="Texture2D" uid="uid://c3mit102fpxh1" path="res://Textures/player/ship_textures/ship_01_lvl2.png" id="4_b56g1"]
+[ext_resource type="Texture2D" uid="uid://kaf0ljwyaim5" path="res://Assets/player/ship_textures/ship_01_lvl0.png" id="2_m5d4w"]
+[ext_resource type="Texture2D" uid="uid://elye2idjkre3" path="res://Assets/player/ship_textures/ship_01_lvl1.png" id="3_y0rjc"]
+[ext_resource type="Texture2D" uid="uid://c3mit102fpxh1" path="res://Assets/player/ship_textures/ship_01_lvl2.png" id="4_b56g1"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6y0vx"]
 size = Vector2(169.5, 102)

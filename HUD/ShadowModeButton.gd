@@ -38,6 +38,7 @@ func add_charge(amount: float = charge_per_enemy) -> void:
 	if current_charge >= max_charge and not is_ready:
 		is_ready = true
 		update_display()
+		TutorialManager.notify_shadow_ready()
 
 func reset_charge() -> void:
 	current_charge = 0.0

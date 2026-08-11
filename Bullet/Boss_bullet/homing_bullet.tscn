@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://nhpymmsystt2"]
 
 [ext_resource type="Script" uid="uid://34o0aryne035" path="res://Bullet/Boss_bullet/Scripts/homing_bullet.gd" id="1_6lg3v"]
-[ext_resource type="Texture2D" uid="uid://d2ra2jic3tyu" path="res://Textures/Lasers/Laser Sprites/23.png" id="1_wfpm0"]
+[ext_resource type="Texture2D" uid="uid://d2ra2jic3tyu" path="res://Assets/Lasers/Laser Sprites/23.png" id="1_wfpm0"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6lg3v"]
 size = Vector2(32, 164)

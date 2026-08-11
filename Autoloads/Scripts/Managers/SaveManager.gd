@@ -6,7 +6,7 @@ var backup_progress_file_path: String = "user://game_progress_backup.dat"
 var autosave_progress: bool = true
 var save_debounce_seconds: float = 1.0
 const SAVE_FORMAT_MAGIC: String = "shadow_avenger_save"
-const SAVE_SCHEMA_VERSION: int = 2
+const SAVE_SCHEMA_VERSION: int = 3
 
 # Default resource values for new or reset progress
 const DEFAULT_RESOURCES: Dictionary = {
@@ -49,6 +49,14 @@ var hard_globally_unlocked: bool = false
 # Added: Ad usage tracking variables
 var ad_usage_count: int = 0
 var ad_last_used_time: int = 0
+## New profiles are eligible for automatic tutorials. Any profile created
+## before this field existed is migrated as established, so it is never
+## interrupted by a tutorial after updating the game.
+var tutorial_state: Dictionary = {
+	"eligible_for_automatic_tutorials": true,
+	"completed": {},
+	"state_version": 1
+}
 var _save_timer: Timer
 var _save_pending: bool = false
 var _save_in_progress: bool = false
@@ -223,7 +231,8 @@ func _build_save_payload() -> Dictionary:
 		"ads": {
 			"usage_count": ad_usage_count,
 			"last_used_time": ad_last_used_time
-		}
+		},
+		"tutorials": tutorial_state.duplicate(true)
 	}
 	return payload
 
@@ -273,6 +282,7 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	var resources_data: Dictionary = _dictionary_or_default(payload.get("resources", {}), {})
 	var wheel_data: Dictionary = _dictionary_or_default(payload.get("wheel", {}), {})
 	var ads_data: Dictionary = _dictionary_or_default(payload.get("ads", {}), {})
+	var tutorial_data: Variant = payload.get("tutorials", null)
 	
 	if gm.has_level_state():
 		gm.set_unlocked_levels_from_save(int(progress_data.get("unlocked_levels", 1)))
@@ -313,6 +323,12 @@ func _load_schema_payload(payload: Dictionary) -> bool:
 	level_highest_difficulty = _dictionary_or_default(progress_data.get("level_highest_difficulty", {}), {})
 	ad_usage_count = max(0, int(ads_data.get("usage_count", 0)))
 	ad_last_used_time = max(0, int(ads_data.get("last_used_time", 0)))
+	if tutorial_data is Dictionary:
+		tutorial_state = _normalize_tutorial_state(tutorial_data)
+	else:
+		# A save without tutorial metadata predates this feature. Treat it as an
+		# established profile and preserve the player's uninterrupted experience.
+		tutorial_state = _new_tutorial_state(false)
 	
 	_normalize_loaded_state()
 	return true
@@ -374,6 +390,8 @@ func _load_legacy_payload(file: FileAccess, version: int) -> bool:
 	level_highest_difficulty = {}
 	ad_usage_count = max(0, int(loaded_ad_usage_count))
 	ad_last_used_time = max(0, int(loaded_ad_last_used_time))
+	# Legacy sequential saves are always pre-tutorial profiles.
+	tutorial_state = _new_tutorial_state(false)
 	
 	_normalize_loaded_state()
 	return true
@@ -424,7 +442,7 @@ func _apply_data_validation() -> void:
 				var path = ship["textures"][key]
 				if not ResourceLoader.exists(path, "Texture2D"):
 					push_warning("Invalid texture path %s for ship %s, using fallback" % [path, ship.get("display_name", "Unknown")])
-					ship["textures"][key] = "res://Textures/player/ship_textures/ship_01_lvl0.png"
+					ship["textures"][key] = "res://Assets/player/ship_textures/ship_01_lvl0.png"
 	
 	# Validate satellites data
 	for satellite in gm.satellites:
@@ -446,7 +464,7 @@ func _apply_data_validation() -> void:
 			var path = satellite["texture"]
 			if not ResourceLoader.exists(path, "Texture2D"):
 				push_warning("Invalid satellite texture path %s for %s, using fallback" % [path, satellite.get("display_name", "Unknown")])
-				satellite["texture"] = "res://Textures/Satellite/Sat_textures/Sat1.png"
+				satellite["texture"] = "res://Assets/Satellite/Sat_textures/Sat1.png"
 
 func reset_progress() -> void:
 	gm.player_lives = 3
@@ -476,6 +494,8 @@ func reset_progress() -> void:
 	hard_globally_unlocked = false
 	ad_usage_count = 0
 	ad_last_used_time = 0
+	# Reset creates a new profile, which should receive the current onboarding.
+	tutorial_state = _new_tutorial_state(true)
 	if gm and gm.has_method("reset_wheel_state"):
 		gm.reset_wheel_state(true)
 	if autosave_progress:
@@ -506,6 +526,75 @@ func increment_level_completion_count(level_num: int) -> void:
 	if autosave_progress:
 		save_progress()
 
+
+func should_show_tutorial(tutorial_id: String) -> bool:
+	if tutorial_id.is_empty():
+		return false
+	if not bool(tutorial_state.get("eligible_for_automatic_tutorials", false)):
+		return false
+	return not is_tutorial_completed(tutorial_id)
+
+
+func is_tutorial_completed(tutorial_id: String) -> bool:
+	var completed: Variant = tutorial_state.get("completed", {})
+	return completed is Dictionary and bool(completed.get(tutorial_id, false))
+
+
+func mark_tutorial_completed(tutorial_id: String) -> void:
+	if tutorial_id.is_empty():
+		return
+	var completed: Dictionary = _dictionary_or_default(tutorial_state.get("completed", {}), {})
+	completed[tutorial_id] = true
+	tutorial_state["completed"] = completed
+	if autosave_progress:
+		save_progress()
+
+
+func _new_tutorial_state(is_new_profile: bool) -> Dictionary:
+	return {
+		"eligible_for_automatic_tutorials": is_new_profile,
+		"completed": {},
+		"campaign_stage": "level0_intro" if is_new_profile else "complete",
+		"flags": {},
+		"state_version": 2
+	}
+
+
+func _normalize_tutorial_state(value: Dictionary) -> Dictionary:
+	var state := _new_tutorial_state(bool(value.get("eligible_for_automatic_tutorials", false)))
+	state["completed"] = _dictionary_or_default(value.get("completed", {}), {})
+	state["campaign_stage"] = str(value.get("campaign_stage", state["campaign_stage"]))
+	state["flags"] = _dictionary_or_default(value.get("flags", {}), {})
+	state["state_version"] = max(2, int(value.get("state_version", 1)))
+	return state
+
+
+func get_tutorial_campaign_stage() -> String:
+	return str(tutorial_state.get("campaign_stage", "complete"))
+
+
+func set_tutorial_campaign_stage(stage: String) -> void:
+	if stage.is_empty():
+		return
+	tutorial_state["campaign_stage"] = stage
+	if autosave_progress:
+		save_progress()
+
+
+func get_tutorial_flag(flag: String) -> bool:
+	var flags: Variant = tutorial_state.get("flags", {})
+	return flags is Dictionary and bool(flags.get(flag, false))
+
+
+func set_tutorial_flag(flag: String, value: bool = true) -> void:
+	if flag.is_empty():
+		return
+	var flags: Dictionary = _dictionary_or_default(tutorial_state.get("flags", {}), {})
+	flags[flag] = value
+	tutorial_state["flags"] = flags
+	if autosave_progress:
+		save_progress()
+
 func _get_default_ships() -> Array:
 	var ships = gm.get_config_ships_data() if gm else []
 	if not ships.is_empty():
@@ -526,9 +615,9 @@ func _get_default_ships() -> Array:
 		"unlocked": false,
 		"description": "A mysterious vessel that harnesses both shadow and light",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_01_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_01_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_01_lvl2.png"
+			"base": "res://Assets/player/ship_textures/ship_01_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_01_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_01_lvl2.png"
 		}
 	}]
 
@@ -549,7 +638,7 @@ func _get_default_satellites() -> Array:
 		"can_ascend": false,
 		"unlocked": true,
 		"description": "A basic but reliable orbital companion",
-		"texture": "res://Textures/player/Sat_textures/Sat1.png",
+		"texture": "res://Assets/player/Sat_textures/Sat1.png",
 		"purchase_cost": 0
 	}]
 

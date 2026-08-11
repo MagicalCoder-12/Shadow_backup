@@ -1,13 +1,14 @@
 [gd_scene format=3 uid="uid://tfa6lh7cwbso"]
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_6mp55"]
-[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="2_87vj1"]
-[ext_resource type="Texture2D" uid="uid://djxdxx523tjm2" path="res://Textures/player/ship_textures/ship_08_lvl0.png" id="2_m3q21"]
-[ext_resource type="Texture2D" uid="uid://u6pok70lt3es" path="res://Textures/player/ship_textures/ship_08_lvl1.png" id="3_7n0wk"]
-[ext_resource type="Texture2D" uid="uid://boluvun3y3mib" path="res://Textures/player/ship_textures/ship_08_lvl2.png" id="4_f18cy"]
-[ext_resource type="Texture2D" uid="uid://cqhom4ungy6u2" path="res://Textures/player/ship_textures/ship_08_lvl3.png" id="5_5ujtf"]
-[ext_resource type="Texture2D" uid="uid://b1jenr3mel2qv" path="res://Textures/player/ship_textures/ship_08_lvl4.png" id="6_6ejja"]
-[ext_resource type="Texture2D" uid="uid://uqsxu1fitfqd" path="res://Textures/player/ship_textures/ship_08_lvl5.png" id="7_o17ll"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Assets/player/Example_ships/nightraiderfixed.png" id="2_87vj1"]
+[ext_resource type="Texture2D" uid="uid://djxdxx523tjm2" path="res://Assets/player/ship_textures/ship_08_lvl0.png" id="2_m3q21"]
+[ext_resource type="Texture2D" uid="uid://u6pok70lt3es" path="res://Assets/player/ship_textures/ship_08_lvl1.png" id="3_7n0wk"]
+[ext_resource type="Texture2D" uid="uid://boluvun3y3mib" path="res://Assets/player/ship_textures/ship_08_lvl2.png" id="4_f18cy"]
+[ext_resource type="Texture2D" uid="uid://cqhom4ungy6u2" path="res://Assets/player/ship_textures/ship_08_lvl3.png" id="5_5ujtf"]
+[ext_resource type="Texture2D" uid="uid://b1jenr3mel2qv" path="res://Assets/player/ship_textures/ship_08_lvl4.png" id="6_6ejja"]
+[ext_resource type="Texture2D" uid="uid://uqsxu1fitfqd" path="res://Assets/player/ship_textures/ship_08_lvl5.png" id="7_o17ll"]
+
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_bfqx8"]
 radius = 94.0

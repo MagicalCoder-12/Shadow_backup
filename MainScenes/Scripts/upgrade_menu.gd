@@ -92,6 +92,7 @@ var name_to_index = {
 # INITIALIZATION
 # ================================
 func _ready() -> void:
+	call_deferred("_start_campaign_shop_tutorial")
 	# Connect to GameManager signals first
 	_connect_gamemanager_signals()
 
@@ -127,6 +128,9 @@ func _ready() -> void:
 	# Connect the selected ship's gui_input signal to handle toggle functionality
 	if selected_ship and not selected_ship.is_connected("gui_input", _on_selected_ship_gui_input):
 		selected_ship.gui_input.connect(_on_selected_ship_gui_input)
+
+func _start_campaign_shop_tutorial() -> void:
+	TutorialManager.on_shop_ready(self)
 
 func _connect_gamemanager_signals() -> void:
 	"""Connect to relevant GameManager signals"""
@@ -774,11 +778,19 @@ func select_satellite_by_index(satellite_index: int) -> void:
 		push_warning("Invalid satellite index: %d" % satellite_index)
 
 func _on_upgrade_crystals_pressed() -> void:
-	if not _upgrade_selected_item("crystals"):
+	if not TutorialManager.can_upgrade_in_shop():
+		return
+	if _upgrade_selected_item("crystals"):
+		TutorialManager.notify_upgrade_completed()
+	else:
 		_show_upgrade_failed_feedback()
 
 func _on_upgrade_coins_pressed() -> void:
-	if not _upgrade_selected_item("coins"):
+	if not TutorialManager.can_upgrade_in_shop():
+		return
+	if _upgrade_selected_item("coins"):
+		TutorialManager.notify_upgrade_completed()
+	else:
 		_show_upgrade_failed_feedback()
 
 func _on_ascend_pressed() -> void:
@@ -817,6 +829,9 @@ func _on_ad_failed_to_load(_ad_type: String, _error_data: Variant) -> void:
 	_update_currency_display()
 
 func _on_back_pressed() -> void:
+	if not TutorialManager.can_exit_shop():
+		return
+	TutorialManager.notify_shop_exited()
 	_save_ship_progress()
 	_change_scene_optimized()
 

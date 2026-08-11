@@ -45,6 +45,9 @@ func level_state(value: bool) -> void:
 
 func _on_pressed():
 	if not locked:
+		if not TutorialManager.can_start_level(level_num):
+			return
+		TutorialManager.notify_level_selected(level_num)
 		# Stop the map sound
 		var map_scene = get_tree().current_scene
 		if map_scene.has_node("map"):

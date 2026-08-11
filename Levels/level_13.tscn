@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://c2bo6apdlg6rq"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_dbtuq"]
-[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_sp84l"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Assets/Background/bg1.png" id="2_sp84l"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_wkekd"]
+
 
 [sub_resource type="Shader" id="Shader_sp84l"]
 resource_local_to_scene = true

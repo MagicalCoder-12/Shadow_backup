@@ -10,8 +10,8 @@ const HELL_PATTERN_SCENE := preload("res://Bullet/Boss_bullet/hell_pattern.tscn"
 @export var phase_transition_health: int = 4000
 @export var projectile_scene: PackedScene
 @export var move_speed: float = 400.0
-@export var normal_boss_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldSERPENTARIUS2.png")
-@export var shadow_boss_sprite: Texture2D = preload("res://Textures/Boss/oldBossGFX/oldSERPENTARIUS3.png")
+@export var normal_boss_sprite: Texture2D = preload("res://Assets/Boss/oldBossGFX/oldSERPENTARIUS2.png")
+@export var shadow_boss_sprite: Texture2D = preload("res://Assets/Boss/oldBossGFX/oldSERPENTARIUS3.png")
 @export var orbit_radius: float = 200.0
 @export var orbit_vertical_scale: float = 0.3
 

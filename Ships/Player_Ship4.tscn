@@ -1,12 +1,13 @@
 [gd_scene format=3 uid="uid://tuuhurvmp3gh"]
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_uurdh"]
-[ext_resource type="Texture2D" uid="uid://c8tf7nijaonmb" path="res://Textures/player/ship_textures/ship_04_lvl0.png" id="2_dum23"]
-[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="2_w3ehj"]
-[ext_resource type="Texture2D" uid="uid://bfd346fbqog15" path="res://Textures/player/ship_textures/ship_04_lvl1.png" id="3_mh31l"]
-[ext_resource type="Texture2D" uid="uid://lsbwllaarw0r" path="res://Textures/player/ship_textures/ship_04_lvl2.png" id="4_xcc6m"]
-[ext_resource type="Texture2D" uid="uid://oedxr4ylcw1b" path="res://Textures/player/ship_textures/ship_04_lvl3.png" id="5_28iej"]
-[ext_resource type="Texture2D" uid="uid://dh4pqvtonptme" path="res://Textures/player/ship_textures/ship_04_lvl4.png" id="6_g7hh6"]
+[ext_resource type="Texture2D" uid="uid://c8tf7nijaonmb" path="res://Assets/player/ship_textures/ship_04_lvl0.png" id="2_dum23"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Assets/player/Example_ships/nightraiderfixed.png" id="2_w3ehj"]
+[ext_resource type="Texture2D" uid="uid://bfd346fbqog15" path="res://Assets/player/ship_textures/ship_04_lvl1.png" id="3_mh31l"]
+[ext_resource type="Texture2D" uid="uid://lsbwllaarw0r" path="res://Assets/player/ship_textures/ship_04_lvl2.png" id="4_xcc6m"]
+[ext_resource type="Texture2D" uid="uid://oedxr4ylcw1b" path="res://Assets/player/ship_textures/ship_04_lvl3.png" id="5_28iej"]
+[ext_resource type="Texture2D" uid="uid://dh4pqvtonptme" path="res://Assets/player/ship_textures/ship_04_lvl4.png" id="6_g7hh6"]
+
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_gkwpx"]
 radius = 278.0

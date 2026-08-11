@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://ch4osim8j7v8w"]
 
-[ext_resource type="Texture2D" uid="uid://nttt0kb1psnd" path="res://Textures/Sprites/M484BulletCollection1.png" id="2_oitqg"]
+[ext_resource type="Texture2D" uid="uid://nttt0kb1psnd" path="res://Assets/Sprites/M484BulletCollection1.png" id="2_oitqg"]
 [ext_resource type="Script" uid="uid://sk3ed4bpix0f" path="res://Bullet/Scripts/shadow_enemy_bullet.gd" id="2_qsnhr"]
+
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_8np1e"]
 radius = 7.1422925

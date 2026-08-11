@@ -16,9 +16,9 @@
 		"unlocked": true,
 		"description": "A mysterious vessel that harnesses both shadow and light",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_01_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_01_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_01_lvl2.png"
+			"base": "res://Assets/player/ship_textures/ship_01_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_01_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_01_lvl2.png"
 		}
 	},
 	{
@@ -36,9 +36,9 @@
 		"unlocked": false,
 		"description": "A swift striker with ethereal capabilities",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_02_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_02_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_02_lvl2.png"
+			"base": "res://Assets/player/ship_textures/ship_02_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_02_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_02_lvl2.png"
 		},
 		"purchase_cost": 500
 	},
@@ -57,9 +57,9 @@
 		"unlocked": false,
 		"description": "A blade that cuts through the fabric of space",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_03_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_03_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_03_lvl2.png"
+			"base": "res://Assets/player/ship_textures/ship_03_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_03_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_03_lvl2.png"
 		},
 		"purchase_cost": 850
 	},
@@ -78,11 +78,11 @@
 		"unlocked": false,
 		"description": "A ghostly dragon that phases through dimensions",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_04_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_04_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_04_lvl2.png",
-			"upgrade_3": "res://Textures/player/ship_textures/ship_04_lvl3.png",
-			"upgrade_4": "res://Textures/player/ship_textures/ship_04_lvl4.png"
+			"base": "res://Assets/player/ship_textures/ship_04_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_04_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_04_lvl2.png",
+			"upgrade_3": "res://Assets/player/ship_textures/ship_04_lvl3.png",
+			"upgrade_4": "res://Assets/player/ship_textures/ship_04_lvl4.png"
 		},
 		"purchase_cost": 2000
 	},
@@ -101,17 +101,17 @@
 		"unlocked": false,
 		"description": "A shadow wraith that haunts the void",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_05_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_05_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_05_lvl2.png",
-			"upgrade_3": "res://Textures/player/ship_textures/ship_05_lvl3.png",
-			"upgrade_4": "res://Textures/player/ship_textures/ship_05_lvl4.png",
-			"upgrade_5": "res://Textures/player/ship_textures/ship_05_lvl5.png",
-			"upgrade_6": "res://Textures/player/ship_textures/ship_05_lvl6.png",
-			"upgrade_7": "res://Textures/player/ship_textures/ship_05_lvl7.png",
-			"upgrade_8": "res://Textures/player/ship_textures/ship_05_lvl8.png",
-			"upgrade_9": "res://Textures/player/ship_textures/ship_05_lvl9.png",
-			"upgrade_10": "res://Textures/player/ship_textures/ship_05_lvl10.png"
+			"base": "res://Assets/player/ship_textures/ship_05_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_05_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_05_lvl2.png",
+			"upgrade_3": "res://Assets/player/ship_textures/ship_05_lvl3.png",
+			"upgrade_4": "res://Assets/player/ship_textures/ship_05_lvl4.png",
+			"upgrade_5": "res://Assets/player/ship_textures/ship_05_lvl5.png",
+			"upgrade_6": "res://Assets/player/ship_textures/ship_05_lvl6.png",
+			"upgrade_7": "res://Assets/player/ship_textures/ship_05_lvl7.png",
+			"upgrade_8": "res://Assets/player/ship_textures/ship_05_lvl8.png",
+			"upgrade_9": "res://Assets/player/ship_textures/ship_05_lvl9.png",
+			"upgrade_10": "res://Assets/player/ship_textures/ship_05_lvl10.png"
 		},
 		"purchase_cost": 4000
 	},
@@ -130,15 +130,15 @@
 		"unlocked": false,
 		"description": "A cosmic predator that howls through the void",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_06_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_06_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_06_lvl2.png",
-			"upgrade_3": "res://Textures/player/ship_textures/ship_06_lvl3.png",
-			"upgrade_4": "res://Textures/player/ship_textures/ship_06_lvl4.png",
-			"upgrade_5": "res://Textures/player/ship_textures/ship_06_lvl5.png",
-			"upgrade_6": "res://Textures/player/ship_textures/ship_06_lvl6.png",
-			"upgrade_7": "res://Textures/player/ship_textures/ship_06_lvl7.png",
-			"upgrade_8": "res://Textures/player/ship_textures/ship_06_lvl8.png"
+			"base": "res://Assets/player/ship_textures/ship_06_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_06_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_06_lvl2.png",
+			"upgrade_3": "res://Assets/player/ship_textures/ship_06_lvl3.png",
+			"upgrade_4": "res://Assets/player/ship_textures/ship_06_lvl4.png",
+			"upgrade_5": "res://Assets/player/ship_textures/ship_06_lvl5.png",
+			"upgrade_6": "res://Assets/player/ship_textures/ship_06_lvl6.png",
+			"upgrade_7": "res://Assets/player/ship_textures/ship_06_lvl7.png",
+			"upgrade_8": "res://Assets/player/ship_textures/ship_06_lvl8.png"
 		},
 		"purchase_cost": 5500
 	},
@@ -157,13 +157,13 @@
 		"unlocked": false,
 		"description": "A razor-sharp fang that cuts through darkness",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_07_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_07_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_07_lvl2.png",
-			"upgrade_3": "res://Textures/player/ship_textures/ship_07_lvl3.png",
-			"upgrade_4": "res://Textures/player/ship_textures/ship_07_lvl4.png",
-			"upgrade_5": "res://Textures/player/ship_textures/ship_07_lvl5.png",
-			"upgrade_6": "res://Textures/player/ship_textures/ship_07_lvl6.png"
+			"base": "res://Assets/player/ship_textures/ship_07_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_07_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_07_lvl2.png",
+			"upgrade_3": "res://Assets/player/ship_textures/ship_07_lvl3.png",
+			"upgrade_4": "res://Assets/player/ship_textures/ship_07_lvl4.png",
+			"upgrade_5": "res://Assets/player/ship_textures/ship_07_lvl5.png",
+			"upgrade_6": "res://Assets/player/ship_textures/ship_07_lvl6.png"
 		},
 		"purchase_cost": 8000
 	},
@@ -182,12 +182,12 @@
 		"unlocked": false,
 		"description": "A serpentine vessel that strikes from the void",
 		"textures": {
-			"base": "res://Textures/player/ship_textures/ship_08_lvl0.png",
-			"upgrade_1": "res://Textures/player/ship_textures/ship_08_lvl1.png",
-			"upgrade_2": "res://Textures/player/ship_textures/ship_08_lvl2.png",
-			"upgrade_3": "res://Textures/player/ship_textures/ship_08_lvl3.png",
-			"upgrade_4": "res://Textures/player/ship_textures/ship_08_lvl4.png",
-			"upgrade_5": "res://Textures/player/ship_textures/ship_08_lvl5.png"
+			"base": "res://Assets/player/ship_textures/ship_08_lvl0.png",
+			"upgrade_1": "res://Assets/player/ship_textures/ship_08_lvl1.png",
+			"upgrade_2": "res://Assets/player/ship_textures/ship_08_lvl2.png",
+			"upgrade_3": "res://Assets/player/ship_textures/ship_08_lvl3.png",
+			"upgrade_4": "res://Assets/player/ship_textures/ship_08_lvl4.png",
+			"upgrade_5": "res://Assets/player/ship_textures/ship_08_lvl5.png"
 		},
 		"purchase_cost": 10000
 	}

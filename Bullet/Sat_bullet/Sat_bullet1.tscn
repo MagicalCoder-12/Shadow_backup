@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://cuafrx6rgdj2w"]
 
 [ext_resource type="Script" uid="uid://cm1lk4k3gyeq8" path="res://Bullet/Scripts/sat_bullet1.gd" id="1_adx2k"]
-[ext_resource type="Texture2D" uid="uid://sgfykr1r0nus" path="res://Textures/Lasers/Laser Sprites/26.png" id="2_0nvb1"]
-[ext_resource type="Texture2D" uid="uid://d31qhhgg0nnk1" path="res://Textures/Lasers/Laser Sprites/25.png" id="3_nas0n"]
+[ext_resource type="Texture2D" uid="uid://sgfykr1r0nus" path="res://Assets/Lasers/Laser Sprites/26.png" id="2_0nvb1"]
+[ext_resource type="Texture2D" uid="uid://d31qhhgg0nnk1" path="res://Assets/Lasers/Laser Sprites/25.png" id="3_nas0n"]
+
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_fqx7m"]
 radius = 16.666666

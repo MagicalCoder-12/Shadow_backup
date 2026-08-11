@@ -82,7 +82,7 @@ graph LR
 
 #### 2.2 Texture Path Validation
 **Requirement**: Validate all texture paths referenced in ships.json exist in filesystem
-**Validation Target**: `res://Textures/player/ship_textures/` directory
+**Validation Target**: `res://Assets/player/ship_textures/` directory
 
 #### 2.3 JSON Schema Integrity
 **Issue Identified**: Ship8 in ships.json has incomplete texture definitions

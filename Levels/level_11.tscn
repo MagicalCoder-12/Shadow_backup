@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://d2550fg3euhqj"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_jerhw"]
-[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_5qrgj"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Assets/Background/bg1.png" id="2_5qrgj"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_5wub7"]
 [ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_f2m3h"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_syb1a"]
 shader = ExtResource("2_f2m3h")

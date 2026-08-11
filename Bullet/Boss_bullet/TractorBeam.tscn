@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://bu2h4t53ean2a"]
 
 [ext_resource type="Script" uid="uid://dyk25sf0xsm6r" path="res://Bullet/Boss_bullet/Scripts/tractor_beam.gd" id="1_lwjbf"]
-[ext_resource type="Texture2D" uid="uid://b5i7d8y6mboyh" path="res://Textures/Lasers/tractor_beam/00.png" id="1_treae"]
-[ext_resource type="Texture2D" uid="uid://bu701j6m1mk2m" path="res://Textures/Lasers/tractor_beam/01.png" id="2_iwfxk"]
-[ext_resource type="Texture2D" uid="uid://mbjsmk11fcvk" path="res://Textures/Lasers/tractor_beam/02.png" id="3_4jk1r"]
+[ext_resource type="Texture2D" uid="uid://b5i7d8y6mboyh" path="res://Assets/Lasers/tractor_beam/00.png" id="1_treae"]
+[ext_resource type="Texture2D" uid="uid://bu701j6m1mk2m" path="res://Assets/Lasers/tractor_beam/01.png" id="2_iwfxk"]
+[ext_resource type="Texture2D" uid="uid://mbjsmk11fcvk" path="res://Assets/Lasers/tractor_beam/02.png" id="3_4jk1r"]
+
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_67k5w"]
 animations = [{

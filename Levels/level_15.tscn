@@ -2,9 +2,10 @@
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_cji00"]
 [ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_3g0jf"]
-[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Textures/Background/bg1.png" id="2_5qblo"]
+[ext_resource type="Texture2D" uid="uid://doyf5qlqs5n5f" path="res://Assets/Background/bg1.png" id="2_5qblo"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_g3bfw"]
 [ext_resource type="PackedScene" uid="uid://84jk5t0kgmsf" path="res://Bosses/Boss_2.tscn" id="3_ta5rv"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3g0jf"]
 shader = ExtResource("2_3g0jf")

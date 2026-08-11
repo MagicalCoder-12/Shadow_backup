@@ -156,7 +156,7 @@ func _fire_burst_shot() -> void:
 	
 	# Play shooting sound via AudioManager
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 	
 	current_burst_shot += 1
 
@@ -185,7 +185,7 @@ func _fire_shadow_burst_shot() -> void:
 	
 	# Play shadow mode shooting sound via AudioManager
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 	
 	current_burst_shot += 1
 
@@ -207,7 +207,7 @@ func _fire_super_burst_shot() -> void:
 	
 	# Play super mode shooting sound via AudioManager
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 	
 	current_burst_shot += 1
 

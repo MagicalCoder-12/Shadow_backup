@@ -2,10 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_024sp"]
 [ext_resource type="Script" uid="uid://cbnx6774b6rc2" path="res://Ships/Scripts/Ship2.gd" id="2_spnhh"]
-[ext_resource type="Texture2D" uid="uid://chh7w32nqgbfb" path="res://Textures/player/ship_textures/ship_02_lvl0.png" id="3_c88ya"]
-[ext_resource type="Texture2D" uid="uid://bsq1h0i0bmh68" path="res://Textures/player/Example_ships/Spaceships-12/Spaceships/Spaceship12-purple-03.png" id="3_p6j1y"]
-[ext_resource type="Texture2D" uid="uid://dvfvojl7qalqv" path="res://Textures/player/ship_textures/ship_02_lvl1.png" id="4_knfr4"]
-[ext_resource type="Texture2D" uid="uid://cjpg44ujmgk6j" path="res://Textures/player/ship_textures/ship_02_lvl2.png" id="5_do63i"]
+[ext_resource type="Texture2D" uid="uid://chh7w32nqgbfb" path="res://Assets/player/ship_textures/ship_02_lvl0.png" id="3_c88ya"]
+[ext_resource type="Texture2D" uid="uid://bsq1h0i0bmh68" path="res://Assets/player/Example_ships/Spaceships-12/Spaceships/Spaceship12-purple-03.png" id="3_p6j1y"]
+[ext_resource type="Texture2D" uid="uid://dvfvojl7qalqv" path="res://Assets/player/ship_textures/ship_02_lvl1.png" id="4_knfr4"]
+[ext_resource type="Texture2D" uid="uid://cjpg44ujmgk6j" path="res://Assets/player/ship_textures/ship_02_lvl2.png" id="5_do63i"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2eqej"]
 size = Vector2(196.5, 133.16667)

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://bdruofng85taf"]
+[gd_scene format=3 uid="uid://bdruofng85taf"]
 
 [ext_resource type="Script" uid="uid://bahfjywwlbkx3" path="res://Powerups/Scripts/Powerup.gd" id="1_dx3gw"]
-[ext_resource type="Texture2D" uid="uid://cmqya1dmie5iw" path="res://Textures/Bonus_Items/HP_Bonus.png" id="2_ox23k"]
+[ext_resource type="Texture2D" uid="uid://cmqya1dmie5iw" path="res://Assets/Bonus_Items/HP_Bonus.png" id="2_ox23k"]
+
 
 [sub_resource type="CircleShape2D" id="1"]
 radius = 73.0274

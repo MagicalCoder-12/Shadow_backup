@@ -60,7 +60,7 @@ func _ready() -> void:
 			var texture_path = satellite["texture"]
 			if not ResourceLoader.exists(texture_path, "Texture2D"):
 				push_warning("Invalid satellite texture path %s for %s, using fallback" % [texture_path, satellite.get("display_name", "Unknown")])
-				satellite["texture"] = "res://Textures/Satellite/Sat_textures/Sat1.png"
+				satellite["texture"] = "res://Assets/Satellite/Sat_textures/Sat1.png"
 
 	# Load upgrade settings
 	var default_upgrade_settings := _get_default_upgrade_settings()
@@ -126,7 +126,7 @@ func _get_default_ships_data() -> Array:
 			"unlocked": true,
 			"description": "Fallback ship",
 			"textures": {
-				"base": "res://Textures/player/ship_textures/ship_01_lvl0.png"
+				"base": "res://Assets/player/ship_textures/ship_01_lvl0.png"
 			}
 		}
 	]
@@ -149,7 +149,7 @@ func _get_default_satellites_data() -> Array:
 			"can_ascend": false,
 			"unlocked": true,
 			"description": "Fallback satellite",
-			"texture": "res://Textures/Satellite/Sat_textures/Sat1.png",
+			"texture": "res://Assets/Satellite/Sat_textures/Sat1.png",
 			"purchase_cost": 0
 		}
 	]
@@ -200,7 +200,7 @@ func _get_default_player_settings() -> Dictionary:
 		"super_mode_bullet_speed": 5000.0,
 		"shadow_bullet_count": 25,
 		"base_bullet_damage": 20,
-		"shadow_texture": "res://Textures/player/g-01.png"
+		"shadow_texture": "res://Assets/player/g-01.png"
 	}
 
 func _get_default_enemy_profiles() -> Dictionary:

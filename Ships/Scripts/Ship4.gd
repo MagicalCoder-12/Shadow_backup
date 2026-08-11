@@ -58,7 +58,7 @@ func shoot() -> void:
 		_shoot_normal_rail(bullet_damage)
 
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 
 func _shoot_normal_rail(bullet_damage: int) -> void:
 	var bullet_scene: PackedScene = plBullet

@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://cnt8y6u2l5l6d"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_j76ws"]
-[ext_resource type="Texture2D" uid="uid://sdb3op3gsunj" path="res://Textures/Enemy/Ship_1_C_Small_NoLight.png" id="2_n7j1q"]
+[ext_resource type="Texture2D" uid="uid://sdb3op3gsunj" path="res://Assets/Enemy/Ship_1_C_Small_NoLight.png" id="2_n7j1q"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_n7j1q"]
 size = Vector2(227.66669, 134)

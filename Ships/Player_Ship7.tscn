@@ -1,14 +1,15 @@
 [gd_scene format=3 uid="uid://cr88d3xv2qnmg"]
 
 [ext_resource type="PackedScene" uid="uid://lff5yob7g21k" path="res://Ships/Player.tscn" id="1_w7ml8"]
-[ext_resource type="Texture2D" uid="uid://n3xkkipbaqqw" path="res://Textures/player/ship_textures/ship_07_lvl0.png" id="2_6srv6"]
-[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="2_evhxp"]
-[ext_resource type="Texture2D" uid="uid://dohc1ax2hu05q" path="res://Textures/player/ship_textures/ship_07_lvl1.png" id="3_8mwok"]
-[ext_resource type="Texture2D" uid="uid://c7u27n2ahbm0v" path="res://Textures/player/ship_textures/ship_07_lvl2.png" id="4_d568r"]
-[ext_resource type="Texture2D" uid="uid://c86v8ywlovcmh" path="res://Textures/player/ship_textures/ship_07_lvl3.png" id="5_mu816"]
-[ext_resource type="Texture2D" uid="uid://dtxbajiqxkw61" path="res://Textures/player/ship_textures/ship_07_lvl4.png" id="6_odd6q"]
-[ext_resource type="Texture2D" uid="uid://dw6htf3ldcrpx" path="res://Textures/player/ship_textures/ship_07_lvl5.png" id="7_bov56"]
-[ext_resource type="Texture2D" uid="uid://b8t5hg0raa2d" path="res://Textures/player/ship_textures/ship_07_lvl6.png" id="8_elj5c"]
+[ext_resource type="Texture2D" uid="uid://n3xkkipbaqqw" path="res://Assets/player/ship_textures/ship_07_lvl0.png" id="2_6srv6"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Assets/player/Example_ships/nightraiderfixed.png" id="2_evhxp"]
+[ext_resource type="Texture2D" uid="uid://dohc1ax2hu05q" path="res://Assets/player/ship_textures/ship_07_lvl1.png" id="3_8mwok"]
+[ext_resource type="Texture2D" uid="uid://c7u27n2ahbm0v" path="res://Assets/player/ship_textures/ship_07_lvl2.png" id="4_d568r"]
+[ext_resource type="Texture2D" uid="uid://c86v8ywlovcmh" path="res://Assets/player/ship_textures/ship_07_lvl3.png" id="5_mu816"]
+[ext_resource type="Texture2D" uid="uid://dtxbajiqxkw61" path="res://Assets/player/ship_textures/ship_07_lvl4.png" id="6_odd6q"]
+[ext_resource type="Texture2D" uid="uid://dw6htf3ldcrpx" path="res://Assets/player/ship_textures/ship_07_lvl5.png" id="7_bov56"]
+[ext_resource type="Texture2D" uid="uid://b8t5hg0raa2d" path="res://Assets/player/ship_textures/ship_07_lvl6.png" id="8_elj5c"]
+
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_7wk26"]
 radius = 216.0

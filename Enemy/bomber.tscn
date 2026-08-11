@@ -2,8 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_8wrbx"]
 [ext_resource type="Script" uid="uid://fo4bjwkbckj2" path="res://Enemy/Scripts/BomberEnemy.gd" id="2_1dfwg"]
-[ext_resource type="Texture2D" uid="uid://b838pnudtdbu8" path="res://Textures/Enemy/Enemy_3NoLight.png" id="3_11bpn"]
-[ext_resource type="Texture2D" uid="uid://cypq71bwp7g22" path="res://Textures/Enemy/Enemy_3_Light.png" id="4_7eb3f"]
+[ext_resource type="Texture2D" uid="uid://b838pnudtdbu8" path="res://Assets/Enemy/Enemy_3NoLight.png" id="3_11bpn"]
+[ext_resource type="Texture2D" uid="uid://cypq71bwp7g22" path="res://Assets/Enemy/Enemy_3_Light.png" id="4_7eb3f"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bq2ca"]
 size = Vector2(198.5, 204.5)

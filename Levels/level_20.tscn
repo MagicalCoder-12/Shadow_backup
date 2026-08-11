@@ -3,8 +3,9 @@
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_g1d3d"]
 [ext_resource type="Script" uid="uid://b42hpe1j0n2xx" path="res://EnemyManager/Scripts/WaveConfig.gd" id="2_3xxbo"]
 [ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_77udq"]
-[ext_resource type="Texture2D" uid="uid://bg2h5uay3e3p5" path="res://Textures/Background/bg3.png" id="2_px4op"]
+[ext_resource type="Texture2D" uid="uid://bg2h5uay3e3p5" path="res://Assets/Background/bg3.png" id="2_px4op"]
 [ext_resource type="PackedScene" uid="uid://buulyv2qq725c" path="res://Bosses/Boss1.tscn" id="3_4dlhd"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_briwc"]
 shader = ExtResource("2_77udq")

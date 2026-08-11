@@ -143,6 +143,7 @@ func fire_single_shot() -> void:
 	bullet.global_position = _enemy.global_position
 	bullet.rotation = PI / 2.0
 	SceneSpawnService.spawn_child(bullet)
+	TutorialManager.notify_enemy_bullet_spawned(bullet)
 
 func apply_shooting_cooldown() -> void:
 	if not _enemy:
@@ -177,6 +178,7 @@ func fire_at_player() -> void:
 		direction = (_enemy.player_reference.global_position - _enemy.global_position).normalized()
 	bullet.rotation = direction.angle() + PI / 2.0
 	SceneSpawnService.spawn_child(bullet)
+	TutorialManager.notify_enemy_bullet_spawned(bullet)
 	if _enemy.debug_mode:
 		print("Enemy fired bullet")
 
@@ -196,6 +198,7 @@ func fire_spread_shot(bullet_count: int = 2, spread_angle: float = PI / 6.0) -> 
 		bullet.global_position = _enemy.global_position
 		bullet.rotation = direction.angle() + PI / 2.0
 		SceneSpawnService.spawn_child(bullet)
+		TutorialManager.notify_enemy_bullet_spawned(bullet)
 
 func fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15) -> void:
 	if not _enemy:
@@ -219,6 +222,7 @@ func fire_burst_shot(burst_count: int = 2, burst_delay: float = 0.15) -> void:
 		bullet.global_position = _enemy.global_position
 		bullet.rotation = direction.angle() + PI / 2.0
 		SceneSpawnService.spawn_child(bullet)
+		TutorialManager.notify_enemy_bullet_spawned(bullet)
 		if i < safe_count - 1:
 			await _enemy.get_tree().create_timer(safe_delay).timeout
 

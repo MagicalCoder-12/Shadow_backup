@@ -21,6 +21,7 @@ var is_collected: bool = false
 
 # === READY ===
 func _ready() -> void:
+	TutorialManager.notify_pickup_spawned("coin", self)
 	# Add to Coins group for easier management
 	add_to_group("Coins")
 	
@@ -90,6 +91,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 	is_collected = true
 	GameManager.add_currency("coins", coin_value)
+	TutorialManager.notify_pickup_collected("coin")
 	set_deferred("monitoring", false)
 	set_deferred("monitorable", false)
 	if collision_shape_2d:

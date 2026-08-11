@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://b1tctquu5acgo"]
+[gd_scene format=3 uid="uid://b1tctquu5acgo"]
 
-[ext_resource type="Texture2D" uid="uid://b7jh1mnwp3xyp" path="res://Textures/Lasers/laserGreenShot.png" id="1_hvjq1"]
-[ext_resource type="Script" path="res://Bullet/Scripts/BulletEffect.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://b7jh1mnwp3xyp" path="res://Assets/Lasers/laserGreenShot.png" id="1_hvjq1"]
+[ext_resource type="Script" uid="uid://c726h2c1abeqi" path="res://Bullet/Scripts/BulletEffect.gd" id="2"]
+
 
 [node name="BulletEffect" type="Sprite2D"]
 scale = Vector2(0.7, 0.7)

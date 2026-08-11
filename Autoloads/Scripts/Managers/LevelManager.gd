@@ -32,7 +32,7 @@ signal level_loaded(level_num: int)
 signal boss_defeated
 
 const SHADOW_MODE_TUTORIAL_SCENE: PackedScene = preload("res://MainScenes/ShadowModeTutorial.tscn")
-const BACKGROUND_MUSIC: AudioStream = preload("res://Textures/Music/Start.ogg")
+const BACKGROUND_MUSIC: AudioStream = preload("res://Assets/Music/Start.ogg")
 
 func _ready() -> void:
 	gm = GameManager
@@ -332,6 +332,8 @@ func update_hud_visibility(_level_num: int = get_current_level()) -> void:
 					hud.reset_charge()
 
 func is_level_unlocked(level: int) -> bool:
+	if level == 0:
+		return TutorialManager.should_route_to_level_zero()
 	if gm and gm.is_god_mode_active():
 		return true
 

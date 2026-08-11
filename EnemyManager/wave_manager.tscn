@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://rei8m275yi5u" path="res://EnemyManager/Scripts/wave_manager.gd" id="1_7u0uf"]
 [ext_resource type="PackedScene" uid="uid://c0rvebin2dhlv" path="res://EnemyManager/FormationManager.tscn" id="2_i50id"]
-[ext_resource type="AudioStream" uid="uid://civle4evp5h2r" path="res://Textures/Music/Boss_music.mp3" id="9_3x51k"]
+[ext_resource type="AudioStream" uid="uid://civle4evp5h2r" path="res://Assets/Music/Boss_music.mp3" id="9_3x51k"]
+
 
 [node name="WaveManager" type="Node2D"]
 script = ExtResource("1_7u0uf")

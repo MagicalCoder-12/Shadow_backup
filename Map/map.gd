@@ -13,6 +13,7 @@ const Shop = "res://MainScenes/upgrade_menu.tscn"
 @export var levels_per_world: int = 10
 # Called when the node enters the scene tree
 func _ready():
+	call_deferred("_start_campaign_tutorial")
 	# Hide stars immediately to prevent flickering during transition
 	hide_all_stars()
 	if difficulty_unlocked:
@@ -248,11 +249,17 @@ func _get_star_sprite(button: Node, star_name: String) -> Sprite2D:
 
 	return null
 
+func _start_campaign_tutorial() -> void:
+	TutorialManager.on_map_ready()
+
 func _on_back_pressed() -> void:
 	canvaslayer.hide()
 	GameManager.change_scene(Intern_menu)
 
 func _on_shop_pressed() -> void:
+	if not TutorialManager.can_open_shop():
+		return
+	TutorialManager.notify_shop_opened()
 	canvaslayer.hide()
 	GameManager.change_scene(Shop)
 

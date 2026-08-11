@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://7fybejwunpqv"]
 
 [ext_resource type="PackedScene" uid="uid://bmlutcsqb2gte" path="res://Enemy/Enemy.tscn" id="1_7uv74"]
-[ext_resource type="Texture2D" uid="uid://dp4d036vnwec6" path="res://Textures/Enemy/Ship_1_B_Small_NoLight.png" id="2_46qqe"]
-[ext_resource type="Texture2D" uid="uid://dkh5xujg7i4mj" path="res://Textures/Enemy/Ship_1_A_Small_NoLight.png" id="2_rg0ir"]
+[ext_resource type="Texture2D" uid="uid://dp4d036vnwec6" path="res://Assets/Enemy/Ship_1_B_Small_NoLight.png" id="2_46qqe"]
+[ext_resource type="Texture2D" uid="uid://dkh5xujg7i4mj" path="res://Assets/Enemy/Ship_1_A_Small_NoLight.png" id="2_rg0ir"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_46qqe"]
 size = Vector2(229.00002, 122.66667)

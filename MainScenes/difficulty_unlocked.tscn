@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://cb4y2g0ulc7gu"]
 
-[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Textures/fonts/Kenney Future.ttf" id="1_c8ncn"]
+[ext_resource type="FontFile" uid="uid://bhr2rhqo8dmnd" path="res://Assets/fonts/Kenney Future.ttf" id="1_c8ncn"]
 [ext_resource type="Script" uid="uid://shw626mnyx1q" path="res://MainScenes/Scripts/difficulty_unlocked.gd" id="2_c8ncn"]
-[ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Textures/UI/Neon _CONTINUE_ Button Glowing.png" id="2_rqy0g"]
+[ext_resource type="Texture2D" uid="uid://ow4p68351e3x" path="res://Assets/UI/Neon _CONTINUE_ Button Glowing.png" id="2_rqy0g"]
+
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wesok"]
 

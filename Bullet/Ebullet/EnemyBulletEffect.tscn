@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://w0yt7o36fmvf"]
 
 [ext_resource type="Script" uid="uid://b6dqqyvaoal55" path="res://Bullet/Scripts/Enemy_Bullet_Effect.gd" id="1_hml61"]
-[ext_resource type="Texture2D" uid="uid://b071h07xudkf4" path="res://Textures/Lasers/laserRedShot.png" id="2_4vrfc"]
+[ext_resource type="Texture2D" uid="uid://b071h07xudkf4" path="res://Assets/Lasers/laserRedShot.png" id="2_4vrfc"]
+
 
 [node name="EnemyBulletEffect" type="Sprite2D" unique_id=1608652530]
 scale = Vector2(0.7, 0.7)

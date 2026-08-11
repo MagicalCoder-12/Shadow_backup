@@ -4,7 +4,7 @@ class_name WaveManager
 
 const COINS = preload("res://Resources/Coins.tscn")
 const CRYSTAL = preload("res://Resources/Crystal.tscn")
-const BOSS_MUSIC_STREAM := preload("res://Textures/Music/Boss_music.mp3")
+const BOSS_MUSIC_STREAM := preload("res://Assets/Music/Boss_music.mp3")
 const POWERUP_SCENES = [
 	preload("res://Powerups/Attack_boost_powerup.tscn"),
 	preload("res://Powerups/SuperMode.tscn"),

@@ -204,6 +204,8 @@ func _input(event: InputEvent) -> void:
 
 func _on_map_pressed() -> void:
 	if GameManager:
+		# Leaving a failed run must clear its game-over and player state before another level loads.
+		GameManager.reset_game()
 		GameManager.change_scene(GameManager.get_map_scene_path())
 		_debug_log("Warping to map scene, hyperspace engaged!")
 	else:
@@ -227,6 +229,8 @@ func _debug_log(message: String) -> void:
 
 
 func _on_shop_button_down() -> void:
+	if GameManager:
+		GameManager.reset_game()
 	GameManager.change_scene(SHOP_SCENE)
 
 

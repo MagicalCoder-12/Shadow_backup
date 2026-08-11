@@ -1,28 +1,28 @@
 [gd_resource type="Theme" format=3 uid="uid://cajsdr5l6wc4w"]
 
-[ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Textures/UI/Window.png" id="1_hyy63"]
-[ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Textures/UI/Table_02.png" id="1_o07jq"]
-[ext_resource type="Texture2D" uid="uid://cqlr1yf4h5ome" path="res://Textures/UI/Main_Menu/Window_2.png" id="2_337qn"]
-[ext_resource type="Texture2D" uid="uid://cks8mcb4kaw4g" path="res://Textures/UI/Main_Menu/Table_03.png" id="3_17axx"]
-[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Textures/fonts/IBMPlexSansJP-Bold.ttf" id="3_mahiv"]
+[ext_resource type="Texture2D" uid="uid://lf0pxp54ed0a" path="res://Assets/UI/Table_02.png" id="1_ghrth"]
+[ext_resource type="Texture2D" uid="uid://cqlr1yf4h5ome" path="res://Assets/UI/Main_Menu/Window_2.png" id="2_343iq"]
+[ext_resource type="Texture2D" uid="uid://coaoqlirx4xt3" path="res://Assets/UI/Window.png" id="3_tcbhi"]
+[ext_resource type="Texture2D" uid="uid://cks8mcb4kaw4g" path="res://Assets/UI/Main_Menu/Table_03.png" id="4_a3x7b"]
+[ext_resource type="FontFile" uid="uid://5oy6sd0yjonu" path="res://Assets/fonts/IBMPlexSansJP-Bold.ttf" id="5_7kx3s"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q4qn1"]
-texture = ExtResource("1_o07jq")
+texture = ExtResource("1_ghrth")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_4nfdr"]
-texture = ExtResource("1_o07jq")
+texture = ExtResource("1_ghrth")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0juxk"]
-texture = ExtResource("1_o07jq")
+texture = ExtResource("1_ghrth")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ccd22"]
-texture = ExtResource("1_o07jq")
+texture = ExtResource("1_ghrth")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hqxwt"]
-texture = ExtResource("1_o07jq")
+texture = ExtResource("1_ghrth")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_l1qfk"]
-texture = ExtResource("2_337qn")
+texture = ExtResource("2_343iq")
 texture_margin_left = 120.0
 texture_margin_top = 120.0
 texture_margin_right = 120.0
@@ -32,18 +32,18 @@ axis_stretch_vertical = 1
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghvvg"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hmrm1"]
-texture = ExtResource("1_hyy63")
+texture = ExtResource("3_tcbhi")
 texture_margin_top = 50.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3367s"]
-texture = ExtResource("1_hyy63")
+texture = ExtResource("3_tcbhi")
 texture_margin_top = 50.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_c38fb"]
-texture = ExtResource("3_17axx")
+texture = ExtResource("4_a3x7b")
 
 [resource]
-default_font = ExtResource("3_mahiv")
+default_font = ExtResource("5_7kx3s")
 default_font_size = 20
 Button/styles/disabled = SubResource("StyleBoxTexture_q4qn1")
 Button/styles/focus = SubResource("StyleBoxTexture_4nfdr")

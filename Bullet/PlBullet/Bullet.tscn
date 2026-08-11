@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://buhy6iijixga5"]
+[gd_scene format=3 uid="uid://buhy6iijixga5"]
 
-[ext_resource type="Script" path="res://Bullet/Scripts/PlayerBullet.gd" id="1_pqcaq"]
-[ext_resource type="Texture2D" uid="uid://b1ir205qptwgm" path="res://Textures/Lasers/Laser Sprites/16.png" id="2_ce8mx"]
+[ext_resource type="Script" uid="uid://dew3g7e7esv4k" path="res://Bullet/Scripts/PlayerBullet.gd" id="1_pqcaq"]
+[ext_resource type="Texture2D" uid="uid://b1ir205qptwgm" path="res://Assets/Lasers/Laser Sprites/16.png" id="2_ce8mx"]
+
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_v7qj8"]
 size = Vector2(21.5, 82.5)

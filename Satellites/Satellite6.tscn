@@ -1,9 +1,10 @@
 [gd_scene format=3 uid="uid://cgmerubllpsfd"]
 
 [ext_resource type="PackedScene" uid="uid://m4hqp78bi33k" path="res://Satellites/Satellite1.tscn" id="1_vltjo"]
-[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Textures/Satellite/Sat_textures/Sat6.png" id="2_bcenv"]
+[ext_resource type="Texture2D" uid="uid://ch2kihayy3rp0" path="res://Assets/Satellite/Sat_textures/Sat6.png" id="2_bcenv"]
 [ext_resource type="Script" uid="uid://bhm3g60pqs4mn" path="res://Satellites/Scripts/satellite2.gd" id="2_te12o"]
-[ext_resource type="Texture2D" uid="uid://dr5twcq8nsfyg" path="res://Textures/Satellite/Ship6/Parts/ship6_body2.png" id="3_e5bgx"]
+[ext_resource type="Texture2D" uid="uid://dr5twcq8nsfyg" path="res://Assets/Satellite/Ship6/Parts/ship6_body2.png" id="3_e5bgx"]
+
 
 [sub_resource type="Animation" id="Animation_e5bgx"]
 length = 0.001

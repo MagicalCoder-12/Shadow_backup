@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://ceg6sboym3t71"]
 
-[ext_resource type="Texture2D" uid="uid://ngj57kcm712p" path="res://Textures/Splash_Screen/playerShip1_red.png" id="1_n4n4u"]
+[ext_resource type="Texture2D" uid="uid://ngj57kcm712p" path="res://Assets/Splash_Screen/playerShip1_red.png" id="1_n4n4u"]
+
 
 [node name="LifeIcon" type="TextureRect" unique_id=1343839931]
 offset_right = 99.0

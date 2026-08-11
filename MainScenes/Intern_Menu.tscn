@@ -1,15 +1,16 @@
 [gd_scene format=3 uid="uid://bxub7aimy3aj6"]
 
 [ext_resource type="Script" uid="uid://c1ts4p5xhd8cw" path="res://MainScenes/Scripts/intern_menu.gd" id="1_2hkns"]
-[ext_resource type="Texture2D" uid="uid://bo2xweiq2jujd" path="res://Textures/Background/light1.png" id="1_wtw7j"]
-[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Textures/player/Example_ships/nightraiderfixed.png" id="2_8w1gi"]
-[ext_resource type="Texture2D" uid="uid://e4hrfs2883r7" path="res://Textures/player/g-02.png" id="2_wquij"]
-[ext_resource type="Texture2D" uid="uid://o86ufl6tabhe" path="res://Textures/Boss/Boss.png" id="5_8w1gi"]
-[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Textures/Satellite/Sat_textures/Sat5.png" id="5_mt7u5"]
-[ext_resource type="Texture2D" uid="uid://bghegjllovrjq" path="res://Textures/Boss/B1.png" id="6_2hkns"]
+[ext_resource type="Texture2D" uid="uid://bo2xweiq2jujd" path="res://Assets/Background/light1.png" id="1_wtw7j"]
+[ext_resource type="Texture2D" uid="uid://o2wy7u67nyci" path="res://Assets/player/Example_ships/nightraiderfixed.png" id="2_8w1gi"]
+[ext_resource type="Texture2D" uid="uid://e4hrfs2883r7" path="res://Assets/player/g-02.png" id="2_wquij"]
+[ext_resource type="Texture2D" uid="uid://o86ufl6tabhe" path="res://Assets/Boss/Boss.png" id="5_8w1gi"]
+[ext_resource type="Texture2D" uid="uid://c5met1im8s2k4" path="res://Assets/Satellite/Sat_textures/Sat5.png" id="5_mt7u5"]
+[ext_resource type="Texture2D" uid="uid://bghegjllovrjq" path="res://Assets/Boss/B1.png" id="6_2hkns"]
 [ext_resource type="PackedScene" uid="uid://db76ybegj7ain" path="res://MainScenes/wheel.tscn" id="6_8w1gi"]
-[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Textures/UI/Main_Menu/BTNs/Backward_BTN.png" id="9_aue4b"]
-[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Textures/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="10_nlsn1"]
+[ext_resource type="Texture2D" uid="uid://bwmjfy57rbo8p" path="res://Assets/UI/Main_Menu/BTNs/Backward_BTN.png" id="9_aue4b"]
+[ext_resource type="Texture2D" uid="uid://c6wmarnxxuujd" path="res://Assets/UI/Main_Menu/BTNs_Active/Backward_BTN.png" id="10_nlsn1"]
+[ext_resource type="PackedScene" uid="uid://cm88dqm28c6tb" path="res://UI/TutorialOverlay.tscn" id="11_nlsn1"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wtw7j"]
 
@@ -161,6 +162,9 @@ stretch_mode = 0
 
 [node name="Wheel" parent="." unique_id=1155124203 instance=ExtResource("6_8w1gi")]
 visible = false
+layout_mode = 1
+
+[node name="TutorialOverlay" parent="." unique_id=1683281594 instance=ExtResource("11_nlsn1")]
 layout_mode = 1
 
 [connection signal="pressed" from="Wheelbutton" to="." method="_on_wheelbutton_pressed"]

@@ -213,6 +213,14 @@ func _check_and_spawn_player() -> void:
 		await get_tree().create_timer(0.5).timeout
 		if GameManager.level_manager.get_current_level() == level_num and not has_spawned_player:
 			_spawn_player(GameManager.player_lives)
+			call_deferred("_start_campaign_tutorial")
+func _start_campaign_tutorial() -> void:
+	if level_num == 0:
+		TutorialManager.start_level_zero()
+	elif level_num == 1:
+		TutorialManager.start_level_one()
+	elif level_num == 6:
+		TutorialManager.start_shadow_level_six()
 
 func _on_level_loaded(_level_num: int) -> void:
 	print("Level.gd: Received level_loaded signal for level %d" % _level_num)
@@ -383,6 +391,10 @@ func _on_wave_manager_all_waves_cleared():
 		else:
 			print("Level.gd: Non-boss wave cleared, completing level through LevelManager")
 			# Call LevelManager.complete_level instead of emitting signal directly
+			if current_level_num == 0 and TutorialManager.complete_level_zero():
+				return
+			if current_level_num == 1 and TutorialManager.complete_level_one():
+				return
 			GameManager.level_manager.complete_level(current_level_num)
 
 # === BOSS DEFEATED ===
@@ -468,7 +480,7 @@ func _show_level_completed_ui():
 		
 		# Play reward sound effect
 		if AudioManager:
-			var sound_stream: AudioStream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
+			var sound_stream: AudioStream = preload("res://Assets/Music/794489__gobbe57__coin-pickup.wav")
 			if sound_stream:
 				AudioManager.play_sound_effect(sound_stream, "Master")
 	

@@ -149,7 +149,7 @@ func _apply_boss_rewards() -> void:
 
 func _play_sound_effect(sound_type: String) -> void:
 	if AudioManager:
-		var sound_stream: AudioStream = preload("res://Textures/Music/794489__gobbe57__coin-pickup.wav")
+		var sound_stream: AudioStream = preload("res://Assets/Music/794489__gobbe57__coin-pickup.wav")
 		if sound_stream:
 			AudioManager.play_sound_effect(sound_stream, "Master")  # Use Master bus
 		else:

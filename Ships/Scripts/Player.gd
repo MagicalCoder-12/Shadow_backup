@@ -38,7 +38,7 @@ var plNormalBullet: PackedScene = preload("res://Bullet/PlBullet/Bullet.tscn")  
 @export var super_mode_bullet_speed: float = 5000.0
 @export var shadow_bullet_count: int = 25
 @export var base_bullet_damage: int = 20
-@export var shadow_texture: Texture2D = preload("res://Textures/player/g-02.png")
+@export var shadow_texture: Texture2D = preload("res://Assets/player/g-02.png")
 @export var enable_debug_logging: bool = false  # Toggle for debug messages
 @export var evolution_textures: Array[Texture2D] = []  # Textures for each evolution stage
 
@@ -303,7 +303,7 @@ func shoot() -> void:
 
 	# Play shooting sound via AudioManager
 	if AudioManager:
-		AudioManager.play_sound_effect(preload("res://Textures/Music/Laser_Shoot16.wav"), "Bullet")
+		AudioManager.play_sound_effect(preload("res://Assets/Music/Laser_Shoot16.wav"), "Bullet")
 
 func _shoot_shadow_bullets(bullet_scene: PackedScene, bullet_speed: float, bullet_damage: int) -> void:
 	var angle_step: float = 360.0 / float(shadow_bullet_count)
@@ -370,6 +370,8 @@ func _play_death_animation() -> void:
 		push_error("Cannot emit death animation: DeathAnimation is null")
 
 func _handle_death() -> void:
+	if TutorialManager.handle_tutorial_death(self):
+		return
 	if death_in_progress:
 		return
 	death_in_progress = true
@@ -455,7 +457,9 @@ func _apply_mode_effects(shadow_mode_active: bool, super_mode_active: bool = fal
 
 func increase_bullet_damage(amount: int) -> void:
 	if GameManager.player_manager.player_stats.get("attack_level", 0) >= GameManager.player_manager.max_attack_level:
+		GameManager.score += 100
 		_show_overclocked_notification()
+		TutorialManager.notify_overclock_reached()
 		return
 	apply_bullet_damage_increase(amount)
 

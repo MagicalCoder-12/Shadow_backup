@@ -1,8 +1,9 @@
 [gd_scene format=3 uid="uid://ddiqoxtkkffel"]
 
 [ext_resource type="PackedScene" uid="uid://ce0cslus5mqjn" path="res://Levels/level_1.tscn" id="1_k0rf0"]
-[ext_resource type="Texture2D" uid="uid://bg2h5uay3e3p5" path="res://Textures/Background/bg3.png" id="2_iyqkj"]
+[ext_resource type="Texture2D" uid="uid://bg2h5uay3e3p5" path="res://Assets/Background/bg3.png" id="2_iyqkj"]
 [ext_resource type="Shader" uid="uid://d16n3s0prxcam" path="res://Shaders/Background.gdshader" id="2_smu6s"]
+
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jx6lc"]
 shader = ExtResource("2_smu6s")
